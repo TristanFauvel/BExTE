@@ -50,7 +50,10 @@ standard_error_log_odds_ratio <- function(n_control_nonresponders,
 #'
 #' @export
 generate_binary_data_from_rate <- function(rate, sample_size) {
-  return(c(rep(0, times = sample_size * (1 - rate)), rep(1, times = sample_size * rate)))
+  n_successes <- round(sample_size * rate)
+  n_failures <- sample_size - n_successes
+
+  return(c(rep(0, times = n_failures), rep(1, times = n_successes)))
 }
 
 #' Calculate the success rate in the target study arm from the drift on the log odds ratio scale
@@ -225,7 +228,7 @@ sample_rate_ratios <- function(control_rate,
                                n_control,
                                n_treatment) {
   sample_treatment_rate <- sample_aggregate_binary_data(treatment_rate, n_treatment, n_replicates)
-  sample_control_rate <- sample_aggregate_binary_data(control_rate, n_treatment, n_replicates)
+  sample_control_rate <- sample_aggregate_binary_data(control_rate, n_control, n_replicates)
 
   return(sample_treatment_rate / sample_control_rate)
 }
@@ -300,7 +303,7 @@ SourceData <- R6::R6Class("SourceData",
                                   # Observed source data (required for the treatment effect estimate in the source data):
 
                                   if (is.na(source_denominator)) {
-                                    odds_control <- self$control_rate / (1 - self$treatment_rate)
+                                    odds_control <- self$control_rate / (1 - self$control_rate)
                                   } else {
                                     odds_control <- source_denominator
                                   }
@@ -459,7 +462,7 @@ ObservedSourceData <- R6::R6Class(
       } else if (self$endpoint == "recurrent_event") {
         self$treatment_effect_estimate <- case_study_config$source$treatment_effect
         self$standard_error <- case_study_config$source$standard_error
-        self$control_rate <- case_study_config$sourc$control_rate
+        self$control_rate <- case_study_config[["source"]]$control_rate
         self$treatment_rate <- case_study_config$source$treatment_rate
         assertions::assert_number(self$treatment_rate)
         assertions::assert_number(self$control_rate)
@@ -853,7 +856,7 @@ BinaryTargetData <- R6::R6Class(
       if (summary_measure_likelihood == "binomial") {
         # compute the standard deviation
         treatment_effect_standard_error <- sqrt((
-          self$treatment_rate * (1 - self$treatment_rate) / self$sample_size_control + self$control_rate * (1 - self$control_rate) / self$sample_size_treatment
+          self$treatment_rate * (1 - self$treatment_rate) / self$sample_size_treatment + self$control_rate * (1 - self$control_rate) / self$sample_size_control
         )
         )
         self$standard_deviation <- treatment_effect_standard_error * sqrt(target_sample_size_per_arm)
@@ -903,7 +906,7 @@ BinaryTargetData <- R6::R6Class(
                                                             n_replicates)
 
         treatment_effect_standard_error <- sqrt(
-          sample_treatment_rate * (1 - sample_treatment_rate) / self$sample_size_control + sample_control_rate * (1 - sample_control_rate) / self$sample_size_treatment
+          sample_treatment_rate * (1 - sample_treatment_rate) / self$sample_size_treatment + sample_control_rate * (1 - sample_control_rate) / self$sample_size_control
         )
 
         standard_deviation <- sqrt(

@@ -9,6 +9,10 @@ test_that("generate_binary_data_from_rate generates binary data correctly", {
   data <- generate_binary_data_from_rate(0.3, 100)
   expect_equal(length(data), 100)
   expect_equal(sum(data), 30)
+
+  data_with_fractional_expected_count <- generate_binary_data_from_rate(0.25, 10)
+  expect_equal(length(data_with_fractional_expected_count), 10)
+  expect_equal(sum(data_with_fractional_expected_count), round(0.25 * 10))
 })
 
 # Test rate_from_drift_logOR function
@@ -55,8 +59,15 @@ test_that("sample_log_odds_ratios samples log odds ratios correctly", {
 
 # Test sample_rate_ratios function
 test_that("sample_rate_ratios samples rate ratios correctly", {
+  set.seed(123)
   result <- sample_rate_ratios(0.3, 0.2, 10, 100, 200)
+
+  set.seed(123)
+  expected <- sample_aggregate_binary_data(0.2, 200, 10) /
+    sample_aggregate_binary_data(0.3, 100, 10)
+
   expect_equal(length(result), 10)
+  expect_equal(result, expected)
 })
 
 # Test sample_aggregate_normal_data function
@@ -70,4 +81,41 @@ test_that("sample_aggregate_normal_data samples aggregate normal data correctly"
 test_that("sample_aggregate_binary_data samples aggregate binary data correctly", {
   result <- sample_aggregate_binary_data(0.3, 100, 10)
   expect_equal(length(result), 10)
+})
+
+test_that("SourceData preserves the observed binary control rate by default", {
+  case_study_config <- list(
+    endpoint = "binary",
+    summary_measure_likelihood = "normal",
+    source = list(
+      control = 100,
+      treatment = 100,
+      responses = list(control = 20, treatment = 30)
+    )
+  )
+
+  source_data <- SourceData$new(case_study_config)
+
+  expect_equal(source_data$control_rate, 0.2)
+})
+
+test_that("ObservedSourceData reads recurrent-event rates from source config", {
+  case_study_config <- list(
+    endpoint = "recurrent_event",
+    summary_measure_likelihood = "normal",
+    source = list(
+      control = 100,
+      treatment = 120,
+      treatment_effect = -0.2,
+      standard_error = 0.1,
+      control_rate = 0.8,
+      treatment_rate = 0.65
+    ),
+    source_metadata = list(description = "prevents partial matching")
+  )
+
+  source_data <- ObservedSourceData$new(case_study_config)
+
+  expect_equal(source_data$control_rate, 0.8)
+  expect_equal(source_data$treatment_rate, 0.65)
 })
