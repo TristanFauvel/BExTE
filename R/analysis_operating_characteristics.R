@@ -11,8 +11,11 @@
 #' @param frequentist_test Type of frequentist test to apply, either z-test or t-test
 #' @param theta_0 Boundary of the null hypothesis space
 #' @param null_space Side of the null space, either left or right.
+#' @param simulation_config Simulation configuration.
+#' @param case_study Optional case-study name.
+#' @param n_replicates Number of Monte Carlo replicates for non-analytical power calculations.
 #'
-#' @return The power of the test.
+#' @return A list containing the power and its confidence interval.
 #'
 #' @export
 compute_freq_power <- function(alpha,
@@ -32,7 +35,10 @@ compute_freq_power <- function(alpha,
   }
 
   if (is.na(alpha)){
-    return(NA)
+    return(list(
+      power = NA_real_,
+      conf_int_power = rep(NA_real_, 2)
+    ))
   }
 
   assertions::assert_number(target_data$treatment_effect)
@@ -40,8 +46,6 @@ compute_freq_power <- function(alpha,
   assertions::assert_number(target_data$sample_size_per_arm)
 
   power <- NA # Default value in case of an unsupported distribution
-
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
 
   if (target_data$summary_measure_likelihood == "normal") {
     if (target_data$endpoint == "normal"  || target_data$endpoint == "continuous"  || case_study == "mepolizumab"){
@@ -73,8 +77,6 @@ compute_freq_power <- function(alpha,
     } else {
       # In this case, we cannot use an analytical computation of power
       set.seed(simulation_config$seed)
-
-      theta_0 <- case_study_config$theta_0
 
       # Estimate the frequentist OCs for the model in the scenario considered
       # Generate data for n_replicates clinical trials
@@ -132,6 +134,9 @@ compute_freq_power <- function(alpha,
 #' @param frequentist_test Type of frequentist test to apply, either z-test or t-test
 #' @param theta_0 Boundary of the null hypothesis space
 #' @param null_space Side of the null space, either left or right.
+#' @param simulation_config Simulation configuration.
+#' @param case_study Optional case-study name.
+#' @param n_replicates Number of Monte Carlo replicates for non-analytical power calculations.
 #'
 #' @return The power of the test.
 #'
@@ -211,11 +216,6 @@ compute_freq_power_pooling <- function(alpha,
     } else {
       # In this case, we cannot use an analytical computation of power
       set.seed(simulation_config$seed)
-      case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
-
-
-      theta_0 <- case_study_config$theta_0
-      null_space <- case_study_config$null_space
 
       # Estimate the frequentist OCs for the model in the scenario considered
       # Generate data for n_replicates clinical trials
@@ -243,11 +243,9 @@ compute_freq_power_pooling <- function(alpha,
         pooled_standard_error_2 <- 1 / (1 / source_data$standard_error ^ 2 + 1 / target_treatment_effect_standard_error ^
                                           2)
 
-        pooled_variance <- pooled_standard_error_2 * (
-          target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
-        )
+        pooled_sample_size <- target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
 
-        effect_size <- (pooled_treatment_effect - theta_0) / sqrt(pooled_variance)
+        pooled_variance <- pooled_standard_error_2 * pooled_sample_size
 
         if (frequentist_test == 't-test'){
           if (null_space == "left"){
@@ -260,8 +258,8 @@ compute_freq_power_pooling <- function(alpha,
             mean.x = pooled_treatment_effect,
             mu = theta_0,
             alternative = alternative,
-            s.x = target_data$sample$standard_deviation,
-            n.x = target_data$sample$sample_size_per_arm,
+            s.x = sqrt(pooled_variance),
+            n.x = pooled_sample_size
           )
         } else {
           stop("Only implemented for a t-test.")
@@ -313,7 +311,10 @@ compute_power_with_tie_ci <- function(alpha,
                                       n_replicates = 100,
                                       n_samples = 100) {
   if (is.na(alpha$conf_int_upper) || is.na(alpha$conf_int_lower)) {
-    return(NA)
+    return(list(
+      power = NA_real_,
+      conf_int_power = rep(NA_real_, 2)
+    ))
   }
 
   # Generate samples of alpha (TIE) based on the confidence interval
@@ -321,6 +322,13 @@ compute_power_with_tie_ci <- function(alpha,
 
   # Ensure alpha values stay within valid bounds (0, 1)
   alpha_samples <- alpha_samples[alpha_samples > 0 & alpha_samples < 1]
+
+  if (length(alpha_samples) == 0L) {
+    return(list(
+      power = NA_real_,
+      conf_int_power = rep(NA_real_, 2)
+    ))
+  }
 
   # Compute power for each sampled alpha
   power_samples <- sapply(alpha_samples, function(alpha) {
