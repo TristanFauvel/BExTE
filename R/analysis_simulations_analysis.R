@@ -24,7 +24,6 @@ simulation_analysis <- function(env,
 
   results_dir <- paste0("./results/", env)
   outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
-  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
   simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "RBExT"))
 
   freq_filename <- paste0(results_dir,
@@ -75,20 +74,17 @@ simulation_analysis <- function(env,
   if ("frequentist_power_at_equivalent_tie" %in% to_compute){
     new_results_power_df <- frequentist_power_at_equivalent_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = FALSE)
 
-    # # Filter out the rows in results_freq_df that match new_results_power_df
-    # updated_results_df <- results_freq_df %>%
-    #   dplyr::filter(!dplyr::if_any(all_of(matching_columns), ~ . %in% new_results_power_df[[.col]]))
-    #
-    # # Combine the filtered original results with the new results
-    # combined_results_df <- dplyr::bind_rows(updated_results_df, new_results_power_df)
-
     updated_results_df <- results_freq_df %>%
       dplyr::anti_join(new_results_power_df, by = matching_columns)
 
-    # Append new results to existing data
-    combined_results_df <- dplyr::bind_rows(updated_results_df, new_results_power_df)
+    # Keep the updated results in memory for all subsequent analysis steps.
+    results_freq_df <- dplyr::bind_rows(updated_results_df, new_results_power_df)
+    results_freq_subset <- subset(
+      results_freq_df,
+      case_study %in% case_studies & method %in% methods
+    )
 
-    readr::write_csv(combined_results_df, freq_filename)
+    readr::write_csv(results_freq_df, freq_filename)
   }
   if ("frequentist_power_at_nominal_tie" %in% to_compute){
     new_results_power_df <- frequentist_power_at_nominal_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config)
@@ -96,13 +92,21 @@ simulation_analysis <- function(env,
     updated_results_df <- results_freq_df %>%
       dplyr::anti_join(new_results_power_df, by = matching_columns)
 
-    # Append new results to existing data
-    combined_results_df <- dplyr::bind_rows(updated_results_df, new_results_power_df)
+    # Keep the updated results in memory for all subsequent analysis steps.
+    results_freq_df <- dplyr::bind_rows(updated_results_df, new_results_power_df)
+    results_freq_subset <- subset(
+      results_freq_df,
+      case_study %in% case_studies & method %in% methods
+    )
 
-    readr::write_csv(combined_results_df, freq_filename)
+    readr::write_csv(results_freq_df, freq_filename)
   }
   if ("sweet_spot" %in% to_compute){
-    sweet_spot_df <- sweet_spot(results_freq_subset, frequentist_metrics)
+    sweet_spot_df <- sweet_spot(
+      results_freq_subset,
+      frequentist_metrics,
+      nominal_tie = analysis_config$nominal_tie
+    )
 
     jsonlite::write_json(sweet_spot_df, paste0(results_dir, "/sweet_spot.json"))
   }
