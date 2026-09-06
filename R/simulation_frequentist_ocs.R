@@ -325,7 +325,7 @@ simulation_frequentist_ocs <- function(env,
           close(freq_file)
         }
       } else {
-        ncores <- min(parallel::detectCores() - 1, 96) # Leave on core free
+        ncores <- get_parallel_worker_count(max_workers = 96L)
 
         # Set a range of ports for cluster
         options(clusterPort = c(11000, 11999))
@@ -335,7 +335,7 @@ simulation_frequentist_ocs <- function(env,
         doParallel::registerDoParallel(cl)
 
         # Define the list of libraries to load
-        required_libraries <- c("devtools")
+        required_libraries <- c("RBExT")
 
         # Export the library paths to each worker
         paths <- .libPaths()
@@ -358,7 +358,6 @@ simulation_frequentist_ocs <- function(env,
         parallel::clusterEvalQ(cl, {
           .libPaths(paths)
           sapply(required_libraries, library, character.only = TRUE)
-          devtools::load_all()
         })
 
         # Parallel computation over cases

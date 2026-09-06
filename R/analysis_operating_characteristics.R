@@ -436,32 +436,36 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 
   if (parallelization == TRUE){
     # Set up parallel backend
-    n_cores <- parallel::detectCores() - 1
+    n_cores <- get_parallel_worker_count()
     cl <- parallel::makeCluster(n_cores)
     doParallel::registerDoParallel(cl)
 
     required_libraries <- c(
-      "pwr", "dplyr", "yaml", "BSDA"
+      "RBExT", "pwr", "dplyr", "yaml", "BSDA"
     )
 
     # Export necessary functions and objects to the cluster
     paths <- .libPaths()
     parallel::clusterExport(cl,
-                  varlist = c("paths", "required_libraries", "config_dir", "case_studies_config_dir"),
+                  varlist = c("paths", "required_libraries"),
                   envir = environment())
 
     # Load required libraries in workers
     parallel::clusterEvalQ(cl, {
       .libPaths(paths)
       sapply(required_libraries, library, character.only = TRUE)
-      devtools::load_all()
     })
 
     # Use foreach for parallel computation
     results_list <- foreach(i = seq_len(nrow(results)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
       if (is.na(results$tie[i])) {
         warning("TIE is NA")
-        return(NULL)
+        return(list(
+          frequentist_power_at_equivalent_tie = NA_real_,
+          frequentist_power_at_equivalent_tie_lower = NA_real_,
+          frequentist_power_at_equivalent_tie_upper = NA_real_,
+          frequentist_test = NA_character_
+        ))
       }
 
       target_data <- load_data(results[i, ], type = "target", reload_data_objects = TRUE)
@@ -495,7 +499,7 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     parallel::stopCluster(cl)
 
     # Combine results into the dataframe
-    results <- cbind(results, do.call(rbind, results_list))
+    results <- cbind(results, dplyr::bind_rows(results_list))
   } else {
     # Progress bar function in R
     progress_bar <- function(n) {
