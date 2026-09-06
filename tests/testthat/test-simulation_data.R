@@ -119,3 +119,256 @@ test_that("ObservedSourceData reads recurrent-event rates from source config", {
   expect_equal(source_data$control_rate, 0.8)
   expect_equal(source_data$treatment_rate, 0.65)
 })
+
+test_that("recurrent-event size parameter is used consistently", {
+  case_study_config <- list(
+    endpoint = "recurrent_event",
+    summary_measure_likelihood = "normal",
+    sampling_approximation = TRUE,
+    source = list(
+      control = 100,
+      treatment = 120,
+      treatment_effect = log(0.5),
+      standard_error = 0.1,
+      control_rate = 2,
+      treatment_rate = 1
+    )
+  )
+  source_data <- SourceData$new(case_study_config)
+
+  source_variance_treatment <- 1 + 1 ^ 2 / 0.8
+  source_variance_control <- 2 + 2 ^ 2 / 0.8
+  expected_source_se <- sqrt(
+    source_variance_treatment / (120 * 1 ^ 2) +
+      source_variance_control / (100 * 2 ^ 2)
+  )
+  expect_equal(source_data$standard_error, expected_source_se)
+
+  target_data <- RecurrentEventTargetData$new(
+    source_data = source_data,
+    sampling_approximation = TRUE,
+    target_sample_size_per_arm = 50,
+    control_drift = 0,
+    treatment_drift = 0,
+    summary_measure_likelihood = "normal",
+    k_treatment = 0.4,
+    k_control = 0.6
+  )
+  expected_target_sd <- sqrt(
+    (1 + 1 ^ 2 / 0.4) / 1 ^ 2 +
+      (2 + 2 ^ 2 / 0.6) / 2 ^ 2
+  )
+
+  expect_equal(target_data$k_treatment, 0.4)
+  expect_equal(target_data$k_control, 0.6)
+  expect_equal(target_data$standard_deviation, expected_target_sd)
+
+  set.seed(5821)
+  expected_samples <- stats::rnbinom(n = 20, size = 0.4, mu = 1)
+  set.seed(5821)
+  observed_samples <- RBExT:::sample_negative_binomial(n = 20, mu = 1, k = 0.4)
+  expect_identical(observed_samples, expected_samples)
+})
+
+test_that("recurrent-event size parameters must be positive", {
+  case_study_config <- list(
+    endpoint = "recurrent_event",
+    summary_measure_likelihood = "normal",
+    sampling_approximation = TRUE,
+    source = list(
+      control = 100,
+      treatment = 100,
+      treatment_effect = 0,
+      standard_error = 0.1,
+      control_rate = 1,
+      treatment_rate = 1
+    )
+  )
+  source_data <- SourceData$new(case_study_config)
+
+  expect_error(
+    RecurrentEventTargetData$new(
+      source_data = source_data,
+      sampling_approximation = TRUE,
+      target_sample_size_per_arm = 50,
+      treatment_drift = 0,
+      summary_measure_likelihood = "normal",
+      k_treatment = 0
+    ),
+    "size parameters must be positive"
+  )
+})
+
+# Test sample_exponential_arm_statistics function
+test_that("sample_exponential_arm_statistics returns coherent sufficient statistics", {
+  n_subjects <- 40
+  max_follow_up_time <- 2
+  result <- RBExT:::sample_exponential_arm_statistics(
+    n_subjects = n_subjects,
+    rate = 0.534,
+    max_follow_up_time = max_follow_up_time,
+    n_replicates = 500
+  )
+
+  expect_length(result$n_events, 500)
+  expect_length(result$exposure, 500)
+  expect_true(all(result$n_events >= 0 & result$n_events <= n_subjects))
+  expect_true(all(result$exposure > 0))
+  expect_true(all(result$exposure <= n_subjects * max_follow_up_time))
+})
+
+test_that("sample_exponential_arm_statistics censors every patient when no event can occur", {
+  n_subjects <- 5
+  max_follow_up_time <- 2
+  result <- RBExT:::sample_exponential_arm_statistics(
+    n_subjects = n_subjects,
+    rate = 1e-12,
+    max_follow_up_time = max_follow_up_time,
+    n_replicates = 4
+  )
+
+  expect_equal(result$n_events, rep(0L, 4))
+  expect_equal(result$exposure, rep(n_subjects * max_follow_up_time, 4))
+})
+
+test_that("sample_exponential_arm_statistics matches patient-level simulation", {
+  set.seed(4242)
+  n_subjects <- 57
+  rate <- 0.534
+  max_follow_up_time <- 2
+  n_replicates <- 20000
+
+  # Simulate the individual survival times the closed form replaces
+  patient_level <- replicate(n_replicates, {
+    times <- stats::rexp(n_subjects, rate = rate)
+    c(sum(times <= max_follow_up_time), sum(pmin(times, max_follow_up_time)))
+  })
+
+  result <- RBExT:::sample_exponential_arm_statistics(
+    n_subjects = n_subjects,
+    rate = rate,
+    max_follow_up_time = max_follow_up_time,
+    n_replicates = n_replicates
+  )
+
+  # Both are unbiased for the same quantities
+  expected_events <- n_subjects * stats::pexp(max_follow_up_time, rate = rate)
+  expected_exposure <- n_subjects * (1 - exp(-rate * max_follow_up_time)) / rate
+  expect_equal(mean(result$n_events), expected_events, tolerance = 0.01)
+  expect_equal(mean(result$exposure), expected_exposure, tolerance = 0.01)
+
+  # ... and have the same sampling distribution as the patient-level version
+  expect_gt(suppressWarnings(
+    stats::ks.test(patient_level[1, ], result$n_events)$p.value
+  ), 0.001)
+  expect_gt(suppressWarnings(
+    stats::ks.test(patient_level[2, ], result$exposure)$p.value
+  ), 0.001)
+})
+
+# Test negative_binomial_regression / negative_binomial_inverse_dispersion
+test_that("negative_binomial_regression estimates the rate by the sample mean", {
+  set.seed(515)
+  counts <- stats::rnbinom(60, size = 0.8, mu = 1.74)
+  result <- negative_binomial_regression(counts)
+
+  # The intercept-only maximum likelihood estimate of the mean is exactly the
+  # sample mean, whatever the dispersion
+  expect_identical(result$rate_estimate, mean(counts))
+  expect_equal(result$se_rate, result$se_log_rate * result$rate_estimate)
+  expect_true(is.finite(result$se_log_rate) && result$se_log_rate > 0)
+})
+
+test_that("negative_binomial_regression rejects data that are not counts", {
+  expect_error(negative_binomial_regression(c(1, 2, NA)), "finite counts")
+  expect_error(negative_binomial_regression(c(1, Inf)), "finite counts")
+  expect_error(negative_binomial_regression(numeric(0)), "finite counts")
+  expect_error(negative_binomial_regression(c(1, -2, 3)), "non-negative integer")
+  expect_error(negative_binomial_regression(c(1, 2.5, 3)), "non-negative integer")
+})
+
+test_that("negative_binomial_regression reports all-zero counts as inestimable", {
+  # The maximum likelihood rate is 0, the negative binomial is degenerate
+  # there, and the log rate has no finite standard error
+  expect_warning(
+    result <- negative_binomial_regression(rep(0, 20)),
+    "All counts are zero"
+  )
+  expect_identical(result$rate_estimate, 0)
+  expect_identical(result$se_log_rate, NA_real_)
+  expect_identical(result$se_rate, NA_real_)
+})
+
+test_that("negative_binomial_inverse_dispersion falls back to the Poisson limit", {
+  # Underdispersed data: the profile likelihood is maximised at 1 / theta = 0
+  counts <- c(2, 2, 2, 3, 2, 2, 3, 2, 2, 2)
+  expect_equal(
+    RBExT:::negative_binomial_inverse_dispersion(counts, mean(counts)),
+    0
+  )
+
+  # ... so the standard error reduces to the Poisson one
+  result <- negative_binomial_regression(counts)
+  expect_equal(
+    result$se_log_rate,
+    sqrt(1 / (length(counts) * mean(counts)))
+  )
+})
+
+test_that("negative_binomial_inverse_dispersion beats a dense scan of the profile", {
+  # Profile log likelihood of theta at mu = mean(counts), evaluated without
+  # subtracting nearly equal lgamma values so that it stays accurate for
+  # large theta. The theta -> Inf limit is the Poisson log likelihood.
+  profile_loglikelihood <- function(counts, theta) {
+    n_observations <- length(counts)
+    rate <- mean(counts)
+    if (!is.finite(theta)) {
+      return(sum(counts) * log(rate) - n_observations * rate)
+    }
+    rising <- sum(vapply(
+      counts,
+      function(value) {
+        if (value == 0) 0 else sum(log(theta + seq_len(value) - 1))
+      },
+      numeric(1)
+    ))
+    rising - n_observations * theta * log1p(rate / theta) +
+      sum(counts) * log(rate / (rate + theta))
+  }
+
+  set.seed(616)
+  candidates <- c(Inf, exp(seq(log(1e-6), log(1e8), length.out = 400)))
+  for (n_observations in c(9, 25, 100)) {
+    counts <- stats::rnbinom(n_observations, size = 0.8, mu = 1.74)
+    if (all(counts == 0)) next
+
+    inverse_dispersion <- RBExT:::negative_binomial_inverse_dispersion(
+      counts, mean(counts)
+    )
+    chosen <- profile_loglikelihood(
+      counts,
+      if (inverse_dispersion == 0) Inf else 1 / inverse_dispersion
+    )
+
+    # Nothing on a dense independent scan, the Poisson boundary included,
+    # attains a higher profile likelihood than the returned estimate
+    best_elsewhere <- max(vapply(
+      candidates,
+      function(theta) profile_loglikelihood(counts, theta),
+      numeric(1)
+    ))
+    expect_gt(chosen, best_elsewhere - 1e-6)
+  }
+})
+
+test_that("negative_binomial_inverse_dispersion does not allocate on the largest count", {
+  # A sparse frequency representation keeps a single extreme count cheap
+  counts <- c(0, 1, 3, 10000000)
+  elapsed <- system.time(
+    inverse_dispersion <- RBExT:::negative_binomial_inverse_dispersion(
+      counts, mean(counts)
+    )
+  )[["elapsed"]]
+  expect_true(is.finite(inverse_dispersion))
+  expect_lt(elapsed, 5)
+})

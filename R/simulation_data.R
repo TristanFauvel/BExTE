@@ -93,6 +93,14 @@ rate_from_drift_logRR <- function(arm_drift, source_rate) {
   return(source_rate * exp(arm_drift))
 }
 
+negative_binomial_variance <- function(mu, k) {
+  mu + mu ^ 2 / k
+}
+
+sample_negative_binomial <- function(n, mu, k) {
+  stats::rnbinom(n = n, size = k, mu = mu)
+}
+
 #' Compute odds ratios based on the number of participants and responders in each arm
 #'
 #' @description This function computes odds ratios based on the number of participants and responders in the control and treatment arms.
@@ -248,9 +256,24 @@ sample_aggregate_normal_data <- function(mean,
                                          variance,
                                          n_replicates,
                                          n_samples_per_arm) {
-  samples <- matrix(rnorm(n_samples_per_arm * n_replicates, mean, sqrt(variance)), ncol = n_replicates)
-  sample_mean <- colMeans(samples) # sample mean of each replicate
-  sample_variance <- apply(samples, 2, var) # sample variance of each replicate
+  # The sampling distribution of the sufficient statistics is known in closed
+  # form, so the individual observations never have to be materialised:
+  # the sample mean is normal and the sample variance is a scaled chi-squared,
+  # and the two are independent (Cochran's theorem).
+  sample_mean <- rnorm(
+    n_replicates,
+    mean = mean,
+    sd = sqrt(variance / n_samples_per_arm)
+  )
+
+  if (n_samples_per_arm > 1) {
+    degrees_of_freedom <- n_samples_per_arm - 1
+    sample_variance <- variance * rchisq(n_replicates, df = degrees_of_freedom) / degrees_of_freedom
+  } else {
+    # var() of a single observation is undefined
+    sample_variance <- rep(NA_real_, n_replicates)
+  }
+
   sample_standard_error <- sqrt(sample_variance / n_samples_per_arm) # standard error on the mean, for each replicate
 
   samples <- data.frame(
@@ -354,14 +377,14 @@ SourceData <- R6::R6Class("SourceData",
 
                                 mu_treatment <- self$treatment_rate # Mean of the first rate
                                 mu_control <- self$control_rate # Mean of the second rate
-                                k_treatment <- 0.8 # Size parameter of the first negative binomial distribution
-                                k_control <- 0.8 # Size parameter of the second negative binomial distribution
+                                k_treatment <- 0.8 # Size parameter for the treatment arm
+                                k_control <- 0.8 # Size parameter for the control arm
                                 n_treatment <- case_study_config$source$treatment # Sample size for the first rate
                                 n_control <- case_study_config$source$control # Sample size for the second rate
 
                                 # Compute the standard deviations for the negative binomial distributions
-                                sigma_treatment <- sqrt(mu_treatment + (mu_treatment ^ 2 / k_treatment))
-                                sigma_control <- sqrt(mu_control + (mu_control ^ 2 / k_control))
+                                sigma_treatment <- sqrt(negative_binomial_variance(mu_treatment, k_treatment))
+                                sigma_control <- sqrt(negative_binomial_variance(mu_control, k_control))
 
                                 # Compute the standard errors of the rates
                                 SE_R_treatment <- sigma_treatment / sqrt(n_treatment)
@@ -962,31 +985,140 @@ BinaryTargetData <- R6::R6Class(
   )
 )
 
+# Maximum likelihood estimate of 1 / theta, the inverse of the negative
+# binomial size parameter, for an intercept-only model whose mean is already
+# known to be the sample mean.
+#
+# The estimate is parameterised by 1 / theta so that the Poisson limit is the
+# finite boundary value 0 rather than an infinity. That boundary is treated as
+# an explicit candidate: its profile likelihood is computed in closed form and
+# compared against the best interior maximum, rather than being selected from
+# the sign of the boundary score alone. The interior search is seeded from a
+# coarse grid so that it does not rely on the profile being unimodal.
+negative_binomial_inverse_dispersion <- function(input_data, rate_estimate) {
+  n_observations <- length(input_data)
+
+  if (rate_estimate <= 0) {
+    return(0)
+  }
+
+  # Sparse frequency representation: the cost scales with the number of
+  # distinct counts rather than with the largest one.
+  runs <- rle(sort(input_data))
+  values <- runs$values
+  counts <- runs$lengths
+  total_count <- sum(counts * values)
+  largest_count <- values[length(values)]
+
+  # Profile log likelihood of theta at mu = rate_estimate, dropping the
+  # -lgamma(y + 1) term, which does not depend on theta.
+  #
+  # For large theta, lgamma(y + theta) and lgamma(theta) are enormous and
+  # nearly equal, so subtracting them loses most of the significant digits
+  # exactly where the interior maximum has to be compared against the Poisson
+  # boundary. Summing log(theta + j) over j < y instead is accurate
+  # throughout, and costs O(largest count), so it is used whenever the counts
+  # are small enough for that to be cheap -- which covers the event counts
+  # this package simulates. log1p keeps the second term accurate in the same
+  # regime.
+  use_rising_factorial <- largest_count <= 1000
+
+  profile_loglikelihood <- function(log_theta) {
+    theta <- exp(log_theta)
+    rising_factorial <- if (use_rising_factorial) {
+      cumulative <- c(0, cumsum(log(theta + seq_len(largest_count) - 1)))
+      sum(counts * cumulative[values + 1])
+    } else {
+      sum(counts * (lgamma(values + theta) - lgamma(theta)))
+    }
+    rising_factorial -
+      n_observations * theta * log1p(rate_estimate / theta) +
+      total_count * log(rate_estimate / (rate_estimate + theta))
+  }
+
+  # Limit of the profile log likelihood as theta -> Inf, where the negative
+  # binomial collapses to the Poisson model with the same mean.
+  boundary_loglikelihood <- total_count * log(rate_estimate) -
+    n_observations * rate_estimate
+
+  # Coarse scan, then refine around the best grid point. Seeding this way
+  # avoids assuming that the profile has a single interior maximum.
+  log_theta_grid <- seq(log(1e-8), log(1e8), length.out = 24)
+  grid_loglikelihood <- vapply(log_theta_grid, profile_loglikelihood, numeric(1))
+  best <- which.max(grid_loglikelihood)
+  lower <- log_theta_grid[max(best - 1, 1)]
+  upper <- log_theta_grid[min(best + 1, length(log_theta_grid))]
+
+  optimum <- stats::optimize(
+    profile_loglikelihood,
+    interval = c(lower, upper),
+    maximum = TRUE,
+    tol = 1e-8
+  )
+
+  interior_loglikelihood <- max(optimum$objective, grid_loglikelihood[best])
+  if (interior_loglikelihood <= boundary_loglikelihood) {
+    return(0)
+  }
+
+  best_log_theta <- if (optimum$objective >= grid_loglikelihood[best]) {
+    optimum$maximum
+  } else {
+    log_theta_grid[best]
+  }
+
+  return(1 / exp(best_log_theta))
+}
+
 #' Estimate rate and standard error
 #'
-#' @description This function fits a model using glm.nb and estimates the rate parameter and its standard error.
+#' @description This function estimates the rate parameter of an intercept-only
+#' negative binomial model and its standard error.
 #'
 #' @param input_data The data for which the rate parameter and standard error need to be estimated.
 #' @return A list containing the rate estimate, standard error of the rate estimate, and standard error of the log(rate) estimate.
 #' @export
 negative_binomial_regression <- function(input_data) {
-  if (all(input_data == 0)) {
-    warning("All values are zero. Negative binomial regression will fail. Adding random noise.")
-    futile.logger::flog.warn("All values are zero. Negative binomial regression will fail. Adding random noise.")
-    input_data[sample(1:length(input_data), 1)] <- 1
+  if (length(input_data) == 0 || anyNA(input_data) ||
+        !all(is.finite(input_data))) {
+    stop("input_data must be a non-empty vector of finite counts.")
   }
-  # Proceed with negative binomial regression
-  # Fit the model using glm.nb
+  if (any(input_data < 0) || any(input_data != trunc(input_data))) {
+    stop("input_data must contain non-negative integer counts.")
+  }
 
-  model <- MASS::glm.nb(input_data ~ 1, link = log)
+  if (all(input_data == 0)) {
+    # The maximum likelihood estimate of the rate is 0. The negative binomial
+    # is then degenerate at zero, the dispersion is not identifiable, and the
+    # log rate is not finite, so no standard error is defined.
+    warning("All counts are zero: the rate estimate is 0 and the dispersion is not identifiable.")
+    futile.logger::flog.warn("All counts are zero: the rate estimate is 0 and the dispersion is not identifiable.")
+    return(list(
+      rate_estimate = 0,
+      se_rate = NA_real_,
+      se_log_rate = NA_real_
+    ))
+  }
 
-  model_summary <- summary(model)
+  n_observations <- length(input_data)
 
-  # Rate parameter estimate:
-  rate_estimate <- exp(coef(model))
+  # For an intercept-only negative binomial model with a log link, the score
+  # equation for the mean reduces to sum(y_i - mu) = 0 whatever the dispersion,
+  # so the maximum likelihood estimate of the rate is exactly the sample mean.
+  # Only the dispersion has to be estimated numerically, which makes the
+  # iteratively reweighted least squares performed by glm.nb redundant here.
+  rate_estimate <- mean(input_data)
 
-  # Standard error for the log(rate) parameter estimate:
-  se_log_rate <- model_summary$coefficients["(Intercept)", "Std. Error"]
+  inverse_dispersion <- negative_binomial_inverse_dispersion(
+    input_data = input_data,
+    rate_estimate = rate_estimate
+  )
+
+  # Standard error for the log(rate) parameter estimate, read off the negative
+  # binomial Fisher information at the estimates, which is
+  # 1 / (n * mu) + 1 / (n * theta).
+  se_log_rate <- sqrt(1 / (n_observations * rate_estimate) +
+                        inverse_dispersion / n_observations)
 
   # Backtransform the SE:
   se_rate <- se_log_rate * rate_estimate
@@ -1000,14 +1132,18 @@ negative_binomial_regression <- function(input_data) {
 #' Recurrent Event Target Data
 #'
 #' @description This class represents target data for recurrent event analysis.
+#' It inherits from the TargetData class.
 #' @field control_rate Rate in the control arm of the target study
 #' @field treatment_rate Rate in the treatment arm of the target study
-#' It inherits from the TargetData class.
+#' @field k_treatment Negative-binomial size parameter in the treatment arm
+#' @field k_control Negative-binomial size parameter in the control arm
 RecurrentEventTargetData <- R6::R6Class(
   inherit = TargetData,
   public = list(
     control_rate = NULL,
     treatment_rate = NULL,
+    k_treatment = NULL,
+    k_control = NULL,
     #
     #' @description Initialize the RecurrentEventTargetData object
     #'
@@ -1017,8 +1153,8 @@ RecurrentEventTargetData <- R6::R6Class(
     #' @param control_drift The control drift.
     #' @param treatment_drift The treatment drift.
     #' @param summary_measure_likelihood The summary measure distribution.
-    #' @param k_treatment Inverse of the size parameter for the negative binomial distribution for the treatment arm.
-    #' @param k_control  Inverse of the size parameter for the negative binomial distribution for the control  arm.
+    #' @param k_treatment Size parameter for the negative binomial distribution in the treatment arm.
+    #' @param k_control Size parameter for the negative binomial distribution in the control arm.
     initialize = function(source_data,
                           sampling_approximation,
                           target_sample_size_per_arm,
@@ -1039,6 +1175,13 @@ RecurrentEventTargetData <- R6::R6Class(
         stop("Invalid endpoint")
       }
       self$sample_size_per_arm <- target_sample_size_per_arm
+      assertions::assert_number(k_treatment)
+      assertions::assert_number(k_control)
+      if (k_treatment <= 0 || k_control <= 0) {
+        stop("Negative-binomial size parameters must be positive.")
+      }
+      self$k_treatment <- k_treatment
+      self$k_control <- k_control
 
       self$control_rate <- rate_from_drift_logRR(control_drift, source_data$control_rate)
       self$treatment_rate <- rate_from_drift_logRR(treatment_drift, source_data$treatment_rate)
@@ -1060,14 +1203,12 @@ RecurrentEventTargetData <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         mu_treatment <- self$treatment_rate # Mean of the first rate
         mu_control <- self$control_rate # Mean of the second rate
-        k_treatment <- k_treatment # Size parameter of the first negative binomial distribution
-        k_control <- k_control # Size parameter of the second negative binomial distribution
         n_treatment <- self$sample_size_per_arm # Sample size for the first rate
         n_control <- self$sample_size_per_arm # Sample size for the second rate
 
         # Compute the standard deviations for the negative binomial distributions
-        sigma_treatment <- sqrt(mu_treatment + (mu_treatment ^ 2 / k_treatment))
-        sigma_control <- sqrt(mu_control + (mu_control ^ 2 / k_control))
+        sigma_treatment <- sqrt(negative_binomial_variance(mu_treatment, self$k_treatment))
+        sigma_control <- sqrt(negative_binomial_variance(mu_control, self$k_control))
 
         # Compute the standard errors of the rates
         SE_R_treatment <- sigma_treatment / sqrt(n_treatment)
@@ -1099,9 +1240,6 @@ RecurrentEventTargetData <- R6::R6Class(
         )
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
-        # Parameters for data generation
-        size <- 1 / 0.8 # size parameter, related to dispersion k=0.8 mentioned in Ortega et al (2014)
-
         treatment_rate <- self$treatment_rate
         control_rate <- self$control_rate
 
@@ -1111,18 +1249,29 @@ RecurrentEventTargetData <- R6::R6Class(
 
         for (i in 1:n_replicates) {
           # Generate the patient-level data by sampling from negative binomial distributions
-          target_data_control <- rnbinom(self$sample_size_per_arm,
-                                         size = size,
-                                         mu = control_rate)
-          target_data_treatment <- rnbinom(self$sample_size_per_arm,
-                                           size = size,
-                                           mu = treatment_rate)
+          target_data_control <- sample_negative_binomial(
+            n = self$sample_size_per_arm,
+            mu = control_rate,
+            k = self$k_control
+          )
+          target_data_treatment <- sample_negative_binomial(
+            n = self$sample_size_per_arm,
+            mu = treatment_rate,
+            k = self$k_treatment
+          )
 
           treatment <- negative_binomial_regression(input_data = target_data_treatment)
 
           control <- negative_binomial_regression(input_data = target_data_control)
 
-          log_rate_ratio <- log(treatment$rate_estimate) - log(control$rate_estimate)
+          # The log rate ratio is not estimable if an arm records no event at
+          # all, in which case its rate estimate is zero.
+          if (treatment$rate_estimate == 0 || control$rate_estimate == 0) {
+            log_rate_ratio <- NA_real_
+          } else {
+            log_rate_ratio <- log(treatment$rate_estimate) -
+              log(control$rate_estimate)
+          }
 
           # Calculate the SE of the rate ratio using the delta method
           se_log_rate_ratio <- sqrt(treatment$se_log_rate ^ 2 + control$se_log_rate ^
@@ -1159,6 +1308,43 @@ RecurrentEventTargetData <- R6::R6Class(
     }
   )
 )
+
+# Sample the sufficient statistics of one exponential survival arm, for every
+# replicate at once. The exponential MLE depends on the patient-level data only
+# through the number of events and the total exposure time, so the individual
+# survival times never have to be materialised: the number of events is
+# binomial, and each observed event time is exponential truncated to the
+# follow-up window.
+sample_exponential_arm_statistics <- function(n_subjects,
+                                              rate,
+                                              max_follow_up_time,
+                                              n_replicates) {
+  event_probability <- stats::pexp(max_follow_up_time, rate = rate)
+  n_events <- stats::rbinom(n_replicates, n_subjects, event_probability)
+
+  # Exposure contributed by the patients who relapse before the end of
+  # follow-up. Their relapse times are drawn in a single call and totalled per
+  # replicate; censored patients each contribute max_follow_up_time.
+  exposure_from_events <- numeric(n_replicates)
+  total_events <- sum(n_events)
+
+  if (total_events > 0) {
+    event_times <- stats::qexp(
+      stats::runif(total_events) * event_probability,
+      rate = rate
+    )
+    per_replicate <- rowsum(
+      event_times,
+      rep.int(seq_len(n_replicates), n_events)
+    )
+    exposure_from_events[as.integer(rownames(per_replicate))] <- per_replicate[, 1]
+  }
+
+  exposure <- exposure_from_events +
+    (n_subjects - n_events) * max_follow_up_time
+
+  return(list(n_events = n_events, exposure = exposure))
+}
 
 #' Time To Event Target Data
 #'
@@ -1269,54 +1455,36 @@ TimeToEventTargetData <- R6::R6Class(
         )
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
-        # Vector to store log rate ratios
-        log_rate_ratios <- numeric(n_replicates)
-        se_log_rate_ratios <- numeric(n_replicates)
+        # The exponential model fitted below has a closed-form maximum
+        # likelihood estimate: the rate of an arm is its number of events
+        # divided by its total exposure time. Sampling those two sufficient
+        # statistics directly avoids fitting one survreg() per replicate.
+        control <- sample_exponential_arm_statistics(
+          n_subjects = n_control_target,
+          rate = self$control_rate,
+          max_follow_up_time = self$max_follow_up_time,
+          n_replicates = n_replicates
+        )
+        treatment <- sample_exponential_arm_statistics(
+          n_subjects = n_treatment_target,
+          rate = self$treatment_rate,
+          max_follow_up_time = self$max_follow_up_time,
+          n_replicates = n_replicates
+        )
 
-        for (i in 1:n_replicates) {
-          # Sample relapse times for control and treatment groups using an exponential distribution
-          control_relapse_times <- rexp(n_control_target, rate = self$control_rate) # self$control_rate is the relapse rate in the control arm
+        estimated_rate_control <- control$n_events / control$exposure
+        estimated_rate_treatment <- treatment$n_events / treatment$exposure
 
-          treatment_relapse_times <- rexp(n_treatment_target, rate = self$treatment_rate)
+        log_rate_ratios <- log(estimated_rate_treatment) -
+          log(estimated_rate_control)
 
-          # Filter out relapse times exceeding max_follow_up_time (right censoring)
-          control_event_status <- control_relapse_times <= self$max_follow_up_time
-          treatment_event_status <- treatment_relapse_times <= self$max_follow_up_time
+        # SE of the log rate ratio, obtained with the delta method
+        se_log_rate_ratios <- sqrt(1 / control$n_events + 1 / treatment$n_events)
 
-          control_relapse_times_filtered <- control_relapse_times[control_event_status]
-          treatment_relapse_times_filtered <- treatment_relapse_times[treatment_event_status]
+        # The rate ratio is not estimable if an arm records no event at all
+        no_event <- control$n_events == 0 | treatment$n_events == 0
+        log_rate_ratios[no_event] <- NA_real_
 
-
-          control_relapse_times[!control_event_status] <- self$max_follow_up_time
-          treatment_relapse_times[!treatment_event_status] <- self$max_follow_up_time
-
-          control_event_status <- as.integer(control_event_status)
-          treatment_event_status <- as.integer(treatment_event_status)
-
-          # Count the number of events
-          n_control_events <- length(control_relapse_times_filtered)
-          n_treatment_events <- length(treatment_relapse_times_filtered)
-
-          # Perform survival analysis, assuming an exponential distribution of events times.
-          trt <- c(rep(0, n_control_target), rep(1, n_treatment_target))
-          df <- data.frame(
-            time = c(control_relapse_times, treatment_relapse_times),
-            trt = trt,
-            status = c(control_event_status, treatment_event_status)
-          )
-          fit <- survival::survreg(survival::Surv(time, status) ~ trt,
-                                   dist = "exponential",
-                                   data = df)
-          summary(fit)
-          estimated_rate_control <- 1 / exp(coef(fit)[1])
-          sample_rate_ratio <- 1 / exp(coef(fit)[2])
-          estimated_rate_treatment <- sample_rate_ratio * estimated_rate_control
-
-          log_rate_ratios[i] <- log(sample_rate_ratio)
-
-          # Calculate the SE of the Log rate ratio
-          se_log_rate_ratios[i] <- sqrt(1 / n_control_events + 1 / n_treatment_events) # this can be shown using the delta method
-        }
         samples <- data.frame(
           treatment_effect_estimate = log_rate_ratios,
           treatment_effect_standard_error = se_log_rate_ratios,
