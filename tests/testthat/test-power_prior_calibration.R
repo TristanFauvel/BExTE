@@ -20,8 +20,8 @@ monte_carlo_type_I_error <- function(calibration_parameter,
                                      n_draws) {
   n <- target_sample_size_per_arm
   tau2 <- target_data_sampling_variance
-  n0 <- n * tau2 / source_data_sampling_variance
-  prior_variance <- tau2 / source_sample_size_per_arm
+  n0 <- source_sample_size_per_arm * tau2 / source_data_sampling_variance
+  prior_variance <- tau2 / n0
   std_predictive_dist <- sqrt(tau2 / n0 + tau2 / n)
 
   x <- rnorm(n_draws, theta_0, sqrt(tau2 / n))
@@ -141,9 +141,12 @@ test_that("findCalibrationParameter returns the value that attains the desired t
   expect_equal(attained, desired_tie, tolerance = 1e-3)
 })
 
-test_that("findCalibrationParameter caps the calibration parameter when borrowing is already safe", {
-  # A source estimate far below theta_0 makes full borrowing conservative, so
-  # the search short-circuits and returns the cap rather than searching.
+test_that("findCalibrationParameter falls back to a cut-off of 1 below the reference's precondition", {
+  # Nikolakopoulos et al (2018) require the source estimate to exceed
+  # min_prior_mean, equivalently maxZ_1_m_c2 > 0, and their script fails below
+  # it. A source estimate this far below theta_0 breaks that precondition, so
+  # there is no calibrated answer to give and we fall back to the cut-off
+  # Gaussian_Gravestock_EBPP fixes. See test-pdccpp_admissible_cutoff.R.
   calibration <- findCalibrationParameter(
     source_sample_size_per_arm = 200,
     target_sample_size_per_arm = 50,
@@ -158,10 +161,13 @@ test_that("findCalibrationParameter caps the calibration parameter when borrowin
   calibration_parameter <- as.numeric(calibration[1, 2])
   maximum <- as.numeric(calibration[3, 2])
 
-  # The cap is returned as-is. It is not clamped to [0, 1] here: with a source
-  # estimate this far below theta_0 the cap is large and negative, and it is
-  # PDCCPP$power_parameter_estimation that rejects out-of-range values.
-  expect_equal(calibration_parameter, min(maximum, 1))
+  expect_equal(calibration_parameter, 1)
+
+  # The value it used to return instead. Inside the reference's domain this is
+  # the cut-off at which the type I error reaches that of full borrowing, and
+  # returning it means "borrow fully". A source estimate this far below theta_0
+  # puts it far below zero, where it means the opposite: discount everything.
+  expect_lt(maximum, 0)
 })
 
 test_that("findCalibrationParameter is deterministic and does not consume the random stream", {
@@ -227,8 +233,8 @@ scanned_type_I_error <- function(calibration_parameter,
                                  n_points = 400001L) {
   n <- target_sample_size_per_arm
   tau2 <- target_data_sampling_variance
-  n0 <- n * tau2 / source_data_sampling_variance
-  prior_variance <- tau2 / source_sample_size_per_arm
+  n0 <- source_sample_size_per_arm * tau2 / source_data_sampling_variance
+  prior_variance <- tau2 / n0
   cutoff <- sqrt(tau2 / n0 + tau2 / n) * calibration_parameter
 
   probabilities <- seq(1e-12, 1 - 1e-12, length.out = n_points)
@@ -371,14 +377,15 @@ test_that("the search reproduces the reference implementation from the paper", {
     S
   }
 
-  # RBExT splits the original's single n0 into two inputs. These settings make
-  # both agree with it: prior_variance = sR / n0 and the posterior weight = n0.
+  # The paper carries one variance shared by the historical and new data, so
+  # the port reproduces it by giving the source and target the same sampling
+  # variance. Its prior sample size is then the paper's n0 directly.
   ported <- function(n0, n1, m0, aD, sig, sR, tol) {
     as.numeric(findCalibrationParameter(
       source_sample_size_per_arm = n0, target_sample_size_per_arm = n1,
       source_treatment_effect_estimate = m0, desired_tie = aD,
       significance_level = sig, target_data_sampling_variance = sR,
-      source_data_sampling_variance = n1 * sR / n0,
+      source_data_sampling_variance = sR,
       tolerance = tol, theta_0 = 0)[1, 2])
   }
 
@@ -395,5 +402,30 @@ test_that("the search reproduces the reference implementation from the paper", {
     expect_lt(abs(reference - exact), 0.015,
               label = sprintf("|reference - exact| for n0=%g m0=%g (%.6f vs %.6f)",
                               design$n0, design$m0, reference, exact))
+  }
+})
+
+test_that("the reported full-borrowing type I error is equation (5)", {
+  # Equation (5) of Nikolakopoulos et al (2018):
+  #   Phi((sigma * sqrt(n0 + n1) * z_{1-eta} + n0 * mu_0) / (sqrt(n1) * sigma)).
+  # The search compares against this value in two places; the reference script
+  # wrote the second without its leading sigma, which is an identity only when
+  # sigma^2 is 1. This pins the quantity so the two cannot drift apart again.
+  for (design in calibration_designs()) {
+    calibration <- findCalibrationParameter(
+      source_sample_size_per_arm = design$ess,
+      target_sample_size_per_arm = design$n,
+      source_treatment_effect_estimate = design$theta_s,
+      desired_tie = 0.065, significance_level = 0.05,
+      target_data_sampling_variance = design$tau2,
+      source_data_sampling_variance = design$sigma0_2,
+      tolerance = 1e-4, theta_0 = 0
+    )
+    n0 <- design$ess * design$tau2 / design$sigma0_2
+    expected <- pnorm(
+      (sqrt(design$tau2) * sqrt(n0 + design$n) * qnorm(0.05) + n0 * design$theta_s) /
+        sqrt(design$tau2 * design$n)
+    )
+    expect_equal(as.numeric(calibration[5, 2]), expected, tolerance = 1e-12)
   }
 })

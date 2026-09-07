@@ -33,7 +33,10 @@ findCalibrationParameter <- function(n_iter = 1e6,
                                      theta_0 = 0) {
   true_mean <- theta_0 # True mean is theta_0 for type I error computation
 
-  n0 <- target_sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
+  # Prior sample size, equation (6) of Nikolakopoulos et al (2018). It is the
+  # source's sample size rescaled to units of target observations, so that
+  # target_data_sampling_variance / n0 is the source's squared standard error.
+  n0 <- source_sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
 
   std_predictive_dist <- sqrt(
     target_data_sampling_variance / n0 + target_data_sampling_variance / target_sample_size_per_arm
@@ -69,16 +72,44 @@ findCalibrationParameter <- function(n_iter = 1e6,
     )
   }
 
-  upper_limit <- min(maxZ_1_m_c2, 1)
+  # Nikolakopoulos et al (2018) require the source estimate to exceed
+  # min_prior_mean -- "prior mean has to be larger than this for calculations to
+  # hold" -- and separately that it exceed the full-borrowing critical value, so
+  # that power exceeds 50%. Those two are the same inequality rearranged, and
+  # both are exactly maxZ_1_m_c2 > 0. The reference script produces NaN and
+  # fails below it, so it defines no behaviour there.
+  #
+  # hypothesis_space_transformation() can put us below it, because a right null
+  # space negates the source estimate. maxZ_1_m_c2 was then negative, and it
+  # bounds the search and is returned outright when full borrowing is already
+  # safe: the bisection interval was inverted, and a negative cut-off -- one
+  # that discounts every estimate rather than none -- reached
+  # attained_type_I_error(), which rejects it. Below the precondition the source
+  # estimate sits under the full-borrowing critical value, so borrowing is
+  # protective rather than anti-conservative and nothing needs discounting on
+  # its account; we fall back to the cut-off Gaussian_Gravestock_EBPP fixes.
+  widest_cutoff <- if (maxZ_1_m_c2 > 0) maxZ_1_m_c2 else 1
+
+  upper_limit <- min(widest_cutoff, 1)
   lower_limit <- 0
-  Z_1_m_c2 <- min(maxZ_1_m_c2, 1) # Z_1-c/2 : as defined in the manuscript, calibration parameter for type I error control
-  t1 <- ex.t1 <- pnorm((
+  Z_1_m_c2 <- min(widest_cutoff, 1) # Z_1-c/2 : as defined in the manuscript, calibration parameter for type I error control
+  # Type I error of full borrowing: equation (5) of Nikolakopoulos et al (2018),
+  #   Phi((sigma * sqrt(n0 + n1) * z_{1-eta} + n0 * mu_0) / (sqrt(n1) * sigma)).
+  # Named because the search below compares against it in two places, and the
+  # reference script wrote the second one without its leading sigma. That is
+  # harmless there, where sigma^2 is fixed at 1, but not here.
+  full_borrowing_type_I_error <- pnorm((
     sqrt(target_data_sampling_variance) * sqrt(n0 + target_sample_size_per_arm) * qnorm(significance_level) + n0 * source_treatment_effect_estimate
   ) / sqrt(target_data_sampling_variance * target_sample_size_per_arm)
   )
+  t1 <- ex.t1 <- full_borrowing_type_I_error
   t2 <- 0
   if (t1 < desired_tie) {
-    Z_1_m_c2 <- maxZ_1_m_c2
+    # Full borrowing already attains the desired error, so borrow fully: the
+    # cut-off at which the type I error reaches that of full borrowing. The
+    # reference returns it uncapped, and it can exceed one predictive standard
+    # deviation.
+    Z_1_m_c2 <- widest_cutoff
   } else {
     while ((abs(t1 - t2) > tolerance) &
            (abs(upper_limit - lower_limit) > tolerance)) {
@@ -96,12 +127,7 @@ findCalibrationParameter <- function(n_iter = 1e6,
         }
       }
 
-      if (t1 < pnorm((
-        sqrt(n0 + target_sample_size_per_arm) * qnorm(significance_level) + n0 * source_treatment_effect_estimate
-      ) / sqrt(
-        target_data_sampling_variance * target_sample_size_per_arm
-      )
-      )) {
+      if (t1 < full_borrowing_type_I_error) {
         t2 <- t1
       }
       while ((t2 < desired_tie) &
@@ -414,7 +440,13 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
       source_data_sampling_variance <- self$prior$source$standard_error ^
         2 * self$prior$source$equivalent_source_sample_size_per_arm
 
-      n0 <- target_data$sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
+      # Prior sample size, equation (6) of Nikolakopoulos et al (2018): the
+      # source's sample size rescaled to units of target observations, so that
+      # target_data_sampling_variance / n0 is the source's squared standard
+      # error. Equation (9) of that paper is this estimator at z_{1-c/2} = 1,
+      # so it takes the same n0 as PDCCPP.
+      n0 <- self$prior$source$equivalent_source_sample_size_per_arm *
+        target_data_sampling_variance / source_data_sampling_variance
 
       standard_deviation_predictive <- sqrt(
         target_data_sampling_variance / n0 + target_data_sampling_variance / target_data$sample_size_per_arm
@@ -458,8 +490,8 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
       source_sampling_variance <- self$prior$source$standard_error^2 *
         self$prior$source$equivalent_source_sample_size_per_arm
 
-      n0 <- target_data$sample_size_per_arm * target_sampling_variance /
-        source_sampling_variance
+      n0 <- self$prior$source$equivalent_source_sample_size_per_arm *
+        target_sampling_variance / source_sampling_variance
 
       standard_deviation_predictive <- sqrt(
         target_sampling_variance / n0 +
@@ -538,43 +570,79 @@ PDCCPP <- R6::R6Class(
 
       source_data_sampling_variance <- equivalent_source_sample_size_per_arm * self$prior$source$standard_error ^ 2
 
+      # Equation (5) is written in terms of z_{1-eta}, where eta is the
+      # posterior probability threshold the analysis decides at. Calibrating
+      # against any other threshold tunes a different test than the one that is
+      # run. The configured significance_level is the fallback for callers that
+      # invoke the estimator outside a simulation.
+      significance_level <- if (is.null(self$analysis_critical_value)) {
+        self$parameters$significance_level
+      } else {
+        1 - self$analysis_critical_value
+      }
+
       calibration <- findCalibrationParameter(
         n_iter = self$parameters$n_iter,
         source_sample_size_per_arm = equivalent_source_sample_size_per_arm,
         target_sample_size_per_arm = target_data$sample_size_per_arm,
         source_treatment_effect_estimate = source_treatment_effect_estimate,
         desired_tie = self$parameters$desired_tie,
-        significance_level = self$parameters$significance_level,
+        significance_level = significance_level,
         target_data_sampling_variance = target_data_sampling_variance,
         source_data_sampling_variance = source_data_sampling_variance,
         tolerance = self$parameters$tolerance,
-        theta_0 = self$parameters$theta_0
+        # hypothesis_space_transformation() has already translated the
+        # estimates so that the boundary of the null hypothesis space sits
+        # at 0. theta_0 here is the mean of the target estimate's sampling
+        # distribution under the null, expressed on that same translated
+        # scale, so it is 0 rather than the original boundary. Passing the
+        # original integrated the type I error at a point the calibrated
+        # decision rule is not centred on, which every case study hides by
+        # setting theta_0 = 0.
+        theta_0 = 0
       )
 
       calibration_parameter <- as.numeric(calibration[1, 2])
       assertions::assert_number(calibration_parameter)
 
-      if (calibration_parameter > 1 || calibration_parameter < 0) {
-        stop("Calibration parameter must be in [0,1].")
+      # The calibration parameter is z_{1-c/2}, a number of predictive standard
+      # deviations, not a probability: only positivity is required of it, and
+      # the borrowing weight below is undefined without that. The upper bound of
+      # 1 that used to stand here rejected the answer Nikolakopoulos et al (2018)
+      # return whenever full borrowing is already safe and the cut-off at which
+      # the type I error reaches it is wider than one predictive standard
+      # deviation.
+      if (!is.finite(calibration_parameter) || calibration_parameter <= 0) {
+        stop("Calibration parameter must be positive.")
       }
-      n0 <- target_data$sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
+      # Same prior sample size the calibration used, so that the cut-off is
+      # measured against the same predictive standard deviation.
+      n0 <- equivalent_source_sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
 
       standard_deviation_predictive <- sqrt(
         target_data_sampling_variance / n0 + target_data_sampling_variance / target_data$sample_size_per_arm
       )
 
+      # findCalibrationParameter reports z_{1-c/2}, which equation (9) of
+      # Nikolakopoulos et al (2018) uses as the number of predictive standard
+      # deviations that X-bar may deviate from mu_0 before borrowing is
+      # discounted. The formula below is shared with Gaussian_Gravestock_EBPP,
+      # which parameterises the same cut-off by the tail probability c and
+      # recovers z_{1-c/2} as qnorm(1 - c / 2). Sending a z-score through that
+      # conversion a second time applied a wider cut-off than the one the
+      # search had just calibrated.
       power_parameter <- ifelse(((
         target_treatment_effect_estimate > (
-          source_treatment_effect_estimate + standard_deviation_predictive * qnorm(1 - calibration_parameter / 2)
+          source_treatment_effect_estimate + standard_deviation_predictive * calibration_parameter
         )
       )) |
         ((
           target_treatment_effect_estimate < (
-            source_treatment_effect_estimate + standard_deviation_predictive * qnorm(calibration_parameter / 2)
+            source_treatment_effect_estimate - standard_deviation_predictive * calibration_parameter
           )
         )), ((target_data_sampling_variance / n0) / (((
           target_treatment_effect_estimate - source_treatment_effect_estimate
-        ) / qnorm(1 - calibration_parameter / 2)
+        ) / calibration_parameter
         ) ^ 2 - target_data_sampling_variance / target_data$sample_size_per_arm
         )
         ), 1)
