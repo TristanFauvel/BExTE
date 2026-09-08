@@ -599,32 +599,25 @@ Model <- R6::R6Class(
           }
 
           if (requested("ess_moment") || requested("ess_precision")) {
+            posterior_ess <- self$posterior_ess(
+              target_data = target_data,
+              simulation_config = simulation_config
+            )
 
-            self$posterior_to_RBesT(target_data = target_data, simulation_config = simulation_config)
             if (requested("ess_moment")) {
-              ess_moments[r] <- prior_moment_ess(rbest_model = self$RBesT_posterior_normix,
-                                                 target_data = target_data)
+              ess_moments[r] <- posterior_ess$moment
             }
 
             if (requested("ess_precision")) {
-              ess_precisions[r] <- prior_precision_ess(rbest_model = self$RBesT_posterior_normix,
-                                                       target_data = target_data)
+              ess_precisions[r] <- posterior_ess$precision
             }
           }
 
           if (requested("ess_elir")) {
-            if (r == 1 || self$empirical_bayes == TRUE){
-              # Only Empirical Bayes Methods have a prior that varies from on replicate to another
-              self$prior_to_RBesT(simulation_config$n_samples_mixture_approx)
-            }
-
-            target_standard_deviation = target_data$sample$standard_deviation
-
-            RBesT::sigma(self$RBesT_prior) <- target_standard_deviation
-            RBesT::sigma(self$RBesT_prior_normix) <- target_standard_deviation
-
-            ess_elir[r] <- prior_ess_elir(rbest_model = self$RBesT_prior_normix,
-                                          target_data = target_data)
+            ess_elir[r] <- self$prior_elir_ess(
+              target_data = target_data,
+              simulation_config = simulation_config
+            )
           }
 
           if (requested("mcmc_diagnostics") && self$mcmc) {
@@ -1059,45 +1052,85 @@ Model <- R6::R6Class(
         )
       }
 
-      prior_samples <- self$sample_prior(n_samples = n_samples_mixture_approx) # Samples to be fitted by a mixture distribution
-
-      if (self$summary_measure_likelihood == "normal") {
-        self$RBesT_prior_normix <- RBesT::automixfit(
-          prior_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("norm")
-        )
-        prior_mixture_approximation <- self$RBesT_prior_normix
-      } else if (self$summary_measure_likelihood == "binomial") {
-        transformed_samples <- (prior_samples + 1) / 2 # Transformed samples in the [0, 1] range
-        prior_mixture_approximation <- RBesT::automixfit(
-          transformed_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("beta")
-        )
-
-        self$RBesT_prior_normix <- RBesT::automixfit(
-          prior_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("norm")
-        )
-      } else {
+      if (!(self$summary_measure_likelihood %in% c("normal", "binomial"))) {
         stop("Distribution not supported")
       }
-      # if (!(is.null(target_standard_deviation))) {
-      #   RBesT::sigma(self$RBesT_prior_normix) <- target_standard_deviation # Set the reference scale
-      #   RBesT::sigma(prior_mixture_approximation) <- target_standard_deviation # Set the reference scale
-      # }
-      self$RBesT_prior <- prior_mixture_approximation
+
+      prior_samples <- self$sample_prior(n_samples = n_samples_mixture_approx) # Samples to be fitted by a mixture distribution
+
+      # The prior is read on the treatment effect scale, whichever endpoint it
+      # describes: the ELIR effective sample size compares its curvature against
+      # a reference scale in those units. A Beta mixture would live on the rate
+      # scale instead, so only the normal one is fitted here.
+      self$RBesT_prior_normix <- RBesT::automixfit(
+        prior_samples,
+        Nc = self$n_components_mixture_approx,
+        k = self$aic_penalty_parameter_mixture_approx,
+        thresh = -Inf,
+        verbose = FALSE,
+        type = c("norm")
+      )
+
+      self$RBesT_prior <- self$RBesT_prior_normix
+    },
+
+    #' @description ELIR effective sample size of the current prior
+    #'
+    #' The default route approximates the prior by a mixture fitted to samples
+    #' drawn from it, and refits between replicates only when the prior is data
+    #' dependent. Subclasses whose prior has a closed form override this.
+    #'
+    #' @param target_data Target study data, whose sampling standard deviation
+    #'   is the reference scale.
+    #' @param simulation_config Configuration of simulation study
+    #' @return The ELIR effective sample size.
+    prior_elir_ess = function(target_data, simulation_config) {
+      # Only empirical Bayes methods have a prior that varies from one replicate
+      # to another, so otherwise the mixture fitted for the first replicate
+      # still describes the prior.
+      if (self$empirical_bayes || is.null(self$RBesT_prior_normix)) {
+        self$prior_to_RBesT(simulation_config$n_samples_mixture_approx)
+      }
+
+      target_standard_deviation <- target_data$sample$standard_deviation
+
+      RBesT::sigma(self$RBesT_prior) <- target_standard_deviation
+      RBesT::sigma(self$RBesT_prior_normix) <- target_standard_deviation
+
+      return(prior_ess_elir(
+        rbest_model = self$RBesT_prior_normix,
+        target_data = target_data
+      ))
+    },
+
+    #' @description Effective sample sizes of the current posterior
+    #'
+    #' Returns the moment-based and precision-based effective sample sizes the
+    #' simulation reports per replicate. The default route approximates the
+    #' posterior by a mixture fitted to samples drawn from it, which is the only
+    #' option when neither the posterior summary nor draws from it are
+    #' available. Subclasses that know their posterior standard deviation and
+    #' credible interval override this and evaluate the definitions directly.
+    #'
+    #' @param target_data Target study data
+    #' @param simulation_config Configuration of simulation study
+    #' @return A list with the `moment` and `precision` effective sample sizes.
+    posterior_ess = function(target_data, simulation_config) {
+      self$posterior_to_RBesT(
+        target_data = target_data,
+        simulation_config = simulation_config
+      )
+
+      return(list(
+        moment = prior_moment_ess(
+          rbest_model = self$RBesT_posterior_normix,
+          target_data = target_data
+        ),
+        precision = prior_precision_ess(
+          rbest_model = self$RBesT_posterior_normix,
+          target_data = target_data
+        )
+      ))
     },
 
     #' @description Convert the posterior distribution to RBesT format
@@ -1114,51 +1147,75 @@ Model <- R6::R6Class(
         )
       }
 
-      posterior_samples <- self$sample_posterior(simulation_config$n_samples_mixture_approx) # Samples to be fitted by a mixture
-
-      if (self$summary_measure_likelihood == "normal") {
-        posterior_mixture_approximation <- RBesT::automixfit(
-          posterior_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("norm")
-        )
-
-        RBesT::sigma(posterior_mixture_approximation) <- target_data$sample$standard_deviation # Set the reference scale
-
-        self$RBesT_posterior_normix <- posterior_mixture_approximation
-
-      } else if (self$summary_measure_likelihood == "binomial") {
-        transformed_samples <- (posterior_samples + 1) / 2 # Transformed samples in the [0, 1] range
-        # The posterior approximation with a mixture of Beta distributions is based on the non-transformed samples.
-        posterior_mixture_approximation <- RBesT::automixfit(
-          transformed_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("beta")
-        )
-
-        RBesT::sigma(posterior_mixture_approximation) <- target_data$sample$standard_deviation # Set the reference scale
-
-        # The posterior approximation with a mixture of Gaussians is based on the non-transformed samples.
-        self$RBesT_posterior_normix <- RBesT::automixfit(
-          posterior_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("norm")
-        )
-
-        RBesT::sigma(self$RBesT_posterior_normix) <- target_data$sample$standard_deviation # Set the reference scale
-      } else {
+      if (!(self$summary_measure_likelihood %in% c("normal", "binomial"))) {
         stop("Distribution not supported")
       }
+
+      posterior_samples <- self$sample_posterior(simulation_config$n_samples_mixture_approx) # Samples to be fitted by a mixture
+
+      # As for the prior, the posterior is read on the treatment effect scale.
+      # The Beta mixture a binary endpoint also admits is fitted by
+      # posterior_beta_mixture(), for the one caller that works on the rate
+      # scale, rather than on every replicate for no reader.
+      posterior_mixture_approximation <- RBesT::automixfit(
+        posterior_samples,
+        Nc = self$n_components_mixture_approx,
+        k = self$aic_penalty_parameter_mixture_approx,
+        thresh = -Inf,
+        verbose = FALSE,
+        type = c("norm")
+      )
+
+      RBesT::sigma(posterior_mixture_approximation) <- target_data$sample$standard_deviation # Set the reference scale
+
+      self$RBesT_posterior_normix <- posterior_mixture_approximation
       self$RBesT_posterior <- posterior_mixture_approximation
+    },
+
+    #' @description Beta mixture approximation to the posterior response rate
+    #'
+    #' The unit information design prior rescales the shape parameters of a Beta
+    #' mixture, so it needs the fit on the [0, 1] rate scale rather than the one
+    #' on the treatment effect scale that `posterior_to_RBesT()` produces. It is
+    #' built here on request because that construction runs once per case study,
+    #' whereas `posterior_to_RBesT()` runs once per replicate.
+    #'
+    #' @param target_data Target study data
+    #' @param simulation_config Configuration of simulation study
+    #' @return A Beta mixture approximation to the posterior.
+    posterior_beta_mixture = function(target_data, simulation_config) {
+      if (self$summary_measure_likelihood != "binomial") {
+        stop(
+          "posterior_beta_mixture() describes a response rate, so it is only ",
+          "defined for a binomial summary measure likelihood, not ",
+          self$summary_measure_likelihood,
+          "."
+        )
+      }
+
+      if (is.null(simulation_config)) {
+        stop(
+          "posterior_beta_mixture() needs simulation_config$n_samples_mixture_approx ",
+          "to sample the posterior for the mixture approximation, but ",
+          "simulation_config was not provided."
+        )
+      }
+
+      posterior_samples <- self$sample_posterior(simulation_config$n_samples_mixture_approx)
+      transformed_samples <- (posterior_samples + 1) / 2 # Transformed samples in the [0, 1] range
+
+      mixture_approximation <- RBesT::automixfit(
+        transformed_samples,
+        Nc = self$n_components_mixture_approx,
+        k = self$aic_penalty_parameter_mixture_approx,
+        thresh = -Inf,
+        verbose = FALSE,
+        type = c("beta")
+      )
+
+      RBesT::sigma(mixture_approximation) <- target_data$sample$standard_deviation # Set the reference scale
+
+      return(mixture_approximation)
     },
 
     #' @description
@@ -2123,6 +2180,31 @@ MCMCModel <- R6::R6Class(
       self$credible_interval_97.5 <- self$treatment_effect_summary$q97.5
       self$credible_interval_2.5 <- self$treatment_effect_summary$q2.5
       return(ci)
+    },
+
+    #' @description Effective sample sizes of the current posterior
+    #'
+    #' The single summary pass over the draws already produced the posterior
+    #' standard deviation and the credible interval bounds, so both effective
+    #' sample sizes read straight off it. The inherited route would resample the
+    #' draws and fit a mixture to the resample, which costs a mixture fit per
+    #' replicate and adds a second layer of Monte Carlo error on top of the one
+    #' the sampler already carries.
+    #'
+    #' @param target_data Target study data
+    #' @param ... Unused, kept so that the simulation can call every model the
+    #'   same way.
+    #' @return A list with the `moment` and `precision` effective sample sizes.
+    posterior_ess = function(target_data, ...) {
+      interval <- self$credible_interval(level = 0.95)
+
+      return(normal_reference_ess(
+        reference_scale = target_data$sample$standard_deviation,
+        posterior_sd = sqrt(self$post_var),
+        lower = interval[[1]],
+        upper = interval[[2]],
+        sample_size_per_arm = target_data$sample_size_per_arm
+      ))
     },
 
     #' @description Get the posterior median
