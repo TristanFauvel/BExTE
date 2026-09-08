@@ -1,14 +1,29 @@
 #' Determine a safe number of parallel workers
 #'
+#' Every worker holds its own copy of a scenario's replicates, so memory grows
+#' with the worker count. The `BEXTE_MAX_WORKERS` environment variable caps it
+#' for a whole run, for instance to leave room for other work on the machine.
+#'
 #' @param max_workers Maximum number of workers to use.
 #' @param detected_cores Number of detected logical CPU cores.
+#' @param env_max_workers Value of `BEXTE_MAX_WORKERS`; empty means no cap.
 #'
 #' @return A positive integer worker count.
 #' @noRd
 get_parallel_worker_count <- function(
   max_workers = Inf,
-  detected_cores = parallel::detectCores()
+  detected_cores = parallel::detectCores(),
+  env_max_workers = Sys.getenv("BEXTE_MAX_WORKERS")
 ) {
+  if (nzchar(env_max_workers)) {
+    env_cap <- suppressWarnings(as.integer(env_max_workers))
+    if (is.na(env_cap) || env_cap < 1L) {
+      stop("BEXTE_MAX_WORKERS must be a positive integer, but it is \"",
+           env_max_workers, "\".", call. = FALSE)
+    }
+    max_workers <- min(max_workers, env_cap)
+  }
+
   if (length(detected_cores) != 1L ||
       is.na(detected_cores) ||
       detected_cores < 2L) {
@@ -37,4 +52,44 @@ limit_mcmc_chain_parallelism <- function(mcmc_config, parallelization) {
   }
 
   return(mcmc_config)
+}
+
+#' Whether one method's scenarios run in parallel
+#'
+#' `parallelization` in the scenarios configuration is either a single logical,
+#' which applies to every method in the run, or a list of method names, which
+#' parallelises only those. The per-method form exists because the cost profiles
+#' differ: a method left on the replicate loop gains the full worker count from
+#' scenario-level parallelism, while a vectorised one already holds a large
+#' posterior mixture in memory and multiplies that footprint by every worker.
+#'
+#' @param parallelization The `parallelization` entry of the scenarios config.
+#' @param method Method name.
+#'
+#' @return A single logical.
+#' @noRd
+method_runs_in_parallel <- function(parallelization, method) {
+  if (is.null(parallelization)) {
+    return(FALSE)
+  }
+
+  if (is.logical(parallelization)) {
+    if (length(parallelization) != 1L || is.na(parallelization)) {
+      stop(
+        "parallelization must be a single TRUE or FALSE, or a list of method names.",
+        call. = FALSE
+      )
+    }
+    return(parallelization)
+  }
+
+  methods <- unlist(parallelization, use.names = FALSE)
+  if (!is.character(methods) || length(methods) == 0L) {
+    stop(
+      "parallelization must be a single TRUE or FALSE, or a list of method names.",
+      call. = FALSE
+    )
+  }
+
+  method %in% methods
 }
