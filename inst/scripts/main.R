@@ -7,7 +7,7 @@ devtools::load_all() # FIXME
 # If the envs variable is not defined as an environment variable, define it.
 envs <- ifelse(Sys.getenv("envs") != "", Sys.getenv("envs"), c("fast_cases_config"))
 
-envs = c("aprepitant_mcmc_config_light")
+envs <- c("aprepitant_mcmc_config_light")
 # envs = c("fast_cases_config")
 #envs = c("tests")
 
@@ -59,7 +59,6 @@ for (env in envs) {
 
   results_dir <- paste0("./results/", env, "/")
   scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
-
   # Define the parallel logger
   if (scenarios_config$parallelization){
     # Parallel logger
