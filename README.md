@@ -11,6 +11,13 @@ A collection of R tools to :
 - Study frequentist and Bayesian operating characteristics of clinical trial designs leveraging Bayesian partial extrapolation (also known as borrowing).
 - Analyze clinical trial data using Bayesian partial extrapolation methods.
 
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 my-4">
+<div class="col"><a href="articles/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📚 Vignettes</h5><p class="card-text small text-muted">Step-by-step guides to simulation studies, data generation, borrowing methods, and case-study replications.</p></div></a></div>
+<div class="col"><a href="reference/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🔧 API reference</h5><p class="card-text small text-muted">Every exported function and R6 class, grouped by topic: data, methods, plots, tables, operating characteristics.</p></div></a></div>
+<div class="col"><a href="#browser-based-interface" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🖥️ Browser app</h5><p class="card-text small text-muted">Configure, run, and analyze a simulation study from a Shiny app, without hand-editing config files.</p></div></a></div>
+<div class="col"><a href="news/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📝 Changelog</h5><p class="card-text small text-muted">What changed in each release.</p></div></a></div>
+</div>
+
 Copyright 2024 Quinten Health, under exclusive licence to the European Medicines Agency. Sharing and distribution are prohibited.
 
 - Core contributor: Tristan Fauvel
@@ -44,6 +51,23 @@ library(RBExT)
 - To plot the results of the simulation study, run plots.R
 
 - To create the results tables, run tables.R
+
+### Browser-based interface
+
+Instead of hand-editing config files and running the scripts above, you can configure, run, and analyze a simulation study from a browser. From an R session with your working directory set to the repository root (the same requirement as running `main.R` above):
+
+```r
+devtools::load_all() # if you haven't installed RBExT (the usual case for development - see inst/scripts/main.R)
+run_rbext_app()
+```
+
+If you installed RBExT from a release tarball instead (see Installation above), use `library(RBExT)` in place of `devtools::load_all()`.
+
+This opens a local Shiny app with three tabs:
+
+- **Configure**: pick an existing case study or build a new one, choose methods and their parameter grids, and set scenario/MCMC settings. Saving writes a new environment under `user_configs/` (gitignored) without touching the package's own `inst/conf/`.
+- **Run**: launch a saved environment as a background process, with a live progress bar, log tail, and a cancel button.
+- **Analyze**: browse any `results/<env>/` directory - including ones produced by `main.R`/HPC runs, not just ones launched from the app - filter it, render interactive plots, and browse/export the data as a table.
 
 ## Design logic
 
