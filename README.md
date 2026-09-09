@@ -1,4 +1,4 @@
-# R Bayesian Extrapolation Tool
+# Bayesian Extrapolation of Treatment Effects
 
 [![R Package Build](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/build.yml)
 [![pkgdown](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BayesianExtrapolationSimulation/)

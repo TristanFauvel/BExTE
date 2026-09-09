@@ -1,6 +1,5 @@
 ---
 title: "Replication of the Mepolizumab case study"
-author: "Tristan Fauvel, Quinten Health"
 date: "`r Sys.Date()`"
 output: 
   html_document:
