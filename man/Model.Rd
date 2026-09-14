@@ -54,6 +54,9 @@ It provides methods for creating the model, performing inference, and calculatin
 
     \item{\code{aic_penalty_parameter_mixture_approx}}{AIC penalty parameter used for the mixture approximation}
 
+    \item{\code{n_nonestimable_replicates}}{Replicates dropped by the last
+simulation because their target summary measure was undefined.}
+
     \item{\code{analysis_critical_value}}{Posterior probability threshold the
 analysis decides at, recorded when a simulation starts. Methods whose
 tuning depends on the decision rule read it, so that they are tuned for
