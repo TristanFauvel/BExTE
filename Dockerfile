@@ -63,20 +63,19 @@ RUN Rscript -e "\
     )); \
     renv::restore()"
 
-# Bring in the rest of the package, install it, then build the CmdStan
-# toolchain itself (a separate binary cmdstanr needs to actually sample
-# models - baked into the image so it isn't rebuilt on every container start).
-# Diagnostic prints: install.packages() keeps reporting every Import as
-# unavailable despite renv::restore() having just installed all of them,
-# across two different guesses at why - print what this session's own
-# .libPaths()/installed.packages() actually look like so the next failure
-# (if any) says something concrete instead of requiring another guess.
+# Bring in the rest of the package and install it directly with R CMD
+# INSTALL rather than install.packages(): the latter spawns R CMD INSTALL
+# as a child process that does not source .Rprofile (so renv/activate.R
+# never runs in it, regardless of what the calling session's own
+# .libPaths() looks like), and kept reporting every Import "not available"
+# no matter what install.packages() argument was tried. Computing the
+# renv library path in this session and exporting it as R_LIBS instead
+# forces the child's .libPaths() to include it directly - R_LIBS is read
+# by every R process at startup, independent of profile-sourcing.
 COPY . .
-RUN Rscript -e "\
-    source('renv/activate.R'); \
-    print(.libPaths()); \
-    print('dplyr' %in% rownames(installed.packages())); \
-    install.packages('.', repos = NULL, type = 'source', dependencies = FALSE)"
+RUN RENV_LIB=$(Rscript -e "source('renv/activate.R'); cat(.libPaths()[1])") && \
+    echo "renv library: $RENV_LIB" && \
+    R_LIBS="$RENV_LIB" R CMD INSTALL --library="$RENV_LIB" /app
 RUN Rscript -e "source('renv/activate.R'); cmdstanr::install_cmdstan(cores = parallel::detectCores())"
 
 # Railway assigns the port dynamically via $PORT and routes to it.
