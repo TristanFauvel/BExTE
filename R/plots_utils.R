@@ -374,13 +374,13 @@ export_plots <- function(plt,
 
   if (!(forest_plot) && adjust_theme == TRUE){
     plt <- plt + theme_bw() + theme(
-      axis.text = element_text(family = font, size = text_size/2),
-      axis.text.y = element_text(family = font, size = small_text_size/2),
-      axis.text.x = element_text(family = font, size = small_text_size/2),
-      axis.title = element_text(family = font, size = text_size/2),
-      plot.title = element_text(family = font, size = text_size/2),
-      legend.text = element_text(family = font, size = small_text_size/2),
-      legend.title = element_text(family = font, size = text_size/2),
+      axis.text = element_text(family = font, size = text_size),
+      axis.text.y = element_text(family = font, size = small_text_size),
+      axis.text.x = element_text(family = font, size = small_text_size),
+      axis.title = element_text(family = font, size = text_size),
+      plot.title = element_text(family = font, size = text_size),
+      legend.text = element_text(family = font, size = small_text_size),
+      legend.title = element_text(family = font, size = text_size),
       legend.key = element_blank(),
       # strip.background = element_blank(),
       panel.grid.major = element_blank(),
@@ -399,24 +399,39 @@ export_plots <- function(plt,
       bg = bg
     )
   } else {
+    ## PNGs are the copies that get dropped into slides, documents and
+    ## issue threads, where a transparent background renders as whatever is
+    ## behind it - black, in a dark viewer. ggsave() falls back to the
+    ## theme's background when bg is NULL, and the forest plots skip the
+    ## theme_bw() adjustment above, so they came out transparent. White
+    ## unless the caller asked for something specific.
     ggplot2::ggsave(
       filename = paste0(file_path, ".png"),
       plot = plt,
       width = fig_width_in,
       height = fig_height_in,
       dpi = dpi,
-      bg = bg
+      bg = if (is.null(bg)) "white" else bg
     )
   }
 
 }
 
 format_title <- function(title, case_study, target_to_source_std_ratio = NA, source_denominator_change_factor = NA, as_latex = FALSE){
-  if (case_study %in% c("botox", "dapagliflozin") & !is.na(target_to_source_std_ratio)){
+  ## A ratio of 1 is the default - the target and source standard
+  ## deviations agree - so naming it lengthens every title without
+  ## saying anything, the same way a denominator change factor of 1 does.
+  if (case_study %in% c("botox", "dapagliflozin") &&
+        !is.na(target_to_source_std_ratio) &&
+        target_to_source_std_ratio != 1){
     title <- paste0(title, ", $\\sigma_T/\\sigma_S = $", target_to_source_std_ratio)
   }
 
-  if (!is.na(source_denominator_change_factor)){
+  ## A change factor of 1 is the default - the source denominator used as
+  ## it stands - so saying so in the title adds length without adding
+  ## information. Only a factor that actually changes something is named.
+  if (!is.na(source_denominator_change_factor) &&
+        source_denominator_change_factor != 1){
     if (!(case_study %in% c("botox", "dapagliflozin", "aprepitant"))){
       title = paste0(title, ", Source denominator change factor = ",source_denominator_change_factor)
     }

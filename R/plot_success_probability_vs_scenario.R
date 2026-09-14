@@ -136,7 +136,7 @@ plot_success_proba_vs_drift <- function(metric,
     )
   results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
 
-  results_df <- merge(results_df, parameters_combinations[, ])
+  results_df <- filter_to_parameter_combinations(results_df, parameters_combinations)
 
 
   if (nrow(results_df) == 0) {
@@ -275,7 +275,7 @@ plot_success_proba_vs_drift <- function(metric,
   plot_title <- sprintf(
     "%s, %s%s, $N_T/2 = $ %s",
     str_to_title(case_study),
-    methods_labels[[method]]$label,
+    methods_labels[[method]]$full_name,
     param_label,
     target_sample_size_per_arm
   )

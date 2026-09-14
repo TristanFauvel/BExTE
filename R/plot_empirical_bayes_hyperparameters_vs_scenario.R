@@ -45,7 +45,7 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       dplyr::filter(control_drift == 0)
   }
 
-  results_df <- merge(results_metrics_df, parameters_combinations[, ])
+  results_df <- filter_to_parameter_combinations(results_metrics_df, parameters_combinations)
 
   prior_parameters_df <- get_parameters(results_df[, "parameters", drop = FALSE])
 
@@ -112,14 +112,14 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
         sprintf(
           "%s, %s",
           str_to_title(case_study),
-          methods_labels[[method]]$label
+          methods_labels[[method]]$full_name
         )
     } else {
       plot_title <-
         sprintf(
           "%s, %s%s",
           str_to_title(case_study),
-          methods_labels[[method]]$label,
+          methods_labels[[method]]$full_name,
           parameters_label_title
         )
     }

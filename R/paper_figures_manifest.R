@@ -51,6 +51,63 @@ manifest_forest <- function(id, caption, case_study, factor, metric,
   )
 }
 
+## The method-parameter combinations the versus-type-I-error figures draw.
+##
+## Those figures plot one point per combination, and every combination the
+## run simulated comes to about 45 of them - behind a legend taller than the
+## panel it explains. The paper shows a curated subset instead: the parameter
+## grids thinned to their informative range, and test-then-pool (both
+## variants) and PDCCPP left out of these panels entirely. They remain in the
+## forest plots, which is where the paper compares every method.
+##
+## A method mapped to an empty list keeps all of its rows (it has no
+## parameters to choose between); a method absent from this list is dropped.
+PAPER_VS_TIE_COMBINATIONS <- list(
+  pooling = list(),
+  separate = list(),
+  EB_PP = list(),
+  RMP = list(prior_weight = seq(0.1, 0.9, by = 0.1)),
+  conditional_power_prior = list(power_parameter = c(0.25, 0.5, 0.75)),
+  ## The three inverse-gamma heterogeneity priors; the half-normal ones are
+  ## not shown. Selecting on the family alone picks exactly those three.
+  commensurate_power_prior = list(`heterogeneity_prior.family` = "inverse_gamma"),
+  p_value_based_PP = list(shape_parameter = 1, equivalence_margin = 0.5),
+  NPP = list(power_parameter_mean = 0.5, power_parameter_std = 0.2)
+)
+
+## Keep only the rows PAPER_VS_TIE_COMBINATIONS names.
+##
+## Matching is on the expanded parameter columns rather than the raw JSON
+## string, so a combination is identified by its values and not by how the
+## run happened to serialise them.
+paper_vs_tie_subset <- function(df) {
+  ## drop = FALSE: `df[, "parameters"]` collapses to a bare vector for a
+  ## plain data frame (it survives only because readr hands back a
+  ## tibble), and get_parameters() then fails on an atomic argument -
+  ## the same drop-dimensions trap that made figure S3 plot every gamma.
+  expanded <- cbind(df, get_parameters(df[, "parameters", drop = FALSE]))
+  keep <- rep(FALSE, nrow(expanded))
+
+  for (method in names(PAPER_VS_TIE_COMBINATIONS)) {
+    spec <- PAPER_VS_TIE_COMBINATIONS[[method]]
+    matches <- expanded$method == method
+    for (column in names(spec)) {
+      ## A parameter the run did not record cannot match. Bail out with
+      ## an explicit all-FALSE rather than indexing a column that is not
+      ## there: `expanded[[column]]` is NULL then, and `NULL %in% ...`
+      ## collapses to logical(0), which silently shortens `matches`.
+      if (!column %in% names(expanded)) {
+        matches <- rep(FALSE, nrow(expanded))
+        break
+      }
+      matches <- matches & expanded[[column]] %in% spec[[column]]
+    }
+    keep <- keep | matches
+  }
+
+  df[keep, , drop = FALSE]
+}
+
 manifest_vs_tie <- function(id, caption, case_study, factor, metric,
                             treatment_effect) {
   list(
@@ -59,7 +116,7 @@ manifest_vs_tie <- function(id, caption, case_study, factor, metric,
     needs = "frequentist",
     generator = function(ctx) {
       operating_characteristic_vs_tie(
-        ctx$df,
+        paper_vs_tie_subset(ctx$df),
         case_study = case_study,
         target_sample_size_per_arm = ctx$target_sample_size_per_arm,
         treatment_effect = treatment_effect,

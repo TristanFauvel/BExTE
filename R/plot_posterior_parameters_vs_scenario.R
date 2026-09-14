@@ -129,7 +129,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
         plot_title <- sprintf(
           "%s, %s, %s $N_T/2 = $ %s",
           str_to_title(case_study),
-          methods_labels[[method]]$label,
+          methods_labels[[method]]$full_name,
           other_params_label,
           target_sample_size_per_arm
         )
@@ -382,7 +382,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
       sprintf(
         "%s, %s, $N_T/2 =$ %s",
         str_to_title(case_study),
-        methods_labels[[method]]$label,
+        methods_labels[[method]]$full_name,
         target_sample_size_per_arm
       )
 

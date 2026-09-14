@@ -140,7 +140,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
         sprintf(
           "%s, %s, %s $N_T/2 = $ %s",
           str_to_title(case_study),
-          methods_labels[[method]]$label,
+          methods_labels[[method]]$full_name,
           other_params_label,
           target_sample_size_per_arm
         )
@@ -334,7 +334,7 @@ bayesian_metric_vs_sample_size <- function(metric,
     # Format the parameters (from the json string)
     results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
     # Filter rows that match parameters_combinations
-    results_df <- merge(results_df, parameters_combinations[, ])
+    results_df <- filter_to_parameter_combinations(results_df, parameters_combinations)
 
     results_df[results_df[, "design_prior_type"] == "analysis_prior", "label"] <- "Analysis prior"
     results_df[results_df[, "design_prior_type"] == "source_posterior", "label"] <- "Source posterior"
@@ -368,7 +368,7 @@ bayesian_metric_vs_sample_size <- function(metric,
       sprintf(
         "%s, %s %s",
         str_to_title(case_study),
-        methods_labels[[method]]$label,
+        methods_labels[[method]]$full_name,
         param_label
       )
 
