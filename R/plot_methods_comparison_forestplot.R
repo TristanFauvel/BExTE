@@ -144,6 +144,164 @@ scale_by_separate <- function(df, metric_columns) {
 #'
 #' @return A ggplot2::ggplot( object representing the forest plot.
 #' @keywords internal
+## Half the source study's equivalent per-arm sample size: the value the
+## moment-based ESS colour scale is centred on. White therefore means
+## borrowing half of what the source study is worth, blue less and red more,
+## which is fixed per case study rather than relative to whatever range a
+## particular figure happens to span.
+forest_ess_midpoint <- function(data) {
+  source_per_arm <- data$equivalent_source_sample_size_per_arm
+  if (is.null(source_per_arm) || all(is.na(source_per_arm))) {
+    source_per_arm <- 2 * data$source_sample_size_control * data$source_sample_size_treatment /
+      (data$source_sample_size_control + data$source_sample_size_treatment)
+  }
+  unique(stats::median(source_per_arm, na.rm = TRUE)) / 2
+}
+
+## The moment-based ESS each row achieved, or NULL when the run did not
+## record it. Returning NULL rather than erroring keeps the forest plot
+## usable on a results frame that predates the column.
+forest_ess_values <- function(data) {
+  if (is.null(data$ess_moment) || all(!is.finite(data$ess_moment))) {
+    return(NULL)
+  }
+  data$ess_moment
+}
+
+## The point-and-interval layer. The marker is filled by moment-based ESS and
+## outlined thinly, so a near-white fill still reads as a point; `fill` is
+## used rather than `colour` because the ESS panels already spend their
+## colour scale on the N_T/2 and N_S/2 reference lines.
+forest_ess_layer <- function(data, palette, ess_limits) {
+  if (is.null(forest_ess_values(data)) || !is.null(palette)) {
+    return(forest_ink_layer(geom_pointrange, palette, size = 0.001))
+  }
+  ggplot2::geom_pointrange(
+    ggplot2::aes(fill = ess_moment),
+    ## No explicit colour: the outline stays at ggplot2's default so the
+    ## dark-theme palette can still set it, which is the contract
+    ## forest_ink_layer() exists to honour.
+    shape = 21, stroke = 0.2, size = 0.61, linewidth = 0.6
+  )
+}
+
+## The shared diverging fill scale. Limits are passed in so all three panels
+## of a figure share one scale and one colourbar.
+forest_ess_scale <- function(data, ess_limits, ess_midpoint) {
+  if (is.null(forest_ess_values(data))) {
+    return(NULL)
+  }
+  ggplot2::scale_fill_gradient2(
+    name = "Moment-based ESS",
+    low = "#3B4CC0", mid = "white", high = "#E8000B",
+    midpoint = if (is.null(ess_midpoint)) forest_ess_midpoint(data) else ess_midpoint,
+    limits = ess_limits,
+    oob = scales::squish,
+    guide = ggplot2::guide_colourbar(
+      title.position = "top", title.hjust = 0.5,
+      ## A border, so the pale middle of the scale still reads as part
+      ## of the bar rather than as a gap in it.
+      frame.colour = "grey20", frame.linewidth = 0.3,
+      ticks.colour = "grey20",
+      barwidth = grid::unit(2.2, "in"), barheight = grid::unit(0.12, "in")
+    )
+  )
+}
+
+## Scientific notation on the x axis: a single power of ten factored out of
+## the break labels and named in the axis title, so the ticks read 1.6, 2.0,
+## 2.4 under "MSE (10^-2)" instead of 0.016, 0.020, 0.024.
+forest_scientific_x <- function(values, label) {
+  finite <- values[is.finite(values) & values != 0]
+  if (length(finite) == 0) {
+    return(list(scale = NULL, label = label))
+  }
+  exponent <- floor(log10(max(abs(finite))))
+  ## Leave ordinary-sized numbers alone; a factor of 1 helps nobody.
+  if (exponent >= -1 && exponent <= 2) {
+    return(list(scale = NULL, label = label))
+  }
+  factor <- 10^exponent
+  list(
+    scale = ggplot2::scale_x_continuous(
+      labels = function(x) formatC(x / factor, format = "fg", digits = 2)
+    ),
+    label = latex2exp::TeX(sprintf("%s ($10^{%d}$)", label, exponent))
+  )
+}
+
+## The shared legend row: the moment-based ESS colourbar, and on the ESS
+## panels the N_T/2 and N_S/2 reference-line keys beside it. Taken from the
+## panel that carries both guides, so the three panels can then be drawn
+## without any legend of their own.
+forest_legend_grob <- function(plt) {
+  with_legend <- plt + ggplot2::theme(
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.box = "horizontal"
+  )
+  built <- ggplot2::ggplotGrob(with_legend)
+  boxes <- which(vapply(built$grobs, function(g) grepl("guide-box", g$name), logical(1)))
+  for (index in boxes) {
+    if (!inherits(built$grobs[[index]], "zeroGrob")) {
+      return(built$grobs[[index]])
+    }
+  }
+  NULL
+}
+
+## The width a forest panel spends on everything that is not the plotting
+## region: y-axis labels, ticks, axis title and margins. The first panel
+## carries the method labels and so spends far more than the other two.
+##
+## Laying the three panels out on fixed fractions of the page gives them
+## unequal plotting regions, because each fraction has to cover its own
+## labels first. Handing each panel its own overhead plus an equal share of
+## what is left makes the three grids the same width, so a distance along
+## the x axis means the same thing in each.
+forest_nonpanel_width <- function(grob) {
+  panel_columns <- grob$layout$l[grepl("^panel", grob$layout$name)]
+  if (length(panel_columns) == 0) {
+    return(grid::unit(0, "cm"))
+  }
+  spanned <- seq(min(panel_columns), max(panel_columns))
+  others <- setdiff(seq_along(grob$widths), spanned)
+  if (length(others) == 0) {
+    return(grid::unit(0, "cm"))
+  }
+  grid::convertWidth(sum(grob$widths[others]), "cm")
+}
+
+## Each panel's own overhead, plus an equal share of the remaining width,
+## resolved to absolute inches.
+##
+## The widths have to be absolute: `unit(x, "cm") + unit(1, "null")` is a
+## unit arithmetic object, and arrangeGrob cannot distribute leftover
+## space across those - the null parts get nothing and every panel
+## collapses to its labels.
+forest_panel_widths <- function(grobs, available_in) {
+  overheads <- vapply(grobs, function(grob) {
+    as.numeric(grid::convertWidth(forest_nonpanel_width(grob), "in"))
+  }, numeric(1))
+  ## A floor wide enough for the text that sits over and under a panel:
+  ## its title ("Consistent (no drift)") and its axis label ("Relative
+  ## Power (vs. separate analysis)"). Both are drawn at the panel's own
+  ## width, so a panel narrower than they are lets them spill into the
+  ## neighbouring panel. Scaled by the font, since that is what sets how
+  ## wide the text runs; the page is then widened to hold the result.
+  ## small_text_size is one of the style globals conf/plots_config.R
+  ## supplies; fall back to its usual value rather than failing when the
+  ## caller has not sourced them.
+  font_size <- if (exists("small_text_size", inherits = TRUE)) {
+    get("small_text_size")
+  } else {
+    12
+  }
+  panel_floor_in <- 2.2 * font_size / 12
+  panel_share <- max((available_in - sum(overheads)) / length(grobs), panel_floor_in)
+  grid::unit(overheads + panel_share, "in")
+}
+
 forest_subplot <- function(data,
                            title,
                            ylabel,
@@ -155,7 +313,10 @@ forest_subplot <- function(data,
                            legend = FALSE,
                            sort_by = FALSE,
                            palette = NULL,
-                           reference_line = NULL) {
+                           reference_line = NULL,
+                           ess_limits = NULL,
+                           ess_midpoint = NULL,
+                           nominal_tie_line = NULL) {
   refs <- forest_reference_colours(palette)
   ## A ratio plot needs its own reference at 1; the metric-name-driven
   ## reference lines further down do not cover it.
@@ -186,6 +347,10 @@ forest_subplot <- function(data,
 
   data$rows <- seq(1, nrow(data))
 
+  ## A single power of ten factored out of the tick labels and named in
+  ## the axis title, so the ticks stay short.
+  scientific_x <- forest_scientific_x(data[[as.character(x_metric_name)]], x_metric_label)
+
   plt <- ggplot2::ggplot(
     data,
     ggplot2::aes(
@@ -195,23 +360,25 @@ forest_subplot <- function(data,
       xmax = !!x_metric_uncertainty_upper
     )
   ) +
-    forest_ink_layer(geom_pointrange, palette, size = 0.001) +
-    ggplot2::labs(title = title, x = x_metric_label) +
+    forest_ess_layer(data, palette, ess_limits) +
+    ggplot2::labs(title = title, x = scientific_x$label) +
     theme(
       axis.title.y = element_blank(),
-      text = element_text(family = font, size = small_text_size/2),
-      axis.text.y = element_text(size = small_text_size/2),
-      strip.text.x = element_text(size = small_text_size/2),
+      text = element_text(family = font, size = small_text_size),
+      axis.text.y = element_text(size = small_text_size),
+      strip.text.x = element_text(size = small_text_size),
       legend.key = element_blank(),
       # strip.background = element_blank(),
       panel.grid.major = element_line(color = "gray80", linetype = "solid",  size = 0.15),
       panel.grid.minor = element_blank(),
-      axis.title = element_text(size = small_text_size/2),
+      axis.title = element_text(size = small_text_size),
       plot.title = element_text(hjust = 0.5),
       plot.background = element_blank()
     ) +
     forest_palette_theme(palette) +
-    scale_y_continuous(breaks = data$rows, labels = labels) # LaTeX labels
+    scale_y_continuous(breaks = data$rows, labels = labels) + # LaTeX labels
+    forest_ess_scale(data, ess_limits, ess_midpoint) +
+    scientific_x$scale
     # scale_x_continuous(
     #   breaks = pretty(data[[x_metric_name]], n = 5), # Set 10 evenly spaced breaks
     #   labels = function(x) format(x, nsmall = 2)     # Optional: Format to 2 decimal places
@@ -311,6 +478,16 @@ forest_subplot <- function(data,
       color = refs$ink
     )
   }
+  ## The nominal type I error rate, on the panel where the probability of
+  ## declaring success is the type I error rate. Dashed, to read apart
+  ## from the dotted reference lines above.
+  if (!is.null(nominal_tie_line)) {
+    plt <- plt + geom_vline(
+      xintercept = nominal_tie_line,
+      linetype = "dashed",
+      color = refs$ink
+    )
+  }
   return(plt)
 }
 
@@ -371,14 +548,14 @@ forest_subplot_no_uncertainty <- function(data,
     theme_bw() +
     theme(
       axis.title.y = element_blank(),
-      text = element_text(family = font, size = text_size/2),
-      axis.text.y = element_text(size = text_size/2),
-      strip.text.x = element_text(size = text_size/2),
+      text = element_text(family = font, size = text_size),
+      axis.text.y = element_text(size = text_size),
+      strip.text.x = element_text(size = text_size),
       legend.key = element_blank(),
       # strip.background = element_blank(),
       panel.grid.major = element_line(color = "gray80", linetype = "solid",  size = 0.15),
       panel.grid.minor = element_blank(),
-      axis.title = element_text(size = text_size/2),
+      axis.title = element_text(size = text_size),
       plot.title = element_text(hjust = 0.5)
       # Center the title
       # plot.background = element_blank()
@@ -443,14 +620,14 @@ forest_combined_plot <- function(data,
     ) +
     theme(
       axis.title.y = element_blank(),
-      text = element_text(family = font, size = small_text_size/2),
-      axis.text.y = element_text(size = small_text_size/2),
-      strip.text.x = element_text(size = small_text_size/2),
+      text = element_text(family = font, size = small_text_size),
+      axis.text.y = element_text(size = small_text_size),
+      strip.text.x = element_text(size = small_text_size),
       legend.key = element_blank(),
       # strip.background = element_blank(),
       panel.grid.major = element_line(color = "gray80", linetype = "solid",  size = 0.15),
       panel.grid.minor = element_blank(),
-      axis.title = element_text(size = small_text_size/2),
+      axis.title = element_text(size = small_text_size),
       plot.title = element_text(hjust = 0.5)
       # plot.background = element_blank()
     ) +
@@ -609,7 +786,15 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
     rowwise() %>%
     filter(any(sapply(closest_values, function(val) is_approx_equal(target_treatment_effect, val)))) %>%
     ungroup() %>%
-    dplyr::arrange(target_treatment_effect)
+    ## By distance from no effect, not by the signed value. The three
+    ## scenarios are the source effect times 0, 1/2 and 1, and the
+    ## labels below are assigned in whatever order this leaves. Sorting
+    ## the signed value puts the largest benefit first whenever the
+    ## source effect is negative - teriflunomide and mepolizumab, where
+    ## benefit is a negative log rate ratio - which labelled the full
+    ## effect "No treatment effect" and the null "Consistent", swapping
+    ## two of the three panels.
+    dplyr::arrange(abs(target_treatment_effect))
 
   # Custom function to find the closest value
   closest_value <- function(x, values) {
@@ -668,6 +853,9 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
   consistent_effect_data <- consistent_effect_data[new_order, ]
 
 
+  ## The probability of declaring success is the type I error rate when
+  ## there is no effect and the power when there is one, so the three
+  ## panels do not share an axis label.
   if (x_metric_name == "success_proba"){
     x_metric_label_no_effect <- "TIE"
     x_metric_label_partially_consistent <- "Power"
@@ -678,9 +866,43 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
     x_metric_label_consistent <- x_metric_label
   }
 
+  ## A relative plot's axis is a ratio to the separate analysis, not the
+  ## metric itself, and saying so is the difference between reading 2 as
+  ## "twice the power of no borrowing" and as a power of 2. The break
+  ## keeps the longer label inside a narrow panel.
+  ## Under no effect the probability of declaring success is the type I
+  ## error rate, so that panel - and only that panel - can carry the
+  ## nominal rate as a reference. A relative plot's axis is a ratio, on
+  ## which the nominal rate has no meaning, so it is left off there.
+  nominal_tie <- if (x_metric_name == "success_proba" && !relative_to_separate &&
+                     exists("analysis_config", inherits = TRUE)) {
+    get("analysis_config")$nominal_tie
+  } else {
+    NULL
+  }
+
+  if (relative_to_separate) {
+    as_relative <- function(label) {
+      paste0("Relative ", label, "\n(vs. separate analysis)")
+    }
+    x_metric_label_no_effect <- as_relative(x_metric_label_no_effect)
+    x_metric_label_partially_consistent <-
+      as_relative(x_metric_label_partially_consistent)
+    x_metric_label_consistent <- as_relative(x_metric_label_consistent)
+  }
+
 
   if (panels == TRUE){
     # Create forest plots for each effect
+    ## One scale across the three panels, so a colour means the same thing
+    ## in each and a single colourbar can describe all of them.
+    ess_all <- c(no_effect_data$ess_moment,
+                 partially_consistent_effect_data$ess_moment,
+                 consistent_effect_data$ess_moment)
+    ess_all <- ess_all[is.finite(ess_all)]
+    ess_limits <- if (length(ess_all) > 0) range(ess_all) else NULL
+    ess_midpoint <- forest_ess_midpoint(no_effect_data)
+
     plot_no_effect <- forest_subplot(
       no_effect_data,
       "No effect",
@@ -693,7 +915,10 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
       legend = FALSE,
       sort_by = FALSE,
       reference_line = if (relative_to_separate) 1 else NULL,
-      palette = palette
+      palette = palette,
+      ess_limits = ess_limits,
+      ess_midpoint = ess_midpoint,
+      nominal_tie_line = nominal_tie
     )
     plot_partially_consistent_effect <- forest_subplot(
       partially_consistent_effect_data,
@@ -707,7 +932,9 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
       legend = FALSE,
       sort_by = FALSE,
       reference_line = if (relative_to_separate) 1 else NULL,
-      palette = palette
+      palette = palette,
+      ess_limits = ess_limits,
+      ess_midpoint = ess_midpoint
     )
     plot_consistent_effect <- forest_subplot(
       consistent_effect_data,
@@ -721,13 +948,31 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
       legend = TRUE,
       sort_by = FALSE,
       reference_line = if (relative_to_separate) 1 else NULL,
-      palette = palette
+      palette = palette,
+      ess_limits = ess_limits,
+      ess_midpoint = ess_midpoint
     )
 
+    ## Widths first: the page is then sized to hold them, rather than the
+    ## panels being squeezed into a fixed page. At 12pt the method labels
+    ## are wide enough that a fixed width overflows - titles collide and
+    ## the last panel runs off the edge.
+    panel_widths <- NULL
+
+    ## One legend row for the whole figure, taken from the panel that
+    ## carries every guide, before the panels are stripped of theirs.
+    legend_row <- forest_legend_grob(plot_consistent_effect)
+    drop_legend <- ggplot2::theme(legend.position = "none")
+
     # Convert to grobs
-    grob_no_effect <- ggplotGrob(plot_no_effect)
-    grob_partially_consistent_effect <- ggplotGrob(plot_partially_consistent_effect)
-    grob_consistent_effect <- ggplotGrob(plot_consistent_effect)
+    grob_no_effect <- ggplotGrob(plot_no_effect + drop_legend)
+    grob_partially_consistent_effect <- ggplotGrob(plot_partially_consistent_effect + drop_legend)
+    grob_consistent_effect <- ggplotGrob(plot_consistent_effect + drop_legend)
+
+    panel_widths <- forest_panel_widths(
+      list(grob_no_effect, grob_partially_consistent_effect, grob_consistent_effect),
+      set_size(textwidth)[1]
+    )
 
     # Note that adding the Tikz export to the export_plots function does not work.
     if (plots_to_latex == TRUE) {
@@ -741,7 +986,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
         grob_partially_consistent_effect,
         grob_consistent_effect,
         ncol = 3,
-        widths = c(0.44, 0.25, 0.31)
+        widths = panel_widths
       )
       dev.off()
     } else {
@@ -750,13 +995,22 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
       # graphics device, which matters when this runs headless (e.g. from
       # the Shiny app), where the implicitly-opened default device can't
       # render the plot theme's font and grid.arrange() would error.
-      plt <- gridExtra::arrangeGrob(
+      panels <- gridExtra::arrangeGrob(
         grob_no_effect,
         grob_partially_consistent_effect,
         grob_consistent_effect,
         ncol = 3,
-        widths = c(0.44, 0.25, 0.31)
+        widths = panel_widths
       )
+      plt <- if (is.null(legend_row)) {
+        panels
+      } else {
+        gridExtra::arrangeGrob(panels, legend_row, ncol = 1,
+                               heights = grid::unit.c(
+                                 grid::unit(1, "null"),
+                                 grid::grobHeight(legend_row)
+                               ))
+      }
     }
   } else {
     # Combine data from all three cases into one data frame
@@ -778,8 +1032,31 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
     )
   }
   plot_size <- set_size(textwidth)
-  fig_width_in <- plot_size[1]
-  fig_height_in <- plot_size[2]
+  ## Wide enough for what the panels were actually given, never narrower
+  ## than the text width.
+  fig_width_in <- if (exists("panel_widths", inherits = FALSE) && !is.null(panel_widths)) {
+    max(plot_size[1], sum(as.numeric(grid::convertWidth(panel_widths, "in"))))
+  } else {
+    plot_size[1]
+  }
+  ## A fixed height crams however many methods were simulated into the
+  ## same space, which is why the y-axis labels overlapped once the runs
+  ## carried all eleven methods and their parameter grids. Give every row
+  ## its own strip of the page instead, and never less than the old
+  ## height.
+  ## As tight as the labels allow: a row need only be as tall as the text
+  ## in it, which is small_text_size points, plus a quarter of that for
+  ## the descenders and subscripts the method labels are full of. Tying it
+  ## to the font rather than a fixed number keeps the spacing minimal if
+  ## the text size is ever changed.
+  label_height_in <- (small_text_size) / 72
+  fig_height_in <- max(
+    plot_size[2],
+    ## 1.05, not 1.25: a row is the height of its own text plus a hair, so
+    ## the labels sit directly under one another with no gap. Below about
+    ## 1.0 they would start to touch.
+    1.05 * label_height_in * nrow(no_effect_data) + 1.6
+  )
 
   if (is.null(palette)) {
     export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", forest_plot = TRUE)

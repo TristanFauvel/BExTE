@@ -59,7 +59,15 @@ generate_comparison_table <- function(results_df,
   # Filter the dataframe to keep only the rows with the closest values
   df <- df %>%
     dplyr::filter(target_treatment_effect %in% closest_values) %>%
-    dplyr::arrange(target_treatment_effect)
+    ## By distance from no effect, not by the signed value. The three
+    ## scenarios are the source effect times 0, 1/2 and 1, and the
+    ## labels below are assigned in whatever order this leaves. Sorting
+    ## the signed value puts the largest benefit first whenever the
+    ## source effect is negative - teriflunomide and mepolizumab, where
+    ## benefit is a negative log rate ratio - which labelled the full
+    ## effect "No treatment effect" and the null "Consistent", swapping
+    ## two of the three panels.
+    dplyr::arrange(abs(target_treatment_effect))
 
   if (length(unique(df$target_treatment_effect)) != length(important_target_treatment_effects)) {
     stop(

@@ -1,6 +1,14 @@
 ## Supplementary tables S1 and S7. Both are derived from the case study YAMLs
 ## rather than from simulation output.
 
+## LaTeX reads a bare "_" outside math mode as a subscript and errors out. The
+## YAML values these tables print are identifiers, so they carry underscores
+## routinely; export_table() escapes only "%", and only in column names, so
+## escaping the cell values is left to the caller.
+escape_latex_underscores <- function(x) {
+  gsub("_", "\\\\_", x)
+}
+
 #' Total target-study sample sizes considered for each case study (table S1)
 #'
 #' @param case_studies Character vector of case study names.
@@ -57,10 +65,15 @@ table_case_study_summary <- function(case_studies, case_studies_config_dir, tabl
   rows <- lapply(case_studies, function(case_study) {
     config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
     data.frame(
-      `Case study` = config$name,
-      `Control` = config$control,
-      `Endpoint` = config$endpoint,
-      `Summary measure` = config$summary_measure_likelihood,
+      `Case study` = escape_latex_underscores(config$name),
+      `Control` = escape_latex_underscores(config$control),
+      ## Endpoints are YAML identifiers, so several carry an underscore
+      ## (`time_to_event`, `recurrent_event`). export_table() escapes only
+      ## "%", and only in column names, so an unescaped one reaches the .tex
+      ## as a subscript outside math mode and aborts the compile - taking the
+      ## whole table down, not just that row.
+      `Endpoint` = escape_latex_underscores(config$endpoint),
+      `Summary measure` = escape_latex_underscores(config$summary_measure_likelihood),
       ## control + treatment, not the `total:` field, which is stale for
       ## aprepitant - see R/simulation_scenarios.R.
       `Source N` = config$source$control + config$source$treatment,

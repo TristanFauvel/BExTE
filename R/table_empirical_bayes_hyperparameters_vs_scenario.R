@@ -48,7 +48,7 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       dplyr::filter(control_drift == 0)
   }
 
-  results_df <- merge(results_metrics_df, parameters_combinations[, ])
+  results_df <- filter_to_parameter_combinations(results_metrics_df, parameters_combinations)
 
   prior_parameters_df <- get_parameters(results_df[, "parameters", drop = FALSE])
 

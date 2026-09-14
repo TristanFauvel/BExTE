@@ -10,6 +10,147 @@
 #' @return None
 #'
 #' @export
+## The title a legend grob carries, used to place it by name rather than
+## by position - the guide box does not hand them back in the order the
+## scales were added, so trusting the order puts legends in the wrong
+## cells. NA when the legend has no title (a method whose single key is
+## labelled with its own name).
+vs_tie_legend_title <- function(legend) {
+  for (child in legend$grobs) {
+    label <- child$label
+    if (!is.null(label) && length(label) == 1) {
+      text <- paste(as.character(label), collapse = "")
+      if (nzchar(trimws(text))) {
+        return(trimws(text))
+      }
+    }
+  }
+  NA_character_
+}
+
+## Does this method contribute a single key with nothing to say about it?
+## Such a key is better labelled with the method name than headed by it
+## and left blank. The labels are plotmath expressions, so emptiness is
+## checked on the deparsed form rather than with nzchar().
+vs_tie_key_is_bare <- function(method_parameters) {
+  if (length(method_parameters) != 1) {
+    return(FALSE)
+  }
+  text <- paste(deparse(method_parameters[[1]]), collapse = "")
+  grepl('^(expression\\()?\\s*""\\s*\\)?$', text)
+}
+
+## Where each method's legend sits in the versus-type-I-error legend block.
+##
+## Entries are the labels the legends carry, and the grid is read as drawn:
+## a label repeated across neighbouring cells spans them. Methods present in
+## the data but absent from this table are appended in rows of their own
+## rather than dropped, so adding a method to a figure cannot silently lose
+## its legend.
+PAPER_VS_TIE_LEGEND_LAYOUT <- rbind(
+  c("Pooling",  "RMP", "Conditional PP"),
+  c("Separate", "RMP", "NPP"),
+  c("EBPP",     "RMP", "p-PP"),
+  c("Com. PP",  "Com. PP", "Com. PP")
+)
+
+## Lay the method legends out as a grid of groups rather than a single row
+## or a single column.
+##
+## Each method contributes its own guide, and ggplot places multiple guides
+## either all in a row - which runs off the page once there are eight of
+## them at 12pt - or all in a column, which is complete but far taller than
+## the panel. The guide box is a gtable whose children are the individual
+## legends, so they can be pulled out and arranged in columns.
+vs_tie_legend_grid <- function(plt, labels, available_in = Inf) {
+  built <- ggplot2::ggplotGrob(
+    plt + ggplot2::theme(legend.position = "bottom", legend.box = "vertical")
+  )
+  boxes <- which(vapply(built$grobs, function(g) grepl("guide-box", g$name), logical(1)))
+
+  legends <- list()
+  for (index in boxes) {
+    box <- built$grobs[[index]]
+    if (!inherits(box, "gtable")) {
+      next
+    }
+    ## The zeroGrob placeholders are not legends.
+    legends <- c(legends, box$grobs[vapply(box$grobs, function(g) {
+      inherits(g, "gtable")
+    }, logical(1))])
+  }
+  if (length(legends) == 0) {
+    return(NULL)
+  }
+  ## Size every row and column to what it holds. Equal cells give each row
+  ## the height of the tallest legend in the grid - RMP's 3x3 block - so
+  ## the single-entry groups float in a large empty box, and give each
+  ## column a third of the width, which clips the wide ones.
+  ## Positional: the guides are taken in the order the guide box returns
+  ## them. That is NOT reliably the order the scales were added, so the
+  ## layout table below places legends into cells but cannot yet be
+  ## trusted to put a named method in a named cell - see the note in
+  ## PAPER_VS_TIE_LEGEND_LAYOUT. Identifying each grob by its own title
+  ## is the missing piece.
+  labels <- labels[seq_along(legends)]
+  ## Place each legend where PAPER_VS_TIE_LEGEND_LAYOUT asks for it. A
+  ## label repeated across cells spans them, which is how the wide
+  ## commensurate-prior legend runs along the bottom.
+  layout <- PAPER_VS_TIE_LEGEND_LAYOUT
+  placed <- intersect(as.vector(layout), labels)
+  ## Anything the table does not mention gets a row to itself.
+  leftover <- setdiff(labels, placed)
+  for (label in leftover) {
+    layout <- rbind(layout, rep(label, ncol(layout)))
+  }
+
+  layout_matrix <- matrix(
+    match(layout, labels), nrow = nrow(layout), ncol = ncol(layout)
+  )
+  ## Cells naming a method this figure does not draw stay empty.
+  keep_rows <- apply(layout_matrix, 1, function(r) any(!is.na(r)))
+  layout_matrix <- layout_matrix[keep_rows, , drop = FALSE]
+  if (nrow(layout_matrix) == 0) {
+    return(NULL)
+  }
+
+  cell_extent <- function(indices, measure, convert, default) {
+    indices <- unique(indices[!is.na(indices)])
+    if (length(indices) == 0) {
+      return(default)
+    }
+    max(vapply(legends[indices], function(g) {
+      as.numeric(convert(measure(g), "cm"))
+    }, numeric(1)))
+  }
+  heights <- grid::unit(vapply(seq_len(nrow(layout_matrix)), function(r) {
+    cell_extent(layout_matrix[r, ], grid::grobHeight, grid::convertHeight, 0.1)
+  }, numeric(1)), "cm")
+  widths <- grid::unit(vapply(seq_len(ncol(layout_matrix)), function(k) {
+    cell_extent(layout_matrix[, k], grid::grobWidth, grid::convertWidth, 0.1)
+  }, numeric(1)), "cm")
+
+  ## Shrink to the available width if the columns together overrun it,
+  ## so a wide legend is scaled rather than clipped at the edges.
+  total <- sum(as.numeric(widths))
+  if (is.finite(available_in) && total > available_in) {
+    widths <- grid::unit(as.numeric(widths) * available_in / total, "cm")
+  }
+
+  ## arrangeGrob requires every grob it is handed to appear in the layout,
+  ## so keep only those the matrix places and renumber it to match.
+  used <- sort(unique(as.vector(layout_matrix)[!is.na(as.vector(layout_matrix))]))
+  if (length(used) == 0) {
+    return(NULL)
+  }
+  layout_matrix[] <- match(layout_matrix, used)
+
+  gridExtra::arrangeGrob(
+    grobs = legends[used], layout_matrix = layout_matrix,
+    heights = heights, widths = widths
+  )
+}
+
 operating_characteristic_vs_tie <- function(
     results_metrics_df,
     case_study,
@@ -17,7 +158,8 @@ operating_characteristic_vs_tie <- function(
     treatment_effect,
     operating_characteristic,
     source_denominator_change_factor,
-    target_to_source_std_ratio
+    target_to_source_std_ratio,
+    show_tie_error_bars = FALSE
 ) {
 
   directory <- paste0(figures_dir, case_study)
@@ -192,24 +334,50 @@ operating_characteristic_vs_tie <- function(
         ),
         width = y_cap_size
       ),
-      # Add horizontal error bars
-      geom_errorbarh(
-        data = df_subset,
-        aes(
-          y = !!sym(operating_characteristic$name),
-          xmin = conf_int_tie_lower,
-          xmax = conf_int_tie_upper,
-          color = factor(parameters_labels, levels = method_parameters)
-        ),
-        height = x_cap_size
-      ),
+      ## The horizontal bars carry the Monte Carlo error on the type I
+      ## error rate. With one point per method-parameter combination they
+      ## cross each other and obscure the points they belong to, so they
+      ## are off unless asked for.
+      if (show_tie_error_bars) {
+        geom_errorbarh(
+          data = df_subset,
+          aes(
+            y = !!sym(operating_characteristic$name),
+            xmin = conf_int_tie_lower,
+            xmax = conf_int_tie_upper,
+            color = factor(parameters_labels, levels = method_parameters)
+          ),
+          height = x_cap_size
+        )
+      } else {
+        NULL
+      },
       # Define the color scale for parameters within this method
+      ## A method with one key needs no separate heading: the method name
+      ## goes on the key itself, so it reads "Pooling" rather than a
+      ## "Pooling" title above a lone unlabelled symbol. Where that key
+      ## also carries parameters they follow the name.
       scale_color_manual(
         values = method_colors,
-        labels = method_parameters,
-        name = method_name,
+        ## The parameter labels are plotmath expressions, not strings, so
+        ## they cannot be pasted to the method name - doing so deparses
+        ## them and prints expression("") on the figure. Only the methods
+        ## whose single key carries no parameters at all take the name
+        ## inline; the rest keep their heading.
+        labels = if (isTRUE(vs_tie_key_is_bare(method_parameters))) {
+          method_name
+        } else {
+          method_parameters
+        },
+        name = if (isTRUE(vs_tie_key_is_bare(method_parameters))) NULL else method_name,
         drop = TRUE,
-        guide = guide_legend(override.aes = list(shape = method_shape), ncol = 1)
+        ## Up to three entries per row: a method with nine parameter values
+        ## (RMP's weights) becomes a 3x3 block rather than a column nine
+        ## tall, which is what made the legend taller than the panel.
+        guide = guide_legend(
+          override.aes = list(shape = method_shape),
+          ncol = min(3, length(method_parameters))
+        )
       )
     )
 
@@ -227,7 +395,12 @@ operating_characteristic_vs_tie <- function(
       linetype = "dashed"
     ) +
     ggplot2::scale_x_continuous(
-      breaks = function(x) unique(c(pretty(x), analysis_config$nominal_tie))
+      breaks = function(x) unique(c(pretty(x), analysis_config$nominal_tie)),
+      ## The nominal TIE is forced in alongside the pretty breaks, and at
+      ## 12pt it can land close enough to one of them to overprint it
+      ## ("0.000" over "0.025"). check.overlap drops whichever labels
+      ## would collide instead of drawing them on top of each other.
+      guide = ggplot2::guide_axis(check.overlap = TRUE)
     )
 
   # Add shape scale for methods
@@ -245,13 +418,13 @@ operating_characteristic_vs_tie <- function(
 
   # Apply theme settings
   plt <- plt + theme_bw() + theme(
-    axis.text = element_text(family = font, size = text_size / 2),
-    axis.text.y = element_text(family = font, size = small_text_size / 2),
-    axis.text.x = element_text(family = font, size = small_text_size / 2),
-    axis.title = element_text(family = font, size = text_size / 2),
-    plot.title = element_text(family = font, size = text_size / 2),
-    legend.text = element_text(family = font, size = small_text_size / 2),
-    legend.title = element_text(family = font, size = text_size / 2),
+    axis.text = element_text(family = font, size = text_size),
+    axis.text.y = element_text(family = font, size = small_text_size),
+    axis.text.x = element_text(family = font, size = small_text_size),
+    axis.title = element_text(family = font, size = text_size),
+    plot.title = element_text(family = font, size = text_size),
+    legend.text = element_text(family = font, size = small_text_size),
+    legend.title = element_text(family = font, size = text_size),
     legend.key.size = unit(0.1, "cm"),
     legend.spacing.x = unit(0.03, "cm"),
     legend.spacing.y = unit(0.01, "cm"),
@@ -259,13 +432,44 @@ operating_characteristic_vs_tie <- function(
     legend.direction = "vertical",
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    legend.box = "horizontal",
-    legend.box.just = "center"
+    ## The eight method groups laid side by side make a legend row wider
+    ## than any page - at 12pt it was clipped at both ends however wide
+    ## the figure was made. Stacking the groups wraps the legend instead
+    ## of running it off the edge.
+    legend.box = "vertical",
+    legend.box.just = "left"
   )
 
+  ## The legends as a grid of groups, with the panel drawn without them.
+  legend_grid <- vs_tie_legend_grid(
+    plt, names(results_df_split),
+    available_in = as.numeric(grid::convertWidth(
+      grid::unit(set_size(textwidth)[1] * 1.35 * max(1, small_text_size / 8), "in"), "cm"))
+  )
+  if (!is.null(legend_grid)) {
+    panel_only <- ggplot2::ggplotGrob(
+      plt + ggplot2::theme(legend.position = "none")
+    )
+    plt <- gridExtra::arrangeGrob(
+      panel_only, legend_grid, ncol = 1,
+      heights = grid::unit.c(grid::unit(1, "null"),
+                             grid::grobHeight(legend_grid))
+    )
+  }
+
   plot.size <- set_size(textwidth)
-  fig_width_in <- plot.size[1] * 1.35
-  fig_height_in <- plot.size[2] * 1.5
+  ## The 1.35 was sized for the old 6pt legend text. The legend sits under
+  ## the panel and is the widest thing on the page, so its width tracks
+  ## the font: at 12pt it needs about half again as much room, and
+  ## without this it is clipped at both ends.
+  legend_scale <- max(1, small_text_size / 8)
+  fig_width_in <- plot.size[1] * 1.35 * legend_scale
+  ## The stacked legend is tall - one row per method group - so the
+  ## page has to grow with it, or the panel is squeezed to a sliver.
+  ## The legend is a compact grid rather than one group per row, so the
+  ## page only needs the font's worth of extra room, not the large
+  ## allowance a stacked legend wanted.
+  fig_height_in <- plot.size[2] * 1.5 * legend_scale
 
   # Export the plots
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
@@ -486,10 +690,6 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     source_denominator_change_factor = source_denominator_change_factor
   )
 
-  # Load necessary libraries for plotting
-  library(ggnewscale)
-  library(purrr)
-
   # Split data by 'method'
   results_df_split <- split(results_df, results_df$method)
 
@@ -555,12 +755,31 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
         size = 2
       ),
       # Define the color scale for parameters within this method
+      ## A method with one key needs no separate heading: the method name
+      ## goes on the key itself, so it reads "Pooling" rather than a
+      ## "Pooling" title above a lone unlabelled symbol. Where that key
+      ## also carries parameters they follow the name.
       scale_color_manual(
         values = method_colors,
-        labels = method_parameters,
-        name = method_name,
+        ## The parameter labels are plotmath expressions, not strings, so
+        ## they cannot be pasted to the method name - doing so deparses
+        ## them and prints expression("") on the figure. Only the methods
+        ## whose single key carries no parameters at all take the name
+        ## inline; the rest keep their heading.
+        labels = if (isTRUE(vs_tie_key_is_bare(method_parameters))) {
+          method_name
+        } else {
+          method_parameters
+        },
+        name = if (isTRUE(vs_tie_key_is_bare(method_parameters))) NULL else method_name,
         drop = TRUE,
-        guide = guide_legend(override.aes = list(shape = method_shape), ncol = 1)
+        ## Up to three entries per row: a method with nine parameter values
+        ## (RMP's weights) becomes a 3x3 block rather than a column nine
+        ## tall, which is what made the legend taller than the panel.
+        guide = guide_legend(
+          override.aes = list(shape = method_shape),
+          ncol = min(3, length(method_parameters))
+        )
       )
     )
 
@@ -602,13 +821,13 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
 
   # Apply theme settings
   plt <- plt + theme_bw() + theme(
-    axis.text = element_text(family = font, size = text_size / 2),
-    axis.text.y = element_text(family = font, size = small_text_size / 2),
-    axis.text.x = element_text(family = font, size = small_text_size / 2),
-    axis.title = element_text(family = font, size = text_size / 2),
-    plot.title = element_text(family = font, size = text_size / 2),
-    legend.text = element_text(family = font, size = small_text_size / 2),
-    legend.title = element_text(family = font, size = text_size / 2),
+    axis.text = element_text(family = font, size = text_size),
+    axis.text.y = element_text(family = font, size = small_text_size),
+    axis.text.x = element_text(family = font, size = small_text_size),
+    axis.title = element_text(family = font, size = text_size),
+    plot.title = element_text(family = font, size = text_size),
+    legend.text = element_text(family = font, size = small_text_size),
+    legend.title = element_text(family = font, size = text_size),
     legend.key.size = unit(0.1, "cm"),  # Key size
     legend.spacing.x = unit(0.03, "cm"),
     legend.spacing.y = unit(0.01, "cm"),  # Narrow vertical spacing
@@ -621,8 +840,18 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
   )
 
   plot.size <- set_size(textwidth)
-  fig_width_in <- plot.size[1]*1.35
-  fig_height_in <- plot.size[2]*1.5
+  ## The 1.35 was sized for the old 6pt legend text. The legend sits under
+  ## the panel and is the widest thing on the page, so its width tracks
+  ## the font: at 12pt it needs about half again as much room, and
+  ## without this it is clipped at both ends.
+  legend_scale <- max(1, small_text_size / 8)
+  fig_width_in <- plot.size[1] * 1.35 * legend_scale
+  ## The stacked legend is tall - one row per method group - so the
+  ## page has to grow with it, or the panel is squeezed to a sliver.
+  ## The legend is a compact grid rather than one group per row, so the
+  ## page only needs the font's worth of extra room, not the large
+  ## allowance a stacked legend wanted.
+  fig_height_in <- plot.size[2] * 1.5 * legend_scale
 
 
   # Export the plots

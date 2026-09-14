@@ -324,7 +324,7 @@ plot_metric_vs_drift <- function(metric,
 
   if (category != "parameters") {
     # Filter rows that match parameters_combinations
-    results_df <- merge(results_df, parameters_combinations[, ])
+    results_df <- filter_to_parameter_combinations(results_df, parameters_combinations)
     param_values <- unlist(unique(results_df[, category]))
   } else {
     param_values <- unlist(get_parameters(unique(results_df[, category, drop = FALSE])))
@@ -513,7 +513,7 @@ plot_metric_vs_drift <- function(metric,
     title <- sprintf(
         "%s, %s %s",
         str_to_title(case_study),
-        methods_labels[[method]]$label,
+        methods_labels[[method]]$full_name,
         parameters_label_title
       )
 
@@ -532,7 +532,7 @@ plot_metric_vs_drift <- function(metric,
     title <- sprintf(
         "%s, %s %s, %s %s",
         str_to_title(case_study),
-        methods_labels[[method]]$label,
+        methods_labels[[method]]$full_name,
         parameters_label_title,
         "$N_T/2 = $",
         target_sample_size_per_arm
@@ -555,7 +555,7 @@ plot_metric_vs_drift <- function(metric,
     title <- sprintf(
         "%s, %s, $N_T/2 = $ %s",
         str_to_title(case_study),
-        methods_labels[[method]]$label,
+        methods_labels[[method]]$full_name,
         target_sample_size_per_arm
       )
 
@@ -574,7 +574,7 @@ plot_metric_vs_drift <- function(metric,
     title <- sprintf(
         "%s, %s%s, $N_T/2 = $%s",
         str_to_title(case_study),
-        methods_labels[[method]]$label,
+        methods_labels[[method]]$full_name,
         parameters_label_title,
         target_sample_size_per_arm
       )
@@ -775,7 +775,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
       plot_title =  sprintf(
           "%s, %s, %s $N_T/2 = $ %s",
           str_to_title(case_study),
-          methods_labels[[method]]$label,
+          methods_labels[[method]]$full_name,
           other_params_label,
           target_sample_size_per_arm
         )
@@ -939,7 +939,7 @@ plot_metric_vs_sample_size <- function(metric,
   results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
 
   # Filter rows that match parameters_combinations
-  results_df <- merge(results_df, parameters_combinations[, ])
+  results_df <- filter_to_parameter_combinations(results_df, parameters_combinations)
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
 
@@ -1062,7 +1062,7 @@ plot_metric_vs_sample_size <- function(metric,
   title = sprintf(
       "%s, %s%s",
       str_to_title(case_study),
-      methods_labels[[method]]$label,
+      methods_labels[[method]]$full_name,
       param_label
     )
 

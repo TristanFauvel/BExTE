@@ -167,6 +167,7 @@ importFrom(dplyr,
   ungroup
 )
 importFrom(foreach,"%dopar%")
+importFrom(ggnewscale,new_scale_color)
 importFrom(gridExtra,grid.arrange)
 importFrom(jsonlite,
   toJSON,

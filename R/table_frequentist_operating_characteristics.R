@@ -121,7 +121,7 @@ table_metric_vs_drift <- function(metric,
 
   if (category != "parameters") {
     # Filter rows that match parameters_combinations
-    results_df <- merge(results_df, parameters_combinations[, ])
+    results_df <- filter_to_parameter_combinations(results_df, parameters_combinations)
     param_values <- unlist(unique(results_df[, category]))
   } else {
     param_values <- unlist(get_parameters(unique(results_df[, category, drop = FALSE])))
@@ -806,7 +806,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
 
   if (category != "parameters") {
     # Filter rows that match parameters_combinations
-    results_df <- merge(results_df, parameters_combinations[, ])
+    results_df <- filter_to_parameter_combinations(results_df, parameters_combinations)
     param_values <- unlist(unique(results_df[, category]))
   } else {
     param_values <- unlist(get_parameters(unique(results_df[, category, drop = FALSE])))

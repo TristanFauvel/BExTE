@@ -525,13 +525,13 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
 
     # Apply theme settings
     plt <- plt + theme_bw() + theme(
-      axis.text = element_text(family = font, size = text_size / 2),
-      axis.text.y = element_text(family = font, size = small_text_size / 2),
-      axis.text.x = element_text(family = font, size = small_text_size / 2),
-      axis.title = element_text(family = font, size = text_size / 2),
-      plot.title = element_text(family = font, size = text_size / 2),
-      legend.text = element_text(family = font, size = small_text_size / 2),
-      legend.title = element_text(family = font, size = text_size / 2),
+      axis.text = element_text(family = font, size = text_size),
+      axis.text.y = element_text(family = font, size = small_text_size),
+      axis.text.x = element_text(family = font, size = small_text_size),
+      axis.title = element_text(family = font, size = text_size),
+      plot.title = element_text(family = font, size = text_size),
+      legend.text = element_text(family = font, size = small_text_size),
+      legend.title = element_text(family = font, size = text_size),
       legend.key.size = unit(0.1, "cm"),  # Key size
       legend.spacing.x = unit(0.01, "cm"),
       legend.spacing.y = unit(0.01, "cm"),  # Narrow vertical spacing

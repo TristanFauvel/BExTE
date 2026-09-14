@@ -8,7 +8,9 @@ markers_list <- c("o", "s", "D", "^", "v", "p", "*", "+", "x")
 markersize <- 1
 relative_error_cap_width <- 0.05
 dpi <- 300
-text_size <- 14
+## Point sizes as rendered: the plot themes use these directly, so the
+## number here is the font size you see on the figure.
+text_size <- 12
 small_text_size <- 12
 width <- 11
 height <- 8.5
