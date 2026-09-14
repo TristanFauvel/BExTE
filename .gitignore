@@ -17,6 +17,9 @@
 .Rproj.user
 .Ruserdata
 
+# ignore the default plot device dump R writes when no explicit device is open
+Rplots.pdf
+
 # ignore stan files (compiled models, sources, and per-run outputs)
 inst/stan/*
 !inst/stan/.gitkeep
