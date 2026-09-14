@@ -21,7 +21,7 @@ articles:
   simulation/simulation_illustration_high_level: simulation/simulation_illustration_high_level.html
   simulation/simulation_illustration_low_level: simulation/simulation_illustration_low_level.html
   methods/Truncated_Gaussian_RMP: methods/Truncated_Gaussian_RMP.html
-last_built: 2026-09-14T20:11Z
+last_built: 2026-09-14T20:36Z
 urls:
   reference: https://tristanfauvel.github.io/BExTE/reference
   article: https://tristanfauvel.github.io/BExTE/articles
