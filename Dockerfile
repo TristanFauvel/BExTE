@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libblas-dev \
     liblapack-dev \
     zlib1g-dev \
+    libuv1-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -40,6 +41,11 @@ WORKDIR /app
 # minutes to compile from source) instead of building everything from
 # source. Other recorded repos (e.g. the stan r-universe one cmdstanr comes
 # from) are untouched, since renv.lock stores their full URL per package.
+# PPM only serves binaries when it can identify the client's OS from the
+# HTTP User-Agent - without this it silently falls back to source tarballs,
+# which is what happened the first time (every package built from source,
+# and one of them - fs - failed outright for lacking a system dependency
+# that binaries don't need).
 COPY .Rprofile renv.lock ./
 COPY renv/activate.R renv/settings.json renv/
 RUN Rscript -e "\
@@ -47,6 +53,11 @@ RUN Rscript -e "\
     repos <- getOption('repos'); \
     repos['CRAN'] <- 'https://packagemanager.posit.co/cran/__linux__/jammy/latest'; \
     options(repos = repos); \
+    options(HTTPUserAgent = sprintf( \
+      'R/%s R (%s)', \
+      getRversion(), \
+      paste(getRversion(), R.version\$platform, R.version\$arch, R.version\$os) \
+    )); \
     renv::restore()"
 
 # Bring in the rest of the package, install it, then build the CmdStan
