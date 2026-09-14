@@ -46,6 +46,20 @@ ui <- shiny::tagList(
     bslib::nav_panel("Analyze", mod_analyze_ui("analyze")),
     bslib::nav_panel("Replicate paper", mod_replicate_ui("replicate")),
     bslib::nav_spacer(),
+    bslib::nav_item(
+      shiny::tags$a(
+        shiny::icon("book"), "Docs",
+        href = "https://tristanfauvel.github.io/BExTE/",
+        target = "_blank", rel = "noopener noreferrer"
+      )
+    ),
+    bslib::nav_item(
+      shiny::tags$a(
+        shiny::icon("github"), "GitHub",
+        href = "https://github.com/TristanFauvel/BExTE",
+        target = "_blank", rel = "noopener noreferrer"
+      )
+    ),
     bslib::nav_item(bslib::input_dark_mode(id = "color_mode"))
   )
 )
