@@ -27,6 +27,15 @@ config_type_predicates <- list(
   # `parallelization` is either a single flag or a list of method names.
   flag_or_list = function(x) {
     (is.logical(x) && length(x) == 1 && !is.na(x)) || is.list(x)
+  },
+  # A case study name -> the sample size factors to simulate for it.
+  named_numeric_list = function(x) {
+    is.list(x) && length(x) > 0 && !is.null(names(x)) &&
+      all(nzchar(names(x))) &&
+      all(vapply(x, function(v) {
+        length(v) > 0 &&
+          all(vapply(v, function(e) is.numeric(e) && length(e) == 1, logical(1)))
+      }, logical(1)))
   }
 )
 
@@ -43,7 +52,8 @@ config_type_descriptions <- c(
   string = "a single string",
   numeric_vector = "a non-empty list of numbers",
   character_vector = "a non-empty list of strings",
-  flag_or_list = "a single TRUE or FALSE, or a list"
+  flag_or_list = "a single TRUE or FALSE, or a list",
+  named_numeric_list = "a named list mapping each name to a non-empty list of numbers"
 )
 
 
@@ -166,7 +176,12 @@ scenarios_config_schema <- list(
   sample_size_factors = "numeric_vector",
   target_to_source_std_ratio_range = "numeric_vector?",
   case_studies = "character_vector",
-  methods = "character_vector"
+  methods = "character_vector",
+  # Optional. Restricts the sample size factors simulated for a given
+  # case study, so a run need not take the cross product of every case
+  # study with every factor - see simulation_frequentist_ocs(). Case
+  # studies absent from it keep the full sample_size_factors.
+  case_study_sample_size_factors = "named_numeric_list?"
 )
 
 

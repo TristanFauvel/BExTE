@@ -1,4 +1,5 @@
 name: Teriflunomide
+control: Placebo
 summary_measure_likelihood: normal
 theta_0: 0
 endpoint: time_to_event
