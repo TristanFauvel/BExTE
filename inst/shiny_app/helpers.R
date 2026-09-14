@@ -645,6 +645,14 @@ launch_simulation_run <- function(env) {
   config_dir <- env_config_dir(env)
   case_studies_config_dir <- paste0(USER_CASE_STUDIES_DIR, "/")
 
+  ## Keep the child's output next to the run rather than in tempfile()s that
+  ## vanish with the app. An error raised inside a %dopar% worker never
+  ## reaches logs/<env>/error_logs/ - futile.logger is writing from a
+  ## different process - so stderr is the only place the reason is recorded,
+  ## and two paper runs died with nothing to read because it was thrown away.
+  run_log_dir <- file.path("logs", env)
+  dir.create(run_log_dir, showWarnings = FALSE, recursive = TRUE)
+
   analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
   simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "BExTE"))
   metrics_env <- new.env()
@@ -677,7 +685,7 @@ launch_simulation_run <- function(env) {
       frequentist_metrics = metrics_env$frequentist_metrics,
       inference_metrics = metrics_env$inference_metrics
     ),
-    stdout = tempfile(fileext = ".out"),
-    stderr = tempfile(fileext = ".err")
+    stdout = file.path(run_log_dir, "run.out"),
+    stderr = file.path(run_log_dir, "run.err")
   )
 }

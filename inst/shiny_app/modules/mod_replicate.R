@@ -22,6 +22,43 @@ replicate_main_ids <- function() {
   ids[!startsWith(ids, "S") & !startsWith(ids, "TS")]
 }
 
+## The results directory a finished run produced, or NULL if it produced none.
+##
+## Step 2 writes results/<env>/, but the Step 1 dropdown is filled once at
+## module init, so without adopting the new directory Step 3 keeps exporting
+## from whatever was selected before the run - typically a small smoke-test
+## directory - and every figure the run was launched for fails with "No rows
+## for ...".
+##
+## NULL means the run produced nothing usable: an interrupted run leaves the
+## per-case-study/method files behind but never the concatenated
+## results_frequentist.csv, so list_results_dirs() does not list it, and
+## selecting it would trade a stale export for a broken one.
+completed_run_results_dir <- function(env, dirs = list_results_dirs()) {
+  if (is.null(env) || !nzchar(env)) {
+    return(NULL)
+  }
+  candidate <- file.path("results", env)
+  if (candidate %in% dirs) candidate else NULL
+}
+
+## The directory Step 1 should open on: the newest one whose own
+## scenarios_config.yml is faithful to the paper, or "" when there is none.
+##
+## `dirs` arrives newest-first from list_results_dirs(). Landing on whichever
+## directory happens to sort first is how a 1000-replicate, two-method
+## smoke-test directory ends up selected by default and reported as covering
+## 13 of 42 items - so an unfaithful directory is never chosen for you, only
+## picked deliberately.
+default_results_dir <- function(dirs, requirements, config_reader = paper_run_config) {
+  for (dir in dirs) {
+    if (length(paper_config_shortfalls(config_reader(dir), requirements)) == 0) {
+      return(dir)
+    }
+  }
+  ""
+}
+
 mod_replicate_ui <- function(id) {
   ns <- shiny::NS(id)
   bexte_page(
@@ -41,7 +78,7 @@ mod_replicate_ui <- function(id) {
     ),
     bexte_step(
       2, "Run the simulations the selection needs",
-      note = "Only the case studies and sample sizes your selection plots are simulated. Anything the results directory already covers is skipped.",
+      note = "Only the case studies and sample sizes your selection plots are simulated, but always at the paper's fidelity and always in full - so the directory a run produces can make every figure you selected on its own. A run is skipped only when the chosen directory already covers everything.",
       shiny::uiOutput(ns("workload")),
       bexte_action_button(ns("run"), "Run required simulations"),
       shiny::uiOutput(ns("run_state")),
@@ -49,7 +86,7 @@ mod_replicate_ui <- function(id) {
     ),
     bexte_step(
       3, "Produce the figures and tables",
-      note = "Figures keep their generated filenames; manifest.csv maps each one to its paper number.",
+      note = "Figures keep their generated filenames, with manifest.csv mapping each one to its paper number. A copy of every output, named \"Figure 1.png\", \"Table S1.tex\" and so on, is also written to a paper_outputs/ folder alongside them.",
       bexte_action_button(ns("export"), "Produce figures and tables"),
       shiny::uiOutput(ns("export_status")),
       shiny::tableOutput(ns("export_table"))
@@ -61,21 +98,45 @@ mod_replicate_server <- function(id, color_mode = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     state <- shiny::reactiveValues(proc = NULL, env = NULL, export = NULL)
 
+    ## Plain closure variable, not a reactiveValues field: the observer below
+    ## both reads and writes it, and a reactive one would invalidate that
+    ## observer with every write just to be read again and bail out.
+    adopted_run <- FALSE
+
     shiny::updateCheckboxGroupInput(
       session, "items",
       choices = replicate_choice_labels(),
       selected = replicate_main_ids()
     )
 
-    refresh_results_dirs <- function() {
-      dirs <- list_results_dirs()
-      shiny::updateSelectInput(session, "results_dir", choices = dirs)
-    }
-    refresh_results_dirs()
-
     case_studies_dir <- function() {
       paste0(system.file("conf/case_studies", package = "BExTE"), "/")
     }
+
+    ## The full manifest's requirements, which is what a directory has to be
+    ## faithful to before it can stand in for the paper's results. It does
+    ## not depend on the current selection: the fidelity settings (methods,
+    ## replicates, drift points) are the same whichever figures you pick.
+    full_requirements <- function() {
+      paper_replication_requirements(paper_manifest_ids(), case_studies_dir())
+    }
+
+    ## Placeholder so "nothing selected" is representable: without it Shiny
+    ## selects the first directory in the list, which is how an unrelated
+    ## smoke-test run becomes the export source by default.
+    refresh_results_dirs <- function(selected = NULL) {
+      dirs <- list_results_dirs()
+      if (is.null(selected)) {
+        selected <- default_results_dir(dirs, full_requirements())
+      }
+      shiny::updateSelectInput(
+        session, "results_dir",
+        choices = c("- pick a results directory -" = "", dirs),
+        selected = selected
+      )
+      dirs
+    }
+    refresh_results_dirs()
 
     shiny::observeEvent(input$select_all, {
       shiny::updateCheckboxGroupInput(session, "items", selected = paper_manifest_ids())
@@ -97,7 +158,13 @@ mod_replicate_server <- function(id, color_mode = NULL) {
       df <- readr::read_csv(
         file.path(dir, "results_frequentist.csv"), show_col_types = FALSE
       )
-      paper_replication_coverage(df, ids, case_studies_dir())
+      ## paper_run_config() may return NULL, and passing that explicitly is
+      ## the point: a directory whose config cannot be found cannot be
+      ## vouched for either.
+      paper_replication_coverage(
+        df, ids, case_studies_dir(),
+        run_config = paper_run_config(dir)
+      )
     })
 
     output$coverage <- shiny::renderUI({
@@ -129,13 +196,20 @@ mod_replicate_server <- function(id, color_mode = NULL) {
       )
     })
 
-    missing_ids <- shiny::reactive({
+    ## Everything the selection needs, not just the part the selected
+    ## directory lacks. A run covering only the gap leaves a directory that
+    ## cannot produce the rest on its own: with a botox-only directory
+    ## selected, Step 2 used to simulate the five other case studies and omit
+    ## botox, so no single directory could make all 42 and Step 3 had to
+    ## export from one of them. character(0) means the selected directory
+    ## already covers everything, at the paper's fidelity.
+    run_ids <- shiny::reactive({
       cov <- coverage()
-      if (is.null(cov)) input$items else cov$id[!cov$covered]
+      if (!is.null(cov) && all(cov$covered)) character(0) else input$items
     })
 
     output$workload <- shiny::renderUI({
-      ids <- missing_ids()
+      ids <- run_ids()
       if (length(ids) == 0) {
         return(bexte_status("Nothing to run - the results directory covers everything selected."))
       }
@@ -153,7 +227,7 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     })
 
     shiny::observeEvent(input$run, {
-      ids <- missing_ids()
+      ids <- run_ids()
       if (length(ids) == 0) {
         shiny::showNotification("Nothing to run.", type = "message")
         return()
@@ -177,8 +251,50 @@ mod_replicate_server <- function(id, color_mode = NULL) {
       )
 
       state$env <- env
+      adopted_run <<- FALSE
       state$proc <- launch_simulation_run(env)
       shiny::showNotification(paste0("Running ", env, "."), type = "message")
+    })
+
+    ## Point Step 3 at the directory Step 2 just produced. Polling mirrors
+    ## output$run_state below - the launched process offers no completion
+    ## callback - and the guard makes this fire once per run.
+    shiny::observe({
+      if (is.null(state$proc) || adopted_run) {
+        return()
+      }
+      if (state$proc$is_alive()) {
+        shiny::invalidateLater(2000, session)
+        return()
+      }
+      adopted_run <<- TRUE
+
+      produced <- completed_run_results_dir(state$env)
+      if (is.null(produced)) {
+        ## Keep the current selection rather than silently falling back to
+        ## whichever directory sorts first, and point at the run log: a run
+        ## that stops early looks "finished" here whether it was killed or
+        ## raised an error, and the error is recorded in run.err rather than
+        ## in error_logs/ when it came from inside a parallel worker.
+        current <- shiny::isolate(input$results_dir)
+        shiny::showNotification(
+          paste0(
+            state$env, " stopped before writing results_frequentist.csv, so ",
+            "it did not finish. See logs/", state$env, "/run.err for the ",
+            "reason. Step 3 still exports from ",
+            if (nzchar(current)) current else "nothing - pick a directory below",
+            "."
+          ),
+          type = "warning", duration = NULL
+        )
+        refresh_results_dirs(shiny::isolate(input$results_dir))
+      } else {
+        shiny::showNotification(
+          paste0("Step 3 will now export from ", produced, "."),
+          type = "message"
+        )
+        refresh_results_dirs(produced)
+      }
     })
 
     output$run_state <- shiny::renderUI({
@@ -208,6 +324,11 @@ mod_replicate_server <- function(id, color_mode = NULL) {
       run_name <- basename(results_dir)
       figures_dir <- file.path("figures", "publication_figures", run_name, "")
       tables_dir <- file.path("tables", "publication_tables", run_name)
+      ## A second copy of everything, named the way the paper refers to it,
+      ## so the outputs can be read alongside the manuscript without going
+      ## through manifest.csv to find which file is which.
+      numbered_dir <- file.path("figures", "publication_figures", run_name,
+                                "paper_outputs")
 
       shiny::withProgress(message = "Producing figures and tables", value = 0, {
         state$export <- export_paper_outputs(
@@ -216,6 +337,7 @@ mod_replicate_server <- function(id, color_mode = NULL) {
           tables_dir = tables_dir,
           ids = ids,
           case_studies_config_dir = case_studies_dir(),
+          numbered_dir = numbered_dir,
           progress = function(index, total, id) {
             shiny::setProgress(value = index / total, detail = id)
           }

@@ -98,3 +98,61 @@ test_that("status messages expose their urgency to assistive technology", {
   expect_match(error, 'role="alert"', fixed = TRUE)
   expect_match(error, 'aria-live="assertive"', fixed = TRUE)
 })
+
+test_that("Replicate adopts the results directory a finished run produced", {
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
+  source(system.file("shiny_app/modules/mod_replicate.R", package = "BExTE"))
+
+  ## Step 2 writes results/<env>/, but the Step 1 dropdown is populated once
+  ## at module init, so Step 3 kept exporting from whatever was selected
+  ## before the run - typically a small smoke-test directory - and every
+  ## figure the run was launched for failed with "No rows for ...".
+  dirs <- c("results/paper_replication_20260911_150923", "results/minimal_test")
+
+  expect_equal(
+    completed_run_results_dir("paper_replication_20260911_150923", dirs),
+    "results/paper_replication_20260911_150923"
+  )
+
+  ## An interrupted run leaves per-case-study/method files but never the
+  ## concatenated results_frequentist.csv, so list_results_dirs() omits it.
+  ## Selecting it anyway would swap a stale export for a broken one.
+  expect_null(completed_run_results_dir("paper_replication_20260911_161500", dirs))
+  expect_null(completed_run_results_dir(NULL, dirs))
+})
+
+test_that("Replicate starts on the newest results directory that is paper-faithful", {
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
+  source(system.file("shiny_app/modules/mod_replicate.R", package = "BExTE"))
+
+  cfg <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+  requirements <- paper_replication_requirements(paper_manifest_ids(), cfg)
+
+  faithful <- requirements
+  smoke <- list(
+    n_replicates = 1000, ndrift = 15,
+    case_studies = "botox", methods = c("separate", "pooling")
+  )
+  configs <- list(
+    "results/smoke_2" = smoke,
+    "results/paper_run" = faithful,
+    "results/smoke_1" = smoke
+  )
+  reader <- function(dir) configs[[dir]]
+
+  ## list_results_dirs() returns newest first, so the first qualifying entry
+  ## is the newest one - and a smoke-test directory sorting ahead of it must
+  ## not win just for being recent.
+  expect_equal(
+    default_results_dir(names(configs), requirements, reader),
+    "results/paper_run"
+  )
+
+  ## Nothing faithful: start on no selection rather than silently landing on
+  ## a directory whose figures would not be the paper's.
+  expect_equal(
+    default_results_dir(c("results/smoke_2", "results/smoke_1"), requirements, reader),
+    ""
+  )
+  expect_equal(default_results_dir(character(0), requirements, reader), "")
+})
