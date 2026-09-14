@@ -4,7 +4,12 @@
 \alias{paper_replication_coverage}
 \title{Check a results frame against a set of paper figures}
 \usage{
-paper_replication_coverage(results_df, ids, case_studies_config_dir)
+paper_replication_coverage(
+  results_df,
+  ids,
+  case_studies_config_dir,
+  run_config = NULL
+)
 }
 \arguments{
 \item{results_df}{A frequentist results frame.}
@@ -12,6 +17,13 @@ paper_replication_coverage(results_df, ids, case_studies_config_dir)
 \item{ids}{Manifest ids to check.}
 
 \item{case_studies_config_dir}{Directory holding the case study YAMLs.}
+
+\item{run_config}{Optionally the \code{scenarios_config} the results were
+produced from (see \code{\link[=paper_run_config]{paper_run_config()}}). When given, a directory that
+falls short of the paper's fidelity covers no figure at all, however
+many rows it holds - see \code{\link[=paper_config_shortfalls]{paper_config_shortfalls()}}. Tables are
+unaffected: they are built from the case study YAMLs, not from
+simulation output.}
 }
 \value{
 A data frame with columns \code{id}, \code{covered} and \code{reason}.

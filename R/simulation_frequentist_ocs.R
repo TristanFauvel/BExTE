@@ -216,6 +216,21 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   return(results_frequentist_ocs)
 }
 
+## The sample size factors to simulate a given case study at.
+##
+## scenarios_config$case_study_sample_size_factors, when present, maps a case
+## study to the factors it is wanted at, so a run can avoid the cross product
+## of every case study with every factor. A case study the map does not
+## mention keeps the run-wide sample_size_factors, which is what every config
+## written before the field existed does.
+case_study_factors <- function(scenarios_config, case_study) {
+  per_case_study <- scenarios_config$case_study_sample_size_factors
+  if (is.null(per_case_study) || is.null(per_case_study[[case_study]])) {
+    return(scenarios_config$sample_size_factors)
+  }
+  per_case_study[[case_study]]
+}
+
 #' Run simulations based on the given environment
 #'
 #' @param env The environment to run the simulations in
@@ -251,11 +266,23 @@ simulation_frequentist_ocs <- function(env,
 
   scenarios_table_ranges(cases, paste0("./results/", env))
 
-  # `cases` still covers every case study and method here, so its row count is
-  # the whole run. The loops below narrow it to one block at a time; the
-  # tracker keeps a run-wide total across them, which is what the Shiny app's
-  # Run tab reads to draw its progress bar.
-  run_progress <- run_progress_tracker(env, total = nrow(cases))
+  # The loops below narrow `cases` to one case study and method at a time;
+  # the tracker keeps a run-wide total across them, which is what the Shiny
+  # app's Run tab reads to draw its progress bar. The total is summed per
+  # case study rather than taken from the frame above, because a run that
+  # restricts a case study's factors simulates fewer scenarios than the
+  # full cross product - counting those would leave the bar short of its
+  # own total for the whole run.
+  run_total <- sum(vapply(case_studies, function(cs) {
+    per_case_study <- scenarios_config
+    per_case_study$case_studies <- cs
+    per_case_study$sample_size_factors <- case_study_factors(scenarios_config, cs)
+    nrow(simulation_scenarios(
+      config_dir = config_dir, scenarios_config = per_case_study,
+      case_studies_config_dir = case_studies_config_dir
+    ))
+  }, numeric(1)))
+  run_progress <- run_progress_tracker(env, total = run_total)
 
   results_dir <- paste0("./results/", env, "/", "frequentist")
 
@@ -268,6 +295,15 @@ simulation_frequentist_ocs <- function(env,
     for (method in methods) {
       scenarios_config$case_studies <- case_study
       scenarios_config$methods <- method
+      # Only the factors this case study is actually wanted at. Without
+      # this the run takes the cross product of every case study with
+      # every factor, and simulates combinations nothing asked for - the
+      # paper's figures, for instance, use each case study at two of the
+      # three factors, so a third of the grid was being computed and
+      # never plotted. Case studies absent from the map are unrestricted.
+      scenarios_config$sample_size_factors <- case_study_factors(
+        scenarios_config, case_study
+      )
 
       # Scenarios of one case study and method are what share analyses, so the
       # cache is emptied here rather than growing for the whole run. The keys

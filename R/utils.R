@@ -1,3 +1,17 @@
+## Restrict results to the parameter combinations a figure or table plots.
+##
+## The merge on the shared parameter columns is the filter, and it has to be
+## handed the data frame itself. `parameters_combinations[, ]` drops a
+## single-column frame to a bare vector, leaving merge() with no column in
+## common: it cross-joins - keeping every parameter value - or returns nothing
+## when a name happens to collide. Figure S3 selects the conditional power
+## prior at gamma = 0.25 and is the only manifest entry whose selection has
+## exactly one parameter, so it drew all five gamma values as a single
+## zig-zagging line while two-parameter figures were unaffected.
+filter_to_parameter_combinations <- function(results_df, parameters_combinations) {
+  merge(results_df, parameters_combinations)
+}
+
 frequentist_col_types <- cols(
   method = col_character(),
   parameters = col_character(),
