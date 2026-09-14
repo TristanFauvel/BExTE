@@ -5,7 +5,7 @@ borrowing.
 
 ## Super class
 
-[`RBExT::DesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.md)
+[`DesignPrior`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.md)
 -\> `UnitInformationDesignPrior`
 
 ## Public fields
@@ -22,7 +22,7 @@ borrowing.
 
 ### Public methods
 
-- [`UnitInformationDesignPrior$new()`](#method-UnitInformationDesignPrior-new)
+- [`UnitInformationDesignPrior$new()`](#method-UnitInformationDesignPrior-initialize)
 
 - [`UnitInformationDesignPrior$sample()`](#method-UnitInformationDesignPrior-sample)
 
@@ -34,11 +34,11 @@ borrowing.
 
 Inherited methods
 
-- [`RBExT::DesignPrior$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-create)
+- [`DesignPrior$create()`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.html#method-create)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `UnitInformationDesignPrior$new()`
 
 Initializes a new instance of UnitInformationDesignPrior.
 
@@ -76,7 +76,7 @@ Initializes a new instance of UnitInformationDesignPrior.
 
 ------------------------------------------------------------------------
 
-### Method [`sample()`](https://rdrr.io/r/base/sample.html)
+### `UnitInformationDesignPrior$sample()`
 
 Samples from the unit information design prior.
 
@@ -92,7 +92,7 @@ Samples from the unit information design prior.
 
 ------------------------------------------------------------------------
 
-### Method `cdf()`
+### `UnitInformationDesignPrior$cdf()`
 
 Computes the cumulative distribution function (CDF) of the unit
 information design prior.
@@ -109,7 +109,7 @@ information design prior.
 
 ------------------------------------------------------------------------
 
-### Method [`pdf()`](https://rdrr.io/r/grDevices/pdf.html)
+### `UnitInformationDesignPrior$pdf()`
 
 Computes the cumulative distribution function (CDF) of the unit
 information design prior.
@@ -126,7 +126,7 @@ information design prior.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `UnitInformationDesignPrior$clone()`
 
 The objects of this class are cloneable with this method.
 

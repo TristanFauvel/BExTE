@@ -4,14 +4,14 @@ A class for continuous target data objects.
 
 ## Super class
 
-[`RBExT::TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)
+[`TargetData`](https://tristanfauvel.github.io/BExTE/reference/TargetData.md)
 -\> `ContinuousTargetData`
 
 ## Methods
 
 ### Public methods
 
-- [`ContinuousTargetData$new()`](#method-ContinuousTargetData-new)
+- [`ContinuousTargetData$new()`](#method-ContinuousTargetData-initialize)
 
 - [`ContinuousTargetData$generate()`](#method-ContinuousTargetData-generate)
 
@@ -21,11 +21,11 @@ A class for continuous target data objects.
 
 Inherited methods
 
-- [`RBExT::TargetData$plot_sample()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.html#method-plot_sample)
+- [`TargetData$plot_sample()`](https://tristanfauvel.github.io/BExTE/reference/TargetData.html#method-plot_sample)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `ContinuousTargetData$new()`
 
 Initializes the continuous target data object.
 
@@ -73,7 +73,7 @@ Initializes the continuous target data object.
 
 ------------------------------------------------------------------------
 
-### Method `generate()`
+### `ContinuousTargetData$generate()`
 
 Generates samples for the continuous target data object.
 
@@ -93,7 +93,7 @@ A data frame containing the generated samples.
 
 ------------------------------------------------------------------------
 
-### Method `to_dict()`
+### `ContinuousTargetData$to_dict()`
 
 Converts the target data object to a dictionary.
 
@@ -107,7 +107,7 @@ A list representing the target data object.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `ContinuousTargetData$clone()`
 
 The objects of this class are cloneable with this method.
 

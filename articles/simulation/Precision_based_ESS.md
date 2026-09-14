@@ -206,10 +206,10 @@ target study, for a case study :
 ``` r
 
 set.seed(42)
-config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
-config_path <- system.file("conf/case_studies/belimumab.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/belimumab.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 
 

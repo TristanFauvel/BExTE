@@ -4,9 +4,8 @@ This class represents a Gaussian Commensurate Power Prior model.
 
 ## Super classes
 
-[`RBExT::Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
--\>
-[`RBExT::MCMCModel`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.md)
+[`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) -\>
+[`MCMCModel`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.md)
 -\> `GaussianCommensuratePowerPrior`
 
 ## Public fields
@@ -19,13 +18,19 @@ This class represents a Gaussian Commensurate Power Prior model.
 
   Heterogeneity prior family (half_normal, inverse_gamma)
 
+- `summary_variables`:
+
+  Variables to summarise from the posterior draws
+
 ## Methods
 
 ### Public methods
 
-- [`GaussianCommensuratePowerPrior$new()`](#method-GaussianCommensuratePowerPrior-new)
+- [`GaussianCommensuratePowerPrior$new()`](#method-GaussianCommensuratePowerPrior-initialize)
 
 - [`GaussianCommensuratePowerPrior$prepare_data()`](#method-GaussianCommensuratePowerPrior-prepare_data)
+
+- [`GaussianCommensuratePowerPrior$vectorised_replicate_inference()`](#method-GaussianCommensuratePowerPrior-vectorised_replicate_inference)
 
 - [`GaussianCommensuratePowerPrior$compute_posterior_parameters()`](#method-GaussianCommensuratePowerPrior-compute_posterior_parameters)
 
@@ -41,36 +46,40 @@ This class represents a Gaussian Commensurate Power Prior model.
 
 Inherited methods
 
-- [`RBExT::Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
-- [`RBExT::Model$empirical_bayes_update()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-empirical_bayes_update)
-- [`RBExT::Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
-- [`RBExT::Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
-- [`RBExT::Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
-- [`RBExT::Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
-- [`RBExT::Model$plot_prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_prior_pdf)
-- [`RBExT::Model$posterior_mean()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_mean)
-- [`RBExT::Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
-- [`RBExT::Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
-- [`RBExT::Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
-- [`RBExT::Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
-- [`RBExT::Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
-- [`RBExT::Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
-- [`RBExT::Model$simulation_for_given_treatment_effect()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-simulation_for_given_treatment_effect)
-- [`RBExT::Model$test_decision()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-test_decision)
-- [`RBExT::MCMCModel$check_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-check_data)
-- [`RBExT::MCMCModel$check_mcmc_config()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-check_mcmc_config)
-- [`RBExT::MCMCModel$credible_interval()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-credible_interval)
-- [`RBExT::MCMCModel$draw_mcmc_prior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-draw_mcmc_prior)
-- [`RBExT::MCMCModel$inference()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-inference)
-- [`RBExT::MCMCModel$posterior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_cdf)
-- [`RBExT::MCMCModel$posterior_median()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_median)
-- [`RBExT::MCMCModel$posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_pdf)
-- [`RBExT::MCMCModel$prior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-prior_cdf)
-- [`RBExT::MCMCModel$sample_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-sample_posterior)
+- [`Model$check_data()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-check_data)
+- [`Model$create()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-create)
+- [`Model$empirical_bayes_update()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-empirical_bayes_update)
+- [`Model$estimate_bayesian_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_bayesian_operating_characteristics)
+- [`Model$estimate_frequentist_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$inference_cache_scope()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference_cache_scope)
+- [`Model$plot_pdfs()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_pdfs)
+- [`Model$plot_posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_posterior_pdf)
+- [`Model$plot_prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_prior_pdf)
+- [`Model$posterior_beta_mixture()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_beta_mixture)
+- [`Model$posterior_mean()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_mean)
+- [`Model$posterior_moments()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_moments)
+- [`Model$posterior_quantile()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_quantile)
+- [`Model$posterior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$prior_ESS()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_ESS)
+- [`Model$prior_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_elir_ess)
+- [`Model$prior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_to_RBesT)
+- [`Model$prior_treatment_benefit()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_treatment_benefit)
+- [`Model$simulation_for_given_treatment_effect()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-simulation_for_given_treatment_effect)
+- [`Model$test_decision()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-test_decision)
+- [`MCMCModel$check_mcmc_config()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-check_mcmc_config)
+- [`MCMCModel$credible_interval()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-credible_interval)
+- [`MCMCModel$draw_mcmc_prior()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-draw_mcmc_prior)
+- [`MCMCModel$inference()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-inference)
+- [`MCMCModel$posterior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_cdf)
+- [`MCMCModel$posterior_ess()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_ess)
+- [`MCMCModel$posterior_median()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_median)
+- [`MCMCModel$posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_pdf)
+- [`MCMCModel$prior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-prior_cdf)
+- [`MCMCModel$sample_posterior()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-sample_posterior)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `GaussianCommensuratePowerPrior$new()`
 
 Initialize the GaussianCommensuratePowerPrior object
 
@@ -90,7 +99,7 @@ Initialize the GaussianCommensuratePowerPrior object
 
 ------------------------------------------------------------------------
 
-### Method `prepare_data()`
+### `GaussianCommensuratePowerPrior$prepare_data()`
 
 Prepare the data to be used by CmdStanR
 
@@ -106,7 +115,58 @@ Prepare the data to be used by CmdStanR
 
 ------------------------------------------------------------------------
 
-### Method `compute_posterior_parameters()`
+### `GaussianCommensuratePowerPrior$vectorised_replicate_inference()`
+
+Run all simulation replicates through a quadrature mixture instead of
+launching one Stan fit per replicate. The Stan implementation remains
+available through `inference()` for reference and single-data-set
+analyses.
+
+#### Usage
+
+    GaussianCommensuratePowerPrior$vectorised_replicate_inference(
+      target_data,
+      samples,
+      to_return,
+      critical_value,
+      theta_0,
+      confidence_level,
+      null_space
+    )
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data
+
+- `samples`:
+
+  Generated target-study replicates
+
+- `to_return`:
+
+  Requested simulation outputs
+
+- `critical_value`:
+
+  Critical posterior probability
+
+- `theta_0`:
+
+  Null treatment effect
+
+- `confidence_level`:
+
+  Credible interval level
+
+- `null_space`:
+
+  Side of the null hypothesis
+
+------------------------------------------------------------------------
+
+### `GaussianCommensuratePowerPrior$compute_posterior_parameters()`
 
 Compute posterior parameters
 
@@ -116,7 +176,7 @@ Compute posterior parameters
 
 ------------------------------------------------------------------------
 
-### Method `sample_prior()`
+### `GaussianCommensuratePowerPrior$sample_prior()`
 
 Draw samples from the prior distribution. Based on equation 8 in Hobbs
 et al (2011).
@@ -133,7 +193,7 @@ et al (2011).
 
 ------------------------------------------------------------------------
 
-### Method `joint_prior_pdf()`
+### `GaussianCommensuratePowerPrior$joint_prior_pdf()`
 
 Joint prior p.d.f. Based on equation (8) in Hobbs et al (2011).
 
@@ -157,7 +217,7 @@ Joint prior p.d.f. Based on equation (8) in Hobbs et al (2011).
 
 ------------------------------------------------------------------------
 
-### Method `unnormalized_prior_pdf()`
+### `GaussianCommensuratePowerPrior$unnormalized_prior_pdf()`
 
 Integrate out gamma and tau to get the marginal PDF for treatment_effect
 
@@ -173,7 +233,7 @@ Integrate out gamma and tau to get the marginal PDF for treatment_effect
 
 ------------------------------------------------------------------------
 
-### Method `prior_pdf()`
+### `GaussianCommensuratePowerPrior$prior_pdf()`
 
 Prior p.d.f. of the treatment effect
 
@@ -189,7 +249,7 @@ Prior p.d.f. of the treatment effect
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `GaussianCommensuratePowerPrior$clone()`
 
 The objects of this class are cloneable with this method.
 

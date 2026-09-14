@@ -39,7 +39,7 @@ configuration from YAML files.
 ``` r
 
 set.seed(42)
-case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "RBExT"))
+case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
 ```
 
 ### Create data objects

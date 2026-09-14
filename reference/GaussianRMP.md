@@ -13,8 +13,8 @@ from prior and posterior distributions.
 
 ## Super class
 
-[`RBExT::Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
--\> `GaussianRMP`
+[`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) -\>
+`GaussianRMP`
 
 ## Public fields
 
@@ -66,7 +66,7 @@ from prior and posterior distributions.
 
 ### Public methods
 
-- [`GaussianRMP$new()`](#method-GaussianRMP-new)
+- [`GaussianRMP$new()`](#method-GaussianRMP-initialize)
 
 - [`GaussianRMP$empirical_bayes_update()`](#method-GaussianRMP-empirical_bayes_update)
 
@@ -100,24 +100,30 @@ from prior and posterior distributions.
 
 Inherited methods
 
-- [`RBExT::Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
-- [`RBExT::Model$credible_interval()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-credible_interval)
-- [`RBExT::Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
-- [`RBExT::Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
-- [`RBExT::Model$inference()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-inference)
-- [`RBExT::Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
-- [`RBExT::Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
-- [`RBExT::Model$plot_prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_prior_pdf)
-- [`RBExT::Model$posterior_median()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_median)
-- [`RBExT::Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
-- [`RBExT::Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
-- [`RBExT::Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
-- [`RBExT::Model$simulation_for_given_treatment_effect()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-simulation_for_given_treatment_effect)
-- [`RBExT::Model$test_decision()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-test_decision)
+- [`Model$check_data()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-check_data)
+- [`Model$create()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-create)
+- [`Model$credible_interval()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-credible_interval)
+- [`Model$estimate_bayesian_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_bayesian_operating_characteristics)
+- [`Model$estimate_frequentist_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$inference()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference)
+- [`Model$inference_cache_scope()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference_cache_scope)
+- [`Model$plot_pdfs()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_pdfs)
+- [`Model$plot_posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_posterior_pdf)
+- [`Model$plot_prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_prior_pdf)
+- [`Model$posterior_beta_mixture()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_beta_mixture)
+- [`Model$posterior_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_ess)
+- [`Model$posterior_median()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_median)
+- [`Model$posterior_quantile()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_quantile)
+- [`Model$prior_ESS()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_ESS)
+- [`Model$prior_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_elir_ess)
+- [`Model$prior_treatment_benefit()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_treatment_benefit)
+- [`Model$simulation_for_given_treatment_effect()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-simulation_for_given_treatment_effect)
+- [`Model$test_decision()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-test_decision)
+- [`Model$vectorised_replicate_inference()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-vectorised_replicate_inference)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `GaussianRMP$new()`
 
 Initialize a new GaussianRMP object.
 
@@ -133,7 +139,7 @@ Initialize a new GaussianRMP object.
 
 ------------------------------------------------------------------------
 
-### Method `empirical_bayes_update()`
+### `GaussianRMP$empirical_bayes_update()`
 
 Update the vague prior variance based on empirical Bayes approach.
 
@@ -149,7 +155,7 @@ Update the vague prior variance based on empirical Bayes approach.
 
 ------------------------------------------------------------------------
 
-### Method `prior_weight()`
+### `GaussianRMP$prior_weight()`
 
 Calculate the posterior weight based on the target data.
 
@@ -169,7 +175,7 @@ The posterior weight.
 
 ------------------------------------------------------------------------
 
-### Method `prior_pdf()`
+### `GaussianRMP$prior_pdf()`
 
 Calculate the prior probability density function (PDF) for a given
 target treatment effect.
@@ -190,7 +196,7 @@ The prior PDF.
 
 ------------------------------------------------------------------------
 
-### Method `prior_cdf()`
+### `GaussianRMP$prior_cdf()`
 
 Calculate the prior cumulative distribution function (CDF) for a given
 target treatment effect.
@@ -211,7 +217,7 @@ The prior CDF.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_moments()`
+### `GaussianRMP$posterior_moments()`
 
 Calculate the posterior moments based on the target data.
 
@@ -227,7 +233,7 @@ Calculate the posterior moments based on the target data.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_pdf()`
+### `GaussianRMP$posterior_pdf()`
 
 Calculate the posterior probability density function (PDF) for a given
 target treatment effect.
@@ -248,7 +254,7 @@ The posterior PDF.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_cdf()`
+### `GaussianRMP$posterior_cdf()`
 
 Calculate the posterior cumulative distribution function (CDF) for a
 given target treatment effect.
@@ -269,7 +275,7 @@ The posterior CDF.
 
 ------------------------------------------------------------------------
 
-### Method `sample_prior()`
+### `GaussianRMP$sample_prior()`
 
 Sample from the prior distribution.
 
@@ -289,7 +295,7 @@ The samples from the prior distribution.
 
 ------------------------------------------------------------------------
 
-### Method `sample_posterior()`
+### `GaussianRMP$sample_posterior()`
 
 Sample from the posterior distribution.
 
@@ -309,7 +315,7 @@ The samples from the posterior distribution.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_mean()`
+### `GaussianRMP$posterior_mean()`
 
 Calculate the posterior mean.
 
@@ -323,7 +329,7 @@ The posterior mean.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_variance()`
+### `GaussianRMP$posterior_variance()`
 
 Calculate the posterior variance.
 
@@ -337,7 +343,7 @@ The posterior variance.
 
 ------------------------------------------------------------------------
 
-### Method `prior_to_RBesT()`
+### `GaussianRMP$prior_to_RBesT()`
 
 Convert the prior distribution to the RBesT format.
 
@@ -353,7 +359,7 @@ Convert the prior distribution to the RBesT format.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_to_RBesT()`
+### `GaussianRMP$posterior_to_RBesT()`
 
 Convert the posterior distribution to the RBesT format.
 
@@ -373,7 +379,7 @@ Convert the posterior distribution to the RBesT format.
 
 ------------------------------------------------------------------------
 
-### Method `print_model_summary()`
+### `GaussianRMP$print_model_summary()`
 
 Print a summary of the model attributes
 
@@ -402,7 +408,7 @@ All numeric values are formatted to 6 decimal places.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `GaussianRMP$clone()`
 
 The objects of this class are cloneable with this method.
 

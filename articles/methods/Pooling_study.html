@@ -5,10 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Pooling • RBExT</title>
-<script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Pooling • BExTE</title>
+<script src="../../lightswitch.js"></script><script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/Inter-0.4.10/font.css" rel="stylesheet">
+<link href="../../deps/Fira_Code-0.4.10/font.css" rel="stylesheet">
+<link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../../deps/headroom-0.11.0/headroom.min.js"></script><script src="../../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../../deps/search-1.0.0/fuse.min.js"></script><script src="../../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../../pkgdown.js"></script><meta property="og:title" content="Pooling">
 </head>
@@ -16,9 +18,9 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../../index.html">RBExT</a>
+    <a class="navbar-brand me-2" href="../../index.html">BExTE</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
 
@@ -37,7 +39,15 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TristanFauvel/BExTE/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -55,9 +65,9 @@
                         <h4 data-toc-skip class="author">Tristan Fauvel,
 Quinten Health</h4>
             
-            <h4 data-toc-skip class="date">2026-09-11</h4>
+            <h4 data-toc-skip class="date">2026-09-14</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/vignettes/methods/Pooling_study.Rmd" class="external-link"><code>vignettes/methods/Pooling_study.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/TristanFauvel/BExTE/blob/main/vignettes/methods/Pooling_study.Rmd" class="external-link"><code>vignettes/methods/Pooling_study.Rmd</code></a></small>
       <div class="d-none name"><code>Pooling_study.Rmd</code></div>
     </div>
 
@@ -74,10 +84,10 @@ Quinten Health</h4>
 configuration from YAML files.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="va">simulation_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/simulation_config.yml"</span>, package <span class="op">=</span> <span class="st">"RBExT"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">simulation_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/simulation_config.yml"</span>, package <span class="op">=</span> <span class="st">"BExTE"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">case_study</span> <span class="op">&lt;-</span> <span class="st">"belimumab"</span></span>
-<span><span class="va">case_study_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/case_studies/belimumab.yml"</span>, package <span class="op">=</span> <span class="st">"RBExT"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">case_study_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/case_studies/belimumab.yml"</span>, package <span class="op">=</span> <span class="st">"BExTE"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="method-and-scenario">Method and scenario<a class="anchor" aria-label="anchor" href="#method-and-scenario"></a>
@@ -293,7 +303,7 @@ effect in the target study.</p>
 <span><span class="co">## [1] stats     graphics  grDevices datasets  utils     methods   base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">## [1] ggplot2_4.0.3 RBExT_0.0.2  </span></span>
+<span><span class="co">## [1] ggplot2_4.0.3 BExTE_0.0.2  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
 <span><span class="co">##   [1] matrixStats_1.5.0    fs_2.1.0             assertions_0.3.0    </span></span>
@@ -317,20 +327,20 @@ effect in the target study.</p>
 <span><span class="co">##  [55] dplyr_1.2.1          distributional_0.9.0 inline_0.3.21       </span></span>
 <span><span class="co">##  [58] magrittr_2.0.5       kableExtra_1.4.1     Formula_1.2-6       </span></span>
 <span><span class="co">##  [61] loo_2.10.1.9000      Rcpp_1.1.2           abind_1.4-8         </span></span>
-<span><span class="co">##  [64] viridis_0.6.5        lifecycle_1.0.5      stringi_1.8.9       </span></span>
-<span><span class="co">##  [67] yaml_2.3.12          pkgbuild_1.4.8       grid_4.2.0          </span></span>
-<span><span class="co">##  [70] parallel_4.2.0       crayon_1.5.3         hms_1.1.4           </span></span>
-<span><span class="co">##  [73] knitr_1.52           ps_1.9.3             pillar_1.11.1       </span></span>
-<span><span class="co">##  [76] codetools_0.2-18     stats4_4.2.0         rstantools_2.7.1    </span></span>
-<span><span class="co">##  [79] glue_1.8.1           evaluate_1.0.5       renv_1.0.11         </span></span>
-<span><span class="co">##  [82] RcppParallel_6.2.1   vctrs_0.7.3          tzdb_0.5.0          </span></span>
-<span><span class="co">##  [85] Rdpack_2.6.6         foreach_1.5.2        Rttf2pt1_1.3.14     </span></span>
-<span><span class="co">##  [88] gtable_0.3.6         purrr_1.2.2          tidyr_1.3.2         </span></span>
-<span><span class="co">##  [91] assertthat_0.2.1     cachem_1.1.0         xfun_0.60           </span></span>
-<span><span class="co">##  [94] rbibutils_2.4.1      tidyverse_2.0.0      roxygen2_8.1.0      </span></span>
-<span><span class="co">##  [97] ragg_1.5.2           viridisLite_0.4.3    truncnorm_1.0-9     </span></span>
-<span><span class="co">## [100] Bolstad2_1.0-29      RBesT_1.11-0         tibble_3.3.1        </span></span>
-<span><span class="co">## [103] iterators_1.0.14     cmdstanr_0.9.0</span></span></code></pre>
+<span><span class="co">##  [64] ggnewscale_0.5.2     viridis_0.6.5        lifecycle_1.0.5     </span></span>
+<span><span class="co">##  [67] stringi_1.8.9        yaml_2.3.12          pkgbuild_1.4.8      </span></span>
+<span><span class="co">##  [70] grid_4.2.0           parallel_4.2.0       crayon_1.5.3        </span></span>
+<span><span class="co">##  [73] hms_1.1.4            knitr_1.52           ps_1.9.3            </span></span>
+<span><span class="co">##  [76] pillar_1.11.1        codetools_0.2-18     stats4_4.2.0        </span></span>
+<span><span class="co">##  [79] rstantools_2.7.1     glue_1.8.1           evaluate_1.0.5      </span></span>
+<span><span class="co">##  [82] renv_1.0.11          RcppParallel_6.2.1   vctrs_0.7.3         </span></span>
+<span><span class="co">##  [85] tzdb_0.5.0           Rdpack_2.6.6         foreach_1.5.2       </span></span>
+<span><span class="co">##  [88] Rttf2pt1_1.3.14      gtable_0.3.6         purrr_1.2.2         </span></span>
+<span><span class="co">##  [91] tidyr_1.3.2          assertthat_0.2.1     cachem_1.1.0        </span></span>
+<span><span class="co">##  [94] xfun_0.60            rbibutils_2.4.1      tidyverse_2.0.0     </span></span>
+<span><span class="co">##  [97] roxygen2_8.1.0       ragg_1.5.2           viridisLite_0.4.3   </span></span>
+<span><span class="co">## [100] truncnorm_1.0-9      Bolstad2_1.0-29      RBesT_1.11-0        </span></span>
+<span><span class="co">## [103] tibble_3.3.1         iterators_1.0.14     cmdstanr_0.9.0</span></span></code></pre>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

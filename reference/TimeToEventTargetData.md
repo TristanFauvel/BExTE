@@ -5,7 +5,7 @@ inherits from the TargetData class.
 
 ## Super class
 
-[`RBExT::TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)
+[`TargetData`](https://tristanfauvel.github.io/BExTE/reference/TargetData.md)
 
 ## Public fields
 
@@ -25,27 +25,27 @@ inherits from the TargetData class.
 
 ### Public methods
 
-- [`TimeToEventTargetData$new()`](#method-NA-new)
+- [`NA$new()`](#method-NA-initialize)
 
-- [`TimeToEventTargetData$generate()`](#method-NA-generate)
+- [`NA$generate()`](#method-NA-generate)
 
-- [`TimeToEventTargetData$to_dict()`](#method-NA-to_dict)
+- [`NA$to_dict()`](#method-NA-to_dict)
 
-- [`TimeToEventTargetData$clone()`](#method-unknown-clone)
+- [`unknown$clone()`](#method-unknown-clone)
 
 Inherited methods
 
-- [`RBExT::TargetData$plot_sample()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.html#method-plot_sample)
+- [`TargetData$plot_sample()`](https://tristanfauvel.github.io/BExTE/reference/TargetData.html#method-plot_sample)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `NA$new()`
 
 Initialize the TimeToEventTargetData object
 
 #### Usage
 
-    TimeToEventTargetData$new(
+    NA$new(
       source_data,
       sampling_approximation,
       target_sample_size_per_arm,
@@ -87,13 +87,13 @@ Initialize the TimeToEventTargetData object
 
 ------------------------------------------------------------------------
 
-### Method `generate()`
+### `NA$generate()`
 
 This function generates target data based on the specified parameters.
 
 #### Usage
 
-    TimeToEventTargetData$generate(n_replicates)
+    NA$generate(n_replicates)
 
 #### Arguments
 
@@ -107,13 +107,13 @@ A data frame containing the generated target data.
 
 ------------------------------------------------------------------------
 
-### Method `to_dict()`
+### `NA$to_dict()`
 
 Converts the target data object to a dictionary.
 
 #### Usage
 
-    TimeToEventTargetData$to_dict()
+    NA$to_dict()
 
 #### Returns
 
@@ -121,13 +121,13 @@ A list representing the target data object.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `unknown$clone()`
 
 The objects of this class are cloneable with this method.
 
 #### Usage
 
-    TimeToEventTargetData$clone(deep = FALSE)
+    unknown$clone(deep = FALSE)
 
 #### Arguments
 

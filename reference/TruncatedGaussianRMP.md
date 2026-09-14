@@ -9,9 +9,8 @@ An R6 class object representing a TruncatedGaussianRMP model
 
 ## Super classes
 
-[`RBExT::Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
--\>
-[`RBExT::MCMCModel`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.md)
+[`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) -\>
+[`MCMCModel`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.md)
 -\> `TruncatedGaussianRMP`
 
 ## Public fields
@@ -64,9 +63,11 @@ An R6 class object representing a TruncatedGaussianRMP model
 
 ### Public methods
 
-- [`TruncatedGaussianRMP$new()`](#method-TruncatedGaussianRMP-new)
+- [`TruncatedGaussianRMP$new()`](#method-TruncatedGaussianRMP-initialize)
 
 - [`TruncatedGaussianRMP$empirical_bayes_update()`](#method-TruncatedGaussianRMP-empirical_bayes_update)
+
+- [`TruncatedGaussianRMP$prior_elir_ess()`](#method-TruncatedGaussianRMP-prior_elir_ess)
 
 - [`TruncatedGaussianRMP$prepare_data()`](#method-TruncatedGaussianRMP-prepare_data)
 
@@ -80,36 +81,40 @@ An R6 class object representing a TruncatedGaussianRMP model
 
 Inherited methods
 
-- [`RBExT::Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
-- [`RBExT::Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
-- [`RBExT::Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
-- [`RBExT::Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
-- [`RBExT::Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
-- [`RBExT::Model$plot_prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_prior_pdf)
-- [`RBExT::Model$posterior_mean()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_mean)
-- [`RBExT::Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
-- [`RBExT::Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
-- [`RBExT::Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
-- [`RBExT::Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
-- [`RBExT::Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
-- [`RBExT::Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
-- [`RBExT::Model$simulation_for_given_treatment_effect()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-simulation_for_given_treatment_effect)
-- [`RBExT::Model$test_decision()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-test_decision)
-- [`RBExT::MCMCModel$check_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-check_data)
-- [`RBExT::MCMCModel$check_mcmc_config()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-check_mcmc_config)
-- [`RBExT::MCMCModel$compute_posterior_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-compute_posterior_parameters)
-- [`RBExT::MCMCModel$credible_interval()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-credible_interval)
-- [`RBExT::MCMCModel$draw_mcmc_prior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-draw_mcmc_prior)
-- [`RBExT::MCMCModel$posterior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_cdf)
-- [`RBExT::MCMCModel$posterior_median()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_median)
-- [`RBExT::MCMCModel$posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_pdf)
-- [`RBExT::MCMCModel$prior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-prior_cdf)
-- [`RBExT::MCMCModel$prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-prior_pdf)
-- [`RBExT::MCMCModel$sample_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-sample_posterior)
+- [`Model$check_data()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-check_data)
+- [`Model$create()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-create)
+- [`Model$estimate_bayesian_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_bayesian_operating_characteristics)
+- [`Model$estimate_frequentist_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$inference_cache_scope()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference_cache_scope)
+- [`Model$plot_pdfs()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_pdfs)
+- [`Model$plot_posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_posterior_pdf)
+- [`Model$plot_prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_prior_pdf)
+- [`Model$posterior_beta_mixture()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_beta_mixture)
+- [`Model$posterior_mean()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_mean)
+- [`Model$posterior_moments()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_moments)
+- [`Model$posterior_quantile()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_quantile)
+- [`Model$posterior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$prior_ESS()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_ESS)
+- [`Model$prior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_to_RBesT)
+- [`Model$prior_treatment_benefit()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_treatment_benefit)
+- [`Model$simulation_for_given_treatment_effect()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-simulation_for_given_treatment_effect)
+- [`Model$test_decision()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-test_decision)
+- [`Model$vectorised_replicate_inference()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-vectorised_replicate_inference)
+- [`MCMCModel$check_mcmc_config()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-check_mcmc_config)
+- [`MCMCModel$compute_posterior_parameters()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-compute_posterior_parameters)
+- [`MCMCModel$credible_interval()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-credible_interval)
+- [`MCMCModel$draw_mcmc_prior()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-draw_mcmc_prior)
+- [`MCMCModel$posterior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_cdf)
+- [`MCMCModel$posterior_ess()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_ess)
+- [`MCMCModel$posterior_median()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_median)
+- [`MCMCModel$posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_pdf)
+- [`MCMCModel$prior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-prior_cdf)
+- [`MCMCModel$prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-prior_pdf)
+- [`MCMCModel$sample_posterior()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-sample_posterior)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `TruncatedGaussianRMP$new()`
 
 Initialize the TruncatedGaussianRMP object
 
@@ -129,7 +134,7 @@ Initialize the TruncatedGaussianRMP object
 
 ------------------------------------------------------------------------
 
-### Method `empirical_bayes_update()`
+### `TruncatedGaussianRMP$empirical_bayes_update()`
 
 Update the empirical Bayes parameters
 
@@ -145,7 +150,40 @@ Update the empirical Bayes parameters
 
 ------------------------------------------------------------------------
 
-### Method `prepare_data()`
+### `TruncatedGaussianRMP$prior_elir_ess()`
+
+ELIR effective sample size of the current prior
+
+The prior is a two-component normal mixture, each component truncated to
+the interval the treatment effect is supported on, so the ELIR integral
+is evaluated on it directly. The inherited route would instead draw from
+the prior and fit an untruncated mixture to the draws, once per
+replicate because the vague component is set by the observed target
+standard error. That fit both costs a mixture fit per replicate and
+overstates the local information, since it smooths away the truncation.
+
+#### Usage
+
+    TruncatedGaussianRMP$prior_elir_ess(target_data, ...)
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data, whose sampling standard deviation is the reference
+  scale.
+
+- `...`:
+
+  Unused, kept so that the simulation can call every model the same way.
+
+#### Returns
+
+The ELIR effective sample size.
+
+------------------------------------------------------------------------
+
+### `TruncatedGaussianRMP$prepare_data()`
 
 Prepare the data for use with Stan
 
@@ -165,7 +203,7 @@ A list of data prepared for Stan
 
 ------------------------------------------------------------------------
 
-### Method `sample_prior()`
+### `TruncatedGaussianRMP$sample_prior()`
 
 Sample from the prior distribution
 
@@ -185,9 +223,18 @@ A vector of samples from the prior distribution
 
 ------------------------------------------------------------------------
 
-### Method `inference()`
+### `TruncatedGaussianRMP$inference()`
 
 Inference
+
+The reported prior weight is the posterior probability that the
+treatment effect came from the informative component, which is what the
+models with a normal summary measure report. It is taken over the same
+counts and the same truncated mixture the Stan program was given, so the
+two describe one model rather than an approximation of it: the prior
+density at the observed estimate is not a component probability, and
+unlike the normal case the truncation leaves no closed form to fall back
+on.
 
 #### Usage
 
@@ -205,7 +252,7 @@ Indicator whether inference succeeded or not
 
 ------------------------------------------------------------------------
 
-### Method `print_model_summary()`
+### `TruncatedGaussianRMP$print_model_summary()`
 
 Print a summary of the model attributes
 
@@ -234,7 +281,7 @@ All numeric values are formatted to 6 decimal places.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `TruncatedGaussianRMP$clone()`
 
 The objects of this class are cloneable with this method.
 

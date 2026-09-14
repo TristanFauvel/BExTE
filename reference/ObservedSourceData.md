@@ -50,7 +50,7 @@ borrowing in clinical studies.
 
 ### Public methods
 
-- [`ObservedSourceData$new()`](#method-ObservedSourceData-new)
+- [`ObservedSourceData$new()`](#method-ObservedSourceData-initialize)
 
 - [`ObservedSourceData$to_dict()`](#method-ObservedSourceData-to_dict)
 
@@ -58,7 +58,7 @@ borrowing in clinical studies.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `ObservedSourceData$new()`
 
 Initialize an instance of ObservedSourceData
 
@@ -79,7 +79,7 @@ dictionary format
 
 ------------------------------------------------------------------------
 
-### Method `to_dict()`
+### `ObservedSourceData$to_dict()`
 
 #### Usage
 
@@ -91,7 +91,7 @@ list. A list containing the source data attributes.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `ObservedSourceData$clone()`
 
 The objects of this class are cloneable with this method.
 

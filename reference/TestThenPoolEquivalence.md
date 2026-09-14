@@ -10,9 +10,8 @@ inference in equivalence trials using the Test-Then-Pool framework.
 
 ## Super classes
 
-[`RBExT::Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
--\>
-[`RBExT::TestThenPool`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.md)
+[`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) -\>
+[`TestThenPool`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.md)
 -\> `TestThenPoolEquivalence`
 
 ## Public fields
@@ -33,47 +32,57 @@ inference in equivalence trials using the Test-Then-Pool framework.
 
 ### Public methods
 
-- [`TestThenPoolEquivalence$new()`](#method-TestThenPoolEquivalence-new)
+- [`TestThenPoolEquivalence$new()`](#method-TestThenPoolEquivalence-initialize)
 
 - [`TestThenPoolEquivalence$test_pvalue()`](#method-TestThenPoolEquivalence-test_pvalue)
 
 - [`TestThenPoolEquivalence$test()`](#method-TestThenPoolEquivalence-test)
 
+- [`TestThenPoolEquivalence$vectorised_test_pvalue()`](#method-TestThenPoolEquivalence-vectorised_test_pvalue)
+
+- [`TestThenPoolEquivalence$vectorised_pool()`](#method-TestThenPoolEquivalence-vectorised_pool)
+
 - [`TestThenPoolEquivalence$clone()`](#method-TestThenPoolEquivalence-clone)
 
 Inherited methods
 
-- [`RBExT::Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
-- [`RBExT::Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
-- [`RBExT::Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
-- [`RBExT::Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
-- [`RBExT::Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
-- [`RBExT::Model$plot_prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_prior_pdf)
-- [`RBExT::Model$posterior_mean()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_mean)
-- [`RBExT::Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
-- [`RBExT::Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
-- [`RBExT::Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
-- [`RBExT::Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
-- [`RBExT::Model$simulation_for_given_treatment_effect()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-simulation_for_given_treatment_effect)
-- [`RBExT::TestThenPool$credible_interval()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-credible_interval)
-- [`RBExT::TestThenPool$empirical_bayes_update()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-empirical_bayes_update)
-- [`RBExT::TestThenPool$inference()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-inference)
-- [`RBExT::TestThenPool$plot_test_pvalue_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-plot_test_pvalue_vs_drift)
-- [`RBExT::TestThenPool$plot_test_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-plot_test_vs_drift)
-- [`RBExT::TestThenPool$posterior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-posterior_cdf)
-- [`RBExT::TestThenPool$posterior_median()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-posterior_median)
-- [`RBExT::TestThenPool$posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-posterior_pdf)
-- [`RBExT::TestThenPool$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-posterior_to_RBesT)
-- [`RBExT::TestThenPool$prior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-prior_cdf)
-- [`RBExT::TestThenPool$prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-prior_pdf)
-- [`RBExT::TestThenPool$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-prior_to_RBesT)
-- [`RBExT::TestThenPool$sample_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-sample_posterior)
-- [`RBExT::TestThenPool$sample_prior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-sample_prior)
-- [`RBExT::TestThenPool$test_decision()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.html#method-test_decision)
+- [`Model$check_data()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-check_data)
+- [`Model$create()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-create)
+- [`Model$estimate_bayesian_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_bayesian_operating_characteristics)
+- [`Model$estimate_frequentist_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$inference_cache_scope()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference_cache_scope)
+- [`Model$plot_pdfs()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_pdfs)
+- [`Model$plot_posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_posterior_pdf)
+- [`Model$plot_prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_prior_pdf)
+- [`Model$posterior_beta_mixture()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_beta_mixture)
+- [`Model$posterior_mean()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_mean)
+- [`Model$posterior_moments()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_moments)
+- [`Model$posterior_quantile()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_quantile)
+- [`Model$prior_ESS()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_ESS)
+- [`Model$prior_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_elir_ess)
+- [`Model$prior_treatment_benefit()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_treatment_benefit)
+- [`Model$simulation_for_given_treatment_effect()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-simulation_for_given_treatment_effect)
+- [`TestThenPool$credible_interval()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-credible_interval)
+- [`TestThenPool$empirical_bayes_update()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-empirical_bayes_update)
+- [`TestThenPool$inference()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-inference)
+- [`TestThenPool$plot_test_pvalue_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-plot_test_pvalue_vs_drift)
+- [`TestThenPool$plot_test_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-plot_test_vs_drift)
+- [`TestThenPool$posterior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-posterior_cdf)
+- [`TestThenPool$posterior_ess()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-posterior_ess)
+- [`TestThenPool$posterior_median()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-posterior_median)
+- [`TestThenPool$posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-posterior_pdf)
+- [`TestThenPool$posterior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-posterior_to_RBesT)
+- [`TestThenPool$prior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-prior_cdf)
+- [`TestThenPool$prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-prior_pdf)
+- [`TestThenPool$prior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-prior_to_RBesT)
+- [`TestThenPool$sample_posterior()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-sample_posterior)
+- [`TestThenPool$sample_prior()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-sample_prior)
+- [`TestThenPool$test_decision()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-test_decision)
+- [`TestThenPool$vectorised_replicate_inference()`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.html#method-vectorised_replicate_inference)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `TestThenPoolEquivalence$new()`
 
 Initializes a TestThenPoolEquivalence object.
 
@@ -93,7 +102,7 @@ Initializes a TestThenPoolEquivalence object.
 
 ------------------------------------------------------------------------
 
-### Method `test_pvalue()`
+### `TestThenPoolEquivalence$test_pvalue()`
 
 Performs the test in the Test-Then-Pool framework for equivalence.
 
@@ -113,7 +122,7 @@ Performs the test in the Test-Then-Pool framework for equivalence.
 
 ------------------------------------------------------------------------
 
-### Method `test()`
+### `TestThenPoolEquivalence$test()`
 
 #### Usage
 
@@ -131,7 +140,54 @@ Performs the test in the Test-Then-Pool framework for equivalence.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `TestThenPoolEquivalence$vectorised_test_pvalue()`
+
+Equivalence test p-value for every replicate at once.
+
+`inference()` calls `test()` without a test type, so the t-test default
+is the one that runs in the simulation.
+
+#### Usage
+
+    TestThenPoolEquivalence$vectorised_test_pvalue(target_data, samples)
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data.
+
+- `samples`:
+
+  Data frame of generated replicates.
+
+#### Returns
+
+A vector of p-values.
+
+------------------------------------------------------------------------
+
+### `TestThenPoolEquivalence$vectorised_pool()`
+
+Rejecting equivalence's null means the studies are close enough to pool.
+
+#### Usage
+
+    TestThenPoolEquivalence$vectorised_pool(p_value)
+
+#### Arguments
+
+- `p_value`:
+
+  Vector of p-values.
+
+#### Returns
+
+A logical vector.
+
+------------------------------------------------------------------------
+
+### `TestThenPoolEquivalence$clone()`
 
 The objects of this class are cloneable with this method.
 

@@ -5,10 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Simulation study logic - high level • RBExT</title>
-<script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Simulation study logic - high level • BExTE</title>
+<script src="../../lightswitch.js"></script><script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/Inter-0.4.10/font.css" rel="stylesheet">
+<link href="../../deps/Fira_Code-0.4.10/font.css" rel="stylesheet">
+<link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../../deps/headroom-0.11.0/headroom.min.js"></script><script src="../../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../../deps/search-1.0.0/fuse.min.js"></script><script src="../../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../../pkgdown.js"></script><meta property="og:title" content="Simulation study logic - high level">
 </head>
@@ -16,9 +18,9 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../../index.html">RBExT</a>
+    <a class="navbar-brand me-2" href="../../index.html">BExTE</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
 
@@ -37,7 +39,15 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TristanFauvel/BExTE/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -55,9 +65,9 @@
                         <h4 data-toc-skip class="author">Tristan Fauvel,
 Quinten Health</h4>
             
-            <h4 data-toc-skip class="date">2026-09-11</h4>
+            <h4 data-toc-skip class="date">2026-09-14</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/vignettes/simulation/simulation_illustration_high_level.Rmd" class="external-link"><code>vignettes/simulation/simulation_illustration_high_level.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/TristanFauvel/BExTE/blob/main/vignettes/simulation/simulation_illustration_high_level.Rmd" class="external-link"><code>vignettes/simulation/simulation_illustration_high_level.Rmd</code></a></small>
       <div class="d-none name"><code>simulation_illustration_high_level.Rmd</code></div>
     </div>
 
@@ -81,7 +91,7 @@ components used at each step.</p>
 <p>Source other scripts</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">env</span> <span class="op">&lt;-</span> <span class="st">"full"</span></span>
-<span><span class="va">config_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"conf/"</span>, <span class="va">env</span><span class="op">)</span>, package <span class="op">=</span> <span class="st">"RBExT"</span><span class="op">)</span>, <span class="st">"/"</span><span class="op">)</span></span>
+<span><span class="va">config_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"conf/"</span>, <span class="va">env</span><span class="op">)</span>, package <span class="op">=</span> <span class="st">"BExTE"</span><span class="op">)</span>, <span class="st">"/"</span><span class="op">)</span></span>
 <span><span class="va">scenarios_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/read_yaml.html" class="external-link">read_yaml</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">config_dir</span>, <span class="st">"scenarios_config.yml"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -91,11 +101,11 @@ components used at each step.</p>
 configuration from YAML files.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="va">config_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/simulation_config.yml"</span>, package <span class="op">=</span> <span class="st">"RBExT"</span><span class="op">)</span></span>
+<span><span class="va">config_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/simulation_config.yml"</span>, package <span class="op">=</span> <span class="st">"BExTE"</span><span class="op">)</span></span>
 <span><span class="va">simulation_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="va">config_path</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">case_study</span> <span class="op">&lt;-</span> <span class="st">"botox"</span></span>
-<span><span class="va">config_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/case_studies/botox.yml"</span>, package <span class="op">=</span> <span class="st">"RBExT"</span><span class="op">)</span></span>
+<span><span class="va">config_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/case_studies/botox.yml"</span>, package <span class="op">=</span> <span class="st">"BExTE"</span><span class="op">)</span></span>
 <span><span class="va">case_study_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="va">config_path</span><span class="op">)</span></span></code></pre></div>
 <p>The case study configuration file contains all necessary information
 about the case study, this includes: treatment effect distribution,
@@ -137,42 +147,64 @@ modify it.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">source_denominator</span> <span class="op">&lt;-</span> <span class="va">case_study_config</span><span class="op">$</span><span class="va">source</span><span class="op">$</span><span class="va">responses</span><span class="op">$</span><span class="va">control</span> <span class="op">/</span> <span class="va">case_study_config</span><span class="op">$</span><span class="va">source</span><span class="op">$</span><span class="va">total</span></span>
 <span><span class="va">source_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/SourceData.html">SourceData</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">case_study_config</span>, <span class="va">source_denominator</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">source_data</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## &lt;SourceData&gt;</span></span>
-<span><span class="co">##   Inherits from: &lt;ObservedSourceData&gt;</span></span>
-<span><span class="co">##   Public:</span></span>
-<span><span class="co">##     clone: function (deep = FALSE) </span></span>
-<span><span class="co">##     control_rate: NULL</span></span>
-<span><span class="co">##     endpoint: continuous</span></span>
-<span><span class="co">##     equivalent_source_sample_size_per_arm: 233.995726495727</span></span>
-<span><span class="co">##     initialize: function (case_study_config, source_denominator = NA) </span></span>
-<span><span class="co">##     sample_size_control: 235</span></span>
-<span><span class="co">##     sample_size_treatment: 233</span></span>
-<span><span class="co">##     standard_error: 0.1</span></span>
-<span><span class="co">##     summary_measure_likelihood: normal</span></span>
-<span><span class="co">##     to_dict: function () </span></span>
-<span><span class="co">##     treatment_effect_estimate: 0.2</span></span>
-<span><span class="co">##     treatment_rate: NULL</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">source_data</span><span class="op">$</span><span class="fu">to_dict</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## $source_treatment_effect_estimate</span></span>
+<span><span class="co">## [1] 0.2</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_standard_error</span></span>
+<span><span class="co">## [1] 0.1</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $endpoint</span></span>
+<span><span class="co">## [1] "continuous"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $summary_measure_likelihood</span></span>
+<span><span class="co">## [1] "normal"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_sample_size_control</span></span>
+<span><span class="co">## [1] 235</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_sample_size_treatment</span></span>
+<span><span class="co">## [1] 233</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $equivalent_source_sample_size_per_arm</span></span>
+<span><span class="co">## [1] 233.9957</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_control_rate</span></span>
+<span><span class="co">## [1] NA</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_treatment_rate</span></span>
+<span><span class="co">## [1] NA</span></span></code></pre>
 <p>Alternatively, if we want to use the control rate from the source
 study data:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">source_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/SourceData.html">SourceData</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">case_study_config</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">source_data</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## &lt;SourceData&gt;</span></span>
-<span><span class="co">##   Inherits from: &lt;ObservedSourceData&gt;</span></span>
-<span><span class="co">##   Public:</span></span>
-<span><span class="co">##     clone: function (deep = FALSE) </span></span>
-<span><span class="co">##     control_rate: NULL</span></span>
-<span><span class="co">##     endpoint: continuous</span></span>
-<span><span class="co">##     equivalent_source_sample_size_per_arm: 233.995726495727</span></span>
-<span><span class="co">##     initialize: function (case_study_config, source_denominator = NA) </span></span>
-<span><span class="co">##     sample_size_control: 235</span></span>
-<span><span class="co">##     sample_size_treatment: 233</span></span>
-<span><span class="co">##     standard_error: 0.1</span></span>
-<span><span class="co">##     summary_measure_likelihood: normal</span></span>
-<span><span class="co">##     to_dict: function () </span></span>
-<span><span class="co">##     treatment_effect_estimate: 0.2</span></span>
-<span><span class="co">##     treatment_rate: NULL</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">source_data</span><span class="op">$</span><span class="fu">to_dict</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## $source_treatment_effect_estimate</span></span>
+<span><span class="co">## [1] 0.2</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_standard_error</span></span>
+<span><span class="co">## [1] 0.1</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $endpoint</span></span>
+<span><span class="co">## [1] "continuous"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $summary_measure_likelihood</span></span>
+<span><span class="co">## [1] "normal"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_sample_size_control</span></span>
+<span><span class="co">## [1] 235</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_sample_size_treatment</span></span>
+<span><span class="co">## [1] 233</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $equivalent_source_sample_size_per_arm</span></span>
+<span><span class="co">## [1] 233.9957</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_control_rate</span></span>
+<span><span class="co">## [1] NA</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_treatment_rate</span></span>
+<span><span class="co">## [1] NA</span></span></code></pre>
 <p>Create an instance of the BinaryTargetData class, which will allow us
 to sample target study data. Note that this target_data depends on the
 specific parameters chosen for the scenario (in particular, the drift
@@ -189,27 +221,24 @@ and target sample size).</p>
 is of the BinaryTargetData class, which inherits from the TargetData
 class.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">target_data</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## &lt;ContinuousTargetData&gt;</span></span>
-<span><span class="co">##   Inherits from: &lt;TargetData&gt;</span></span>
-<span><span class="co">##   Public:</span></span>
-<span><span class="co">##     clone: function (deep = FALSE) </span></span>
-<span><span class="co">##     control_drift: 0</span></span>
-<span><span class="co">##     drift: 0.4</span></span>
-<span><span class="co">##     endpoint: continuous</span></span>
-<span><span class="co">##     generate: function (n_replicates) </span></span>
-<span><span class="co">##     initialize: function (source_data, sampling_approximation, target_sample_size_per_arm, </span></span>
-<span><span class="co">##     plot_sample: function (data) </span></span>
-<span><span class="co">##     sample: NULL</span></span>
-<span><span class="co">##     sample_size_control: 91</span></span>
-<span><span class="co">##     sample_size_per_arm: 91</span></span>
-<span><span class="co">##     sample_size_treatment: 91</span></span>
-<span><span class="co">##     sampling_approximation: FALSE</span></span>
-<span><span class="co">##     standard_deviation: 1.52969188562837</span></span>
-<span><span class="co">##     summary_measure_likelihood: normal</span></span>
-<span><span class="co">##     to_dict: function () </span></span>
-<span><span class="co">##     treatment_drift: 0.4</span></span>
-<span><span class="co">##     treatment_effect: 0.6</span></span></code></pre>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">target_data</span><span class="op">$</span><span class="fu">to_dict</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## $summary_measure_likelihood</span></span>
+<span><span class="co">## [1] "normal"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $target_sample_size_per_arm</span></span>
+<span><span class="co">## [1] 91</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $target_treatment_effect</span></span>
+<span><span class="co">## [1] 0.6</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $target_standard_deviation</span></span>
+<span><span class="co">## [1] 1.529692</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $target_control_rate</span></span>
+<span><span class="co">## [1] NA</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $target_treatment_rate</span></span>
+<span><span class="co">## [1] NA</span></span></code></pre>
 <p>Now, we define the model we want to use for inferring the treatment
 effect in the target study. Again, the model class definition relies on
 the factory method design patter, which is very convenient in this
@@ -255,7 +284,7 @@ model in this scenario:</p>
 <span>  case_study <span class="op">=</span> <span class="va">case_study</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">format_simulation_output_table</span><span class="op">(</span><span class="va">sim_outputs</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../../reference/format_simulation_output_table.html">format_simulation_output_table</a></span><span class="op">(</span><span class="va">sim_outputs</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##               Metric    Value               95% CI</span></span>
 <span><span class="co">##  Success Probability  0.99540 [ 0.99387,  0.99663]</span></span>
 <span><span class="co">##             Coverage  0.83830 [ 0.83094,  0.84547]</span></span>
@@ -291,7 +320,7 @@ methods, the results table is then used to make figures</p>
 <span><span class="co">## [1] stats     graphics  grDevices datasets  utils     methods   base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">## [1] ggplot2_4.0.3 RBExT_0.0.2  </span></span>
+<span><span class="co">## [1] ggplot2_4.0.3 BExTE_0.0.2  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
 <span><span class="co">##   [1] matrixStats_1.5.0    fs_2.1.0             assertions_0.3.0    </span></span>
@@ -317,21 +346,21 @@ methods, the results table is then used to make figures</p>
 <span><span class="co">##  [61] dplyr_1.2.1          distributional_0.9.0 inline_0.3.21       </span></span>
 <span><span class="co">##  [64] magrittr_2.0.5       kableExtra_1.4.1     Formula_1.2-6       </span></span>
 <span><span class="co">##  [67] loo_2.10.1.9000      Rcpp_1.1.2           abind_1.4-8         </span></span>
-<span><span class="co">##  [70] viridis_0.6.5        lifecycle_1.0.5      stringi_1.8.9       </span></span>
-<span><span class="co">##  [73] yaml_2.3.12          pkgbuild_1.4.8       grid_4.2.0          </span></span>
-<span><span class="co">##  [76] parallel_4.2.0       crayon_1.5.3         hms_1.1.4           </span></span>
-<span><span class="co">##  [79] knitr_1.52           ps_1.9.3             pillar_1.11.1       </span></span>
-<span><span class="co">##  [82] codetools_0.2-18     stats4_4.2.0         rstantools_2.7.1    </span></span>
-<span><span class="co">##  [85] glue_1.8.1           evaluate_1.0.5       data.table_1.18.6.1 </span></span>
-<span><span class="co">##  [88] renv_1.0.11          RcppParallel_6.2.1   vctrs_0.7.3         </span></span>
-<span><span class="co">##  [91] tzdb_0.5.0           Rdpack_2.6.6         foreach_1.5.2       </span></span>
-<span><span class="co">##  [94] Rttf2pt1_1.3.14      gtable_0.3.6         purrr_1.2.2         </span></span>
-<span><span class="co">##  [97] tidyr_1.3.2          assertthat_0.2.1     cachem_1.1.0        </span></span>
-<span><span class="co">## [100] xfun_0.60            rbibutils_2.4.1      tidyverse_2.0.0     </span></span>
-<span><span class="co">## [103] roxygen2_8.1.0       ragg_1.5.2           viridisLite_0.4.3   </span></span>
-<span><span class="co">## [106] truncnorm_1.0-9      Bolstad2_1.0-29      RBesT_1.11-0        </span></span>
-<span><span class="co">## [109] tibble_3.3.1         iterators_1.0.14     cluster_2.1.3       </span></span>
-<span><span class="co">## [112] statmod_1.5.2        cmdstanr_0.9.0</span></span></code></pre>
+<span><span class="co">##  [70] ggnewscale_0.5.2     viridis_0.6.5        lifecycle_1.0.5     </span></span>
+<span><span class="co">##  [73] stringi_1.8.9        yaml_2.3.12          pkgbuild_1.4.8      </span></span>
+<span><span class="co">##  [76] grid_4.2.0           parallel_4.2.0       crayon_1.5.3        </span></span>
+<span><span class="co">##  [79] hms_1.1.4            knitr_1.52           ps_1.9.3            </span></span>
+<span><span class="co">##  [82] pillar_1.11.1        codetools_0.2-18     stats4_4.2.0        </span></span>
+<span><span class="co">##  [85] rstantools_2.7.1     glue_1.8.1           evaluate_1.0.5      </span></span>
+<span><span class="co">##  [88] data.table_1.18.6.1  renv_1.0.11          RcppParallel_6.2.1  </span></span>
+<span><span class="co">##  [91] vctrs_0.7.3          tzdb_0.5.0           Rdpack_2.6.6        </span></span>
+<span><span class="co">##  [94] foreach_1.5.2        Rttf2pt1_1.3.14      gtable_0.3.6        </span></span>
+<span><span class="co">##  [97] purrr_1.2.2          tidyr_1.3.2          assertthat_0.2.1    </span></span>
+<span><span class="co">## [100] cachem_1.1.0         xfun_0.60            rbibutils_2.4.1     </span></span>
+<span><span class="co">## [103] tidyverse_2.0.0      roxygen2_8.1.0       ragg_1.5.2          </span></span>
+<span><span class="co">## [106] viridisLite_0.4.3    truncnorm_1.0-9      Bolstad2_1.0-29     </span></span>
+<span><span class="co">## [109] RBesT_1.11-0         tibble_3.3.1         iterators_1.0.14    </span></span>
+<span><span class="co">## [112] cluster_2.1.3        statmod_1.5.2        cmdstanr_0.9.0</span></span></code></pre>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

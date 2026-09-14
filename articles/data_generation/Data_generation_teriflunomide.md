@@ -20,7 +20,7 @@ $`\sqrt{\frac{1}{N_T^{t}} + \frac{1}{N_T^{c}}}`$.
 
 set.seed(42)
 
-config_path <- system.file("conf/case_studies/teriflunomide.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 format_case_study_config(case_study_config)
 ```
@@ -230,5 +230,5 @@ samples <- sample_aggregate_normal_data(
 ```
 
 See
-[Data_generation_botox](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/doc/Data_generation_botox.md)
+[Data_generation_botox](https://tristanfauvel.github.io/BExTE/articles/doc/Data_generation_botox.md)
 for details on aggregate normal data generation.

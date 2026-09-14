@@ -95,15 +95,33 @@ inference, and calculating posterior moments.
 
   AIC penalty parameter used for the mixture approximation
 
+- `n_nonestimable_replicates`:
+
+  Replicates dropped by the last simulation because their target summary
+  measure was undefined.
+
+- `analysis_critical_value`:
+
+  Posterior probability threshold the analysis decides at, recorded when
+  a simulation starts. Methods whose tuning depends on the decision rule
+  read it, so that they are tuned for the test that is actually
+  performed.
+
 ## Methods
 
 ### Public methods
 
-- [`Model$new()`](#method-Model-new)
+- [`Model$new()`](#method-Model-initialize)
 
 - [`Model$create()`](#method-Model-create)
 
 - [`Model$inference()`](#method-Model-inference)
+
+- [`Model$vectorised_replicate_inference()`](#method-Model-vectorised_replicate_inference)
+
+- [`Model$inference_cache_scope()`](#method-Model-inference_cache_scope)
+
+- [`Model$check_data()`](#method-Model-check_data)
 
 - [`Model$posterior_moments()`](#method-Model-posterior_moments)
 
@@ -137,7 +155,13 @@ inference, and calculating posterior moments.
 
 - [`Model$prior_to_RBesT()`](#method-Model-prior_to_RBesT)
 
+- [`Model$prior_elir_ess()`](#method-Model-prior_elir_ess)
+
+- [`Model$posterior_ess()`](#method-Model-posterior_ess)
+
 - [`Model$posterior_to_RBesT()`](#method-Model-posterior_to_RBesT)
+
+- [`Model$posterior_beta_mixture()`](#method-Model-posterior_beta_mixture)
 
 - [`Model$plot_pdfs()`](#method-Model-plot_pdfs)
 
@@ -149,7 +173,7 @@ inference, and calculating posterior moments.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `Model$new()`
 
 Initialize the Model object
 
@@ -161,7 +185,7 @@ Create a Model object
 
 ------------------------------------------------------------------------
 
-### Method `create()`
+### `Model$create()`
 
 This method creates a Model object based on the specified configuration
 and method.
@@ -204,7 +228,7 @@ A Model object.
 
 ------------------------------------------------------------------------
 
-### Method `inference()`
+### `Model$inference()`
 
 Perform inference on the Model object
 
@@ -224,7 +248,118 @@ A string "Success" if inference succeeded
 
 ------------------------------------------------------------------------
 
-### Method `posterior_moments()`
+### `Model$vectorised_replicate_inference()`
+
+Run every replicate at once, when the method allows it
+
+Methods with a closed-form posterior can produce the whole simulation
+output with vector arithmetic instead of one inference per replicate.
+Subclasses that can do so override this method; returning `NULL` means
+"no fast path available", and
+`Model$simulation_for_given_treatment_effect()` falls back to the
+replicate loop.
+
+#### Usage
+
+    Model$vectorised_replicate_inference(...)
+
+#### Arguments
+
+- `...`:
+
+  Arguments describing the simulation, passed through by
+  `Model$simulation_for_given_treatment_effect()`.
+
+#### Returns
+
+`NULL`, or a list shaped like the return value of
+`Model$simulation_for_given_treatment_effect()`.
+
+------------------------------------------------------------------------
+
+### `Model$inference_cache_scope()`
+
+Scenario identity under which replicate analyses may be shared
+
+Two replicates may share an analysis only when everything the analysis
+reads, apart from the observed data, is the same. That is what this
+identifies. The drift is deliberately absent: it moves the sampling
+distribution of the data rather than the posterior any particular data
+set implies, so scenarios differing only in drift share this scope and
+meet in the cache.
+
+Returning `NULL` means "do not cache", which is the default. Opting in
+is left to subclasses because it is only sound for a model whose
+reported results are a deterministic function of the data: a model that
+samples, as the Stan backed ones and the empirical Bayes prior refits
+do, would otherwise have one replicate's Monte Carlo error stand in for
+another's.
+
+#### Usage
+
+    Model$inference_cache_scope(
+      target_data,
+      critical_value,
+      theta_0,
+      confidence_level,
+      null_space,
+      n_samples_quantiles_estimation,
+      simulation_config
+    )
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data.
+
+- `critical_value`:
+
+  Critical value for hypothesis testing.
+
+- `theta_0`:
+
+  Null hypothesis value.
+
+- `confidence_level`:
+
+  Confidence level for the credible interval.
+
+- `null_space`:
+
+  The null space for hypothesis testing.
+
+- `n_samples_quantiles_estimation`:
+
+  Number of samples used for quantiles.
+
+- `simulation_config`:
+
+  Configuration of simulation study.
+
+#### Returns
+
+A scope string, or `NULL` to analyse every replicate afresh.
+
+------------------------------------------------------------------------
+
+### `Model$check_data()`
+
+Check the validity of the data
+
+#### Usage
+
+    Model$check_data(data_list)
+
+#### Arguments
+
+- `data_list`:
+
+  The list of data elements
+
+------------------------------------------------------------------------
+
+### `Model$posterior_moments()`
 
 Abstract method to calculate the posterior moments
 
@@ -244,7 +379,7 @@ none
 
 ------------------------------------------------------------------------
 
-### Method `prior_cdf()`
+### `Model$prior_cdf()`
 
 Abstract method to calculate the cumulative distribution function of the
 prior
@@ -265,7 +400,7 @@ none
 
 ------------------------------------------------------------------------
 
-### Method `empirical_bayes_update()`
+### `Model$empirical_bayes_update()`
 
 Method to update the prior
 
@@ -285,7 +420,7 @@ none
 
 ------------------------------------------------------------------------
 
-### Method `posterior_mean()`
+### `Model$posterior_mean()`
 
 Method to calculate the mean of the posterior distribution
 
@@ -309,7 +444,7 @@ The meen of the posterior distribution
 
 ------------------------------------------------------------------------
 
-### Method `posterior_quantile()`
+### `Model$posterior_quantile()`
 
 Method to compute quantiles of the posterior distribution
 
@@ -337,7 +472,7 @@ The quantile of the posterior distribution
 
 ------------------------------------------------------------------------
 
-### Method `posterior_median()`
+### `Model$posterior_median()`
 
 Method to calculate the median of the posterior distribution
 
@@ -362,7 +497,7 @@ interval of the posterior distribution for a given level
 
 ------------------------------------------------------------------------
 
-### Method `credible_interval()`
+### `Model$credible_interval()`
 
 #### Usage
 
@@ -392,7 +527,7 @@ The credible interval.
 
 ------------------------------------------------------------------------
 
-### Method `prior_ESS()`
+### `Model$prior_ESS()`
 
 Method to calculate the effective sample size of the prior distribution
 
@@ -402,7 +537,7 @@ Method to calculate the effective sample size of the prior distribution
 
 ------------------------------------------------------------------------
 
-### Method `sample_prior()`
+### `Model$sample_prior()`
 
 Method to sample from the prior distribution
 
@@ -418,7 +553,7 @@ Method to sample from the prior distribution
 
 ------------------------------------------------------------------------
 
-### Method `sample_posterior()`
+### `Model$sample_posterior()`
 
 Method to sample from the posterior distribution
 
@@ -434,7 +569,7 @@ Method to sample from the posterior distribution
 
 ------------------------------------------------------------------------
 
-### Method `test_decision()`
+### `Model$test_decision()`
 
 This function returns the test decision for a fitted model.
 
@@ -466,7 +601,7 @@ A logical value indicating the decision.
 
 ------------------------------------------------------------------------
 
-### Method `simulation_for_given_treatment_effect()`
+### `Model$simulation_for_given_treatment_effect()`
 
 Method to simulate for a given treatment effect
 
@@ -482,9 +617,11 @@ Method to simulate for a given treatment effect
       case_study,
       method,
       to_return = c("credible_interval", "test_decision", "posterior_mean",
-        "posterior_median", "ess_moment", "ess_precision", "mcmc_diagnostics"),
+        "posterior_median", "posterior_parameters", "ess_moment", "ess_precision",
+        "ess_elir", "fit_success", "mcmc_diagnostics"),
       verbose = 0,
-      n_samples_quantiles_estimation
+      n_samples_quantiles_estimation,
+      simulation_config = NULL
     )
 
 #### Arguments
@@ -533,6 +670,14 @@ Method to simulate for a given treatment effect
 
   Number of samples used to estimate distributions quantiles.
 
+- `simulation_config`:
+
+  Simulation configuration. Only required when `to_return` includes
+  `"ess_moment"`, `"ess_precision"` or `"ess_elir"` and the method has
+  no vectorised fast path, since those outputs are computed via
+  `posterior_to_RBesT()`/`prior_to_RBesT()`, which need
+  `simulation_config$n_samples_mixture_approx`.
+
 #### Returns
 
 A list of simulation results including test decisions, posterior means,
@@ -540,7 +685,7 @@ medians, credible intervals, and posterior parameters
 
 ------------------------------------------------------------------------
 
-### Method `prior_treatment_benefit()`
+### `Model$prior_treatment_benefit()`
 
 Method to calculate the prior probability of treatment benefit
 
@@ -573,7 +718,7 @@ Method to calculate the prior probability of treatment benefit
 
 ------------------------------------------------------------------------
 
-### Method `estimate_frequentist_operating_characteristics()`
+### `Model$estimate_frequentist_operating_characteristics()`
 
 Method to estimate frequentist operating characteristics
 
@@ -589,7 +734,8 @@ Method to estimate frequentist operating characteristics
       n_samples_quantiles_estimation,
       case_study,
       method,
-      verbose = 0
+      verbose = 0,
+      simulation_config = NULL
     )
 
 #### Arguments
@@ -634,6 +780,13 @@ Method to estimate frequentist operating characteristics
 
   Verbosity level (0 or 1)
 
+- `simulation_config`:
+
+  Simulation configuration, needed by
+  `simulation_for_given_treatment_effect()` for `ess_moment`,
+  `ess_precision` and `ess_elir` on methods without a vectorised fast
+  path.
+
 #### Returns
 
 A list of estimated frequentist operating characteristics including
@@ -642,7 +795,7 @@ intervals, and success probability
 
 ------------------------------------------------------------------------
 
-### Method `estimate_bayesian_operating_characteristics()`
+### `Model$estimate_bayesian_operating_characteristics()`
 
 Method to estimate Bayesian operating characteristics
 
@@ -736,7 +889,7 @@ intervals, and success probability
 
 ------------------------------------------------------------------------
 
-### Method `prior_to_RBesT()`
+### `Model$prior_to_RBesT()`
 
 Method to convert the model to RBesT
 
@@ -752,7 +905,67 @@ Method to convert the model to RBesT
 
 ------------------------------------------------------------------------
 
-### Method `posterior_to_RBesT()`
+### `Model$prior_elir_ess()`
+
+ELIR effective sample size of the current prior
+
+The default route approximates the prior by a mixture fitted to samples
+drawn from it, and refits between replicates only when the prior is data
+dependent. Subclasses whose prior has a closed form override this.
+
+#### Usage
+
+    Model$prior_elir_ess(target_data, simulation_config)
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data, whose sampling standard deviation is the reference
+  scale.
+
+- `simulation_config`:
+
+  Configuration of simulation study
+
+#### Returns
+
+The ELIR effective sample size.
+
+------------------------------------------------------------------------
+
+### `Model$posterior_ess()`
+
+Effective sample sizes of the current posterior
+
+Returns the moment-based and precision-based effective sample sizes the
+simulation reports per replicate. The default route approximates the
+posterior by a mixture fitted to samples drawn from it, which is the
+only option when neither the posterior summary nor draws from it are
+available. Subclasses that know their posterior standard deviation and
+credible interval override this and evaluate the definitions directly.
+
+#### Usage
+
+    Model$posterior_ess(target_data, simulation_config)
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data
+
+- `simulation_config`:
+
+  Configuration of simulation study
+
+#### Returns
+
+A list with the `moment` and `precision` effective sample sizes.
+
+------------------------------------------------------------------------
+
+### `Model$posterior_to_RBesT()`
 
 Convert the posterior distribution to RBesT format
 
@@ -772,7 +985,37 @@ Convert the posterior distribution to RBesT format
 
 ------------------------------------------------------------------------
 
-### Method `plot_pdfs()`
+### `Model$posterior_beta_mixture()`
+
+Beta mixture approximation to the posterior response rate
+
+The unit information design prior rescales the shape parameters of a
+Beta mixture, so it needs the fit on the 0, 1 rate scale rather than the
+one on the treatment effect scale that `posterior_to_RBesT()` produces.
+It is built here on request because that construction runs once per case
+study, whereas `posterior_to_RBesT()` runs once per replicate.
+
+#### Usage
+
+    Model$posterior_beta_mixture(target_data, simulation_config)
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data
+
+- `simulation_config`:
+
+  Configuration of simulation study
+
+#### Returns
+
+A Beta mixture approximation to the posterior.
+
+------------------------------------------------------------------------
+
+### `Model$plot_pdfs()`
 
 Plot prior and posterior probability density functions (PDF).
 
@@ -804,7 +1047,7 @@ A plot
 
 ------------------------------------------------------------------------
 
-### Method `plot_prior_pdf()`
+### `Model$plot_prior_pdf()`
 
 Plot prior probability density function (PDF).
 
@@ -832,7 +1075,7 @@ A plot
 
 ------------------------------------------------------------------------
 
-### Method `plot_posterior_pdf()`
+### `Model$plot_posterior_pdf()`
 
 Plot posterior probability density function (PDF).
 
@@ -860,7 +1103,7 @@ A plot
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Model$clone()`
 
 The objects of this class are cloneable with this method.
 

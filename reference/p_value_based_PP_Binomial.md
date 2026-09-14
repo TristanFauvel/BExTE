@@ -9,11 +9,10 @@ R6Class object.
 
 ## Super classes
 
-[`RBExT::Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
+[`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) -\>
+[`MCMCModel`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.md)
 -\>
-[`RBExT::MCMCModel`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.md)
--\>
-[`RBExT::BinomialCPP`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinomialCPP.md)
+[`BinomialCPP`](https://tristanfauvel.github.io/BExTE/reference/BinomialCPP.md)
 -\> `p_value_based_PP_Binomial`
 
 ## Public fields
@@ -58,7 +57,7 @@ R6Class object.
 
 ### Public methods
 
-- [`p_value_based_PP_Binomial$new()`](#method-p_value_based_PP_Binomial-new)
+- [`p_value_based_PP_Binomial$new()`](#method-p_value_based_PP_Binomial-initialize)
 
 - [`p_value_based_PP_Binomial$hypothesis_space_transformation()`](#method-p_value_based_PP_Binomial-hypothesis_space_transformation)
 
@@ -78,37 +77,42 @@ R6Class object.
 
 Inherited methods
 
-- [`RBExT::Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
-- [`RBExT::Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
-- [`RBExT::Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
-- [`RBExT::Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
-- [`RBExT::Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
-- [`RBExT::Model$plot_prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_prior_pdf)
-- [`RBExT::Model$posterior_mean()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_mean)
-- [`RBExT::Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
-- [`RBExT::Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
-- [`RBExT::Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
-- [`RBExT::Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
-- [`RBExT::Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
-- [`RBExT::Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
-- [`RBExT::Model$simulation_for_given_treatment_effect()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-simulation_for_given_treatment_effect)
-- [`RBExT::Model$test_decision()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-test_decision)
-- [`RBExT::MCMCModel$check_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-check_data)
-- [`RBExT::MCMCModel$check_mcmc_config()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-check_mcmc_config)
-- [`RBExT::MCMCModel$compute_posterior_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-compute_posterior_parameters)
-- [`RBExT::MCMCModel$credible_interval()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-credible_interval)
-- [`RBExT::MCMCModel$posterior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_cdf)
-- [`RBExT::MCMCModel$posterior_median()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_median)
-- [`RBExT::MCMCModel$posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_pdf)
-- [`RBExT::MCMCModel$prior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-prior_cdf)
-- [`RBExT::MCMCModel$sample_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-sample_posterior)
-- [`RBExT::MCMCModel$sample_prior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-sample_prior)
-- [`RBExT::BinomialCPP$draw_mcmc_prior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinomialCPP.html#method-draw_mcmc_prior)
-- [`RBExT::BinomialCPP$prepare_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinomialCPP.html#method-prepare_data)
+- [`Model$check_data()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-check_data)
+- [`Model$create()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-create)
+- [`Model$estimate_bayesian_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_bayesian_operating_characteristics)
+- [`Model$estimate_frequentist_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$inference_cache_scope()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference_cache_scope)
+- [`Model$plot_pdfs()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_pdfs)
+- [`Model$plot_posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_posterior_pdf)
+- [`Model$plot_prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_prior_pdf)
+- [`Model$posterior_beta_mixture()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_beta_mixture)
+- [`Model$posterior_mean()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_mean)
+- [`Model$posterior_moments()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_moments)
+- [`Model$posterior_quantile()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_quantile)
+- [`Model$posterior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$prior_ESS()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_ESS)
+- [`Model$prior_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_elir_ess)
+- [`Model$prior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_to_RBesT)
+- [`Model$prior_treatment_benefit()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_treatment_benefit)
+- [`Model$simulation_for_given_treatment_effect()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-simulation_for_given_treatment_effect)
+- [`Model$test_decision()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-test_decision)
+- [`Model$vectorised_replicate_inference()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-vectorised_replicate_inference)
+- [`MCMCModel$check_mcmc_config()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-check_mcmc_config)
+- [`MCMCModel$compute_posterior_parameters()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-compute_posterior_parameters)
+- [`MCMCModel$credible_interval()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-credible_interval)
+- [`MCMCModel$posterior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_cdf)
+- [`MCMCModel$posterior_ess()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_ess)
+- [`MCMCModel$posterior_median()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_median)
+- [`MCMCModel$posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-posterior_pdf)
+- [`MCMCModel$prior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-prior_cdf)
+- [`MCMCModel$sample_posterior()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-sample_posterior)
+- [`MCMCModel$sample_prior()`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.html#method-sample_prior)
+- [`BinomialCPP$draw_mcmc_prior()`](https://tristanfauvel.github.io/BExTE/reference/BinomialCPP.html#method-draw_mcmc_prior)
+- [`BinomialCPP$prepare_data()`](https://tristanfauvel.github.io/BExTE/reference/BinomialCPP.html#method-prepare_data)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `p_value_based_PP_Binomial$new()`
 
 Initialize the p_value_based_PP object.
 
@@ -140,7 +144,7 @@ None
 
 ------------------------------------------------------------------------
 
-### Method `hypothesis_space_transformation()`
+### `p_value_based_PP_Binomial$hypothesis_space_transformation()`
 
 Transform the hypothesis space.
 
@@ -160,7 +164,7 @@ A list containing transformed treatment effect estimates.
 
 ------------------------------------------------------------------------
 
-### Method `empirical_bayes_update()`
+### `p_value_based_PP_Binomial$empirical_bayes_update()`
 
 Empirical Bayes update
 
@@ -180,7 +184,7 @@ NULL Perform inference using the Gaussian_empirical_Bayes_PP method.
 
 ------------------------------------------------------------------------
 
-### Method `inference()`
+### `p_value_based_PP_Binomial$inference()`
 
 #### Usage
 
@@ -198,7 +202,7 @@ The inference result. Test method
 
 ------------------------------------------------------------------------
 
-### Method `test()`
+### `p_value_based_PP_Binomial$test()`
 
 This method performs the test for the given target data.
 
@@ -230,7 +234,7 @@ The p-value. Power parameter estimation method
 
 ------------------------------------------------------------------------
 
-### Method `power_parameter_estimation()`
+### `p_value_based_PP_Binomial$power_parameter_estimation()`
 
 This method estimates the power parameter for the given target data.
 
@@ -258,7 +262,7 @@ The power parameter.
 
 ------------------------------------------------------------------------
 
-### Method `prior_pdf()`
+### `p_value_based_PP_Binomial$prior_pdf()`
 
 Calculate the prior probability density function (PDF) for a given
 target treatment effect.
@@ -279,7 +283,7 @@ The prior PDF.
 
 ------------------------------------------------------------------------
 
-### Method `plot_power_parameter_vs_drift()`
+### `p_value_based_PP_Binomial$plot_power_parameter_vs_drift()`
 
 Plot the power parameter as a function of drift in treatment effect
 
@@ -321,7 +325,7 @@ The prior PDF.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `p_value_based_PP_Binomial$clone()`
 
 The objects of this class are cloneable with this method.
 

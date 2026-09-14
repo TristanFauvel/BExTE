@@ -1,7 +1,7 @@
 # Estimate rate and standard error
 
-This function fits a model using glm.nb and estimates the rate parameter
-and its standard error.
+This function estimates the rate parameter of an intercept-only negative
+binomial model and its standard error.
 
 ## Usage
 

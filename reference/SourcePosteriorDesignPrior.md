@@ -5,7 +5,7 @@ borrowing.
 
 ## Super class
 
-[`RBExT::DesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.md)
+[`DesignPrior`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.md)
 -\> `SourcePosteriorDesignPrior`
 
 ## Public fields
@@ -38,7 +38,7 @@ borrowing.
 
 ### Public methods
 
-- [`SourcePosteriorDesignPrior$new()`](#method-SourcePosteriorDesignPrior-new)
+- [`SourcePosteriorDesignPrior$new()`](#method-SourcePosteriorDesignPrior-initialize)
 
 - [`SourcePosteriorDesignPrior$sample()`](#method-SourcePosteriorDesignPrior-sample)
 
@@ -50,11 +50,11 @@ borrowing.
 
 Inherited methods
 
-- [`RBExT::DesignPrior$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-create)
+- [`DesignPrior$create()`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.html#method-create)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `SourcePosteriorDesignPrior$new()`
 
 Initializes a new instance of SourcePosteriorDesignPrior.
 
@@ -87,7 +87,7 @@ Initializes a new instance of SourcePosteriorDesignPrior.
 
 ------------------------------------------------------------------------
 
-### Method [`sample()`](https://rdrr.io/r/base/sample.html)
+### `SourcePosteriorDesignPrior$sample()`
 
 Samples from the source posterior design prior.
 
@@ -103,7 +103,7 @@ Samples from the source posterior design prior.
 
 ------------------------------------------------------------------------
 
-### Method `cdf()`
+### `SourcePosteriorDesignPrior$cdf()`
 
 Computes the cumulative distribution function (CDF) of the source
 posterior design prior.
@@ -120,7 +120,7 @@ posterior design prior.
 
 ------------------------------------------------------------------------
 
-### Method [`pdf()`](https://rdrr.io/r/grDevices/pdf.html)
+### `SourcePosteriorDesignPrior$pdf()`
 
 Computes the cumulative distribution function (PDF) of the source
 posterior design prior.
@@ -137,7 +137,7 @@ posterior design prior.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `SourcePosteriorDesignPrior$clone()`
 
 The objects of this class are cloneable with this method.
 

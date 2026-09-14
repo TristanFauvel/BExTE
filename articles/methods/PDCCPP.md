@@ -19,10 +19,10 @@ configuration from YAML files.
 ``` r
 
 set.seed(42)
-config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
-config_path <- system.file("conf/case_studies/aprepitant.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 ```
 
@@ -37,23 +37,35 @@ target_sample_size_per_arm <- as.integer(case_study_config$target$total / 2)
 drift <- 0.4
 
 source_data <- ObservedSourceData$new(case_study_config)
-print(source_data)
+print(source_data$to_dict())
 ```
 
-    ## <ObservedSourceData>
-    ##   Public:
-    ##     clone: function (deep = FALSE) 
-    ##     control_rate: 0.525597269624573
-    ##     endpoint: binary
-    ##     equivalent_source_sample_size_per_arm: 286.352530541012
-    ##     initialize: function (case_study_config) 
-    ##     sample_size_control: 293
-    ##     sample_size_treatment: 280
-    ##     standard_error: 0.0406899348413468
-    ##     summary_measure_likelihood: binomial
-    ##     to_dict: function () 
-    ##     treatment_effect_estimate: 0.131545587518284
-    ##     treatment_rate: 0.657142857142857
+    ## $source_treatment_effect_estimate
+    ## [1] 0.1315456
+    ## 
+    ## $source_standard_error
+    ## [1] 0.04068993
+    ## 
+    ## $endpoint
+    ## [1] "binary"
+    ## 
+    ## $summary_measure_likelihood
+    ## [1] "binomial"
+    ## 
+    ## $source_sample_size_control
+    ## [1] 293
+    ## 
+    ## $source_sample_size_treatment
+    ## [1] 280
+    ## 
+    ## $equivalent_source_sample_size_per_arm
+    ## [1] 286.3525
+    ## 
+    ## $source_control_rate
+    ## [1] 0.5255973
+    ## 
+    ## $source_treatment_rate
+    ## [1] 0.6571429
 
 Set the observed target data (in the paediatrics population)
 
@@ -97,7 +109,7 @@ effect in the target study.
 ``` r
 
 env <- "full"
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
 mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
 
 model <- Model$new()
@@ -208,13 +220,8 @@ read_function_code(model$empirical_bayes_update)
     ##         stop("The standard error on the treatment effect is Inf")
     ##     }
     ##     self$posterior_parameters$power_parameter <- self$power_parameter_estimation(target_data = target_data)
-    ##     self$prior_var <- (self$prior$source$standard_error^2)/self$posterior_parameters$power_parameter
-    ##     if (self$posterior_parameters$power_parameter != 0) {
-    ##         self$prior_var <- (self$prior$source$standard_error^2)/self$posterior_parameters$power_parameter
-    ##     }
-    ##     else {
-    ##         self$prior_var <- 1000
-    ##     }
+    ##     self$prior_var <- power_prior_variance(self$prior$source$standard_error, 
+    ##         self$posterior_parameters$power_parameter)
     ##     if (is.numeric(self$prior_var) && length(self$prior_var) == 
     ##         0) {
     ##         stop("self$prior_var is numeric(0)")
@@ -226,13 +233,8 @@ read_function_code(model$empirical_bayes_update)
     ##         stop("The standard error on the treatment effect is Inf")
     ##     }
     ##     self$posterior_parameters$power_parameter <- self$power_parameter_estimation(target_data = target_data)
-    ##     self$prior_var <- (self$prior$source$standard_error^2)/self$posterior_parameters$power_parameter
-    ##     if (self$posterior_parameters$power_parameter != 0) {
-    ##         self$prior_var <- (self$prior$source$standard_error^2)/self$posterior_parameters$power_parameter
-    ##     }
-    ##     else {
-    ##         self$prior_var <- 1000
-    ##     }
+    ##     self$prior_var <- power_prior_variance(self$prior$source$standard_error, 
+    ##         self$posterior_parameters$power_parameter)
     ##     if (is.numeric(self$prior_var) && length(self$prior_var) == 
     ##         0) {
     ##         stop("self$prior_var is numeric(0)")
@@ -244,13 +246,8 @@ read_function_code(model$empirical_bayes_update)
     ##         stop("The standard error on the treatment effect is Inf")
     ##     }
     ##     self$posterior_parameters$power_parameter <- self$power_parameter_estimation(target_data = target_data)
-    ##     self$prior_var <- (self$prior$source$standard_error^2)/self$posterior_parameters$power_parameter
-    ##     if (self$posterior_parameters$power_parameter != 0) {
-    ##         self$prior_var <- (self$prior$source$standard_error^2)/self$posterior_parameters$power_parameter
-    ##     }
-    ##     else {
-    ##         self$prior_var <- 1000
-    ##     }
+    ##     self$prior_var <- power_prior_variance(self$prior$source$standard_error, 
+    ##         self$posterior_parameters$power_parameter)
     ##     if (is.numeric(self$prior_var) && length(self$prior_var) == 
     ##         0) {
     ##         stop("self$prior_var is numeric(0)")
@@ -483,7 +480,7 @@ sessionInfo()
     ## [1] stats     graphics  grDevices datasets  utils     methods   base     
     ## 
     ## other attached packages:
-    ## [1] ggplot2_4.0.3 RBExT_0.0.2  
+    ## [1] ggplot2_4.0.3 BExTE_0.0.2  
     ## 
     ## loaded via a namespace (and not attached):
     ##   [1] matrixStats_1.5.0    fs_2.1.0             assertions_0.3.0    
@@ -507,17 +504,17 @@ sessionInfo()
     ##  [55] dplyr_1.2.1          distributional_0.9.0 inline_0.3.21       
     ##  [58] magrittr_2.0.5       kableExtra_1.4.1     Formula_1.2-6       
     ##  [61] loo_2.10.1.9000      Rcpp_1.1.2           abind_1.4-8         
-    ##  [64] viridis_0.6.5        lifecycle_1.0.5      stringi_1.8.9       
-    ##  [67] yaml_2.3.12          pkgbuild_1.4.8       grid_4.2.0          
-    ##  [70] parallel_4.2.0       crayon_1.5.3         hms_1.1.4           
-    ##  [73] knitr_1.52           ps_1.9.3             pillar_1.11.1       
-    ##  [76] codetools_0.2-18     stats4_4.2.0         rstantools_2.7.1    
-    ##  [79] glue_1.8.1           evaluate_1.0.5       renv_1.0.11         
-    ##  [82] RcppParallel_6.2.1   vctrs_0.7.3          tzdb_0.5.0          
-    ##  [85] Rdpack_2.6.6         foreach_1.5.2        Rttf2pt1_1.3.14     
-    ##  [88] gtable_0.3.6         purrr_1.2.2          tidyr_1.3.2         
-    ##  [91] assertthat_0.2.1     cachem_1.1.0         xfun_0.60           
-    ##  [94] rbibutils_2.4.1      tidyverse_2.0.0      roxygen2_8.1.0      
-    ##  [97] ragg_1.5.2           viridisLite_0.4.3    truncnorm_1.0-9     
-    ## [100] Bolstad2_1.0-29      RBesT_1.11-0         tibble_3.3.1        
-    ## [103] iterators_1.0.14     cmdstanr_0.9.0
+    ##  [64] ggnewscale_0.5.2     viridis_0.6.5        lifecycle_1.0.5     
+    ##  [67] stringi_1.8.9        yaml_2.3.12          pkgbuild_1.4.8      
+    ##  [70] grid_4.2.0           parallel_4.2.0       crayon_1.5.3        
+    ##  [73] hms_1.1.4            knitr_1.52           ps_1.9.3            
+    ##  [76] pillar_1.11.1        codetools_0.2-18     stats4_4.2.0        
+    ##  [79] rstantools_2.7.1     glue_1.8.1           evaluate_1.0.5      
+    ##  [82] renv_1.0.11          RcppParallel_6.2.1   vctrs_0.7.3         
+    ##  [85] tzdb_0.5.0           Rdpack_2.6.6         foreach_1.5.2       
+    ##  [88] Rttf2pt1_1.3.14      gtable_0.3.6         purrr_1.2.2         
+    ##  [91] tidyr_1.3.2          assertthat_0.2.1     cachem_1.1.0        
+    ##  [94] xfun_0.60            rbibutils_2.4.1      tidyverse_2.0.0     
+    ##  [97] roxygen2_8.1.0       ragg_1.5.2           viridisLite_0.4.3   
+    ## [100] truncnorm_1.0-9      Bolstad2_1.0-29      RBesT_1.11-0        
+    ## [103] tibble_3.3.1         iterators_1.0.14     cmdstanr_0.9.0
