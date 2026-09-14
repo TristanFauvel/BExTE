@@ -73,7 +73,11 @@ RUN Rscript -e "\
 # forces the child's .libPaths() to include it directly - R_LIBS is read
 # by every R process at startup, independent of profile-sourcing.
 COPY . .
-RUN RENV_LIB=$(Rscript -e "source('renv/activate.R'); cat(.libPaths()[1])") && \
+# renv/activate.R prints its own bootstrap/status messages to stdout, so the
+# command substitution has to take only the last line - cat()'s own output -
+# rather than everything Rscript printed, or RENV_LIB ends up holding that
+# whole noisy transcript instead of a path.
+RUN RENV_LIB=$(Rscript -e "source('renv/activate.R'); cat(.libPaths()[1])" | tail -1) && \
     echo "renv library: $RENV_LIB" && \
     R_LIBS="$RENV_LIB" R CMD INSTALL --library="$RENV_LIB" /app
 RUN Rscript -e "source('renv/activate.R'); cmdstanr::install_cmdstan(cores = parallel::detectCores())"
