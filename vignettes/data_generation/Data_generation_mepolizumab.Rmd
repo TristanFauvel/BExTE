@@ -1,6 +1,5 @@
 ---
 title: "Data Generation : Mepolizumab case study (recurrent event endpoint)" 
-author: "Tristan Fauvel"
 date: "`r Sys.Date()`"
 output: 
   html_document:

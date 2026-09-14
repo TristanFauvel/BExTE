@@ -1,6 +1,5 @@
 ---
 title: "Simulation study logic - low level"
-author: "Tristan Fauvel, Quinten Health"
 date: "`r Sys.Date()`"
 output: 
   html_document:
@@ -352,9 +351,5 @@ results$ess_elir <- na.omit(results$ess_elir)
 ess_elir  <- mean(results$ess_elir)
 conf_int_ess_elir <- Hmisc::smean.cl.boot(ess_elir, conf.int = confidence_level)[2:3]
  
-```
-
-```{r}
-sessionInfo()
 ```
  
