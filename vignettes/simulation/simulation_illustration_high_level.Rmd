@@ -1,6 +1,5 @@
 ---
 title: "Simulation study logic - high level"
-author: "Tristan Fauvel, Quinten Health"
 date: "`r Sys.Date()`"
 output: 
   html_document:
@@ -156,9 +155,5 @@ format_simulation_output_table(sim_outputs)
 ```
 
 At this point, the pipeline includes some logic to store the results as a row in a results table. Once we have looped over all scenarios and methods, the results table is then used to make figures 
- 
- 
-```{r}
-sessionInfo()
-```
- 
+
+

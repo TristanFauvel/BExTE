@@ -1,6 +1,5 @@
 ---
 title: "Simulation study : RMP for binary endpoints without normal approximation for the treatment effect distribution"
-author: "Tristan Fauvel, Quinten Health & Daniel Lee"
 date: "`r Sys.Date()`"
 output: 
   html_document:
@@ -487,9 +486,5 @@ plt <- ggplot(combined_data, aes(x = treatment_effect_values, y = conditional_po
   theme_minimal()
 
 print(plt)
-```
-
-```{r}
-sessionInfo()
 ```
  
