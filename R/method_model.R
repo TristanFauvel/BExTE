@@ -31,6 +31,9 @@ Model <- R6::R6Class(
   public = list(
     empirical_bayes = FALSE,
     deterministic_inference = FALSE,
+    #' @field n_nonestimable_replicates Replicates dropped by the last
+    #'   simulation because their target summary measure was undefined.
+    n_nonestimable_replicates = 0,
     prior_elir_unit_information = NULL,
     analytic_ocs = NULL,
     posterior_parameters = NULL,
@@ -598,6 +601,37 @@ Model <- R6::R6Class(
       # Generate data for n_replicates clinical trials
       target_data_samples <- target_data$generate(n_replicates)
 
+      # A replicate whose target summary measure is not estimable carries no
+      # information about the treatment effect and cannot be analysed: a
+      # recurrent-event arm that records no event at all leaves the log rate
+      # ratio at -Inf and its standard error undefined - see
+      # negative_binomial_regression(), which returns NA for both rather than
+      # inventing a finite surrogate. Dropping such replicates here keeps them
+      # out of the inference kernel, where an NA standard error turns the
+      # mixture log-weights into NaN and surfaces much later, and far from the
+      # cause, as "missing value where TRUE/FALSE needed" from
+      # normal_mixture_quantile(). The count is carried through to the
+      # reported operating characteristics rather than silently absorbed, the
+      # same way replicates failing an MCMC diagnostic already are.
+      estimable <- is.finite(target_data_samples$treatment_effect_estimate) &
+        is.finite(target_data_samples$treatment_effect_standard_error)
+      self$n_nonestimable_replicates <- sum(!estimable)
+      if (self$n_nonestimable_replicates > 0) {
+        if (!any(estimable)) {
+          stop(
+            "No replicate has an estimable target summary measure: every one ",
+            "of the ", nrow(target_data_samples), " simulated trials recorded ",
+            "no event in an arm. This scenario cannot be simulated as configured."
+          )
+        }
+        futile.logger::flog.warn(paste0(
+          self$n_nonestimable_replicates, " of ", nrow(target_data_samples),
+          " replicates had a non-estimable target summary measure and were ",
+          "dropped."
+        ))
+        target_data_samples <- target_data_samples[estimable, , drop = FALSE]
+      }
+
       # Methods with a closed-form posterior compute every replicate at once.
       # No random number is drawn below this point for those methods, so the
       # two paths see exactly the same data and agree replicate by replicate.
@@ -916,9 +950,15 @@ Model <- R6::R6Class(
       # exhausted its retries) has a posterior that cannot be trusted, so it is
       # dropped here rather than left to quietly bias every reported average.
       successful <- fit_success == "Success"
-      n_total_replicates <- length(fit_success)
       n_successful_replicates <- sum(successful)
-      n_failed_replicates <- n_total_replicates - n_successful_replicates
+      n_diagnostic_failures <- length(fit_success) - n_successful_replicates
+      # Replicates dropped before inference for having no estimable summary
+      # measure never reach fit_success, so they are added back here: the
+      # denominator the warning quotes is the number of trials simulated,
+      # not the number that survived to be analysed.
+      n_nonestimable <- self$n_nonestimable_replicates
+      n_total_replicates <- length(fit_success) + n_nonestimable
+      n_failed_replicates <- n_diagnostic_failures + n_nonestimable
 
       test_decisions <- test_decisions[successful]
       posterior_means <- posterior_means[successful]
@@ -992,16 +1032,33 @@ Model <- R6::R6Class(
       ess_elir  <- mean(results$ess_elir)
 
 
-      if (n_failed_replicates == 0) {
-        warning <- NA
-      } else {
+      # The two ways a replicate can leave the reported averages are
+      # reported separately, because they mean different things: a failed
+      # diagnostic is a posterior that cannot be trusted, whereas a
+      # non-estimable summary measure is a trial that carries no
+      # information about the treatment effect at all.
+      warning_parts <- character(0)
+      if (n_diagnostic_failures > 0) {
         # Find the first element that is not "Success"
         first_failure <- fit_success[fit_success != "Success"][1]
-        warning <- paste0(
-          n_failed_replicates, " of ", n_total_replicates,
+        warning_parts <- c(warning_parts, paste0(
+          n_diagnostic_failures, " of ", n_total_replicates,
           " replicates failed MCMC diagnostics and were excluded from the ",
           "reported operating characteristics (first: ", first_failure, ")"
-        )
+        ))
+      }
+      if (n_nonestimable > 0) {
+        warning_parts <- c(warning_parts, paste0(
+          n_nonestimable, " of ", n_total_replicates,
+          " replicates had no estimable target summary measure (an arm ",
+          "recorded no event) and were excluded from the reported ",
+          "operating characteristics"
+        ))
+      }
+      warning <- if (length(warning_parts) == 0) {
+        NA
+      } else {
+        paste(warning_parts, collapse = "; ")
       }
 
       rhat <- mean(rhat_values)
