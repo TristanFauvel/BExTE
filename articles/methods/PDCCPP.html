@@ -62,8 +62,6 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Implementation of the PDCCPP</h1>
-                        <h4 data-toc-skip class="author">Tristan Fauvel,
-Quinten Health</h4>
             
             <h4 data-toc-skip class="date">2026-09-14</h4>
       
@@ -439,64 +437,6 @@ quantiles, we use the following:.</p>
 <code class="sourceCode R"><span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="va">model</span><span class="op">$</span><span class="fu">sample_posterior</span><span class="op">(</span><span class="fl">10000</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">samples</span>, breaks <span class="op">=</span> <span class="fl">60</span>, col <span class="op">=</span> <span class="st">"skyblue"</span>, main <span class="op">=</span> <span class="st">"Samples from the posterior distribution of the treatment effect"</span>, xlab <span class="op">=</span> <span class="st">"Treatment effect"</span>, ylab <span class="op">=</span> <span class="st">"Number of samples"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PDCCPP_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" alt="" width="700"></p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## R version 4.2.0 (2022-04-22)</span></span>
-<span><span class="co">## Platform: x86_64-pc-linux-gnu (64-bit)</span></span>
-<span><span class="co">## Running under: Ubuntu 24.04.5 LTS</span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">## Matrix products: default</span></span>
-<span><span class="co">## BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3</span></span>
-<span><span class="co">## LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so</span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">## locale:</span></span>
-<span><span class="co">##  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
-<span><span class="co">##  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
-<span><span class="co">##  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
-<span><span class="co">## [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">## attached base packages:</span></span>
-<span><span class="co">## [1] stats     graphics  grDevices datasets  utils     methods   base     </span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">## other attached packages:</span></span>
-<span><span class="co">## [1] ggplot2_4.0.3 BExTE_0.0.2  </span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">## loaded via a namespace (and not attached):</span></span>
-<span><span class="co">##   [1] matrixStats_1.5.0    fs_2.1.0             assertions_0.3.0    </span></span>
-<span><span class="co">##   [4] progress_1.2.3       doParallel_1.0.17    RColorBrewer_1.1-3  </span></span>
-<span><span class="co">##   [7] rstan_2.32.7         latex2exp_0.9.8      tensorA_0.36.2.1    </span></span>
-<span><span class="co">##  [10] tools_4.2.0          backports_1.5.1      bslib_0.12.0        </span></span>
-<span><span class="co">##  [13] R6_2.6.1             otel_0.2.0           withr_3.0.3         </span></span>
-<span><span class="co">##  [16] prettyunits_1.2.0    tidyselect_1.2.1     gridExtra_2.3.1     </span></span>
-<span><span class="co">##  [19] processx_3.9.0       compiler_4.2.0       extrafontdb_1.1     </span></span>
-<span><span class="co">##  [22] textshaping_1.0.5    cli_3.6.6            HDInterval_0.2.4    </span></span>
-<span><span class="co">##  [25] xml2_1.6.0           desc_1.4.3           labeling_0.4.3      </span></span>
-<span><span class="co">##  [28] posterior_1.7.1      sass_0.4.10          scales_1.4.0        </span></span>
-<span><span class="co">##  [31] checkmate_2.3.4      mvtnorm_1.4-2        S7_0.2.2            </span></span>
-<span><span class="co">##  [34] readr_2.2.0          pkgdown_2.2.1        QuickJSR_1.11.0     </span></span>
-<span><span class="co">##  [37] systemfonts_1.3.2    stringr_1.6.0        digest_0.6.39       </span></span>
-<span><span class="co">##  [40] StanHeaders_2.39.1   rmarkdown_2.32       svglite_2.2.2       </span></span>
-<span><span class="co">##  [43] pkgconfig_2.0.3      htmltools_0.5.9      extrafont_0.20      </span></span>
-<span><span class="co">##  [46] fastmap_1.2.0        pwr_1.3-0            htmlwidgets_1.6.4   </span></span>
-<span><span class="co">##  [49] rlang_1.3.0          rstudioapi_0.19.0    jquerylib_0.1.4     </span></span>
-<span><span class="co">##  [52] farver_2.1.2         generics_0.1.4       jsonlite_2.0.0      </span></span>
-<span><span class="co">##  [55] dplyr_1.2.1          distributional_0.9.0 inline_0.3.21       </span></span>
-<span><span class="co">##  [58] magrittr_2.0.5       kableExtra_1.4.1     Formula_1.2-6       </span></span>
-<span><span class="co">##  [61] loo_2.10.1.9000      Rcpp_1.1.2           abind_1.4-8         </span></span>
-<span><span class="co">##  [64] ggnewscale_0.5.2     viridis_0.6.5        lifecycle_1.0.5     </span></span>
-<span><span class="co">##  [67] stringi_1.8.9        yaml_2.3.12          pkgbuild_1.4.8      </span></span>
-<span><span class="co">##  [70] grid_4.2.0           parallel_4.2.0       crayon_1.5.3        </span></span>
-<span><span class="co">##  [73] hms_1.1.4            knitr_1.52           ps_1.9.3            </span></span>
-<span><span class="co">##  [76] pillar_1.11.1        codetools_0.2-18     stats4_4.2.0        </span></span>
-<span><span class="co">##  [79] rstantools_2.7.1     glue_1.8.1           evaluate_1.0.5      </span></span>
-<span><span class="co">##  [82] renv_1.0.11          RcppParallel_6.2.1   vctrs_0.7.3         </span></span>
-<span><span class="co">##  [85] tzdb_0.5.0           Rdpack_2.6.6         foreach_1.5.2       </span></span>
-<span><span class="co">##  [88] Rttf2pt1_1.3.14      gtable_0.3.6         purrr_1.2.2         </span></span>
-<span><span class="co">##  [91] tidyr_1.3.2          assertthat_0.2.1     cachem_1.1.0        </span></span>
-<span><span class="co">##  [94] xfun_0.60            rbibutils_2.4.1      tidyverse_2.0.0     </span></span>
-<span><span class="co">##  [97] roxygen2_8.1.0       ragg_1.5.2           viridisLite_0.4.3   </span></span>
-<span><span class="co">## [100] truncnorm_1.0-9      Bolstad2_1.0-29      RBesT_1.11-0        </span></span>
-<span><span class="co">## [103] tibble_3.3.1         iterators_1.0.14     cmdstanr_0.9.0</span></span></code></pre>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
