@@ -1,0 +1,9 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# No volume is attached: results/logs/user_configs are ephemeral by design
+# and reset on every restart or redeploy.
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
