@@ -91,4 +91,9 @@ RUN Rscript -e "source('renv/activate.R'); cmdstanr::install_cmdstan(cores = par
 
 # Railway assigns the port dynamically via $PORT and routes to it.
 EXPOSE 8080
-CMD ["Rscript", "-e", "source('renv/activate.R'); BExTE::run_bexte_app(host = '0.0.0.0', port = as.integer(Sys.getenv('PORT', 8080)))"]
+# library(BExTE), not BExTE::run_bexte_app(): the shiny app's own modules
+# call several of the package's exported functions bare (e.g. paper_manifest()
+# in mod_replicate.R), relying on the package being attached to the search
+# path the way it would be after an interactive library(BExTE) - which
+# BExTE::run_bexte_app() alone never does.
+CMD ["Rscript", "-e", "source('renv/activate.R'); library(BExTE); run_bexte_app(host = '0.0.0.0', port = as.integer(Sys.getenv('PORT', 8080)))"]
