@@ -79,6 +79,8 @@ COPY . .
 # whole noisy transcript instead of a path.
 RUN RENV_LIB=$(Rscript -e "source('renv/activate.R'); cat(.libPaths()[1])" | tail -1) && \
     echo "renv library: $RENV_LIB" && \
+    ls -la "$RENV_LIB" | head -20 && \
+    test -d "$RENV_LIB/dplyr" && echo "dplyr dir exists" || echo "dplyr dir MISSING" && \
     R_LIBS="$RENV_LIB" R CMD INSTALL --library="$RENV_LIB" /app
 RUN Rscript -e "source('renv/activate.R'); cmdstanr::install_cmdstan(cores = parallel::detectCores())"
 
