@@ -45,6 +45,8 @@ manifest_forest <- function(id, caption, case_study, factor, metric,
     id = id, kind = "figure", caption = caption,
     case_study = case_study, sample_size_factor = factor, metric = metric,
     needs = "frequentist",
+    ## Every method is drawn on this plot, so a selection cannot narrow it.
+    methods = "all",
     generator = function(ctx) {
       forest_plot(ctx$df, metric, relative_to_separate = relative)
     }
@@ -114,6 +116,8 @@ manifest_vs_tie <- function(id, caption, case_study, factor, metric,
     id = id, kind = "figure", caption = caption,
     case_study = case_study, sample_size_factor = factor, metric = metric,
     needs = "frequentist",
+    ## Every method is drawn on this plot, so a selection cannot narrow it.
+    methods = "all",
     generator = function(ctx) {
       operating_characteristic_vs_tie(
         paper_vs_tie_subset(ctx$df),
@@ -179,6 +183,7 @@ paper_manifest_figures_special <- function() {
   list(
     list(
       id = "S3", kind = "figure",
+      methods = "conditional_power_prior",
       caption = "Probability of success versus treatment-effect drift for the Conditional Power Prior (gamma = 0.25) in the Belimumab case study, with 93 participants per arm; includes comparisons with t-tests at nominal and matched type I error rates.",
       case_study = "belimumab", sample_size_factor = 6, metric = "success_proba",
       needs = "frequentist",
@@ -201,6 +206,7 @@ paper_manifest_figures_special <- function() {
     ),
     list(
       id = "S4", kind = "figure",
+      methods = "p_value_based_PP",
       ## The manuscript prints "lambda = 20"; the author confirmed this is a
       ## typo for lambda = 0.5, which is what the configs actually simulate.
       caption = "Probability of success versus treatment-effect drift for the p-value-based Power Prior (k = 20, lambda = 0.5) in the Botox case study, with 58 participants per arm; includes comparisons with t-tests at nominal and matched type I error rates.",
@@ -225,6 +231,7 @@ paper_manifest_figures_special <- function() {
     ),
     list(
       id = "S5", kind = "figure",
+      methods = "all",
       caption = "MSE versus mean moment-based effective sample size (ESS) in the Botox case study, with 117 participants per arm.",
       case_study = "botox", sample_size_factor = 2, metric = "mse",
       needs = "frequentist",
@@ -243,6 +250,7 @@ paper_manifest_figures_special <- function() {
     ),
     list(
       id = "S20", kind = "figure",
+      methods = "RMP",
       caption = "MSE versus treatment-effect drift for the Robust Mixture Prior in the Belimumab case study, with 93 participants per arm, across different informative-component weights w.",
       case_study = "belimumab", sample_size_factor = 6, metric = "mse",
       needs = "frequentist",

@@ -16,7 +16,10 @@ A \code{scenarios_config} list, ready for \code{save_environment()}.
 }
 \description{
 Folds the selected manifest entries into a \code{scenarios_config}
-covering exactly the case studies and sample size factors they need. The
+covering exactly the case studies, sample size factors and methods they
+need. Each case study is restricted to its own factors through
+\code{case_study_sample_size_factors}, rather than every case study being
+crossed with every factor. The
 fidelity settings do not scale with the selection: \code{ndrift} stays at 30
 because \code{forest_plot()} selects the three principal treatment-effect
 scenarios by nearest grid point, so a coarser grid would quietly plot
