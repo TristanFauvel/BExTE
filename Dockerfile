@@ -66,8 +66,15 @@ RUN Rscript -e "\
 # Bring in the rest of the package, install it, then build the CmdStan
 # toolchain itself (a separate binary cmdstanr needs to actually sample
 # models - baked into the image so it isn't rebuilt on every container start).
+# dependencies = FALSE: every Import was just installed by renv::restore()
+# above, but install.packages()'s pre-flight dependency check looks them up
+# via available.packages() against the configured repos rather than the
+# renv library it correctly targets for the install itself - so without
+# this it fails claiming none of them are available. --no-vignettes (not
+# --no-build-vignettes, an R CMD build option that R CMD INSTALL silently
+# ignores) skips rebuilding vignette output we don't need to run the app.
 COPY . .
-RUN Rscript -e "source('renv/activate.R'); install.packages('.', repos = NULL, type = 'source', INSTALL_opts = '--no-build-vignettes')"
+RUN Rscript -e "source('renv/activate.R'); install.packages('.', repos = NULL, type = 'source', dependencies = FALSE, INSTALL_opts = '--no-vignettes')"
 RUN Rscript -e "source('renv/activate.R'); cmdstanr::install_cmdstan(cores = parallel::detectCores())"
 
 # Railway assigns the port dynamically via $PORT and routes to it.
