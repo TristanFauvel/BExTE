@@ -51,6 +51,14 @@ WORKDIR /app
 # documented mechanism for exactly this, checked ahead of the lockfile.
 # Other recorded repos (e.g. the stan r-universe one cmdstanr comes from)
 # are untouched, since renv.lock stores their full URL per package.
+# renv defaults its library root to ~/.cache/R/renv/library on Linux, which
+# turned out not to reliably persist across separate RUN layers on Railway's
+# builder: renv::restore() below reports every package installing "OK", but
+# by the next RUN step the library holds only renv itself - confirmed by
+# listing it directly. Redirecting the library root under /app instead,
+# a location directly confirmed to persist (our own COPY'd files are always
+# there), fixes it.
+ENV RENV_PATHS_LIBRARY_ROOT=/app/renv/library
 ENV RENV_CONFIG_REPOS_OVERRIDE=https://packagemanager.posit.co/cran/__linux__/noble/latest
 COPY .Rprofile renv.lock ./
 COPY renv/activate.R renv/settings.json renv/
@@ -67,11 +75,10 @@ RUN Rscript -e "\
 # INSTALL rather than install.packages(): the latter spawns R CMD INSTALL
 # as a child process that does not source .Rprofile (so renv/activate.R
 # never runs in it, regardless of what the calling session's own
-# .libPaths() looks like), and kept reporting every Import "not available"
-# no matter what install.packages() argument was tried. Computing the
-# renv library path in this session and exporting it as R_LIBS instead
-# forces the child's .libPaths() to include it directly - R_LIBS is read
-# by every R process at startup, independent of profile-sourcing.
+# .libPaths() looks like). Computing the renv library path in this session
+# and exporting it as R_LIBS instead forces the child's .libPaths() to
+# include it directly - R_LIBS is read by every R process at startup,
+# independent of profile-sourcing.
 COPY . .
 # renv/activate.R prints its own bootstrap/status messages to stdout, so the
 # command substitution has to take only the last line - cat()'s own output -
@@ -79,8 +86,6 @@ COPY . .
 # whole noisy transcript instead of a path.
 RUN RENV_LIB=$(Rscript -e "source('renv/activate.R'); cat(.libPaths()[1])" | tail -1) && \
     echo "renv library: $RENV_LIB" && \
-    ls -la "$RENV_LIB" | head -20 && \
-    test -d "$RENV_LIB/dplyr" && echo "dplyr dir exists" || echo "dplyr dir MISSING" && \
     R_LIBS="$RENV_LIB" R CMD INSTALL --library="$RENV_LIB" /app
 RUN Rscript -e "source('renv/activate.R'); cmdstanr::install_cmdstan(cores = parallel::detectCores())"
 
