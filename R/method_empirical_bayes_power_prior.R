@@ -1,3 +1,26 @@
+## The prior variance a power prior of the given strength implies, with the
+## vague prior standing in wherever that variance is not finite.
+##
+## The `power_parameter == 0` branch this replaces was written for "borrow
+## nothing", but exact zero is not the only way to land there. The estimated
+## power parameter is exp((k / (1 - p)) * log(1 - p)), which for p in a narrow
+## band - roughly 0.927 to 0.929 when k = 20 - underflows to a denormal such
+## as 5e-311 instead of to 0, and source_standard_error^2 over a denormal
+## overflows to Inf. An infinite prior variance makes the mixture component's
+## marginal variance Inf and its log-weight -Inf, so subtracting the row
+## maximum yields NaN, which surfaces far downstream as "missing value where
+## TRUE/FALSE needed" out of normal_mixture_quantile(). Borrowing that little
+## is indistinguishable from borrowing nothing, so it takes the same vague
+## prior. Finite variances are returned untouched, however large.
+power_prior_variance <- function(source_standard_error, power_parameter,
+                                 vague_variance = 1000) {
+  if (anyNA(power_parameter)) {
+    stop("The estimated power parameter is NA.")
+  }
+  variance <- source_standard_error^2 / power_parameter
+  ifelse(is.finite(variance), variance, vague_variance)
+}
+
 #' Find Calibration Parameter
 #'
 #' @description This function finds the calibration parameter for type I error control in empirical Bayes power prior methods.
@@ -231,13 +254,13 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
 
       self$posterior_parameters$power_parameter <- self$power_parameter_estimation(target_data = target_data)
 
-      self$prior_var <- (self$prior$source$standard_error ^ 2) / self$posterior_parameters$power_parameter
-
-      if (self$posterior_parameters$power_parameter != 0) {
-        self$prior_var <- (self$prior$source$standard_error ^ 2) / self$posterior_parameters$power_parameter # In the Gaussian case, the power prior is equivalent to having a Gaussian prior with variance prior_var
-      } else {
-        self$prior_var <- 1000 # Vague prior
-      }
+      # In the Gaussian case the power prior is equivalent to a Gaussian prior
+      # with this variance; a power parameter too small to give a finite one
+      # falls back to the vague prior - see power_prior_variance().
+      self$prior_var <- power_prior_variance(
+        self$prior$source$standard_error,
+        self$posterior_parameters$power_parameter
+      )
 
       if (is.numeric(self$prior_var) &&
           length(self$prior_var) == 0) {
@@ -320,11 +343,7 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
       # without estimating them a second time.
       private$last_power_parameter <- power_parameter
 
-      ifelse(
-        power_parameter != 0,
-        self$prior$source$standard_error^2 / power_parameter,
-        1000
-      )
+      power_prior_variance(self$prior$source$standard_error, power_parameter)
     },
 
     #' @description Posterior parameters reported by the vectorised path
