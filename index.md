@@ -1,4 +1,4 @@
-# R Bayesian Extrapolation Tool
+# Bayesian Extrapolation of Treatment Effects
 
 [![R Package
 Build](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml)
