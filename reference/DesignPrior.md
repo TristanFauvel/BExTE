@@ -28,7 +28,7 @@ A class representing the design prior for Bayesian borrowing.
 
 ------------------------------------------------------------------------
 
-### Method `create()`
+### `DesignPrior$create()`
 
 Creates a new instance of DesignPrior.
 
@@ -80,7 +80,7 @@ A new instance of DesignPrior.
 
 ------------------------------------------------------------------------
 
-### Method [`sample()`](https://rdrr.io/r/base/sample.html)
+### `DesignPrior$sample()`
 
 Samples from the design prior.
 
@@ -96,7 +96,7 @@ Samples from the design prior.
 
 ------------------------------------------------------------------------
 
-### Method `cdf()`
+### `DesignPrior$cdf()`
 
 Computes the cumulative distribution function (CDF) of the design prior.
 
@@ -112,7 +112,7 @@ Computes the cumulative distribution function (CDF) of the design prior.
 
 ------------------------------------------------------------------------
 
-### Method [`pdf()`](https://rdrr.io/r/grDevices/pdf.html)
+### `DesignPrior$pdf()`
 
 Computes the PDF of the design prior.
 
@@ -128,7 +128,7 @@ Computes the PDF of the design prior.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `DesignPrior$clone()`
 
 The objects of this class are cloneable with this method.
 

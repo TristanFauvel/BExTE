@@ -20,13 +20,13 @@ A wrapper used for analyzing observed data (not used for simulation)
 
 ### Public methods
 
-- [`ObservedTargetData$new()`](#method-ObservedTargetData-new)
+- [`ObservedTargetData$new()`](#method-ObservedTargetData-initialize)
 
 - [`ObservedTargetData$clone()`](#method-ObservedTargetData-clone)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `ObservedTargetData$new()`
 
 Initializes an ObservedTargetData object with the given parameters
 
@@ -63,7 +63,7 @@ An initialized ObservedTargetData object
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `ObservedTargetData$clone()`
 
 The objects of this class are cloneable with this method.
 

@@ -5,8 +5,8 @@ Power Prior) approach. It inherits from the Model class.
 
 ## Super class
 
-[`RBExT::Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
--\> `Gaussian_NPP`
+[`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) -\>
+`Gaussian_NPP`
 
 ## Public fields
 
@@ -60,13 +60,15 @@ Power Prior) approach. It inherits from the Model class.
 
 ### Public methods
 
-- [`Gaussian_NPP$new()`](#method-Gaussian_NPP-new)
+- [`Gaussian_NPP$new()`](#method-Gaussian_NPP-initialize)
 
 - [`Gaussian_NPP$unnormalized_posterior_power_parameter_pdf()`](#method-Gaussian_NPP-unnormalized_posterior_power_parameter_pdf)
 
 - [`Gaussian_NPP$power_parameter_posterior_pdf()`](#method-Gaussian_NPP-power_parameter_posterior_pdf)
 
 - [`Gaussian_NPP$normalizing_constant_power_parameter()`](#method-Gaussian_NPP-normalizing_constant_power_parameter)
+
+- [`Gaussian_NPP$vectorised_replicate_inference()`](#method-Gaussian_NPP-vectorised_replicate_inference)
 
 - [`Gaussian_NPP$inference()`](#method-Gaussian_NPP-inference)
 
@@ -92,27 +94,32 @@ Power Prior) approach. It inherits from the Model class.
 
 Inherited methods
 
-- [`RBExT::Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
-- [`RBExT::Model$empirical_bayes_update()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-empirical_bayes_update)
-- [`RBExT::Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
-- [`RBExT::Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
-- [`RBExT::Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
-- [`RBExT::Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
-- [`RBExT::Model$plot_prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_prior_pdf)
-- [`RBExT::Model$posterior_mean()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_mean)
-- [`RBExT::Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
-- [`RBExT::Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
-- [`RBExT::Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
-- [`RBExT::Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
-- [`RBExT::Model$prior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_cdf)
-- [`RBExT::Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
-- [`RBExT::Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
-- [`RBExT::Model$simulation_for_given_treatment_effect()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-simulation_for_given_treatment_effect)
-- [`RBExT::Model$test_decision()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-test_decision)
+- [`Model$check_data()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-check_data)
+- [`Model$create()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-create)
+- [`Model$empirical_bayes_update()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-empirical_bayes_update)
+- [`Model$estimate_bayesian_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_bayesian_operating_characteristics)
+- [`Model$estimate_frequentist_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$inference_cache_scope()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference_cache_scope)
+- [`Model$plot_pdfs()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_pdfs)
+- [`Model$plot_posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_posterior_pdf)
+- [`Model$plot_prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_prior_pdf)
+- [`Model$posterior_beta_mixture()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_beta_mixture)
+- [`Model$posterior_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_ess)
+- [`Model$posterior_mean()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_mean)
+- [`Model$posterior_moments()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_moments)
+- [`Model$posterior_quantile()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_quantile)
+- [`Model$posterior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$prior_ESS()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_ESS)
+- [`Model$prior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_cdf)
+- [`Model$prior_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_elir_ess)
+- [`Model$prior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_to_RBesT)
+- [`Model$prior_treatment_benefit()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_treatment_benefit)
+- [`Model$simulation_for_given_treatment_effect()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-simulation_for_given_treatment_effect)
+- [`Model$test_decision()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-test_decision)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `Gaussian_NPP$new()`
 
 Initialize a new Gaussian_NPP object.
 
@@ -132,7 +139,7 @@ A new Gaussian_NPP object.
 
 ------------------------------------------------------------------------
 
-### Method `unnormalized_posterior_power_parameter_pdf()`
+### `Gaussian_NPP$unnormalized_posterior_power_parameter_pdf()`
 
 Calculate the unnormalized posterior power parameter PDF.
 
@@ -159,7 +166,7 @@ Unnormalized posterior power parameter PDF value.
 
 ------------------------------------------------------------------------
 
-### Method `power_parameter_posterior_pdf()`
+### `Gaussian_NPP$power_parameter_posterior_pdf()`
 
 Return the posterior distribution of the power parameter
 
@@ -183,7 +190,7 @@ Posterior power parameter PDF value.
 
 ------------------------------------------------------------------------
 
-### Method `normalizing_constant_power_parameter()`
+### `Gaussian_NPP$normalizing_constant_power_parameter()`
 
 Calculate the normalizing constant for the power parameter.
 
@@ -203,7 +210,68 @@ Normalizing constant value.
 
 ------------------------------------------------------------------------
 
-### Method `inference()`
+### `Gaussian_NPP$vectorised_replicate_inference()`
+
+Run every replicate at once
+
+Discretising the Beta prior on the power parameter turns the method into
+an ordinary normal mixture, so the posterior, its summaries and the
+effective sample sizes all follow in closed form. This replaces the
+nested numerical integration the replicate loop performs, in which each
+evaluation of `posterior_cdf()` integrates over `posterior_pdf()`, which
+itself integrates over the power parameter at every point.
+
+The prior mixture is the same for every replicate, so it is built once.
+
+#### Usage
+
+    Gaussian_NPP$vectorised_replicate_inference(
+      target_data,
+      samples,
+      to_return,
+      critical_value,
+      theta_0,
+      confidence_level,
+      null_space
+    )
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data.
+
+- `samples`:
+
+  Data frame of generated replicates.
+
+- `to_return`:
+
+  Character vector of requested outputs.
+
+- `critical_value`:
+
+  Critical value for hypothesis testing.
+
+- `theta_0`:
+
+  Null hypothesis value.
+
+- `confidence_level`:
+
+  Confidence level for the credible interval.
+
+- `null_space`:
+
+  The null space for hypothesis testing.
+
+#### Returns
+
+A list of simulation results.
+
+------------------------------------------------------------------------
+
+### `Gaussian_NPP$inference()`
 
 Perform inference on the target data.
 
@@ -223,7 +291,7 @@ A string indicating the success status of the inference.
 
 ------------------------------------------------------------------------
 
-### Method `credible_interval()`
+### `Gaussian_NPP$credible_interval()`
 
 Calculate the credible interval.
 
@@ -243,7 +311,7 @@ A vector containing the lower and upper bounds of the credible interval.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_median()`
+### `Gaussian_NPP$posterior_median()`
 
 Return the median of the posterior distribution.
 
@@ -263,7 +331,7 @@ Median of the posterior distribution.
 
 ------------------------------------------------------------------------
 
-### Method `sample_posterior()`
+### `Gaussian_NPP$sample_posterior()`
 
 Sample from the posterior distribution.
 
@@ -283,7 +351,7 @@ A vector of samples from the posterior distribution.
 
 ------------------------------------------------------------------------
 
-### Method `sample_prior()`
+### `Gaussian_NPP$sample_prior()`
 
 Sample from the prior distribution.
 
@@ -303,7 +371,7 @@ A vector of samples from the prior distribution.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_cdf()`
+### `Gaussian_NPP$posterior_cdf()`
 
 Calculate the posterior cumulative distribution function (CDF).
 
@@ -323,7 +391,7 @@ Vector of CDF values corresponding to the input points.
 
 ------------------------------------------------------------------------
 
-### Method `posterior_pdf()`
+### `Gaussian_NPP$posterior_pdf()`
 
 Calculate the posterior probability density function (PDF).
 
@@ -343,7 +411,7 @@ Vector of PDF values corresponding to the input points.
 
 ------------------------------------------------------------------------
 
-### Method `prior_pdf()`
+### `Gaussian_NPP$prior_pdf()`
 
 Calculate the prior probability density function (PDF).
 
@@ -363,7 +431,7 @@ Vector of PDF values corresponding to the input points.
 
 ------------------------------------------------------------------------
 
-### Method `plot_power_parameter_posterior_pdf()`
+### `Gaussian_NPP$plot_power_parameter_posterior_pdf()`
 
 Plot posterior probability density function (PDF) of the power parameter
 
@@ -383,7 +451,7 @@ A plot
 
 ------------------------------------------------------------------------
 
-### Method `plot_power_parameter_vs_drift()`
+### `Gaussian_NPP$plot_power_parameter_vs_drift()`
 
 Plot the power parameter as a function of drift in treatment effect
 
@@ -425,7 +493,7 @@ The prior PDF.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Gaussian_NPP$clone()`
 
 The objects of this class are cloneable with this method.
 

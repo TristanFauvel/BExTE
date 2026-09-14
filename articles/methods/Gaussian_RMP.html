@@ -5,10 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Implementation of the Robust Mixture Prior for normally distributed treatment effect • RBExT</title>
-<script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Implementation of the Robust Mixture Prior for normally distributed treatment effect • BExTE</title>
+<script src="../../lightswitch.js"></script><script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/Inter-0.4.10/font.css" rel="stylesheet">
+<link href="../../deps/Fira_Code-0.4.10/font.css" rel="stylesheet">
+<link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../../deps/headroom-0.11.0/headroom.min.js"></script><script src="../../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../../deps/search-1.0.0/fuse.min.js"></script><script src="../../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../../pkgdown.js"></script><meta property="og:title" content="Implementation of the Robust Mixture Prior for normally distributed treatment effect">
 </head>
@@ -16,9 +18,9 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../../index.html">RBExT</a>
+    <a class="navbar-brand me-2" href="../../index.html">BExTE</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
 
@@ -37,7 +39,15 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TristanFauvel/BExTE/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -55,9 +65,9 @@
                         <h4 data-toc-skip class="author">Tristan Fauvel,
 Quinten Health</h4>
             
-            <h4 data-toc-skip class="date">2026-09-11</h4>
+            <h4 data-toc-skip class="date">2026-09-14</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/vignettes/methods/Gaussian_RMP.Rmd" class="external-link"><code>vignettes/methods/Gaussian_RMP.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/TristanFauvel/BExTE/blob/main/vignettes/methods/Gaussian_RMP.Rmd" class="external-link"><code>vignettes/methods/Gaussian_RMP.Rmd</code></a></small>
       <div class="d-none name"><code>Gaussian_RMP.Rmd</code></div>
     </div>
 
@@ -77,10 +87,10 @@ normal distribution.</p>
 configuration from YAML files.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="va">simulation_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/simulation_config.yml"</span>, package <span class="op">=</span> <span class="st">"RBExT"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">simulation_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/simulation_config.yml"</span>, package <span class="op">=</span> <span class="st">"BExTE"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">case_study</span> <span class="op">=</span> <span class="st">"belimumab"</span></span>
-<span><span class="va">case_study_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/case_studies/belimumab.yml"</span>, package <span class="op">=</span> <span class="st">"RBExT"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">case_study_config</span> <span class="op">&lt;-</span> <span class="fu">yaml</span><span class="fu">::</span><span class="fu"><a href="https://yaml.r-lib.org/reference/yaml.load.html" class="external-link">yaml.load_file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"conf/case_studies/belimumab.yml"</span>, package <span class="op">=</span> <span class="st">"BExTE"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="specific-scenario">Specific scenario<a class="anchor" aria-label="anchor" href="#specific-scenario"></a>
@@ -139,22 +149,33 @@ is assumed known.</p>
 data is stored</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">source_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/SourceData.html">SourceData</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">case_study_config</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">source_data</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## &lt;SourceData&gt;</span></span>
-<span><span class="co">##   Inherits from: &lt;ObservedSourceData&gt;</span></span>
-<span><span class="co">##   Public:</span></span>
-<span><span class="co">##     clone: function (deep = FALSE) </span></span>
-<span><span class="co">##     control_rate: 0.387900355871886</span></span>
-<span><span class="co">##     endpoint: binary</span></span>
-<span><span class="co">##     equivalent_source_sample_size_per_arm: 562.499555555556</span></span>
-<span><span class="co">##     initialize: function (case_study_config, source_denominator = NA) </span></span>
-<span><span class="co">##     sample_size_control: 562</span></span>
-<span><span class="co">##     sample_size_treatment: 563</span></span>
-<span><span class="co">##     standard_error: 0.120830254258431</span></span>
-<span><span class="co">##     summary_measure_likelihood: normal</span></span>
-<span><span class="co">##     to_dict: function () </span></span>
-<span><span class="co">##     treatment_effect_estimate: 0.480132045646795</span></span>
-<span><span class="co">##     treatment_rate: 0.505996075305603</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">source_data</span><span class="op">$</span><span class="fu">to_dict</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## $source_treatment_effect_estimate</span></span>
+<span><span class="co">## [1] 0.480132</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_standard_error</span></span>
+<span><span class="co">## [1] 0.1208303</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $endpoint</span></span>
+<span><span class="co">## [1] "binary"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $summary_measure_likelihood</span></span>
+<span><span class="co">## [1] "normal"</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_sample_size_control</span></span>
+<span><span class="co">## [1] 562</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_sample_size_treatment</span></span>
+<span><span class="co">## [1] 563</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $equivalent_source_sample_size_per_arm</span></span>
+<span><span class="co">## [1] 562.4996</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_control_rate</span></span>
+<span><span class="co">## [1] 0.3879004</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## $source_treatment_rate</span></span>
+<span><span class="co">## [1] 0.5059961</span></span></code></pre>
 <p>Create an instance of the BinaryTargetData class, which will allow us
 to sample target study data. Note that this target_data depends on the
 specific parameters chosen for the scenario (in particular, the drift
@@ -180,7 +201,7 @@ effect in the target study.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The model’s prior_pdf method is :</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">prior_pdf</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">prior_pdf</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function (target_treatment_effect) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     return(RBesT::dmix(self$RBesT_prior, target_treatment_effect, </span></span>
@@ -215,7 +236,7 @@ together, specify the posterior distribution.</p>
 <span><span class="co">##  Informative Posterior Variance 0.0135045</span></span></code></pre>
 <p>Now, let us see how this is implemented:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">inference</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">inference</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function (target_data) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     self$empirical_bayes_update(target_data)</span></span>
@@ -245,7 +266,7 @@ component of the RMP should be such that this prior corresponds to the
 information provided by a single subject per arm in the target study.
 This is a form of empirical Bayes:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">empirical_bayes_update</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">empirical_bayes_update</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function (target_data) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     if (self$empirical_bayes) {</span></span>
@@ -342,7 +363,7 @@ evaluated at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\theta_T</annotation></semantics></math>.</p>
 <p>The code to compute the posterior moments is the following :</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_moments</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_moments</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function (target_data) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     self$RBesT_posterior &lt;- RBesT::postmix(self$RBesT_prior, </span></span>
@@ -436,7 +457,7 @@ evaluated at
 <span><span class="co">## }</span></span></code></pre>
 <p>With :</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_mean</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_mean</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function () </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     inference_results &lt;- summary(self$RBesT_posterior)</span></span>
@@ -461,7 +482,7 @@ evaluated at
 <span><span class="co">## }</span></span></code></pre>
 <p>and :</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_variance</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_variance</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function () </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     inference_results &lt;- summary(self$RBesT_posterior)</span></span>
@@ -502,7 +523,7 @@ and :
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>S</mi></msub><mo>=</mo><mfrac><mn>1</mn><msqrt><mrow><msubsup><mi>ν</mi><mi>S</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>σ</mi><mi>T</mi><mn>2</mn></msubsup><mi>/</mi><msub><mi>N</mi><mi>T</mi></msub></mrow></msqrt></mfrac><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mfrac><mn>1</mn><mn>2</mn></mfrac><mfrac><mrow><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>y</mi><mo accent="true">¯</mo></mover><mi>T</mi></msub><mo>−</mo><msub><mover><mi>y</mi><mo accent="true">¯</mo></mover><mi>S</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow><msqrt><mrow><msubsup><mi>ν</mi><mi>S</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>σ</mi><mi>T</mi><mn>2</mn></msubsup><mi>/</mi><msub><mi>N</mi><mi>T</mi></msub></mrow></msqrt></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C_S =  \frac{1}{\sqrt{\nu_S^2 + \sigma^2_T/N_T}}\exp\left(-\frac{1}{2}\frac{(\overline{y}_T - \overline{y}_S)^2}{\sqrt{\nu_S^2 + \sigma^2_T/N_T}}\right)</annotation></semantics></math></p>
 <p>This allows us to compute the posterior cdf and posterior pdf :</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_pdf</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_pdf</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function (target_treatment_effect) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     return(RBesT::dmix(self$RBesT_posterior, target_treatment_effect, </span></span>
@@ -517,7 +538,7 @@ and :
 <span><span class="co">##         log = FALSE))</span></span>
 <span><span class="co">## }</span></span></code></pre>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_cdf</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">posterior_cdf</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function (target_treatment_effect) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     return(RBesT::pmix(self$RBesT_posterior, target_treatment_effect, </span></span>
@@ -538,7 +559,7 @@ and :
 <p>Being able to sample from the posterior is crucial for estimating
 quantiles, we use the following:.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">read_function_code</span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">sample_posterior</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">sample_posterior</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $ &lt;- function (n_samples) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     samples &lt;- RBesT::rmix(self$RBesT_posterior, n = n_samples)</span></span>
@@ -693,7 +714,7 @@ quantiles, we use the following:.</p>
 <span><span class="co">## [1] stats     graphics  grDevices datasets  utils     methods   base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">## [1] ggplot2_4.0.3 RBExT_0.0.2  </span></span>
+<span><span class="co">## [1] ggplot2_4.0.3 BExTE_0.0.2  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
 <span><span class="co">##   [1] matrixStats_1.5.0    fs_2.1.0             assertions_0.3.0    </span></span>
@@ -717,21 +738,21 @@ quantiles, we use the following:.</p>
 <span><span class="co">##  [55] dplyr_1.2.1          distributional_0.9.0 inline_0.3.21       </span></span>
 <span><span class="co">##  [58] magrittr_2.0.5       kableExtra_1.4.1     Formula_1.2-6       </span></span>
 <span><span class="co">##  [61] loo_2.10.1.9000      Rcpp_1.1.2           abind_1.4-8         </span></span>
-<span><span class="co">##  [64] viridis_0.6.5        lifecycle_1.0.5      stringi_1.8.9       </span></span>
-<span><span class="co">##  [67] yaml_2.3.12          plyr_1.8.9           pkgbuild_1.4.8      </span></span>
-<span><span class="co">##  [70] grid_4.2.0           parallel_4.2.0       crayon_1.5.3        </span></span>
-<span><span class="co">##  [73] hms_1.1.4            knitr_1.52           ps_1.9.3            </span></span>
-<span><span class="co">##  [76] pillar_1.11.1        reshape2_1.4.5       codetools_0.2-18    </span></span>
-<span><span class="co">##  [79] stats4_4.2.0         rstantools_2.7.1     glue_1.8.1          </span></span>
-<span><span class="co">##  [82] evaluate_1.0.5       renv_1.0.11          RcppParallel_6.2.1  </span></span>
-<span><span class="co">##  [85] vctrs_0.7.3          tzdb_0.5.0           Rdpack_2.6.6        </span></span>
-<span><span class="co">##  [88] foreach_1.5.2        Rttf2pt1_1.3.14      gtable_0.3.6        </span></span>
-<span><span class="co">##  [91] purrr_1.2.2          tidyr_1.3.2          assertthat_0.2.1    </span></span>
-<span><span class="co">##  [94] cachem_1.1.0         xfun_0.60            rbibutils_2.4.1     </span></span>
-<span><span class="co">##  [97] tidyverse_2.0.0      roxygen2_8.1.0       ragg_1.5.2          </span></span>
-<span><span class="co">## [100] viridisLite_0.4.3    truncnorm_1.0-9      Bolstad2_1.0-29     </span></span>
-<span><span class="co">## [103] RBesT_1.11-0         tibble_3.3.1         iterators_1.0.14    </span></span>
-<span><span class="co">## [106] cmdstanr_0.9.0</span></span></code></pre>
+<span><span class="co">##  [64] ggnewscale_0.5.2     viridis_0.6.5        lifecycle_1.0.5     </span></span>
+<span><span class="co">##  [67] stringi_1.8.9        yaml_2.3.12          plyr_1.8.9          </span></span>
+<span><span class="co">##  [70] pkgbuild_1.4.8       grid_4.2.0           parallel_4.2.0      </span></span>
+<span><span class="co">##  [73] crayon_1.5.3         hms_1.1.4            knitr_1.52          </span></span>
+<span><span class="co">##  [76] ps_1.9.3             pillar_1.11.1        reshape2_1.4.5      </span></span>
+<span><span class="co">##  [79] codetools_0.2-18     stats4_4.2.0         rstantools_2.7.1    </span></span>
+<span><span class="co">##  [82] glue_1.8.1           evaluate_1.0.5       renv_1.0.11         </span></span>
+<span><span class="co">##  [85] RcppParallel_6.2.1   vctrs_0.7.3          tzdb_0.5.0          </span></span>
+<span><span class="co">##  [88] Rdpack_2.6.6         foreach_1.5.2        Rttf2pt1_1.3.14     </span></span>
+<span><span class="co">##  [91] gtable_0.3.6         purrr_1.2.2          tidyr_1.3.2         </span></span>
+<span><span class="co">##  [94] assertthat_0.2.1     cachem_1.1.0         xfun_0.60           </span></span>
+<span><span class="co">##  [97] rbibutils_2.4.1      tidyverse_2.0.0      roxygen2_8.1.0      </span></span>
+<span><span class="co">## [100] ragg_1.5.2           viridisLite_0.4.3    truncnorm_1.0-9     </span></span>
+<span><span class="co">## [103] Bolstad2_1.0-29      RBesT_1.11-0         tibble_3.3.1        </span></span>
+<span><span class="co">## [106] iterators_1.0.14     cmdstanr_0.9.0</span></span></code></pre>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

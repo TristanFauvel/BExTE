@@ -13,7 +13,8 @@ forest_subplot_no_uncertainty(
   x_metric_label,
   methods_labels,
   legend = FALSE,
-  sort_by = FALSE
+  sort_by = FALSE,
+  palette = NULL
 )
 ```
 
@@ -38,6 +39,11 @@ forest_subplot_no_uncertainty(
 - x_metric_label:
 
   Label of the metric on the x-axis
+
+- palette:
+
+  A colour scheme from bexte_palette() for the Shiny app's dark mode, or
+  NULL for the publication figure.
 
 - x_metric_uncertainty_lower:
 

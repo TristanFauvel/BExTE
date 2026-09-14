@@ -4,7 +4,7 @@ A class for binary target data objects.
 
 ## Super class
 
-[`RBExT::TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)
+[`TargetData`](https://tristanfauvel.github.io/BExTE/reference/TargetData.md)
 -\> `BinaryTargetData`
 
 ## Public fields
@@ -21,7 +21,7 @@ A class for binary target data objects.
 
 ### Public methods
 
-- [`BinaryTargetData$new()`](#method-BinaryTargetData-new)
+- [`BinaryTargetData$new()`](#method-BinaryTargetData-initialize)
 
 - [`BinaryTargetData$generate()`](#method-BinaryTargetData-generate)
 
@@ -31,11 +31,11 @@ A class for binary target data objects.
 
 Inherited methods
 
-- [`RBExT::TargetData$plot_sample()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.html#method-plot_sample)
+- [`TargetData$plot_sample()`](https://tristanfauvel.github.io/BExTE/reference/TargetData.html#method-plot_sample)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `BinaryTargetData$new()`
 
 Initializes the binary target data object.
 
@@ -78,7 +78,7 @@ Initializes the binary target data object.
 
 ------------------------------------------------------------------------
 
-### Method `generate()`
+### `BinaryTargetData$generate()`
 
 Generates samples for the binary target data object.
 
@@ -98,7 +98,7 @@ A data frame containing the generated samples.
 
 ------------------------------------------------------------------------
 
-### Method `to_dict()`
+### `BinaryTargetData$to_dict()`
 
 Converts the target data object to a dictionary.
 
@@ -112,7 +112,7 @@ A list representing the target data object.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BinaryTargetData$clone()`
 
 The objects of this class are cloneable with this method.
 

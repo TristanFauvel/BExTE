@@ -15,7 +15,7 @@ Load the Belimumab case study configuration from YAML files.
 
 set.seed(42)
 
-case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "RBExT"))
+case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
 ```
 
 ## Define the method used (RMP) and the range of parameters considered

@@ -10,10 +10,10 @@ configuration from YAML files.
 ``` r
 
 set.seed(42)
-simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "RBExT"))
+simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "BExTE"))
 
 case_study <- "belimumab"
-case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "RBExT"))
+case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
 ```
 
 ## Method and scenario
@@ -262,7 +262,7 @@ sessionInfo()
     ## [1] stats     graphics  grDevices datasets  utils     methods   base     
     ## 
     ## other attached packages:
-    ## [1] ggplot2_4.0.3 RBExT_0.0.2  
+    ## [1] ggplot2_4.0.3 BExTE_0.0.2  
     ## 
     ## loaded via a namespace (and not attached):
     ##   [1] matrixStats_1.5.0    fs_2.1.0             assertions_0.3.0    
@@ -286,17 +286,17 @@ sessionInfo()
     ##  [55] dplyr_1.2.1          distributional_0.9.0 inline_0.3.21       
     ##  [58] magrittr_2.0.5       kableExtra_1.4.1     Formula_1.2-6       
     ##  [61] loo_2.10.1.9000      Rcpp_1.1.2           abind_1.4-8         
-    ##  [64] viridis_0.6.5        lifecycle_1.0.5      stringi_1.8.9       
-    ##  [67] yaml_2.3.12          pkgbuild_1.4.8       grid_4.2.0          
-    ##  [70] parallel_4.2.0       crayon_1.5.3         hms_1.1.4           
-    ##  [73] knitr_1.52           ps_1.9.3             pillar_1.11.1       
-    ##  [76] codetools_0.2-18     stats4_4.2.0         rstantools_2.7.1    
-    ##  [79] glue_1.8.1           evaluate_1.0.5       renv_1.0.11         
-    ##  [82] RcppParallel_6.2.1   vctrs_0.7.3          tzdb_0.5.0          
-    ##  [85] Rdpack_2.6.6         foreach_1.5.2        Rttf2pt1_1.3.14     
-    ##  [88] gtable_0.3.6         purrr_1.2.2          tidyr_1.3.2         
-    ##  [91] assertthat_0.2.1     cachem_1.1.0         xfun_0.60           
-    ##  [94] rbibutils_2.4.1      tidyverse_2.0.0      roxygen2_8.1.0      
-    ##  [97] ragg_1.5.2           viridisLite_0.4.3    truncnorm_1.0-9     
-    ## [100] Bolstad2_1.0-29      RBesT_1.11-0         tibble_3.3.1        
-    ## [103] iterators_1.0.14     cmdstanr_0.9.0
+    ##  [64] ggnewscale_0.5.2     viridis_0.6.5        lifecycle_1.0.5     
+    ##  [67] stringi_1.8.9        yaml_2.3.12          pkgbuild_1.4.8      
+    ##  [70] grid_4.2.0           parallel_4.2.0       crayon_1.5.3        
+    ##  [73] hms_1.1.4            knitr_1.52           ps_1.9.3            
+    ##  [76] pillar_1.11.1        codetools_0.2-18     stats4_4.2.0        
+    ##  [79] rstantools_2.7.1     glue_1.8.1           evaluate_1.0.5      
+    ##  [82] renv_1.0.11          RcppParallel_6.2.1   vctrs_0.7.3         
+    ##  [85] tzdb_0.5.0           Rdpack_2.6.6         foreach_1.5.2       
+    ##  [88] Rttf2pt1_1.3.14      gtable_0.3.6         purrr_1.2.2         
+    ##  [91] tidyr_1.3.2          assertthat_0.2.1     cachem_1.1.0        
+    ##  [94] xfun_0.60            rbibutils_2.4.1      tidyverse_2.0.0     
+    ##  [97] roxygen2_8.1.0       ragg_1.5.2           viridisLite_0.4.3   
+    ## [100] truncnorm_1.0-9      Bolstad2_1.0-29      RBesT_1.11-0        
+    ## [103] tibble_3.3.1         iterators_1.0.14     cmdstanr_0.9.0

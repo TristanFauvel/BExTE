@@ -21,7 +21,7 @@ Source other scripts
 ``` r
 
 env <- "full"
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
 scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
 ```
 
@@ -33,11 +33,11 @@ configuration from YAML files.
 ``` r
 
 set.seed(42)
-config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
 case_study <- "botox"
-config_path <- system.file("conf/case_studies/botox.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/botox.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 ```
 
@@ -86,24 +86,35 @@ effect summary measure (optional), in the in case we want to modify it.
 
 source_denominator <- case_study_config$source$responses$control / case_study_config$source$total
 source_data <- SourceData$new(case_study_config, source_denominator)
-print(source_data)
+print(source_data$to_dict())
 ```
 
-    ## <SourceData>
-    ##   Inherits from: <ObservedSourceData>
-    ##   Public:
-    ##     clone: function (deep = FALSE) 
-    ##     control_rate: NULL
-    ##     endpoint: continuous
-    ##     equivalent_source_sample_size_per_arm: 233.995726495727
-    ##     initialize: function (case_study_config, source_denominator = NA) 
-    ##     sample_size_control: 235
-    ##     sample_size_treatment: 233
-    ##     standard_error: 0.1
-    ##     summary_measure_likelihood: normal
-    ##     to_dict: function () 
-    ##     treatment_effect_estimate: 0.2
-    ##     treatment_rate: NULL
+    ## $source_treatment_effect_estimate
+    ## [1] 0.2
+    ## 
+    ## $source_standard_error
+    ## [1] 0.1
+    ## 
+    ## $endpoint
+    ## [1] "continuous"
+    ## 
+    ## $summary_measure_likelihood
+    ## [1] "normal"
+    ## 
+    ## $source_sample_size_control
+    ## [1] 235
+    ## 
+    ## $source_sample_size_treatment
+    ## [1] 233
+    ## 
+    ## $equivalent_source_sample_size_per_arm
+    ## [1] 233.9957
+    ## 
+    ## $source_control_rate
+    ## [1] NA
+    ## 
+    ## $source_treatment_rate
+    ## [1] NA
 
 Alternatively, if we want to use the control rate from the source study
 data:
@@ -111,24 +122,35 @@ data:
 ``` r
 
 source_data <- SourceData$new(case_study_config)
-print(source_data)
+print(source_data$to_dict())
 ```
 
-    ## <SourceData>
-    ##   Inherits from: <ObservedSourceData>
-    ##   Public:
-    ##     clone: function (deep = FALSE) 
-    ##     control_rate: NULL
-    ##     endpoint: continuous
-    ##     equivalent_source_sample_size_per_arm: 233.995726495727
-    ##     initialize: function (case_study_config, source_denominator = NA) 
-    ##     sample_size_control: 235
-    ##     sample_size_treatment: 233
-    ##     standard_error: 0.1
-    ##     summary_measure_likelihood: normal
-    ##     to_dict: function () 
-    ##     treatment_effect_estimate: 0.2
-    ##     treatment_rate: NULL
+    ## $source_treatment_effect_estimate
+    ## [1] 0.2
+    ## 
+    ## $source_standard_error
+    ## [1] 0.1
+    ## 
+    ## $endpoint
+    ## [1] "continuous"
+    ## 
+    ## $summary_measure_likelihood
+    ## [1] "normal"
+    ## 
+    ## $source_sample_size_control
+    ## [1] 235
+    ## 
+    ## $source_sample_size_treatment
+    ## [1] 233
+    ## 
+    ## $equivalent_source_sample_size_per_arm
+    ## [1] 233.9957
+    ## 
+    ## $source_control_rate
+    ## [1] NA
+    ## 
+    ## $source_treatment_rate
+    ## [1] NA
 
 Create an instance of the BinaryTargetData class, which will allow us to
 sample target study data. Note that this target_data depends on the
@@ -151,29 +173,26 @@ of the BinaryTargetData class, which inherits from the TargetData class.
 
 ``` r
 
-print(target_data)
+print(target_data$to_dict())
 ```
 
-    ## <ContinuousTargetData>
-    ##   Inherits from: <TargetData>
-    ##   Public:
-    ##     clone: function (deep = FALSE) 
-    ##     control_drift: 0
-    ##     drift: 0.4
-    ##     endpoint: continuous
-    ##     generate: function (n_replicates) 
-    ##     initialize: function (source_data, sampling_approximation, target_sample_size_per_arm, 
-    ##     plot_sample: function (data) 
-    ##     sample: NULL
-    ##     sample_size_control: 91
-    ##     sample_size_per_arm: 91
-    ##     sample_size_treatment: 91
-    ##     sampling_approximation: FALSE
-    ##     standard_deviation: 1.52969188562837
-    ##     summary_measure_likelihood: normal
-    ##     to_dict: function () 
-    ##     treatment_drift: 0.4
-    ##     treatment_effect: 0.6
+    ## $summary_measure_likelihood
+    ## [1] "normal"
+    ## 
+    ## $target_sample_size_per_arm
+    ## [1] 91
+    ## 
+    ## $target_treatment_effect
+    ## [1] 0.6
+    ## 
+    ## $target_standard_deviation
+    ## [1] 1.529692
+    ## 
+    ## $target_control_rate
+    ## [1] NA
+    ## 
+    ## $target_treatment_rate
+    ## [1] NA
 
 Now, we define the model we want to use for inferring the treatment
 effect in the target study. Again, the model class definition relies on
@@ -272,7 +291,7 @@ sessionInfo()
     ## [1] stats     graphics  grDevices datasets  utils     methods   base     
     ## 
     ## other attached packages:
-    ## [1] ggplot2_4.0.3 RBExT_0.0.2  
+    ## [1] ggplot2_4.0.3 BExTE_0.0.2  
     ## 
     ## loaded via a namespace (and not attached):
     ##   [1] matrixStats_1.5.0    fs_2.1.0             assertions_0.3.0    
@@ -298,18 +317,18 @@ sessionInfo()
     ##  [61] dplyr_1.2.1          distributional_0.9.0 inline_0.3.21       
     ##  [64] magrittr_2.0.5       kableExtra_1.4.1     Formula_1.2-6       
     ##  [67] loo_2.10.1.9000      Rcpp_1.1.2           abind_1.4-8         
-    ##  [70] viridis_0.6.5        lifecycle_1.0.5      stringi_1.8.9       
-    ##  [73] yaml_2.3.12          pkgbuild_1.4.8       grid_4.2.0          
-    ##  [76] parallel_4.2.0       crayon_1.5.3         hms_1.1.4           
-    ##  [79] knitr_1.52           ps_1.9.3             pillar_1.11.1       
-    ##  [82] codetools_0.2-18     stats4_4.2.0         rstantools_2.7.1    
-    ##  [85] glue_1.8.1           evaluate_1.0.5       data.table_1.18.6.1 
-    ##  [88] renv_1.0.11          RcppParallel_6.2.1   vctrs_0.7.3         
-    ##  [91] tzdb_0.5.0           Rdpack_2.6.6         foreach_1.5.2       
-    ##  [94] Rttf2pt1_1.3.14      gtable_0.3.6         purrr_1.2.2         
-    ##  [97] tidyr_1.3.2          assertthat_0.2.1     cachem_1.1.0        
-    ## [100] xfun_0.60            rbibutils_2.4.1      tidyverse_2.0.0     
-    ## [103] roxygen2_8.1.0       ragg_1.5.2           viridisLite_0.4.3   
-    ## [106] truncnorm_1.0-9      Bolstad2_1.0-29      RBesT_1.11-0        
-    ## [109] tibble_3.3.1         iterators_1.0.14     cluster_2.1.3       
-    ## [112] statmod_1.5.2        cmdstanr_0.9.0
+    ##  [70] ggnewscale_0.5.2     viridis_0.6.5        lifecycle_1.0.5     
+    ##  [73] stringi_1.8.9        yaml_2.3.12          pkgbuild_1.4.8      
+    ##  [76] grid_4.2.0           parallel_4.2.0       crayon_1.5.3        
+    ##  [79] hms_1.1.4            knitr_1.52           ps_1.9.3            
+    ##  [82] pillar_1.11.1        codetools_0.2-18     stats4_4.2.0        
+    ##  [85] rstantools_2.7.1     glue_1.8.1           evaluate_1.0.5      
+    ##  [88] data.table_1.18.6.1  renv_1.0.11          RcppParallel_6.2.1  
+    ##  [91] vctrs_0.7.3          tzdb_0.5.0           Rdpack_2.6.6        
+    ##  [94] foreach_1.5.2        Rttf2pt1_1.3.14      gtable_0.3.6        
+    ##  [97] purrr_1.2.2          tidyr_1.3.2          assertthat_0.2.1    
+    ## [100] cachem_1.1.0         xfun_0.60            rbibutils_2.4.1     
+    ## [103] tidyverse_2.0.0      roxygen2_8.1.0       ragg_1.5.2          
+    ## [106] viridisLite_0.4.3    truncnorm_1.0-9      Bolstad2_1.0-29     
+    ## [109] RBesT_1.11-0         tibble_3.3.1         iterators_1.0.14    
+    ## [112] cluster_2.1.3        statmod_1.5.2        cmdstanr_0.9.0

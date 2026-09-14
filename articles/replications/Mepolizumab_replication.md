@@ -12,7 +12,7 @@ Load the Mepolizumab case study configuration from YAML files.
 ``` r
 
 set.seed(42)
-config_path <- system.file("conf/case_studies/mepolizumab.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/mepolizumab.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 ```
 

@@ -16,11 +16,11 @@ List packages to load, and install them if necessary.
 ``` r
 
 set.seed(42)
-config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
 case_study <- "aprepitant"
-config_path <- system.file("conf/case_studies/aprepitant.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 
 source_data <- ObservedSourceData$new(case_study_config)
@@ -389,7 +389,7 @@ method_parameters <- list(
 )
 
 env <- "full"
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
 mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
 
 separate_model <- Model$new()
@@ -565,7 +565,7 @@ sessionInfo()
     ## 
     ## other attached packages:
     ## [1] truncnorm_1.0-9       bayesplot_1.16.0.9000 posterior_1.7.1      
-    ## [4] cmdstanr_0.9.0        ggplot2_4.0.3         RBExT_0.0.2          
+    ## [4] cmdstanr_0.9.0        ggplot2_4.0.3         BExTE_0.0.2          
     ## 
     ## loaded via a namespace (and not attached):
     ##   [1] matrixStats_1.5.0    fs_2.1.0             assertions_0.3.0    
@@ -588,18 +588,18 @@ sessionInfo()
     ##  [52] generics_0.1.4       jsonlite_2.0.0       dplyr_1.2.1         
     ##  [55] distributional_0.9.0 inline_0.3.21        magrittr_2.0.5      
     ##  [58] kableExtra_1.4.1     Formula_1.2-6        loo_2.10.1.9000     
-    ##  [61] Rcpp_1.1.2           abind_1.4-8          viridis_0.6.5       
-    ##  [64] lifecycle_1.0.5      stringi_1.8.9        yaml_2.3.12         
-    ##  [67] plyr_1.8.9           pkgbuild_1.4.8       grid_4.2.0          
-    ##  [70] parallel_4.2.0       crayon_1.5.3         hms_1.1.4           
-    ##  [73] knitr_1.52           ps_1.9.3             pillar_1.11.1       
-    ##  [76] reshape2_1.4.5       codetools_0.2-18     stats4_4.2.0        
-    ##  [79] rstantools_2.7.1     glue_1.8.1           evaluate_1.0.5      
-    ##  [82] data.table_1.18.6.1  renv_1.0.11          RcppParallel_6.2.1  
-    ##  [85] vctrs_0.7.3          tzdb_0.5.0           Rdpack_2.6.6        
-    ##  [88] foreach_1.5.2        Rttf2pt1_1.3.14      gtable_0.3.6        
-    ##  [91] purrr_1.2.2          tidyr_1.3.2          assertthat_0.2.1    
-    ##  [94] cachem_1.1.0         xfun_0.60            rbibutils_2.4.1     
-    ##  [97] tidyverse_2.0.0      roxygen2_8.1.0       ragg_1.5.2          
-    ## [100] viridisLite_0.4.3    Bolstad2_1.0-29      RBesT_1.11-0        
-    ## [103] tibble_3.3.1         iterators_1.0.14
+    ##  [61] Rcpp_1.1.2           abind_1.4-8          ggnewscale_0.5.2    
+    ##  [64] viridis_0.6.5        lifecycle_1.0.5      stringi_1.8.9       
+    ##  [67] yaml_2.3.12          plyr_1.8.9           pkgbuild_1.4.8      
+    ##  [70] grid_4.2.0           parallel_4.2.0       crayon_1.5.3        
+    ##  [73] hms_1.1.4            knitr_1.52           ps_1.9.3            
+    ##  [76] pillar_1.11.1        reshape2_1.4.5       codetools_0.2-18    
+    ##  [79] stats4_4.2.0         rstantools_2.7.1     glue_1.8.1          
+    ##  [82] evaluate_1.0.5       data.table_1.18.6.1  renv_1.0.11         
+    ##  [85] RcppParallel_6.2.1   vctrs_0.7.3          tzdb_0.5.0          
+    ##  [88] Rdpack_2.6.6         foreach_1.5.2        Rttf2pt1_1.3.14     
+    ##  [91] gtable_0.3.6         purrr_1.2.2          tidyr_1.3.2         
+    ##  [94] assertthat_0.2.1     cachem_1.1.0         xfun_0.60           
+    ##  [97] rbibutils_2.4.1      tidyverse_2.0.0      roxygen2_8.1.0      
+    ## [100] ragg_1.5.2           viridisLite_0.4.3    Bolstad2_1.0-29     
+    ## [103] RBesT_1.11-0         tibble_3.3.1         iterators_1.0.14

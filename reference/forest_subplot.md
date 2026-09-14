@@ -15,7 +15,9 @@ forest_subplot(
   x_metric_label,
   methods_labels,
   legend = FALSE,
-  sort_by = FALSE
+  sort_by = FALSE,
+  palette = NULL,
+  reference_line = NULL
 )
 ```
 
@@ -48,6 +50,15 @@ forest_subplot(
 - x_metric_label:
 
   Label of the metric on the x-axis
+
+- palette:
+
+  A colour scheme from bexte_palette() for the Shiny app's dark mode, or
+  NULL for the publication figure.
+
+- reference_line:
+
+  x position of a dotted vertical reference line, or NULL for none.
 
 ## Value
 

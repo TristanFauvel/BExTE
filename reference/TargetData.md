@@ -57,7 +57,7 @@ A base class for target data objects.
 
 ### Public methods
 
-- [`TargetData$new()`](#method-TargetData-new)
+- [`TargetData$new()`](#method-TargetData-initialize)
 
 - [`TargetData$to_dict()`](#method-TargetData-to_dict)
 
@@ -67,7 +67,7 @@ A base class for target data objects.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `TargetData$new()`
 
 Initializes the target data object.
 
@@ -110,7 +110,7 @@ Initializes the target data object.
 
 ------------------------------------------------------------------------
 
-### Method `to_dict()`
+### `TargetData$to_dict()`
 
 Converts the target data object to a dictionary.
 
@@ -124,7 +124,7 @@ A list representing the target data object.
 
 ------------------------------------------------------------------------
 
-### Method `plot_sample()`
+### `TargetData$plot_sample()`
 
 Plot the target data samples
 
@@ -144,7 +144,7 @@ A plot.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `TargetData$clone()`
 
 The objects of this class are cloneable with this method.
 

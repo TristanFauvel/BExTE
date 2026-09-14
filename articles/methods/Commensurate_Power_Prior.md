@@ -69,7 +69,7 @@ p\left(\gamma, \tau \mid \mathbf{D}_S, \mathbf{D}_T, \sigma^2\right) \propto & N
 
 ``` r
 
-case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "RBExT"))
+case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
 
 
 source_data <- ObservedSourceData$new(case_study_config)
@@ -94,7 +94,7 @@ method_parameters <- list(
 )
 
 env = "full"
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
 mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
 
 model <- Model$new()

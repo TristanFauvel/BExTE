@@ -6,24 +6,24 @@ endpoints.
 
 ## Super class
 
-[`RBExT::ObservedSourceData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/ObservedSourceData.md)
+[`ObservedSourceData`](https://tristanfauvel.github.io/BExTE/reference/ObservedSourceData.md)
 -\> `SourceData`
 
 ## Methods
 
 ### Public methods
 
-- [`SourceData$new()`](#method-SourceData-new)
+- [`SourceData$new()`](#method-SourceData-initialize)
 
 - [`SourceData$clone()`](#method-SourceData-clone)
 
 Inherited methods
 
-- [`RBExT::ObservedSourceData$to_dict()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/ObservedSourceData.html#method-to_dict)
+- [`ObservedSourceData$to_dict()`](https://tristanfauvel.github.io/BExTE/reference/ObservedSourceData.html#method-to_dict)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `SourceData$new()`
 
 Initialize the SourceData object
 
@@ -47,7 +47,7 @@ A new SourceData object.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `SourceData$clone()`
 
 The objects of this class are cloneable with this method.
 

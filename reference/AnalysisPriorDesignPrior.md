@@ -5,7 +5,7 @@ borrowing.
 
 ## Super class
 
-[`RBExT::DesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.md)
+[`DesignPrior`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.md)
 -\> `AnalysisPriorDesignPrior`
 
 ## Public fields
@@ -18,7 +18,7 @@ borrowing.
 
 ### Public methods
 
-- [`AnalysisPriorDesignPrior$new()`](#method-AnalysisPriorDesignPrior-new)
+- [`AnalysisPriorDesignPrior$new()`](#method-AnalysisPriorDesignPrior-initialize)
 
 - [`AnalysisPriorDesignPrior$sample()`](#method-AnalysisPriorDesignPrior-sample)
 
@@ -30,11 +30,11 @@ borrowing.
 
 Inherited methods
 
-- [`RBExT::DesignPrior$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-create)
+- [`DesignPrior$create()`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.html#method-create)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `AnalysisPriorDesignPrior$new()`
 
 Initializes a new instance of AnalysisPriorDesignPrior.
 
@@ -67,7 +67,7 @@ Initializes a new instance of AnalysisPriorDesignPrior.
 
 ------------------------------------------------------------------------
 
-### Method [`sample()`](https://rdrr.io/r/base/sample.html)
+### `AnalysisPriorDesignPrior$sample()`
 
 Samples from the analysis prior design prior.
 
@@ -83,7 +83,7 @@ Samples from the analysis prior design prior.
 
 ------------------------------------------------------------------------
 
-### Method `cdf()`
+### `AnalysisPriorDesignPrior$cdf()`
 
 Computes the cumulative distribution function (CDF) of the analysis
 prior design prior.
@@ -100,7 +100,7 @@ prior design prior.
 
 ------------------------------------------------------------------------
 
-### Method [`pdf()`](https://rdrr.io/r/grDevices/pdf.html)
+### `AnalysisPriorDesignPrior$pdf()`
 
 Computes the PDF of the analysis prior design prior.
 
@@ -116,7 +116,7 @@ Computes the PDF of the analysis prior design prior.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `AnalysisPriorDesignPrior$clone()`
 
 The objects of this class are cloneable with this method.
 

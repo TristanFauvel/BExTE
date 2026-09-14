@@ -12,7 +12,7 @@ A factory class for creating different types of target data objects.
 
 ------------------------------------------------------------------------
 
-### Method `create()`
+### `TargetDataFactory$create()`
 
 Creates a target data object based on the source data and configuration.
 
@@ -64,7 +64,7 @@ The created target data object.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `TargetDataFactory$clone()`
 
 The objects of this class are cloneable with this method.
 

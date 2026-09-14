@@ -5,8 +5,8 @@ inherits from the Model class.
 
 ## Super class
 
-[`RBExT::Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
--\> `MCMCModel`
+[`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) -\>
+`MCMCModel`
 
 ## Public fields
 
@@ -17,6 +17,10 @@ inherits from the Model class.
 - `stan_model`:
 
   The compiled Stan model
+
+- `summary_variables`:
+
+  Variables to summarise from the posterior draws
 
 - `fit`:
 
@@ -82,7 +86,7 @@ inherits from the Model class.
 
 ### Public methods
 
-- [`MCMCModel$new()`](#method-MCMCModel-new)
+- [`MCMCModel$new()`](#method-MCMCModel-initialize)
 
 - [`MCMCModel$check_mcmc_config()`](#method-MCMCModel-check_mcmc_config)
 
@@ -92,11 +96,11 @@ inherits from the Model class.
 
 - [`MCMCModel$credible_interval()`](#method-MCMCModel-credible_interval)
 
+- [`MCMCModel$posterior_ess()`](#method-MCMCModel-posterior_ess)
+
 - [`MCMCModel$posterior_median()`](#method-MCMCModel-posterior_median)
 
 - [`MCMCModel$sample_posterior()`](#method-MCMCModel-sample_posterior)
-
-- [`MCMCModel$check_data()`](#method-MCMCModel-check_data)
 
 - [`MCMCModel$compute_posterior_parameters()`](#method-MCMCModel-compute_posterior_parameters)
 
@@ -116,26 +120,31 @@ inherits from the Model class.
 
 Inherited methods
 
-- [`RBExT::Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
-- [`RBExT::Model$empirical_bayes_update()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-empirical_bayes_update)
-- [`RBExT::Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
-- [`RBExT::Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
-- [`RBExT::Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
-- [`RBExT::Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
-- [`RBExT::Model$plot_prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_prior_pdf)
-- [`RBExT::Model$posterior_mean()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_mean)
-- [`RBExT::Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
-- [`RBExT::Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
-- [`RBExT::Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
-- [`RBExT::Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
-- [`RBExT::Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
-- [`RBExT::Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
-- [`RBExT::Model$simulation_for_given_treatment_effect()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-simulation_for_given_treatment_effect)
-- [`RBExT::Model$test_decision()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-test_decision)
+- [`Model$check_data()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-check_data)
+- [`Model$create()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-create)
+- [`Model$empirical_bayes_update()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-empirical_bayes_update)
+- [`Model$estimate_bayesian_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_bayesian_operating_characteristics)
+- [`Model$estimate_frequentist_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$inference_cache_scope()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference_cache_scope)
+- [`Model$plot_pdfs()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_pdfs)
+- [`Model$plot_posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_posterior_pdf)
+- [`Model$plot_prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_prior_pdf)
+- [`Model$posterior_beta_mixture()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_beta_mixture)
+- [`Model$posterior_mean()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_mean)
+- [`Model$posterior_moments()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_moments)
+- [`Model$posterior_quantile()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_quantile)
+- [`Model$posterior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$prior_ESS()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_ESS)
+- [`Model$prior_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_elir_ess)
+- [`Model$prior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_to_RBesT)
+- [`Model$prior_treatment_benefit()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_treatment_benefit)
+- [`Model$simulation_for_given_treatment_effect()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-simulation_for_given_treatment_effect)
+- [`Model$test_decision()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-test_decision)
+- [`Model$vectorised_replicate_inference()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-vectorised_replicate_inference)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `MCMCModel$new()`
 
 Initialize the MCMCModel object
 
@@ -155,7 +164,7 @@ Initialize the MCMCModel object
 
 ------------------------------------------------------------------------
 
-### Method `check_mcmc_config()`
+### `MCMCModel$check_mcmc_config()`
 
 Check validity of the MCMC configuration
 
@@ -171,7 +180,7 @@ Check validity of the MCMC configuration
 
 ------------------------------------------------------------------------
 
-### Method `prepare_data()`
+### `MCMCModel$prepare_data()`
 
 Prepare the data for inference. Subclasses must implement the
 'prepare_data' method.
@@ -188,7 +197,7 @@ Prepare the data for inference. Subclasses must implement the
 
 ------------------------------------------------------------------------
 
-### Method `inference()`
+### `MCMCModel$inference()`
 
 Perform inference using MCMC sampling
 
@@ -204,7 +213,7 @@ Perform inference using MCMC sampling
 
 ------------------------------------------------------------------------
 
-### Method `credible_interval()`
+### `MCMCModel$credible_interval()`
 
 Calculate the credible interval
 
@@ -224,7 +233,38 @@ The credible interval as a numeric vector
 
 ------------------------------------------------------------------------
 
-### Method `posterior_median()`
+### `MCMCModel$posterior_ess()`
+
+Effective sample sizes of the current posterior
+
+The single summary pass over the draws already produced the posterior
+standard deviation and the credible interval bounds, so both effective
+sample sizes read straight off it. The inherited route would resample
+the draws and fit a mixture to the resample, which costs a mixture fit
+per replicate and adds a second layer of Monte Carlo error on top of the
+one the sampler already carries.
+
+#### Usage
+
+    MCMCModel$posterior_ess(target_data, ...)
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data
+
+- `...`:
+
+  Unused, kept so that the simulation can call every model the same way.
+
+#### Returns
+
+A list with the `moment` and `precision` effective sample sizes.
+
+------------------------------------------------------------------------
+
+### `MCMCModel$posterior_median()`
 
 Get the posterior median
 
@@ -244,7 +284,7 @@ The posterior median as a numeric value
 
 ------------------------------------------------------------------------
 
-### Method `sample_posterior()`
+### `MCMCModel$sample_posterior()`
 
 Sample from the posterior distribution
 
@@ -264,23 +304,7 @@ The sampled treatment effect values as a numeric vector
 
 ------------------------------------------------------------------------
 
-### Method `check_data()`
-
-Check the validity of the data
-
-#### Usage
-
-    MCMCModel$check_data(data_list)
-
-#### Arguments
-
-- `data_list`:
-
-  The list of data elements
-
-------------------------------------------------------------------------
-
-### Method `compute_posterior_parameters()`
+### `MCMCModel$compute_posterior_parameters()`
 
 Compute the posterior parameters. If there are posterior borrowing
 parameters, the following method must be overriden in the subclass.
@@ -291,7 +315,7 @@ parameters, the following method must be overriden in the subclass.
 
 ------------------------------------------------------------------------
 
-### Method `draw_mcmc_prior()`
+### `MCMCModel$draw_mcmc_prior()`
 
 Draw samples from the prior using MCMC
 
@@ -301,7 +325,7 @@ Draw samples from the prior using MCMC
 
 ------------------------------------------------------------------------
 
-### Method `posterior_pdf()`
+### `MCMCModel$posterior_pdf()`
 
 Posterior PDF
 
@@ -317,7 +341,7 @@ Posterior PDF
 
 ------------------------------------------------------------------------
 
-### Method `posterior_cdf()`
+### `MCMCModel$posterior_cdf()`
 
 Calculates the posterior cumulative distribution function (CDF) for a
 given target treatment effect.
@@ -338,7 +362,7 @@ The posterior CDF.
 
 ------------------------------------------------------------------------
 
-### Method `prior_pdf()`
+### `MCMCModel$prior_pdf()`
 
 Prior PDF
 
@@ -361,7 +385,7 @@ Prior PDF
 
 ------------------------------------------------------------------------
 
-### Method `prior_cdf()`
+### `MCMCModel$prior_cdf()`
 
 Prior CDF
 
@@ -384,7 +408,7 @@ Prior CDF
 
 ------------------------------------------------------------------------
 
-### Method `sample_prior()`
+### `MCMCModel$sample_prior()`
 
 Sample from the prior distribution
 
@@ -404,7 +428,7 @@ A vector of samples
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `MCMCModel$clone()`
 
 The objects of this class are cloneable with this method.
 

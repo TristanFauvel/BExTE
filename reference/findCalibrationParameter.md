@@ -4,8 +4,9 @@ This function finds the calibration parameter for type I error control
 in empirical Bayes power prior methods. It is based on the code in
 Nikolakopoulos et al, 2018, "Dynamic borrowing through adaptive power
 priors that control type I error". We just renamed the variables to be
-more explicit. The function estimates the calibration parameter using an
-iterative approach.
+more explicit. The function finds the calibration parameter by the same
+bisection search as the original, but evaluates the type I error at each
+step exactly rather than by simulation. The result is deterministic.
 
 ## Usage
 
@@ -28,7 +29,11 @@ findCalibrationParameter(
 
 - n_iter:
 
-  Number of iterations for estimation (default: 1e6)
+  Formerly the number of simulated target estimates used to estimate the
+  type I error. The type I error is now integrated exactly by
+  [`adaptive_power_prior_type_I_error()`](https://tristanfauvel.github.io/BExTE/reference/adaptive_power_prior_type_I_error.md),
+  so this argument is ignored. It is retained because existing method
+  configurations still supply it.
 
 - source_sample_size_per_arm:
 
@@ -65,10 +70,6 @@ findCalibrationParameter(
 - theta_0:
 
   True mean for type I error computation
-
-- seed:
-
-  Seed for random number generation
 
 ## Value
 

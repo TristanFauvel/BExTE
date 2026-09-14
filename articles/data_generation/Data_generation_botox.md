@@ -4,7 +4,7 @@
 
 set.seed(42)
 
-case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "RBExT"))
+case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
 format_case_study_config(case_study_config)
 ```
 
