@@ -37,8 +37,11 @@ WORKDIR /app
 
 # Restore the exact package versions from renv.lock in their own layer, so
 # editing app/package source doesn't invalidate this step on every build.
-# CRAN is overridden to Posit Package Manager's Ubuntu 22.04 (jammy) binary
-# mirror, so renv installs pre-built binaries (crucially for rstan/StanHeaders,
+# CRAN is overridden to Posit Package Manager's Ubuntu 24.04 (noble) binary
+# mirror - matching rocker/r-ver:4.5.2's actual base image, confirmed from a
+# build log's gcc version string; pointing this at jammy (22.04) instead
+# built stringi's binary against an ICU version this image doesn't have -
+# so renv installs pre-built binaries (crucially for rstan/StanHeaders,
 # RBesT's dependency, which otherwise takes tens of minutes to compile from
 # source) instead of building everything from source. This has to be a real
 # environment variable, not an `options(repos = ...)` call made in the R
@@ -48,7 +51,7 @@ WORKDIR /app
 # documented mechanism for exactly this, checked ahead of the lockfile.
 # Other recorded repos (e.g. the stan r-universe one cmdstanr comes from)
 # are untouched, since renv.lock stores their full URL per package.
-ENV RENV_CONFIG_REPOS_OVERRIDE=https://packagemanager.posit.co/cran/__linux__/jammy/latest
+ENV RENV_CONFIG_REPOS_OVERRIDE=https://packagemanager.posit.co/cran/__linux__/noble/latest
 COPY .Rprofile renv.lock ./
 COPY renv/activate.R renv/settings.json renv/
 RUN Rscript -e "\
