@@ -29,30 +29,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     liblapack-dev \
     zlib1g-dev \
     libuv1-dev \
+    libmpfr-dev \
+    libgmp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Restore the exact package versions from renv.lock in their own layer, so
 # editing app/package source doesn't invalidate this step on every build.
-# The CRAN entry is swapped for Posit Package Manager's Ubuntu 22.04 (jammy)
-# binary mirror first, so renv installs pre-built binaries (crucially for
-# rstan/StanHeaders, RBesT's dependency, which otherwise takes tens of
-# minutes to compile from source) instead of building everything from
-# source. Other recorded repos (e.g. the stan r-universe one cmdstanr comes
-# from) are untouched, since renv.lock stores their full URL per package.
-# PPM only serves binaries when it can identify the client's OS from the
-# HTTP User-Agent - without this it silently falls back to source tarballs,
-# which is what happened the first time (every package built from source,
-# and one of them - fs - failed outright for lacking a system dependency
-# that binaries don't need).
+# CRAN is overridden to Posit Package Manager's Ubuntu 22.04 (jammy) binary
+# mirror, so renv installs pre-built binaries (crucially for rstan/StanHeaders,
+# RBesT's dependency, which otherwise takes tens of minutes to compile from
+# source) instead of building everything from source. This has to be a real
+# environment variable, not an `options(repos = ...)` call made in the R
+# session before renv::restore() - renv recomputes `repos` from what's
+# recorded in renv.lock (plain CRAN) as restore begins, silently discarding
+# a session-level override. RENV_CONFIG_REPOS_OVERRIDE is renv's own
+# documented mechanism for exactly this, checked ahead of the lockfile.
+# Other recorded repos (e.g. the stan r-universe one cmdstanr comes from)
+# are untouched, since renv.lock stores their full URL per package.
+ENV RENV_CONFIG_REPOS_OVERRIDE=https://packagemanager.posit.co/cran/__linux__/jammy/latest
 COPY .Rprofile renv.lock ./
 COPY renv/activate.R renv/settings.json renv/
 RUN Rscript -e "\
     source('renv/activate.R'); \
-    repos <- getOption('repos'); \
-    repos['CRAN'] <- 'https://packagemanager.posit.co/cran/__linux__/jammy/latest'; \
-    options(repos = repos); \
     options(HTTPUserAgent = sprintf( \
       'R/%s R (%s)', \
       getRversion(), \
