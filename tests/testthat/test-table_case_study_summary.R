@@ -66,3 +66,29 @@ test_that("table_case_study_summary reports the source and target arms, not the 
     expect_false(grepl("673", contents, fixed = TRUE))
   })
 })
+
+test_that("table_case_study_summary covers every shipped case study", {
+  withr::with_tempdir({
+    case_studies <- sub(
+      "\\.yml$", "", basename(list.files(config_dir(), pattern = "\\.yml$"))
+    )
+
+    ## The manifest's TS7 asks for all of them in one call, so a single YAML
+    ## missing a field the table reads takes the whole table down - which is
+    ## how teriflunomide.yml's absent `control:` surfaced, as "arguments
+    ## imply differing number of rows: 1, 0" from data.frame() being handed a
+    ## NULL. Naming two case studies explicitly, as the tests above do, can
+    ## only ever catch that for the two that happen to be named.
+    path <- table_case_study_summary(case_studies, config_dir(), getwd())
+
+    expect_true(file.exists(path))
+    contents <- strip_shading(paste(readLines(path), collapse = " "))
+    expect_match(contents, "Teriflunomide & Placebo")
+
+    ## Endpoints are YAML identifiers, and the two that carry an underscore
+    ## belong to case studies neither of the tests above names - so a bare
+    ## "_" reached the .tex and aborted the compile for the whole table.
+    expect_match(contents, "time\\_to\\_event", fixed = TRUE)
+    expect_match(contents, "recurrent\\_event", fixed = TRUE)
+  })
+})

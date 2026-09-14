@@ -41,7 +41,7 @@ methods_labels <<- list(
     label = "EBPP"
   ),
   p_value_based_PP = list(
-    full_name = "p-value-based Power Prior",
+    full_name = "p-value based PP",
     short_name = "pPP",
     label = "p-PP"
   ),
