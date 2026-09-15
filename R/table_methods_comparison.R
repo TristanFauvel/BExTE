@@ -10,7 +10,6 @@
 #' @return A kable object representing the comparison table.
 #'
 #' @import dplyr
-#' @import knitr
 #' @export
 generate_comparison_table <- function(results_df,
                                       x_metric, source_denominator_change_factor, target_to_source_std_ratio) {

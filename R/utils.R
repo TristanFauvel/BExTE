@@ -829,7 +829,7 @@ format_case_study_config <- function(case_study_config) {
     )
 
     # Create the table with headers and horizontal lines
-    kable(data,
+    knitr::kable(data,
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
@@ -882,7 +882,7 @@ format_case_study_config <- function(case_study_config) {
     )
 
     # Create the table with headers and horizontal lines
-    kable(data,
+    knitr::kable(data,
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
@@ -941,7 +941,7 @@ format_case_study_config <- function(case_study_config) {
     )
 
     # Create the table with headers and horizontal lines
-    kable(data,
+    knitr::kable(data,
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
