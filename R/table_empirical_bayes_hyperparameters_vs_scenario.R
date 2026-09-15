@@ -10,7 +10,6 @@
 #' @return This function does not return a value. It creates and saves tables in HTML, PDF, and LaTeX formats.
 #'
 #' @import dplyr
-#' @import knitr
 #' @export
 table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
                                                 method,

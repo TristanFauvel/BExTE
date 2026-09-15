@@ -1,6 +1,6 @@
 # Mock a mixture object for testing
 mock_mixture <- function() {
-  mix <- mixnorm(rob = c(1, 0, 1), inf = c(1, 0, 1), sigma = 1) # Simplified example of a mixture object
+  mix <- RBesT::mixnorm(rob = c(1, 0, 1), inf = c(1, 0, 1), sigma = 1) # Simplified example of a mixture object
   return(mix)
 }
 

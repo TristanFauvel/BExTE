@@ -13,8 +13,6 @@
 #' @return This function doesn't return a value but generates and saves tables in various formats (HTML, PDF, LaTeX).
 #'
 #' @import dplyr
-#' @import knitr
-#' @import kableExtra
 #'
 #' @export
 table_power_vs_tie <- function(results_metrics_df,
