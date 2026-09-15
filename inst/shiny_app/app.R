@@ -49,14 +49,14 @@ ui <- shiny::tagList(
     bslib::nav_item(
       shiny::tags$a(
         shiny::icon("book"), "Docs",
-        href = "https://tristanfauvel.github.io/BExTE/",
+        href = "https://quinten-health-os.github.io/BayesianExtrapolationSimulation/",
         target = "_blank", rel = "noopener noreferrer"
       )
     ),
     bslib::nav_item(
       shiny::tags$a(
         shiny::icon("github"), "GitHub",
-        href = "https://github.com/TristanFauvel/BExTE",
+        href = "https://github.com/quinten-health-os/BayesianExtrapolationSimulation",
         target = "_blank", rel = "noopener noreferrer"
       )
     ),
