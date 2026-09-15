@@ -65,15 +65,27 @@ mod_replicate_ui <- function(id) {
     bexte_step(
       1, "Choose what to reproduce",
       note = "Each item names the generator call that produces it. Coverage is checked against the results directory you pick below.",
-      bexte_fields(
-        shiny::selectInput(ns("results_dir"), "Results directory", choices = NULL),
-        shiny::div(
-          bexte_action_button(ns("select_all"), "Select all"),
-          bexte_action_button(ns("select_main"), "Main figures only"),
-          bexte_action_button(ns("select_none"), "Clear")
-        )
+      ## Sized for what it holds: a run directory is named
+      ## "results/paper_replication_<date>_<time>", and at the field grid's
+      ## ~215px column selectize paints that straight through the right edge.
+      shiny::selectInput(
+        ns("results_dir"), "Results directory",
+        choices = NULL, width = "460px"
       ),
-      shiny::checkboxGroupInput(ns("items"), NULL, choices = NULL),
+      ## Its own row, not a cell of the field grid: a grid column is about
+      ## 215px wide, which is narrower than two of these buttons put together.
+      shiny::div(
+        class = "bexte-actions",
+        bexte_action_button(ns("select_all"), "Select all"),
+        bexte_action_button(ns("select_main"), "Main figures only"),
+        bexte_action_button(ns("select_none"), "Clear")
+      ),
+      ## Wrapped so the list can be widened past the 300px Shiny pins every
+      ## input container to - these choices are full-sentence captions.
+      shiny::div(
+        class = "bexte-replicate-items",
+        shiny::checkboxGroupInput(ns("items"), NULL, choices = NULL)
+      ),
       shiny::uiOutput(ns("coverage"))
     ),
     bexte_step(

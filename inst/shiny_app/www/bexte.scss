@@ -372,6 +372,18 @@ a:focus-visible {
   color: var(--bexte-ink);
 }
 
+// selectize draws the selected item at its natural width inside a control it
+// leaves overflowing, so a value wider than its field is painted through the
+// right edge rather than clipped. Every select in the app can be handed one:
+// results directory names and environment names are both user-chosen.
+.selectize-control.single .selectize-input > .item {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .selectize-dropdown .active {
   background: var(--bexte-accent-quiet);
   color: var(--bexte-ink);
@@ -692,6 +704,39 @@ table.dataTable tbody tr:hover {
   border: 1px solid var(--bexte-hairline-strong);
   border-radius: 6px;
   color: var(--bexte-ink);
+}
+
+// ---- Replicate paper: the figure/table list ---------------------------------
+// Shiny pins every input container to 300px. The other checkbox groups in the
+// app sit in panels about that wide anyway, but these 42 choices are whole
+// captions, so at 300px each one breaks after three or four words and the list
+// becomes a narrow ribbon thousands of pixels tall. It gets the card's width
+// instead, in columns kept wide enough to read; below two columns' worth of
+// room the count drops to one on its own.
+
+.bexte-replicate-items {
+  margin-top: 1rem;
+}
+
+.bexte-replicate-items .shiny-input-container {
+  width: 100%;
+}
+
+// Shiny pulls an options group up under its own label; this group's label is
+// NULL, so the only thing that negative margin does here is drag the first
+// row into the buttons above it.
+.bexte-replicate-items .shiny-options-group {
+  margin-top: 0;
+  columns: 2 460px;
+  column-gap: 2.5rem;
+}
+
+// Uniform padding rather than the usual margin between siblings, so an item
+// carried to the top of the second column lines up with the first column's.
+.bexte-replicate-items .shiny-options-group .checkbox {
+  break-inside: avoid;
+  margin-top: 0;
+  padding-bottom: 0.35rem;
 }
 
 // ---- Shell -----------------------------------------------------------------
