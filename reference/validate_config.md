@@ -22,7 +22,7 @@ validate_config(config, schema, context)
 - schema:
 
   A named list mapping keys to a type in
-  [config_type_predicates](https://tristanfauvel.github.io/BExTE/reference/config_type_predicates.md).
+  [config_type_predicates](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/config_type_predicates.md).
   Keys absent from the schema are not checked.
 
 - context:

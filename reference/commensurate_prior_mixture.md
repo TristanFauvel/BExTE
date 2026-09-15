@@ -24,7 +24,7 @@ commensurate_prior_mixture(model, n_tau = 48L, n_gamma = 24L)
 - model:
 
   A
-  [GaussianCommensuratePowerPrior](https://tristanfauvel.github.io/BExTE/reference/GaussianCommensuratePowerPrior.md)
+  [GaussianCommensuratePowerPrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/GaussianCommensuratePowerPrior.md)
   object.
 
 - n_tau:

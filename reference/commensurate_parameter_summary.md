@@ -22,7 +22,7 @@ commensurate_parameter_summary(
 - mixture:
 
   Output from
-  [`commensurate_prior_mixture()`](https://tristanfauvel.github.io/BExTE/reference/commensurate_prior_mixture.md).
+  [`commensurate_prior_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/commensurate_prior_mixture.md).
 
 - heterogeneity_prior_family:
 

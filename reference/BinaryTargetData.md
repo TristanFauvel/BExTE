@@ -4,7 +4,7 @@ A class for binary target data objects.
 
 ## Super class
 
-[`TargetData`](https://tristanfauvel.github.io/BExTE/reference/TargetData.md)
+[`TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)
 -\> `BinaryTargetData`
 
 ## Public fields
@@ -31,7 +31,7 @@ A class for binary target data objects.
 
 Inherited methods
 
-- [`TargetData$plot_sample()`](https://tristanfauvel.github.io/BExTE/reference/TargetData.html#method-plot_sample)
+- [`TargetData$plot_sample()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.html#method-plot_sample)
 
 ------------------------------------------------------------------------
 

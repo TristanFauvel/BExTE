@@ -41,7 +41,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TristanFauvel/BExTE/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -60,7 +60,7 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="bayesian-extrapolation-of-treatment-effects">Bayesian Extrapolation of Treatment Effects<a class="anchor" aria-label="anchor" href="#bayesian-extrapolation-of-treatment-effects"></a>
 </h1></div>
-<p><a href="https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml" class="external-link"><img src="https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml/badge.svg" alt="R Package Build"></a> <a href="https://tristanfauvel.github.io/BExTE/"><img src="https://github.com/TristanFauvel/BExTE/actions/workflows/pkgdown.yml/badge.svg" alt="pkgdown"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a> <a href="DESCRIPTION"><img src="https://img.shields.io/badge/version-0.0.2-blue.svg" alt="Version"></a> <a href="https://www.r-project.org/" class="external-link"><img src="https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg" alt="R &gt;= 3.5.0"></a></p>
+<p><a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml" class="external-link"><img src="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg" alt="R Package Build"></a> <a href="https://quinten-health-os.github.io/BayesianExtrapolationSimulation/"><img src="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/pkgdown.yml/badge.svg" alt="pkgdown"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a> <a href="DESCRIPTION"><img src="https://img.shields.io/badge/version-0.0.2-blue.svg" alt="Version"></a> <a href="https://www.r-project.org/" class="external-link"><img src="https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg" alt="R &gt;= 3.5.0"></a></p>
 <p>A collection of R tools to :</p>
 <ul>
 <li>Study frequentist and Bayesian operating characteristics of clinical trial designs leveraging Bayesian partial extrapolation (also known as borrowing).</li>
@@ -135,7 +135,7 @@ What changed in each release.
 <pre><code>Rscript install.R</code></pre>
 <p>That installs the dependencies, BExTE itself, and CmdStan if it is missing. Load the package with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/TristanFauvel/BExTE" class="external-link">BExTE</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation" class="external-link">BExTE</a></span><span class="op">)</span></span></code></pre></div>
 <details><summary>
 Installing by hand
 </summary><p><code>cmdstanr</code> is not on CRAN, so its repository has to be declared before the dependencies will resolve:</p>
@@ -169,7 +169,7 @@ Working from a source checkout
 </h3>
 <p>Instead of hand-editing config files and running the scripts above, you can configure, run, and analyze a simulation study from a browser:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/TristanFauvel/BExTE" class="external-link">BExTE</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation" class="external-link">BExTE</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/run_bexte_app.html">run_bexte_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The app works out of a <em>workspace</em> directory, where <code>results/</code>, <code>logs/</code> and <code>user_configs/</code> live. Launched from a source checkout it uses the checkout, so results land next to the ones <code>main.R</code> produces; installed from a release tarball it uses a per-user directory under <code>tools::R_user_dir("BExTE", "data")</code>. Either way the path is reported when the app starts, and <code><a href="reference/run_bexte_app.html">run_bexte_app()</a></code> takes an explicit one:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -178,7 +178,7 @@ Working from a source checkout
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/create_bexte_shortcut.html">create_bexte_shortcut</a></span><span class="op">(</span>workspace <span class="op">=</span> <span class="st">"~/bexte-studies"</span><span class="op">)</span></span></code></pre></div>
 <p>The entry opens a terminal, which is where the workspace path and the progress of a run appear, and where Ctrl+C stops the app.</p>
-<p>When developing against a checkout, <code><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">devtools::load_all()</a></code> replaces <code><a href="https://github.com/TristanFauvel/BExTE" class="external-link">library(BExTE)</a></code>.</p>
+<p>When developing against a checkout, <code><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">devtools::load_all()</a></code> replaces <code><a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation" class="external-link">library(BExTE)</a></code>.</p>
 <p>This opens a local Shiny app with three tabs:</p>
 <ul>
 <li>
@@ -198,7 +198,7 @@ Working from a source checkout
 <div class="section level2">
 <h2 id="access-documentation">Access documentation<a class="anchor" aria-label="anchor" href="#access-documentation"></a>
 </h2>
-<p>The full documentation website is available at <a href="https://tristanfauvel.github.io/BExTE/">tristanfauvel.github.io/BExTE</a>.</p>
+<p>The full documentation website is available at <a href="https://quinten-health-os.github.io/BayesianExtrapolationSimulation/">quinten-health-os.github.io/BayesianExtrapolationSimulation</a>.</p>
 <p>To access it locally instead : browseURL(“docs/index.html”)</p>
 </div>
 <div class="section level2">
@@ -236,8 +236,8 @@ Working from a source checkout
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/TristanFauvel/BExTE/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/TristanFauvel/BExTE/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

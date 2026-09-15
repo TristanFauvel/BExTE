@@ -31,7 +31,7 @@ findCalibrationParameter(
 
   Formerly the number of simulated target estimates used to estimate the
   type I error. The type I error is now integrated exactly by
-  [`adaptive_power_prior_type_I_error()`](https://tristanfauvel.github.io/BExTE/reference/adaptive_power_prior_type_I_error.md),
+  [`adaptive_power_prior_type_I_error()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/adaptive_power_prior_type_I_error.md),
   so this argument is ignored. It is retained because existing method
   configurations still supply it.
 

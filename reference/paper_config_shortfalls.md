@@ -1,7 +1,7 @@
 # How a results directory falls short of the paper's fidelity
 
 Which scenarios a directory holds is visible in its rows, and
-[`paper_replication_coverage()`](https://tristanfauvel.github.io/BExTE/reference/paper_replication_coverage.md)
+[`paper_replication_coverage()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_replication_coverage.md)
 checks that. How they were simulated is not: a directory holding 2 of
 the 11 methods at 1000 replicates yields figures that look like the
 paper's but compare two methods at a tenth of the Monte Carlo precision.
@@ -24,7 +24,7 @@ paper_config_shortfalls(run_config, requirements)
 - requirements:
 
   A
-  [`paper_replication_requirements()`](https://tristanfauvel.github.io/BExTE/reference/paper_replication_requirements.md)
+  [`paper_replication_requirements()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_replication_requirements.md)
   list.
 
 ## Value

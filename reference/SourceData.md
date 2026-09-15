@@ -6,7 +6,7 @@ endpoints.
 
 ## Super class
 
-[`ObservedSourceData`](https://tristanfauvel.github.io/BExTE/reference/ObservedSourceData.md)
+[`ObservedSourceData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/ObservedSourceData.md)
 -\> `SourceData`
 
 ## Methods
@@ -19,7 +19,7 @@ endpoints.
 
 Inherited methods
 
-- [`ObservedSourceData$to_dict()`](https://tristanfauvel.github.io/BExTE/reference/ObservedSourceData.html#method-to_dict)
+- [`ObservedSourceData$to_dict()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/ObservedSourceData.html#method-to_dict)
 
 ------------------------------------------------------------------------
 

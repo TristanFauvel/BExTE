@@ -17,7 +17,7 @@ read_config(path, schema)
 - schema:
 
   The schema to validate against, as taken by
-  [`validate_config()`](https://tristanfauvel.github.io/BExTE/reference/validate_config.md).
+  [`validate_config()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/validate_config.md).
 
 ## Value
 

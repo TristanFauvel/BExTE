@@ -1,11 +1,11 @@
 # Bayesian Extrapolation of Treatment Effects
 
 [![R Package
-Build](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml)
-[![pkgdown](https://github.com/TristanFauvel/BExTE/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BExTE/)
+Build](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg)](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml)
+[![pkgdown](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/pkgdown.yml/badge.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/)
 [![License: GPL
-v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://tristanfauvel.github.io/BExTE/LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](https://tristanfauvel.github.io/BExTE/DESCRIPTION)
+v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/LICENSE)
+[![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/DESCRIPTION)
 [![R \>=
 3.5.0](https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg)](https://www.r-project.org/)
 
@@ -17,14 +17,14 @@ A collection of R tools to :
 - Analyze clinical trial data using Bayesian partial extrapolation
   methods.
 
-[](https://tristanfauvel.github.io/BExTE/articles/index.md)
+[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/index.md)
 
 ##### 📚 Vignettes
 
 Step-by-step guides to simulation studies, data generation, borrowing
 methods, and case-study replications.
 
-[](https://tristanfauvel.github.io/BExTE/reference/index.md)
+[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/index.md)
 
 ##### 🔧 API reference
 
@@ -38,7 +38,7 @@ plots, tables, operating characteristics.
 Configure, run, and analyze a simulation study from a Shiny app, without
 hand-editing config files.
 
-[](https://tristanfauvel.github.io/BExTE/news/index.md)
+[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/news/index.md)
 
 ##### 📝 Changelog
 
@@ -125,7 +125,7 @@ checkout, so results land next to the ones `main.R` produces; installed
 from a release tarball it uses a per-user directory under
 `tools::R_user_dir("BExTE", "data")`. Either way the path is reported
 when the app starts, and
-[`run_bexte_app()`](https://tristanfauvel.github.io/BExTE/reference/run_bexte_app.md)
+[`run_bexte_app()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/run_bexte_app.md)
 takes an explicit one:
 
 ``` r
@@ -135,7 +135,7 @@ run_bexte_app(workspace = "~/bexte-studies")
 
 On Linux, `install.R` also adds an **BExTE** entry to the application
 menu, so the app can be started without an R session.
-[`create_bexte_shortcut()`](https://tristanfauvel.github.io/BExTE/reference/create_bexte_shortcut.md)
+[`create_bexte_shortcut()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/create_bexte_shortcut.md)
 rewrites it, optionally pinned to a workspace:
 
 ``` r
@@ -148,7 +148,8 @@ progress of a run appear, and where Ctrl+C stops the app.
 
 When developing against a checkout,
 [`devtools::load_all()`](https://devtools.r-lib.org/reference/load_all.html)
-replaces [`library(BExTE)`](https://github.com/TristanFauvel/BExTE).
+replaces
+[`library(BExTE)`](https://github.com/quinten-health-os/BayesianExtrapolationSimulation).
 
 This opens a local Shiny app with three tabs:
 
@@ -176,7 +177,7 @@ method, allowing to sample many replicates of the target study.
 ## Access documentation
 
 The full documentation website is available at
-[tristanfauvel.github.io/BExTE](https://tristanfauvel.github.io/BExTE/).
+[quinten-health-os.github.io/BayesianExtrapolationSimulation](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/).
 
 To access it locally instead : browseURL(“docs/index.html”)
 
@@ -206,8 +207,8 @@ inference
 
 New contributors are always welcome. Please have a look at the
 [contribution
-guidelines](https://tristanfauvel.github.io/BExTE/CONTRIBUTING.md) on
-how to get started and to make sure your code complies with our
+guidelines](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/CONTRIBUTING.md)
+on how to get started and to make sure your code complies with our
 guidelines.
 
 ## Rationale of the design
@@ -239,89 +240,89 @@ operating characteristics are estimated.
 
 ## Data generation
 
-- [`generate_binary_data_from_rate()`](https://tristanfauvel.github.io/BExTE/reference/generate_binary_data_from_rate.md)
+- [`generate_binary_data_from_rate()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/generate_binary_data_from_rate.md)
   : Generate binary data from a given rate
-- [`sample_aggregate_binary_data()`](https://tristanfauvel.github.io/BExTE/reference/sample_aggregate_binary_data.md)
+- [`sample_aggregate_binary_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sample_aggregate_binary_data.md)
   : Sample aggregate binary data based on the rate and sample size
-- [`sample_aggregate_normal_data()`](https://tristanfauvel.github.io/BExTE/reference/sample_aggregate_normal_data.md)
+- [`sample_aggregate_normal_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sample_aggregate_normal_data.md)
   : Sample aggregate normal data based on the mean and variance
-- [`sample_log_odds_ratios()`](https://tristanfauvel.github.io/BExTE/reference/sample_log_odds_ratios.md)
+- [`sample_log_odds_ratios()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sample_log_odds_ratios.md)
   : Sample log odds ratios based on the number of participants and
   responders in each arm
-- [`sample_rate_ratios()`](https://tristanfauvel.github.io/BExTE/reference/sample_rate_ratios.md)
+- [`sample_rate_ratios()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sample_rate_ratios.md)
   : Sample rate ratios based on the rates in the control and treatment
   arms
-- [`compute_ORs()`](https://tristanfauvel.github.io/BExTE/reference/compute_ORs.md)
+- [`compute_ORs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_ORs.md)
   : Compute odds ratios based on the number of participants and
   responders in each arm
-- [`compute_log_odds_ratio_from_counts()`](https://tristanfauvel.github.io/BExTE/reference/compute_log_odds_ratio_from_counts.md)
+- [`compute_log_odds_ratio_from_counts()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_log_odds_ratio_from_counts.md)
   : Compute the log odds ratio from count data
-- [`compute_log_odds_ratio_from_rates()`](https://tristanfauvel.github.io/BExTE/reference/compute_log_odds_ratio_from_rates.md)
+- [`compute_log_odds_ratio_from_rates()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_log_odds_ratio_from_rates.md)
   : Compute the log odds ratio based on two rates
-- [`rate_from_drift_logOR()`](https://tristanfauvel.github.io/BExTE/reference/rate_from_drift_logOR.md)
+- [`rate_from_drift_logOR()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/rate_from_drift_logOR.md)
   : Calculate the success rate in the target study arm from the drift on
   the log odds ratio scale
-- [`rate_from_drift_logRR()`](https://tristanfauvel.github.io/BExTE/reference/rate_from_drift_logRR.md)
+- [`rate_from_drift_logRR()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/rate_from_drift_logRR.md)
   : Calculate the rate in the target study arm from the drift on the log
   relative risk scale
-- [`standard_error_log_odds_ratio()`](https://tristanfauvel.github.io/BExTE/reference/standard_error_log_odds_ratio.md)
+- [`standard_error_log_odds_ratio()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/standard_error_log_odds_ratio.md)
   : Compute the standard error of the log odds ratio
 
 ## Methods
 
-- [`BinomialPooling`](https://tristanfauvel.github.io/BExTE/reference/BinomialPooling.md)
+- [`BinomialPooling`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinomialPooling.md)
   : BinomialPooling class
-- [`TruncatedGaussianRMP`](https://tristanfauvel.github.io/BExTE/reference/TruncatedGaussianRMP.md)
+- [`TruncatedGaussianRMP`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TruncatedGaussianRMP.md)
   : TruncatedGaussianRMP class
-- [`BinomialSeparate`](https://tristanfauvel.github.io/BExTE/reference/BinomialSeparate.md)
+- [`BinomialSeparate`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinomialSeparate.md)
   : BinomialSeparate class
-- [`ConjugateGaussian`](https://tristanfauvel.github.io/BExTE/reference/ConjugateGaussian.md)
+- [`ConjugateGaussian`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/ConjugateGaussian.md)
   : ConjugateGaussian class
-- [`PDCCPP`](https://tristanfauvel.github.io/BExTE/reference/PDCCPP.md)
+- [`PDCCPP`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/PDCCPP.md)
   : PDCCPP class
-- [`PoolGaussian`](https://tristanfauvel.github.io/BExTE/reference/PoolGaussian.md)
+- [`PoolGaussian`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/PoolGaussian.md)
   : PoolGaussian class
-- [`RecurrentEventTargetData`](https://tristanfauvel.github.io/BExTE/reference/RecurrentEventTargetData.md)
+- [`RecurrentEventTargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/RecurrentEventTargetData.md)
   : Recurrent Event Target Data
-- [`SeparateGaussian`](https://tristanfauvel.github.io/BExTE/reference/SeparateGaussian.md)
+- [`SeparateGaussian`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/SeparateGaussian.md)
   : SeparateGaussian class
-- [`StaticBorrowingGaussian`](https://tristanfauvel.github.io/BExTE/reference/StaticBorrowingGaussian.md)
+- [`StaticBorrowingGaussian`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/StaticBorrowingGaussian.md)
   : StaticBorrowingGaussian class
-- [`TestThenPool`](https://tristanfauvel.github.io/BExTE/reference/TestThenPool.md)
+- [`TestThenPool`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPool.md)
   : TestThenPool class
-- [`TestThenPoolDifference`](https://tristanfauvel.github.io/BExTE/reference/TestThenPoolDifference.md)
+- [`TestThenPoolDifference`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPoolDifference.md)
   : TestThenPoolDifference class
-- [`TestThenPoolEquivalence`](https://tristanfauvel.github.io/BExTE/reference/TestThenPoolEquivalence.md)
+- [`TestThenPoolEquivalence`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TestThenPoolEquivalence.md)
   : TestThenPoolEquivalence class
-- [`GaussianRMP`](https://tristanfauvel.github.io/BExTE/reference/GaussianRMP.md)
+- [`GaussianRMP`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/GaussianRMP.md)
   : GaussianRMP class
-- [`Gaussian_empirical_Bayes_PP`](https://tristanfauvel.github.io/BExTE/reference/Gaussian_empirical_Bayes_PP.md)
+- [`Gaussian_empirical_Bayes_PP`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Gaussian_empirical_Bayes_PP.md)
   : Gaussian_empirical_Bayes_PP class
-- [`Gaussian_Gravestock_EBPP`](https://tristanfauvel.github.io/BExTE/reference/Gaussian_Gravestock_EBPP.md)
+- [`Gaussian_Gravestock_EBPP`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Gaussian_Gravestock_EBPP.md)
   : Gaussian_Gravestock_EBPP class
-- [`Gaussian_NPP`](https://tristanfauvel.github.io/BExTE/reference/Gaussian_NPP.md)
+- [`Gaussian_NPP`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Gaussian_NPP.md)
   : Gaussian_NPP class
-- [`BinomialCPP`](https://tristanfauvel.github.io/BExTE/reference/BinomialCPP.md)
+- [`BinomialCPP`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinomialCPP.md)
   : BinomialCPP Class
-- [`GaussianCommensuratePowerPrior`](https://tristanfauvel.github.io/BExTE/reference/GaussianCommensuratePowerPrior.md)
+- [`GaussianCommensuratePowerPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/GaussianCommensuratePowerPrior.md)
   : GaussianCommensuratePowerPrior class
-- [`GaussianRMP_RBesT`](https://tristanfauvel.github.io/BExTE/reference/GaussianRMP_RBesT.md)
+- [`GaussianRMP_RBesT`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/GaussianRMP_RBesT.md)
   : GaussianRMP_RBesT class
-- [`Model_RBesT`](https://tristanfauvel.github.io/BExTE/reference/Model_RBesT.md)
+- [`Model_RBesT`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model_RBesT.md)
   : Model_RBesT
-- [`PoolGaussian_RBesT`](https://tristanfauvel.github.io/BExTE/reference/PoolGaussian_RBesT.md)
+- [`PoolGaussian_RBesT`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/PoolGaussian_RBesT.md)
   : PoolGaussian_RBesT
-- [`SeparateGaussian_RBesT`](https://tristanfauvel.github.io/BExTE/reference/SeparateGaussian_RBesT.md)
+- [`SeparateGaussian_RBesT`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/SeparateGaussian_RBesT.md)
   : SeparateGaussian_RBesT
-- [`MCMCModel`](https://tristanfauvel.github.io/BExTE/reference/MCMCModel.md)
+- [`MCMCModel`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.md)
   : MCMCModel class
-- [`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) :
-  Model Class
-- [`p_value_based_PP_Binomial`](https://tristanfauvel.github.io/BExTE/reference/p_value_based_PP_Binomial.md)
+- [`Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
+  : Model Class
+- [`p_value_based_PP_Binomial`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/p_value_based_PP_Binomial.md)
   : Gaussian_empirical_Bayes_PP class
-- [`p_value_based_PP_Gaussian`](https://tristanfauvel.github.io/BExTE/reference/p_value_based_PP_Gaussian.md)
+- [`p_value_based_PP_Gaussian`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/p_value_based_PP_Gaussian.md)
   : p_value_based_PP_Gaussian class
-- [`BinomialConjugate`](https://tristanfauvel.github.io/BExTE/reference/BinomialConjugate.md)
+- [`BinomialConjugate`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinomialConjugate.md)
   : BinomialConjugate class
 
 ## Vectorised inference
@@ -329,136 +330,136 @@ operating characteristics are estimated.
 Conjugate updates and frequentist tests evaluated across all replicates
 of a scenario at once
 
-- [`normal_mixture_posterior()`](https://tristanfauvel.github.io/BExTE/reference/normal_mixture_posterior.md)
+- [`normal_mixture_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/normal_mixture_posterior.md)
   : Conjugate update of a normal mixture prior across replicates
-- [`normal_mixture_summary()`](https://tristanfauvel.github.io/BExTE/reference/normal_mixture_summary.md)
+- [`normal_mixture_summary()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/normal_mixture_summary.md)
   : Mean, standard deviation and quantiles of a normal mixture, per
   replicate
-- [`normal_mixture_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/normal_mixture_elir_ess.md)
+- [`normal_mixture_elir_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/normal_mixture_elir_ess.md)
   : ELIR effective sample size of a normal mixture, per replicate
-- [`npp_prior_mixture()`](https://tristanfauvel.github.io/BExTE/reference/npp_prior_mixture.md)
+- [`npp_prior_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_prior_mixture.md)
   : Discretise the normalised power prior as a normal mixture
-- [`summary_t_test_p_value()`](https://tristanfauvel.github.io/BExTE/reference/summary_t_test_p_value.md)
+- [`summary_t_test_p_value()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/summary_t_test_p_value.md)
   : Two-sample t-test from summary statistics, across replicates
-- [`summary_z_test_p_value()`](https://tristanfauvel.github.io/BExTE/reference/summary_z_test_p_value.md)
+- [`summary_z_test_p_value()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/summary_z_test_p_value.md)
   : Two-sample z-test from summary statistics, across replicates
 
 ## Plots
 
-- [`plot_metric_vs_scenario()`](https://tristanfauvel.github.io/BExTE/reference/plot_metric_vs_scenario.md)
+- [`plot_metric_vs_scenario()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_metric_vs_scenario.md)
   : Plot methods operating characteristics
-- [`forest_plot()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot.md)
+- [`forest_plot()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot.md)
   : Generate a forest plot
-- [`format_uncertainty()`](https://tristanfauvel.github.io/BExTE/reference/format_uncertainty.md)
+- [`format_uncertainty()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/format_uncertainty.md)
   : Function to format uncertainty
-- [`estimate_bayesian_ocs()`](https://tristanfauvel.github.io/BExTE/reference/estimate_bayesian_ocs.md)
+- [`estimate_bayesian_ocs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/estimate_bayesian_ocs.md)
   : Simulation Bayesian OCs
-- [`set_size()`](https://tristanfauvel.github.io/BExTE/reference/set_size.md)
+- [`set_size()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/set_size.md)
   : Function to set figure dimensions
-- [`bayesian_metric_vs_parameters()`](https://tristanfauvel.github.io/BExTE/reference/bayesian_metric_vs_parameters.md)
+- [`bayesian_metric_vs_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/bayesian_metric_vs_parameters.md)
   : Function to plot metric vs parameters
-- [`bayesian_metric_vs_sample_size()`](https://tristanfauvel.github.io/BExTE/reference/bayesian_metric_vs_sample_size.md)
+- [`bayesian_metric_vs_sample_size()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/bayesian_metric_vs_sample_size.md)
   : Function to plot metric vs sample size
-- [`bayesian_ocs_plots()`](https://tristanfauvel.github.io/BExTE/reference/bayesian_ocs_plots.md)
+- [`bayesian_ocs_plots()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/bayesian_ocs_plots.md)
   : Plot methods operating characteristics
-- [`frequentist_power_at_equivalent_tie()`](https://tristanfauvel.github.io/BExTE/reference/frequentist_power_at_equivalent_tie.md)
+- [`frequentist_power_at_equivalent_tie()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/frequentist_power_at_equivalent_tie.md)
   : Compute the frequentist power at equivalent tie
-- [`plot_metric_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/plot_metric_vs_drift.md)
+- [`plot_metric_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_metric_vs_drift.md)
   : Function to generate a metric vs drift plot
-- [`plot_metric_vs_parameters()`](https://tristanfauvel.github.io/BExTE/reference/plot_metric_vs_parameters.md)
+- [`plot_metric_vs_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_metric_vs_parameters.md)
   : Function to plot metric vs parameters
-- [`plot_metric_vs_sample_size()`](https://tristanfauvel.github.io/BExTE/reference/plot_metric_vs_sample_size.md)
+- [`plot_metric_vs_sample_size()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_metric_vs_sample_size.md)
   : Function to plot metric vs sample size
-- [`power_vs_tie()`](https://tristanfauvel.github.io/BExTE/reference/power_vs_tie.md)
+- [`power_vs_tie()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/power_vs_tie.md)
   : Function to generate a power vs tie plot
-- [`posterior_parameters_plots()`](https://tristanfauvel.github.io/BExTE/reference/posterior_parameters_plots.md)
+- [`posterior_parameters_plots()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/posterior_parameters_plots.md)
   : Plot frequentist methods operating characteristics
-- [`power_vs_tie_plots()`](https://tristanfauvel.github.io/BExTE/reference/power_vs_tie_plots.md)
+- [`power_vs_tie_plots()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/power_vs_tie_plots.md)
   : Plot frequentist methods operating characteristics
-- [`forest_plot_methods_comparison()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot_methods_comparison.md)
+- [`forest_plot_methods_comparison()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot_methods_comparison.md)
   : Plot methods comparison
-- [`forest_plot_bayesian()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot_bayesian.md)
+- [`forest_plot_bayesian()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot_bayesian.md)
   : Generate a forest plot for bayesian metrics
-- [`forest_plot_methods_comparison_bayesian()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot_methods_comparison_bayesian.md)
+- [`forest_plot_methods_comparison_bayesian()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot_methods_comparison_bayesian.md)
   : Plot methods comparison
-- [`plot_metrics_vs_ess()`](https://tristanfauvel.github.io/BExTE/reference/plot_metrics_vs_ess.md)
+- [`plot_metrics_vs_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_metrics_vs_ess.md)
   : Plot methods operating characteristics
-- [`plot_posterior_parameters_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/plot_posterior_parameters_vs_drift.md)
+- [`plot_posterior_parameters_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_posterior_parameters_vs_drift.md)
   : Function to plot posterior parameters vs drift
-- [`plot_success_proba_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/plot_success_proba_vs_drift.md)
+- [`plot_success_proba_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_success_proba_vs_drift.md)
   : Function to generate a metric vs drift plot
-- [`plot_success_proba_vs_scenario()`](https://tristanfauvel.github.io/BExTE/reference/plot_success_proba_vs_scenario.md)
+- [`plot_success_proba_vs_scenario()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_success_proba_vs_scenario.md)
   : Plot methods operating characteristics
-- [`plot_empirical_bayes_hyperparameters_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/plot_empirical_bayes_hyperparameters_vs_drift.md)
+- [`plot_empirical_bayes_hyperparameters_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_empirical_bayes_hyperparameters_vs_drift.md)
   : Plot Empirical Bayes Hyperparameters vs Drift
-- [`empirical_bayes_parameters_plots()`](https://tristanfauvel.github.io/BExTE/reference/empirical_bayes_parameters_plots.md)
+- [`empirical_bayes_parameters_plots()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/empirical_bayes_parameters_plots.md)
   : Plot the posterior parameters
-- [`bayesian_operating_characteristics_vs_tie_plots()`](https://tristanfauvel.github.io/BExTE/reference/bayesian_operating_characteristics_vs_tie_plots.md)
+- [`bayesian_operating_characteristics_vs_tie_plots()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/bayesian_operating_characteristics_vs_tie_plots.md)
   : Plot methods operating characteristics
-- [`forest_plot_sweet_spot()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot_sweet_spot.md)
+- [`forest_plot_sweet_spot()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot_sweet_spot.md)
   : Generate a forest plot
-- [`forest_plot_sweet_spots_comparison()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot_sweet_spots_comparison.md)
+- [`forest_plot_sweet_spots_comparison()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot_sweet_spots_comparison.md)
   : Plot methods comparison
-- [`operating_characteristics_vs_tie_plots()`](https://tristanfauvel.github.io/BExTE/reference/operating_characteristics_vs_tie_plots.md)
+- [`operating_characteristics_vs_tie_plots()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/operating_characteristics_vs_tie_plots.md)
   : Plot methods' operating characteristics
-- [`operating_characteristic_vs_tie()`](https://tristanfauvel.github.io/BExTE/reference/operating_characteristic_vs_tie.md)
+- [`operating_characteristic_vs_tie()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/operating_characteristic_vs_tie.md)
   : Function to generate an operating characteristic vs tie plot
-- [`plot_metric_vs_drift_methods()`](https://tristanfauvel.github.io/BExTE/reference/plot_metric_vs_drift_methods.md)
+- [`plot_metric_vs_drift_methods()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_metric_vs_drift_methods.md)
   : Function to generate a metric vs drift plot
-- [`plot_sweet_spot_width_vs_scenario()`](https://tristanfauvel.github.io/BExTE/reference/plot_sweet_spot_width_vs_scenario.md)
+- [`plot_sweet_spot_width_vs_scenario()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_sweet_spot_width_vs_scenario.md)
   : Plot methods operating characteristics
-- [`plot_metric_vs_sample_size_methods()`](https://tristanfauvel.github.io/BExTE/reference/plot_metric_vs_sample_size_methods.md)
+- [`plot_metric_vs_sample_size_methods()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_metric_vs_sample_size_methods.md)
   : Function to plot metric vs sample size
-- [`plot_metric_vs_scenario_methods()`](https://tristanfauvel.github.io/BExTE/reference/plot_metric_vs_scenario_methods.md)
+- [`plot_metric_vs_scenario_methods()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/plot_metric_vs_scenario_methods.md)
   : Plot methods operating characteristics
-- [`scale_by_separate()`](https://tristanfauvel.github.io/BExTE/reference/scale_by_separate.md)
+- [`scale_by_separate()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/scale_by_separate.md)
   : Express a metric as a ratio to the separate analysis
 
 ## Operating characteristics
 
-- [`average_power()`](https://tristanfauvel.github.io/BExTE/reference/average_power.md)
+- [`average_power()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/average_power.md)
   : Calculate the average power
-- [`average_tie()`](https://tristanfauvel.github.io/BExTE/reference/average_tie.md)
+- [`average_tie()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/average_tie.md)
   : Calculate the average type 1 error
-- [`sweet_spot()`](https://tristanfauvel.github.io/BExTE/reference/sweet_spot.md)
+- [`sweet_spot()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sweet_spot.md)
   : Calculate Sweet Spots for Multiple Metrics
-- [`sweet_spot_determination()`](https://tristanfauvel.github.io/BExTE/reference/sweet_spot_determination.md)
+- [`sweet_spot_determination()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sweet_spot_determination.md)
   : Determine Sweet Spot Bounds and Width
-- [`upper_bound_proba_FP_MC()`](https://tristanfauvel.github.io/BExTE/reference/upper_bound_proba_FP_MC.md)
+- [`upper_bound_proba_FP_MC()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/upper_bound_proba_FP_MC.md)
   : Calculate the upper bound probability of false positive
-- [`compute_freq_power()`](https://tristanfauvel.github.io/BExTE/reference/compute_freq_power.md)
+- [`compute_freq_power()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_freq_power.md)
   : Compute the frequentist power
-- [`preposterior_proba_FP_MC()`](https://tristanfauvel.github.io/BExTE/reference/preposterior_proba_FP_MC.md)
+- [`preposterior_proba_FP_MC()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/preposterior_proba_FP_MC.md)
   : Calculate the probability of false positive
-- [`preposterior_proba_TP_MC()`](https://tristanfauvel.github.io/BExTE/reference/preposterior_proba_TP_MC.md)
+- [`preposterior_proba_TP_MC()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/preposterior_proba_TP_MC.md)
   : Calculate the probability of true positive
-- [`prior_moment_ess()`](https://tristanfauvel.github.io/BExTE/reference/prior_moment_ess.md)
+- [`prior_moment_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/prior_moment_ess.md)
   : Calculate the prior moment-based Effective Sample Size (ESS) for a
   Bayesian model.
-- [`prior_precision_ess()`](https://tristanfauvel.github.io/BExTE/reference/prior_precision_ess.md)
+- [`prior_precision_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/prior_precision_ess.md)
   : Calculate the prior precision-based Effective Sample Size (ESS) for
   a Bayesian model.
-- [`gaussian_mix_moment_ess()`](https://tristanfauvel.github.io/BExTE/reference/gaussian_mix_moment_ess.md)
+- [`gaussian_mix_moment_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/gaussian_mix_moment_ess.md)
   : Calculate the moment-based Effective Sample Size (ESS) for a
   Gaussian mixture.
-- [`gaussian_mix_precision_ess()`](https://tristanfauvel.github.io/BExTE/reference/gaussian_mix_precision_ess.md)
+- [`gaussian_mix_precision_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/gaussian_mix_precision_ess.md)
   : Calculate the precision-based Effective Sample Size (ESS) for a
   Gaussian mixture.
-- [`compute_freq_power_pooling()`](https://tristanfauvel.github.io/BExTE/reference/compute_freq_power_pooling.md)
+- [`compute_freq_power_pooling()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_freq_power_pooling.md)
   : Compute the frequentist power
-- [`prior_ess_elir()`](https://tristanfauvel.github.io/BExTE/reference/prior_ess_elir.md)
+- [`prior_ess_elir()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/prior_ess_elir.md)
   : Calculate the priorEffective Sample Size (ESS) based on ELIR for a
   Bayesian model.
-- [`normal_reference_ess()`](https://tristanfauvel.github.io/BExTE/reference/normal_reference_ess.md)
+- [`normal_reference_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/normal_reference_ess.md)
   : Effective sample sizes of a posterior summarised against a normal
   reference
-- [`truncated_normal_mixture_elir()`](https://tristanfauvel.github.io/BExTE/reference/truncated_normal_mixture_elir.md)
+- [`truncated_normal_mixture_elir()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/truncated_normal_mixture_elir.md)
   : Expected local information ratio ESS of a truncated normal mixture
-- [`adaptive_power_prior_type_I_error()`](https://tristanfauvel.github.io/BExTE/reference/adaptive_power_prior_type_I_error.md)
+- [`adaptive_power_prior_type_I_error()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/adaptive_power_prior_type_I_error.md)
   : Type I error of the adaptive power prior, computed exactly
-- [`compute_binomial_credible_interval()`](https://tristanfauvel.github.io/BExTE/reference/compute_binomial_credible_interval.md)
+- [`compute_binomial_credible_interval()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_binomial_credible_interval.md)
   : Compute a binomial credible interval
-- [`compute_power_with_tie_ci()`](https://tristanfauvel.github.io/BExTE/reference/compute_power_with_tie_ci.md)
+- [`compute_power_with_tie_ci()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_power_with_tie_ci.md)
   : Compute the frequentist power at an estimated type I error
 
 ## Monte Carlo uncertainty
@@ -466,76 +467,76 @@ of a scenario at once
 Propagating simulation error into the comparison with the frequentist
 benchmark at equivalent type I error
 
-- [`binomial_replicate_count()`](https://tristanfauvel.github.io/BExTE/reference/binomial_replicate_count.md)
+- [`binomial_replicate_count()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_replicate_count.md)
   : Recover the number of Monte Carlo replicates behind a binomial
   estimate
-- [`sample_binomial_proportion()`](https://tristanfauvel.github.io/BExTE/reference/sample_binomial_proportion.md)
+- [`sample_binomial_proportion()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sample_binomial_proportion.md)
   : Draw from the posterior of a binomial proportion
-- [`mover_difference_ci()`](https://tristanfauvel.github.io/BExTE/reference/mover_difference_ci.md)
+- [`mover_difference_ci()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/mover_difference_ci.md)
   : Confidence interval for a difference, by variance estimate recovery
-- [`add_power_difference_columns()`](https://tristanfauvel.github.io/BExTE/reference/add_power_difference_columns.md)
+- [`add_power_difference_columns()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/add_power_difference_columns.md)
   : Replace success probabilities by power differences
-- [`flag_power_differences()`](https://tristanfauvel.github.io/BExTE/reference/flag_power_differences.md)
+- [`flag_power_differences()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/flag_power_differences.md)
   : Flag power gains and power losses against the comparator
 
 ## Simulation
 
-- [`compute_control_drift_range()`](https://tristanfauvel.github.io/BExTE/reference/compute_control_drift_range.md)
+- [`compute_control_drift_range()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_control_drift_range.md)
   : Compute the control drift range for a given source treatment effect.
-- [`compute_drift_range()`](https://tristanfauvel.github.io/BExTE/reference/compute_drift_range.md)
+- [`compute_drift_range()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_drift_range.md)
   : Compute the drift range for a given simulation and case study
   configuration.
-- [`compute_source_denominator_range()`](https://tristanfauvel.github.io/BExTE/reference/compute_source_denominator_range.md)
+- [`compute_source_denominator_range()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_source_denominator_range.md)
   : Compute the source denominator range for a given source data,
   simulation configuration, and case study configuration.
-- [`frequentist_ocs_scenario_simulation()`](https://tristanfauvel.github.io/BExTE/reference/frequentist_ocs_scenario_simulation.md)
+- [`frequentist_ocs_scenario_simulation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/frequentist_ocs_scenario_simulation.md)
   : Simulate a Scenario
-- [`bayesian_ocs_scenario_simulation()`](https://tristanfauvel.github.io/BExTE/reference/bayesian_ocs_scenario_simulation.md)
+- [`bayesian_ocs_scenario_simulation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/bayesian_ocs_scenario_simulation.md)
   : Simulate a Scenario
-- [`simulation_analysis()`](https://tristanfauvel.github.io/BExTE/reference/simulation_analysis.md)
+- [`simulation_analysis()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulation_analysis.md)
   : Perform Simulation Analysis
-- [`simulation_bayesian_ocs()`](https://tristanfauvel.github.io/BExTE/reference/simulation_bayesian_ocs.md)
+- [`simulation_bayesian_ocs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulation_bayesian_ocs.md)
   : Run simulations based on the given environment
-- [`simulation_frequentist_ocs()`](https://tristanfauvel.github.io/BExTE/reference/simulation_frequentist_ocs.md)
+- [`simulation_frequentist_ocs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulation_frequentist_ocs.md)
   : Run simulations based on the given environment
-- [`simulation_scenarios()`](https://tristanfauvel.github.io/BExTE/reference/simulation_scenarios.md)
+- [`simulation_scenarios()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulation_scenarios.md)
   : Generate simulation scenarios based on the configuration directory.
-- [`run_simulation_env()`](https://tristanfauvel.github.io/BExTE/reference/run_simulation_env.md)
+- [`run_simulation_env()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/run_simulation_env.md)
   : Run a full simulation for one environment
 
 ## Tables
 
-- [`table_methods_comparison()`](https://tristanfauvel.github.io/BExTE/reference/table_methods_comparison.md)
+- [`table_methods_comparison()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_methods_comparison.md)
   : Methods comparison in a table
-- [`posterior_parameters_tables()`](https://tristanfauvel.github.io/BExTE/reference/posterior_parameters_tables.md)
+- [`posterior_parameters_tables()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/posterior_parameters_tables.md)
   : Generate multiple posterior parameter tables
-- [`power_vs_tie_tables()`](https://tristanfauvel.github.io/BExTE/reference/power_vs_tie_tables.md)
+- [`power_vs_tie_tables()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/power_vs_tie_tables.md)
   : Generate power vs tie tables for multiple conditions
-- [`table_power_vs_tie()`](https://tristanfauvel.github.io/BExTE/reference/table_power_vs_tie.md)
+- [`table_power_vs_tie()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_power_vs_tie.md)
   : Generate a power vs tie table
-- [`table_bayesian_ocs()`](https://tristanfauvel.github.io/BExTE/reference/table_bayesian_ocs.md)
+- [`table_bayesian_ocs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_bayesian_ocs.md)
   : Generate tables for methods operating characteristics
-- [`table_metric_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/table_metric_vs_drift.md)
+- [`table_metric_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_metric_vs_drift.md)
   : Generate a metric vs drift table
-- [`table_metric_vs_parameters()`](https://tristanfauvel.github.io/BExTE/reference/table_metric_vs_parameters.md)
+- [`table_metric_vs_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_metric_vs_parameters.md)
   : Plot metric vs parameters
-- [`table_metric_vs_sample_size()`](https://tristanfauvel.github.io/BExTE/reference/table_metric_vs_sample_size.md)
+- [`table_metric_vs_sample_size()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_metric_vs_sample_size.md)
   : Plot metric vs sample size
-- [`table_posterior_parameters_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/table_posterior_parameters_vs_drift.md)
+- [`table_posterior_parameters_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_posterior_parameters_vs_drift.md)
   : Generate a table of posterior parameters vs drift
-- [`tables_metric_vs_scenario()`](https://tristanfauvel.github.io/BExTE/reference/tables_metric_vs_scenario.md)
+- [`tables_metric_vs_scenario()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/tables_metric_vs_scenario.md)
   : Generate tables for methods operating characteristics
-- [`table_empirical_bayes_hyperparameters_vs_drift()`](https://tristanfauvel.github.io/BExTE/reference/table_empirical_bayes_hyperparameters_vs_drift.md)
+- [`table_empirical_bayes_hyperparameters_vs_drift()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_empirical_bayes_hyperparameters_vs_drift.md)
   : Generate a table of hyperparameters estimated using Empirical Bayes
   vs drift
-- [`table_empirical_bayes_hyperparameters_vs_scenario()`](https://tristanfauvel.github.io/BExTE/reference/table_empirical_bayes_hyperparameters_vs_scenario.md)
+- [`table_empirical_bayes_hyperparameters_vs_scenario()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_empirical_bayes_hyperparameters_vs_scenario.md)
   : This function tables for hyperparameters updated using Empirical
   Bayes across different case studies, methods, and sample sizes.
-- [`table_bayesian_metrics()`](https://tristanfauvel.github.io/BExTE/reference/table_bayesian_metrics.md)
+- [`table_bayesian_metrics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_bayesian_metrics.md)
   : Generate tables for Bayesian metrics
-- [`table_case_study_summary()`](https://tristanfauvel.github.io/BExTE/reference/table_case_study_summary.md)
+- [`table_case_study_summary()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_case_study_summary.md)
   : Summary of the clinical case studies (table S7)
-- [`table_target_sample_sizes()`](https://tristanfauvel.github.io/BExTE/reference/table_target_sample_sizes.md)
+- [`table_target_sample_sizes()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/table_target_sample_sizes.md)
   : Total target-study sample sizes considered for each case study
   (table S1)
 
@@ -544,112 +545,112 @@ benchmark at equivalent type I error
 The manifest of the paper’s figures and tables, and what a results
 directory needs to reproduce them
 
-- [`paper_manifest()`](https://tristanfauvel.github.io/BExTE/reference/paper_manifest.md)
+- [`paper_manifest()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_manifest.md)
   : The paper figure and table manifest
-- [`paper_manifest_ids()`](https://tristanfauvel.github.io/BExTE/reference/paper_manifest_ids.md)
+- [`paper_manifest_ids()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_manifest_ids.md)
   : Ids of every paper item in the manifest
-- [`paper_manifest_entry()`](https://tristanfauvel.github.io/BExTE/reference/paper_manifest_entry.md)
+- [`paper_manifest_entry()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_manifest_entry.md)
   : Look up one manifest entry by id
-- [`paper_sample_size_per_arm()`](https://tristanfauvel.github.io/BExTE/reference/paper_sample_size_per_arm.md)
+- [`paper_sample_size_per_arm()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_sample_size_per_arm.md)
   : Resolve a sample size factor to a target sample size per arm
-- [`paper_replication_requirements()`](https://tristanfauvel.github.io/BExTE/reference/paper_replication_requirements.md)
+- [`paper_replication_requirements()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_replication_requirements.md)
   : Minimal simulation config for a set of paper figures
-- [`paper_replication_coverage()`](https://tristanfauvel.github.io/BExTE/reference/paper_replication_coverage.md)
+- [`paper_replication_coverage()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_replication_coverage.md)
   : Check a results frame against a set of paper figures
-- [`paper_run_config()`](https://tristanfauvel.github.io/BExTE/reference/paper_run_config.md)
+- [`paper_run_config()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_run_config.md)
   : The simulation config a results directory was produced from
-- [`paper_config_shortfalls()`](https://tristanfauvel.github.io/BExTE/reference/paper_config_shortfalls.md)
+- [`paper_config_shortfalls()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/paper_config_shortfalls.md)
   : How a results directory falls short of the paper's fidelity
-- [`export_paper_outputs()`](https://tristanfauvel.github.io/BExTE/reference/export_paper_outputs.md)
+- [`export_paper_outputs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/export_paper_outputs.md)
   : Produce the paper's figures and tables
 
 ## Data
 
-- [`TargetData`](https://tristanfauvel.github.io/BExTE/reference/TargetData.md)
+- [`TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)
   : TargetData class
-- [`TargetDataFactory`](https://tristanfauvel.github.io/BExTE/reference/TargetDataFactory.md)
+- [`TargetDataFactory`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetDataFactory.md)
   : TargetDataFactory class
-- [`SourceData`](https://tristanfauvel.github.io/BExTE/reference/SourceData.md)
+- [`SourceData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/SourceData.md)
   : SourceData class
-- [`BinaryTargetData`](https://tristanfauvel.github.io/BExTE/reference/BinaryTargetData.md)
+- [`BinaryTargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinaryTargetData.md)
   : BinaryTargetData class
-- [`ObservedSourceData`](https://tristanfauvel.github.io/BExTE/reference/ObservedSourceData.md)
+- [`ObservedSourceData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/ObservedSourceData.md)
   : ObservedSourceData class
-- [`ObservedTargetData`](https://tristanfauvel.github.io/BExTE/reference/ObservedTargetData.md)
+- [`ObservedTargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/ObservedTargetData.md)
   : ObservedTargetData class
-- [`ContinuousTargetData`](https://tristanfauvel.github.io/BExTE/reference/ContinuousTargetData.md)
+- [`ContinuousTargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/ContinuousTargetData.md)
   : ContinuousTargetData class
-- [`TimeToEventTargetData`](https://tristanfauvel.github.io/BExTE/reference/TimeToEventTargetData.md)
+- [`TimeToEventTargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TimeToEventTargetData.md)
   : Time To Event Target Data
 
 ## Design priors
 
-- [`DesignPrior`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.md)
+- [`DesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.md)
   : DesignPrior Class
-- [`AnalysisPriorDesignPrior`](https://tristanfauvel.github.io/BExTE/reference/AnalysisPriorDesignPrior.md)
+- [`AnalysisPriorDesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/AnalysisPriorDesignPrior.md)
   : AnalysisPriorDesignPrior class
-- [`SourcePosteriorDesignPrior`](https://tristanfauvel.github.io/BExTE/reference/SourcePosteriorDesignPrior.md)
+- [`SourcePosteriorDesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/SourcePosteriorDesignPrior.md)
   : SourcePosteriorDesignPrior class
-- [`UnitInformationDesignPrior`](https://tristanfauvel.github.io/BExTE/reference/UnitInformationDesignPrior.md)
+- [`UnitInformationDesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/UnitInformationDesignPrior.md)
   : UnitInformationDesignPrior class
 
 ## Shiny app
 
 Launching the browser-based interface
 
-- [`run_bexte_app()`](https://tristanfauvel.github.io/BExTE/reference/run_bexte_app.md)
+- [`run_bexte_app()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/run_bexte_app.md)
   : Launch the BExTE Shiny app
-- [`create_bexte_shortcut()`](https://tristanfauvel.github.io/BExTE/reference/create_bexte_shortcut.md)
+- [`create_bexte_shortcut()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/create_bexte_shortcut.md)
   : Add a desktop shortcut that launches the app
 
 ## Caching
 
 Inspecting and clearing the compiled-model and analysis caches
 
-- [`inference_cache_size()`](https://tristanfauvel.github.io/BExTE/reference/inference_cache_size.md)
+- [`inference_cache_size()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/inference_cache_size.md)
   : Number of analyses held in the cache
-- [`inference_cache_reset()`](https://tristanfauvel.github.io/BExTE/reference/inference_cache_reset.md)
+- [`inference_cache_reset()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/inference_cache_reset.md)
   : Empty the analysis cache
-- [`clear_stan_draws()`](https://tristanfauvel.github.io/BExTE/reference/clear_stan_draws.md)
+- [`clear_stan_draws()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/clear_stan_draws.md)
   : Remove the Stan draws of one model across every process
-- [`clear_stan_model_cache()`](https://tristanfauvel.github.io/BExTE/reference/clear_stan_model_cache.md)
+- [`clear_stan_model_cache()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/clear_stan_model_cache.md)
   : Remove the compiled Stan models
 
 ## Utilities
 
-- [`check_colnames()`](https://tristanfauvel.github.io/BExTE/reference/check_colnames.md)
+- [`check_colnames()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/check_colnames.md)
   : Check columns in a dataframe
-- [`combine_parameters()`](https://tristanfauvel.github.io/BExTE/reference/combine_parameters.md)
+- [`combine_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/combine_parameters.md)
   : Combine parameters for a given method.
-- [`convert_params_to_str()`](https://tristanfauvel.github.io/BExTE/reference/convert_params_to_str.md)
+- [`convert_params_to_str()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/convert_params_to_str.md)
   : Function to convert parameters in dataframe to string
-- [`hellinger_distance()`](https://tristanfauvel.github.io/BExTE/reference/hellinger_distance.md)
+- [`hellinger_distance()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/hellinger_distance.md)
   : Compute the Hellinger distance between two normal distributions.
-- [`important_drift_values()`](https://tristanfauvel.github.io/BExTE/reference/important_drift_values.md)
+- [`important_drift_values()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/important_drift_values.md)
   : Get important drift values for a given source treatment effect and
   case study configuration.
-- [`make_labels_from_parameters()`](https://tristanfauvel.github.io/BExTE/reference/make_labels_from_parameters.md)
+- [`make_labels_from_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/make_labels_from_parameters.md)
   : Function to make labels from parameters. Return a label formatted in
   Tex, for example "\$\xi\_\gamma\$ = 0.5, \$\sigma\_\gamma\$ = 0.1"
-- [`markers()`](https://tristanfauvel.github.io/BExTE/reference/markers.md)
+- [`markers()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/markers.md)
   : Function to return markers from a list
-- [`negative_binomial_regression()`](https://tristanfauvel.github.io/BExTE/reference/negative_binomial_regression.md)
+- [`negative_binomial_regression()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/negative_binomial_regression.md)
   : Estimate rate and standard error
-- [`findCalibrationParameter()`](https://tristanfauvel.github.io/BExTE/reference/findCalibrationParameter.md)
+- [`findCalibrationParameter()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/findCalibrationParameter.md)
   : Find Calibration Parameter
-- [`get_parameters()`](https://tristanfauvel.github.io/BExTE/reference/get_parameters.md)
+- [`get_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/get_parameters.md)
   : Function to return a dataframe of parameters from json strings
-- [`remove_columns_from_df()`](https://tristanfauvel.github.io/BExTE/reference/remove_columns_from_df.md)
+- [`remove_columns_from_df()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/remove_columns_from_df.md)
   : Remove columns from a dataframe
-- [`concatenate_simulation_logs()`](https://tristanfauvel.github.io/BExTE/reference/concatenate_simulation_logs.md)
+- [`concatenate_simulation_logs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/concatenate_simulation_logs.md)
   : Concatenate all simulation logs to a global dataframe
-- [`generate_comparison_table()`](https://tristanfauvel.github.io/BExTE/reference/generate_comparison_table.md)
+- [`generate_comparison_table()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/generate_comparison_table.md)
   : Generate a comparison table
-- [`read_function_code()`](https://tristanfauvel.github.io/BExTE/reference/read_function_code.md)
+- [`read_function_code()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/read_function_code.md)
   : Print a function's source code
-- [`format_simulation_output_table()`](https://tristanfauvel.github.io/BExTE/reference/format_simulation_output_table.md)
+- [`format_simulation_output_table()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/format_simulation_output_table.md)
   : Format simulation output as a printable table
-- [`format_case_study_config()`](https://tristanfauvel.github.io/BExTE/reference/format_case_study_config.md)
+- [`format_case_study_config()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/format_case_study_config.md)
   : Format a case study configuration as a printable table
 
 # Articles
@@ -659,57 +660,57 @@ Inspecting and clearing the compiled-model and analysis caches
 Vignettes describing simulation-based estimation of OCs
 
 - [Simulation study logic - high
-  level](https://tristanfauvel.github.io/BExTE/articles/simulation/simulation_illustration_high_level.md):
+  level](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/simulation/simulation_illustration_high_level.md):
 - [Simulation study logic - low
-  level](https://tristanfauvel.github.io/BExTE/articles/simulation/simulation_illustration_low_level.md):
+  level](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/simulation/simulation_illustration_low_level.md):
 - [Precision-based matching for prior ESS
-  estimation](https://tristanfauvel.github.io/BExTE/articles/simulation/Precision_based_ESS.md):
+  estimation](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/simulation/Precision_based_ESS.md):
 
 ### Data generation
 
 Data generation in simulation studies
 
 - [Data Generation : Botox case study (continuous
-  endpoint)](https://tristanfauvel.github.io/BExTE/articles/data_generation/Data_generation_botox.md):
+  endpoint)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/data_generation/Data_generation_botox.md):
 - [Data Generation : Belimumab case study (binary
-  endpoint)](https://tristanfauvel.github.io/BExTE/articles/data_generation/Data_generation_belimumab.md):
+  endpoint)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/data_generation/Data_generation_belimumab.md):
 - [Data Generation : Mepolizumab case study (recurrent event
-  endpoint)](https://tristanfauvel.github.io/BExTE/articles/data_generation/Data_generation_mepolizumab.md):
+  endpoint)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/data_generation/Data_generation_mepolizumab.md):
 - [Data Generation : Teriflunomide case study (time-to-event
-  endpoint)](https://tristanfauvel.github.io/BExTE/articles/data_generation/Data_generation_teriflunomide.md):
+  endpoint)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/data_generation/Data_generation_teriflunomide.md):
 - [Data Generation : Aprepitant case study (binary endpoint, summary
   measure as rate
-  difference)](https://tristanfauvel.github.io/BExTE/articles/data_generation/Data_generation_aprepitant.md):
+  difference)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/data_generation/Data_generation_aprepitant.md):
 
 ### Methods
 
 Borrowing methods
 
 - [Commensurate Power
-  Prior](https://tristanfauvel.github.io/BExTE/articles/methods/Commensurate_Power_Prior.md):
+  Prior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Commensurate_Power_Prior.md):
 - [Conditional Power
-  Prior](https://tristanfauvel.github.io/BExTE/articles/methods/Conditional_Power_Prior.md):
+  Prior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Conditional_Power_Prior.md):
 - [Implementation of the Robust Mixture Prior for normally distributed
   treatment
-  effect](https://tristanfauvel.github.io/BExTE/articles/methods/Gaussian_RMP.md):
+  effect](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Gaussian_RMP.md):
 - [Normalized Power Prior : normal likelihood, beta prior on the power
   parameter, noninformative initial prior, known sampling
-  variance](https://tristanfauvel.github.io/BExTE/articles/methods/NPP.md):
+  variance](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/NPP.md):
 - [Simulation study : RMP for binary endpoints without normal
   approximation for the treatment effect
-  distribution](https://tristanfauvel.github.io/BExTE/articles/methods/Truncated_Gaussian_RMP.md):
+  distribution](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Truncated_Gaussian_RMP.md):
 - [Implementation of the
-  PDCCPP](https://tristanfauvel.github.io/BExTE/articles/methods/PDCCPP.md):
-- [Pooling](https://tristanfauvel.github.io/BExTE/articles/methods/Pooling.md):
-- [Pooling](https://tristanfauvel.github.io/BExTE/articles/methods/Pooling_study.md):
+  PDCCPP](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/PDCCPP.md):
+- [Pooling](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Pooling.md):
+- [Pooling](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Pooling_study.md):
 - [Separate
-  analysis](https://tristanfauvel.github.io/BExTE/articles/methods/Separate.md):
+  analysis](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Separate.md):
 
 ### Replications
 
 Replication of published analyses
 
 - [Replication of the Belimumab case
-  study](https://tristanfauvel.github.io/BExTE/articles/replications/Belimumab_replication.md):
+  study](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/replications/Belimumab_replication.md):
 - [Replication of the Mepolizumab case
-  study](https://tristanfauvel.github.io/BExTE/articles/replications/Mepolizumab_replication.md):
+  study](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/replications/Mepolizumab_replication.md):

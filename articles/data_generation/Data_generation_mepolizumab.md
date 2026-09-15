@@ -402,5 +402,5 @@ read_function_code(sample_aggregate_normal_data)
     ## }
 
 See
-[Data_generation_botox](https://tristanfauvel.github.io/BExTE/articles/doc/Data_generation_botox.md)
+[Data_generation_botox](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/doc/Data_generation_botox.md)
 for details on aggregate normal data generation.
