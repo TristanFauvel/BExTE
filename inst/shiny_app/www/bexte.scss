@@ -328,6 +328,33 @@ a:focus-visible {
   color: var(--bexte-ink);
 }
 
+// checkboxGroupInput()/radioButtons()/checkboxInput() still emit Bootstrap
+// 3's <div class="checkbox|radio"><label><input>...<span> markup rather than
+// .form-check, and Bootstrap 5 dropped the rules that used to indent that
+// label's wrapped lines under the text instead of back under the input.
+// Flexbox reproduces that indent without relying on the removed classes.
+.shiny-options-group .checkbox label,
+.shiny-options-group .radio label,
+.checkbox > label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: var(--bexte-ink);
+  font-weight: 400;
+}
+
+.shiny-options-group .checkbox label input[type="checkbox"],
+.shiny-options-group .radio label input[type="radio"],
+.checkbox > label input[type="checkbox"] {
+  flex: none;
+  margin: 0;
+}
+
+.shiny-options-group .checkbox + .checkbox,
+.shiny-options-group .radio + .radio {
+  margin-top: 0.35rem;
+}
+
 // selectize.js draws its own widget, so it needs the tokens applied by hand.
 .selectize-input,
 .selectize-input.full {
