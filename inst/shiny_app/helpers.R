@@ -634,8 +634,10 @@ prepare_plot_globals_for_env <- function(env, figures_dir) {
 #' Start a simulation environment in a background process
 #'
 #' @description Shared by the Run page and the Replicate paper page. Loads the
-#'   package with devtools::load_all() in the child process rather than
-#'   requiring BExTE to be installed, so the app works from a source checkout.
+#'   package in the child process with library(BExTE) when it is installed,
+#'   falling back to devtools::load_all() so the app also works from a
+#'   source checkout - the same fallback used everywhere else BExTE gets
+#'   loaded into a worker process.
 #'
 #' @param env An environment name known to `list_environments()`.
 #'
@@ -663,7 +665,11 @@ launch_simulation_run <- function(env) {
                     simulation_config, analysis_config, frequentist_metrics,
                     inference_metrics) {
       setwd(wd)
-      devtools::load_all(pkg_root, quiet = TRUE)
+      if (requireNamespace("BExTE", quietly = TRUE)) {
+        library(BExTE)
+      } else {
+        devtools::load_all(pkg_root, quiet = TRUE)
+      }
       run_simulation_env(
         env = env,
         config_dir = config_dir,
