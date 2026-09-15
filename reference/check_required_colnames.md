@@ -1,7 +1,7 @@
 # Check that a dataframe carries the columns a consumer relies on
 
 Unlike
-[`check_colnames()`](https://tristanfauvel.github.io/BExTE/reference/check_colnames.md),
+[`check_colnames()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/check_colnames.md),
 this tolerates additional columns. Use it at the entry point of the
 analysis, plot and table layers, which receive frames enriched with
 derived columns but read a known subset of them by name.
@@ -31,7 +31,7 @@ check_required_colnames(
 
   An optional named character vector of expected types; defaults to the
   entries of
-  [expected_coltypes](https://tristanfauvel.github.io/BExTE/reference/expected_coltypes.md)
+  [expected_coltypes](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/expected_coltypes.md)
   describing the required columns.
 
 - context:

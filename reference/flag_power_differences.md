@@ -21,7 +21,7 @@ flag_power_differences(results_df, correlation = 0)
 - correlation:
 
   Correlation between the two estimates, passed to
-  [`mover_difference_ci()`](https://tristanfauvel.github.io/BExTE/reference/mover_difference_ci.md).
+  [`mover_difference_ci()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/mover_difference_ci.md).
 
 ## Value
 

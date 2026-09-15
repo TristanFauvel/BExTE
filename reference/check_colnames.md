@@ -29,7 +29,7 @@ check_colnames(
 
   An optional named character vector mapping column names to the type
   they are expected to hold, using the vocabulary of
-  [column_type_predicates](https://tristanfauvel.github.io/BExTE/reference/column_type_predicates.md).
+  [column_type_predicates](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/column_type_predicates.md).
   Names must be among `expected_colnames`; columns the spec does not
   mention are not type checked.
 

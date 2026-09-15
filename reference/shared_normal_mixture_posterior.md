@@ -1,7 +1,7 @@
 # Conjugate update of a normal mixture prior shared by every replicate
 
 The same update as
-[`normal_mixture_posterior()`](https://tristanfauvel.github.io/BExTE/reference/normal_mixture_posterior.md),
+[`normal_mixture_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/normal_mixture_posterior.md),
 for the common case of one prior serving every replicate. Broadcasting
 the component values against the observations with
 [`outer()`](https://rdrr.io/r/base/outer.html) keeps three constant

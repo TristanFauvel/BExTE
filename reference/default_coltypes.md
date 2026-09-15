@@ -17,7 +17,7 @@ default_coltypes(expected_colnames)
 ## Value
 
 The subset of
-[expected_coltypes](https://tristanfauvel.github.io/BExTE/reference/expected_coltypes.md)
+[expected_coltypes](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/expected_coltypes.md)
 describing those columns. Columns the spec does not describe are omitted
 rather than reported, so that a frame carrying extra bookkeeping columns
 still passes.

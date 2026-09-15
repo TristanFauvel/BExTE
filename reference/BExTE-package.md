@@ -7,11 +7,12 @@ effects.
 
 Useful links:
 
-- <https://github.com/TristanFauvel/BExTE>
+- <https://github.com/quinten-health-os/BayesianExtrapolationSimulation>
 
-- <https://tristanfauvel.github.io/BExTE/>
+- <https://quinten-health-os.github.io/BayesianExtrapolationSimulation/>
 
-- Report bugs at <https://github.com/TristanFauvel/BExTE/issues>
+- Report bugs at
+  <https://github.com/quinten-health-os/BayesianExtrapolationSimulation/issues>
 
 ## Author
 

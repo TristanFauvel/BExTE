@@ -5,7 +5,7 @@ inherits from the TargetData class.
 
 ## Super class
 
-[`TargetData`](https://tristanfauvel.github.io/BExTE/reference/TargetData.md)
+[`TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)
 
 ## Public fields
 
@@ -35,7 +35,7 @@ inherits from the TargetData class.
 
 Inherited methods
 
-- [`TargetData$plot_sample()`](https://tristanfauvel.github.io/BExTE/reference/TargetData.html#method-plot_sample)
+- [`TargetData$plot_sample()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.html#method-plot_sample)
 
 ------------------------------------------------------------------------
 

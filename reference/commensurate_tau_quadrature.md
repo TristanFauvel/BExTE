@@ -13,7 +13,7 @@ commensurate_tau_quadrature(model, n_nodes)
 - model:
 
   A
-  [GaussianCommensuratePowerPrior](https://tristanfauvel.github.io/BExTE/reference/GaussianCommensuratePowerPrior.md)
+  [GaussianCommensuratePowerPrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/GaussianCommensuratePowerPrior.md)
   object.
 
 - n_nodes:

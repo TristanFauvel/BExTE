@@ -29,7 +29,7 @@ create_bexte_shortcut(
 - workspace:
 
   Workspace to launch with, or `NULL` to let
-  [`run_bexte_app()`](https://tristanfauvel.github.io/BExTE/reference/run_bexte_app.md)
+  [`run_bexte_app()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/run_bexte_app.md)
   choose one.
 
 - applications_dir:

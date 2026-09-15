@@ -13,7 +13,7 @@ inference_cache_set(key, value)
 - key:
 
   Key returned by
-  [`inference_cache_key()`](https://tristanfauvel.github.io/BExTE/reference/inference_cache_key.md).
+  [`inference_cache_key()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/inference_cache_key.md).
 
 - value:
 

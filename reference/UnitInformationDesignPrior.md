@@ -5,7 +5,7 @@ borrowing.
 
 ## Super class
 
-[`DesignPrior`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.md)
+[`DesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.md)
 -\> `UnitInformationDesignPrior`
 
 ## Public fields
@@ -34,7 +34,7 @@ borrowing.
 
 Inherited methods
 
-- [`DesignPrior$create()`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.html#method-create)
+- [`DesignPrior$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-create)
 
 ------------------------------------------------------------------------
 

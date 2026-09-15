@@ -1,11 +1,11 @@
 # Bayesian Extrapolation of Treatment Effects
 
 [![R Package
-Build](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml)
-[![pkgdown](https://github.com/TristanFauvel/BExTE/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BExTE/)
+Build](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg)](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml)
+[![pkgdown](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/pkgdown.yml/badge.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/)
 [![License: GPL
-v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://tristanfauvel.github.io/BExTE/LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](https://tristanfauvel.github.io/BExTE/DESCRIPTION)
+v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/LICENSE)
+[![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/DESCRIPTION)
 [![R \>=
 3.5.0](https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg)](https://www.r-project.org/)
 
@@ -17,14 +17,14 @@ A collection of R tools to :
 - Analyze clinical trial data using Bayesian partial extrapolation
   methods.
 
-[](https://tristanfauvel.github.io/BExTE/articles/index.md)
+[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/index.md)
 
 ##### 📚 Vignettes
 
 Step-by-step guides to simulation studies, data generation, borrowing
 methods, and case-study replications.
 
-[](https://tristanfauvel.github.io/BExTE/reference/index.md)
+[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/index.md)
 
 ##### 🔧 API reference
 
@@ -38,7 +38,7 @@ plots, tables, operating characteristics.
 Configure, run, and analyze a simulation study from a Shiny app, without
 hand-editing config files.
 
-[](https://tristanfauvel.github.io/BExTE/news/index.md)
+[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/news/index.md)
 
 ##### 📝 Changelog
 
@@ -125,7 +125,7 @@ checkout, so results land next to the ones `main.R` produces; installed
 from a release tarball it uses a per-user directory under
 `tools::R_user_dir("BExTE", "data")`. Either way the path is reported
 when the app starts, and
-[`run_bexte_app()`](https://tristanfauvel.github.io/BExTE/reference/run_bexte_app.md)
+[`run_bexte_app()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/run_bexte_app.md)
 takes an explicit one:
 
 ``` r
@@ -135,7 +135,7 @@ run_bexte_app(workspace = "~/bexte-studies")
 
 On Linux, `install.R` also adds an **BExTE** entry to the application
 menu, so the app can be started without an R session.
-[`create_bexte_shortcut()`](https://tristanfauvel.github.io/BExTE/reference/create_bexte_shortcut.md)
+[`create_bexte_shortcut()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/create_bexte_shortcut.md)
 rewrites it, optionally pinned to a workspace:
 
 ``` r
@@ -148,7 +148,8 @@ progress of a run appear, and where Ctrl+C stops the app.
 
 When developing against a checkout,
 [`devtools::load_all()`](https://devtools.r-lib.org/reference/load_all.html)
-replaces [`library(BExTE)`](https://github.com/TristanFauvel/BExTE).
+replaces
+[`library(BExTE)`](https://github.com/quinten-health-os/BayesianExtrapolationSimulation).
 
 This opens a local Shiny app with three tabs:
 
@@ -176,7 +177,7 @@ method, allowing to sample many replicates of the target study.
 ## Access documentation
 
 The full documentation website is available at
-[tristanfauvel.github.io/BExTE](https://tristanfauvel.github.io/BExTE/).
+[quinten-health-os.github.io/BayesianExtrapolationSimulation](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/).
 
 To access it locally instead : browseURL(“docs/index.html”)
 
@@ -206,8 +207,8 @@ inference
 
 New contributors are always welcome. Please have a look at the
 [contribution
-guidelines](https://tristanfauvel.github.io/BExTE/CONTRIBUTING.md) on
-how to get started and to make sure your code complies with our
+guidelines](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/CONTRIBUTING.md)
+on how to get started and to make sure your code complies with our
 guidelines.
 
 ## Rationale of the design

@@ -6,7 +6,7 @@ Each case study is restricted to its own factors through
 `case_study_sample_size_factors`, rather than every case study being
 crossed with every factor. The fidelity settings do not scale with the
 selection: `ndrift` stays at 30 because
-[`forest_plot()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot.md)
+[`forest_plot()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot.md)
 selects the three principal treatment-effect scenarios by nearest grid
 point, so a coarser grid would quietly plot different drift values
 rather than failing.
