@@ -49,7 +49,13 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
       total = NA_integer_,
       done = FALSE,
       exit_status = NULL,
-      error_message = NULL
+      error_message = NULL,
+      ## Set when the user confirms Cancel run, so the poll below can show a
+      ## plain "cancelled" message instead of callr's own generic
+      ## kill()-induced error ("could not start R, exited with non-zero
+      ## status, has crashed or was killed") - accurate for a real crash, but
+      ## misleading for a cancellation the user asked for themselves.
+      cancelled = FALSE
     )
     pending_launch_env <- shiny::reactiveVal(NULL)
 
@@ -94,6 +100,7 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
       state$done <- FALSE
       state$exit_status <- NULL
       state$error_message <- NULL
+      state$cancelled <- FALSE
       state$log_file <- file.path("logs", env, "error_logs", "error_log.log")
 
       state$proc <- launch_simulation_run(env)
@@ -145,6 +152,7 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
     shiny::observeEvent(input$confirm_cancel, {
       shiny::removeModal()
       if (!is.null(state$proc) && state$proc$is_alive()) {
+        state$cancelled <- TRUE
         state$proc$kill()
         shiny::showNotification("Run cancelled.", type = "warning")
       }
@@ -183,7 +191,9 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
         if (!alive && !state$done) {
           state$done <- TRUE
           state$exit_status <- state$proc$get_exit_status()
-          if (!identical(state$exit_status, 0L)) {
+          if (isTRUE(state$cancelled)) {
+            state$error_message <- "Run cancelled by user."
+          } else if (!identical(state$exit_status, 0L)) {
             state$error_message <- tryCatch({
               state$proc$get_result()
               NULL
