@@ -112,12 +112,15 @@ bexte_method_choice_names <- function(methods) {
 ## `choiceNames`/`choiceValues` for the case studies checkbox group. `cs` is
 ## the data frame `list_case_studies()` returns (columns `name`, `source`).
 bexte_case_study_choice_names <- function(cs) {
-  Map(function(name, source) {
+  ## unname(): Map()/mapply() names the result from its first argument's
+  ## values by default (cs$name here) - checkboxGroupInput()'s choiceNames
+  ## must not be named at all, only choiceValues carries the values.
+  unname(Map(function(name, source) {
     bexte_tooltip_choice_label(
       paste0(name, " (", source, ")"),
       unname(BEXTE_CASE_STUDY_DESCRIPTIONS[name])
     )
-  }, cs$name, cs$source)
+  }, cs$name, cs$source))
 }
 
 bexte_metric_label <- function(metric, fallback = metric) {

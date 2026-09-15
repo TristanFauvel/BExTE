@@ -51,6 +51,20 @@ test_that("known methods and case studies get a hover tooltip, unknown ones a pl
   expect_identical(unknown, "Made-up method")
 })
 
+test_that("choiceNames helpers return unnamed lists, as checkboxGroupInput requires", {
+  ## Map()/mapply() names its result from the first argument's own values by
+  ## default - checkboxGroupInput() errors ("choiceNames and choiceValues
+  ## must not be named") if choiceNames comes back named this way.
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
+
+  method_names <- bexte_method_choice_names(c("RMP", "separate"))
+  expect_null(names(method_names))
+
+  cs <- data.frame(name = c("botox", "aprepitant"), source = c("package", "package"))
+  cs_names <- bexte_case_study_choice_names(cs)
+  expect_null(names(cs_names))
+})
+
 test_that("every built-in method and case study has a tooltip description", {
   source(system.file("shiny_app/helpers.R", package = "BExTE"))
 
