@@ -1,7 +1,7 @@
 # Bayesian Extrapolation of Treatment Effects
 
-[![R Package Build](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml)
-[![pkgdown](https://github.com/TristanFauvel/BExTE/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BExTE/)
+[![R Package Build](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg)](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml)
+[![pkgdown](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/pkgdown.yml/badge.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](DESCRIPTION)
 [![R >= 3.5.0](https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg)](https://www.r-project.org/)
@@ -134,7 +134,7 @@ Source data are defined based on the case study configuration. Target data depen
 
 ## Access documentation
 
-The full documentation website is available at [tristanfauvel.github.io/BExTE](https://tristanfauvel.github.io/BExTE/).
+The full documentation website is available at [quinten-health-os.github.io/BayesianExtrapolationSimulation](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/).
 
 To access it locally instead :
 browseURL("docs/index.html")

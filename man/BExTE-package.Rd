@@ -11,9 +11,9 @@ This package provides tools for Bayesian extrapolation of treatment effects.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/TristanFauvel/BExTE}
-  \item \url{https://tristanfauvel.github.io/BExTE/}
-  \item Report bugs at \url{https://github.com/TristanFauvel/BExTE/issues}
+  \item \url{https://github.com/quinten-health-os/BayesianExtrapolationSimulation}
+  \item \url{https://quinten-health-os.github.io/BayesianExtrapolationSimulation/}
+  \item Report bugs at \url{https://github.com/quinten-health-os/BayesianExtrapolationSimulation/issues}
 }
 
 }
