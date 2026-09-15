@@ -156,18 +156,20 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
 
     output$case_studies_picker <- shiny::renderUI({
       cs <- case_studies_rv()
-      choices <- cs$name
-      names(choices) <- paste0(cs$name, " (", cs$source, ")")
       shiny::checkboxGroupInput(
-        ns("case_studies"), "Case studies to include", choices = choices,
-        selected = intersect(input$case_studies %||% character(), choices)
+        ns("case_studies"), "Case studies to include",
+        choiceNames = bexte_case_study_choice_names(cs),
+        choiceValues = as.list(cs$name),
+        selected = intersect(input$case_studies %||% character(), cs$name)
       )
     })
 
     shiny::observe({
       methods <- names(methods_template)
       shiny::updateCheckboxGroupInput(
-        session, "methods", choices = bexte_method_choices(methods),
+        session, "methods",
+        choiceNames = bexte_method_choice_names(methods),
+        choiceValues = as.list(methods),
         selected = intersect(input$methods %||% character(), methods)
       )
     })

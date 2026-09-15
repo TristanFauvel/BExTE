@@ -40,6 +40,28 @@ test_that("method choices retain internal values and show readable labels", {
   expect_named(choices, c("Pooled analysis", "Commensurate power prior"))
 })
 
+test_that("known methods and case studies get a hover tooltip, unknown ones a plain label", {
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
+
+  known <- bexte_tooltip_choice_label("Pooled analysis", BEXTE_METHOD_DESCRIPTIONS[["pooling"]])
+  expect_s3_class(known, "shiny.tag")
+  expect_true(grepl("Pooled analysis", as.character(known), fixed = TRUE))
+
+  unknown <- bexte_tooltip_choice_label("Made-up method", NA_character_)
+  expect_identical(unknown, "Made-up method")
+})
+
+test_that("every built-in method and case study has a tooltip description", {
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
+
+  expect_true(all(nzchar(BEXTE_METHOD_DESCRIPTIONS[names(BEXTE_METHOD_LABELS)])))
+
+  case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+  built_in <- tools::file_path_sans_ext(list.files(case_studies_config_dir, pattern = "\\.yml$"))
+  expect_true(all(built_in %in% names(BEXTE_CASE_STUDY_DESCRIPTIONS)))
+  expect_true(all(nzchar(BEXTE_CASE_STUDY_DESCRIPTIONS[built_in])))
+})
+
 test_that("Analyze only offers Bayesian plots when Bayesian results exist", {
   source(system.file("shiny_app/helpers.R", package = "BExTE"))
   source(system.file("shiny_app/modules/mod_analyze.R", package = "BExTE"))

@@ -27,6 +27,36 @@ BEXTE_METHOD_LABELS <- c(
   commensurate_power_prior = "Commensurate power prior"
 )
 
+## Short descriptions shown as hover tooltips next to each method's checkbox
+## in the Configure tab - see mod_configure.R.
+BEXTE_METHOD_DESCRIPTIONS <- c(
+  RMP = "Combines an informative prior built from the source data with a vague component. When the target data conflict with the source, the mixture shifts weight onto the vague component, automatically discounting the source.",
+  NPP = "Discounts the source data's likelihood by a power parameter, with a proper normalizing constant so the discount does not distort the prior's own dispersion.",
+  separate = "Analyzes the target trial alone, ignoring the source data entirely. The reference case with no borrowing.",
+  pooling = "Combines source and target data as if they came from a single, homogeneous population - the reference case with full (unadjusted) borrowing.",
+  conditional_power_prior = "Discounts the source data's likelihood by a fixed power parameter, without a normalizing constant - the discount is conditional on the target data actually observed.",
+  p_value_based_PP = "Sets the power-prior discount as a function of a p-value measuring agreement between the source and target data: more agreement, more borrowing.",
+  PDCCPP = "A power prior whose discount is calibrated directly to a measure of prior-data conflict between the source and target data.",
+  EB_PP = "Estimates the power-prior discount weight from the data itself via an empirical Bayes procedure, rather than fixing or eliciting it in advance.",
+  test_then_pool_difference = "A two-stage rule: pools the source and target data only if a hypothesis test finds no significant difference between them; analyzes them separately otherwise.",
+  test_then_pool_equivalence = "A two-stage rule: pools the source and target data only if an equivalence test finds them close enough; analyzes them separately otherwise.",
+  commensurate_power_prior = "Lets the degree of borrowing be governed by a heterogeneity parameter estimated from how commensurate (similar) the source and target data are."
+)
+
+## Short descriptions shown as hover tooltips next to each case study's
+## checkbox in the Configure tab. Keyed by config filename (list_case_studies()'s
+## `name` column), not the YAML's own display name field. Case studies a user
+## adds themselves (Configure Step 1) have no entry here, so they fall back to
+## a plain, tooltip-less label - see bexte_case_study_tooltip_label().
+BEXTE_CASE_STUDY_DESCRIPTIONS <- c(
+  aprepitant = "Binary endpoint. An antiemetic trial (aprepitant vs. ondansetron) extrapolating a response-rate comparison from a larger source study.",
+  belimumab = "Binary endpoint. A trial in systemic lupus erythematosus, extrapolating a response-rate comparison against placebo.",
+  botox = "Continuous endpoint. A trial with a continuous efficacy outcome, extrapolating a mean-difference comparison against placebo.",
+  dapagliflozin = "Continuous endpoint. A trial of an add-on diabetes therapy against placebo, both on a background of metformin.",
+  mepolizumab = "Recurrent-event endpoint. A trial counting repeated events (exacerbations) per patient, extrapolating a rate comparison against placebo.",
+  teriflunomide = "Time-to-event endpoint. A relapse-rate trial in multiple sclerosis, extrapolating a log rate ratio against placebo."
+)
+
 BEXTE_METRIC_LABELS <- c(
   success_proba = "Study success probability",
   tie = "Type I error",
@@ -51,6 +81,43 @@ bexte_method_label <- function(method) {
 
 bexte_method_choices <- function(methods) {
   stats::setNames(methods, vapply(methods, bexte_method_label, character(1)))
+}
+
+## Wraps a checkbox choice's label in a hover tooltip, for `choiceNames` in a
+## checkboxGroupInput/updateCheckboxGroupInput call. Falls back to a plain
+## (tooltip-less) label when no description is on hand, rather than showing
+## an empty tooltip - true for any case study a user adds themselves.
+bexte_tooltip_choice_label <- function(label, description) {
+  if (is.null(description) || is.na(description) || !nzchar(description)) {
+    return(label)
+  }
+  bslib::tooltip(
+    shiny::span(label, class = "bexte-tooltip-trigger"),
+    description,
+    placement = "right"
+  )
+}
+
+## `choiceNames`/`choiceValues` for the methods checkbox group, each name
+## wrapped in a hover tooltip describing what the method does.
+bexte_method_choice_names <- function(methods) {
+  lapply(methods, function(method) {
+    bexte_tooltip_choice_label(
+      bexte_method_label(method),
+      unname(BEXTE_METHOD_DESCRIPTIONS[method])
+    )
+  })
+}
+
+## `choiceNames`/`choiceValues` for the case studies checkbox group. `cs` is
+## the data frame `list_case_studies()` returns (columns `name`, `source`).
+bexte_case_study_choice_names <- function(cs) {
+  Map(function(name, source) {
+    bexte_tooltip_choice_label(
+      paste0(name, " (", source, ")"),
+      unname(BEXTE_CASE_STUDY_DESCRIPTIONS[name])
+    )
+  }, cs$name, cs$source)
 }
 
 bexte_metric_label <- function(metric, fallback = metric) {
