@@ -16,8 +16,6 @@
 #'
 #' @importFrom dplyr filter mutate select arrange rename group_by ungroup
 #' @importFrom rlang sym
-#' @importFrom knitr kable
-#' @importFrom kableExtra kable_styling row_spec collapse_rows
 table_metric_vs_drift <- function(metric,
                                   results_metrics_df,
                                   theta_0,
@@ -366,8 +364,6 @@ table_metric_vs_drift <- function(metric,
 #'
 #' @importFrom dplyr filter mutate select arrange rename group_by ungroup
 #' @importFrom rlang sym
-#' @importFrom knitr kable
-#' @importFrom kableExtra kable_styling row_spec collapse_rows
 table_metric_vs_parameters <- function(results_metrics_df,
                                        metric,
                                        case_study = "belimumab",
@@ -554,8 +550,6 @@ table_metric_vs_parameters <- function(results_metrics_df,
 #'
 #' @importFrom dplyr filter mutate select arrange rename group_by ungroup
 #' @importFrom rlang sym
-#' @importFrom knitr kable
-#' @importFrom kableExtra kable_styling row_spec collapse_rows
 table_metric_vs_sample_size <- function(metric,
                                         results_metrics_df,
                                         case_study,

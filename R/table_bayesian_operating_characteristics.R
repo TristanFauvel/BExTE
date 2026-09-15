@@ -6,7 +6,6 @@
 #' @return This function doesn't return a value but saves the generated tables as HTML, PDF, and LaTeX files.
 #'
 #' @import dplyr
-#' @import knitr
 #' @export
 table_bayesian_metrics <- function(results_metrics_df,
                                                   case_study,

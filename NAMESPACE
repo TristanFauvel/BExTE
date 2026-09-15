@@ -130,32 +130,20 @@ export(truncated_normal_mixture_elir)
 export(upper_bound_proba_FP_MC)
 import(R6)
 import(assertions)
-import(cmdstanr)
 import(dplyr)
 import(extrafont)
 import(foreach)
 import(ggplot2)
-import(kableExtra)
-import(knitr)
 import(parallel)
 import(readr)
 import(rlang)
-import(roxygen2)
 import(stringr)
 import(tidyr)
-import(tidyverse)
 import(viridis)
 import(yaml)
 importFrom(Bolstad2,sintegral)
 importFrom(HDInterval,inverseCDF)
 importFrom(R6,R6Class)
-importFrom(RBesT,
-  automixfit,
-  ess,
-  mixnorm,
-  postmix,
-  sigma
-)
 importFrom(doParallel,registerDoParallel)
 importFrom(dplyr,
   arrange,
@@ -174,18 +162,6 @@ importFrom(gridExtra,grid.arrange)
 importFrom(jsonlite,
   toJSON,
   write_json
-)
-importFrom(kableExtra,
-  add_header_above,
-  collapse_rows,
-  kable_styling,
-  pack_rows,
-  row_spec
-)
-importFrom(knitr,
-  kable,
-  knit,
-  opts_chunk
 )
 importFrom(latex2exp,TeX)
 importFrom(parallel,
