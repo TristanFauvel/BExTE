@@ -125,6 +125,19 @@ reference:
 
 - title: Plots
 - contents:
+  - method_style
+  - method_key
+  - method_shape_map
+  - method_hue_map
+  - method_hue_ramp
+  - method_parameter_colors
+  - method_parameter_color_map
+  - method_parameter_positions
+  - style_config_object
+  - style_blend
+  - style_label_numbers
+  - style_numeric_ranges
+  - style_tuple_key
   - plot_metric_vs_scenario
   - forest_plot
   - format_uncertainty

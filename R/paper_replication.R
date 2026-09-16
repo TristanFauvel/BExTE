@@ -489,6 +489,18 @@ paper_write_numbered_copies <- function(status, entries, numbered_dir) {
 export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
                                  case_studies_config_dir, progress = NULL,
                                  numbered_dir = NULL) {
+  ## Some generators build their paths with paste0(figures_dir, case_study)
+  ## rather than file.path(), so a directory named without a trailing
+  ## separator concatenates into a sibling of itself - "figures" and
+  ## "botox" become "figuresbotox". The figure is still written, just not
+  ## where the snapshot below is watching, and the run then reports "no
+  ## output" for a file that is on disk. The trailing slash is documented,
+  ## but a wrong status is a worse answer to forgetting it than simply
+  ## adding it here.
+  if (nzchar(figures_dir)) {
+    figures_dir <- paste0(sub("/+$", "", figures_dir), "/")
+  }
+
   dir.create(figures_dir, showWarnings = FALSE, recursive = TRUE)
   dir.create(tables_dir, showWarnings = FALSE, recursive = TRUE)
 
