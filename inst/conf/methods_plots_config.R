@@ -57,6 +57,32 @@ methods_labels <<- list(
   )
 )
 
+# Fixed shape and base hue per method, so a method is drawn the same way in
+# every figure it appears in. Both halves of that identity used to be derived
+# from whatever happened to be in the frame: shapes were handed out by position
+# in the list of methods present, so a case study missing one method shifted
+# every later method's shape, and colours came from an unseeded sample(), so
+# they differed between two runs of the same figure.
+#
+# The shape carries the method. Within a method, the parameter values become
+# shades of its hue - see method_parameter_colors(), which ramps them over the
+# range the methods configuration declares rather than over the values one
+# figure happens to show, so w = 0.5 is the same shade whether the figure
+# plots three weights or nine.
+methods_style <<- list(
+  RMP = list(shape = 16, hue = "#0072B2"),
+  separate = list(shape = 4, hue = "#7F7F7F"),
+  pooling = list(shape = 3, hue = "#000000"),
+  conditional_power_prior = list(shape = 15, hue = "#009E73"),
+  commensurate_power_prior = list(shape = 18, hue = "#CC79A7"),
+  NPP = list(shape = 17, hue = "#D55E00"),
+  PDCCPP = list(shape = 1, hue = "#56B4E9"),
+  EB_PP = list(shape = 8, hue = "#E69F00"),
+  p_value_based_PP = list(shape = 2, hue = "#9467BD"),
+  test_then_pool_difference = list(shape = 0, hue = "#8C564B"),
+  test_then_pool_equivalence = list(shape = 5, hue = "#17BECF")
+)
+
 # Contains information for plotting hyperparameters that are set using Empirical Bayes
 empirical_bayes_hyperparameters <<- list(
   RMP = list(

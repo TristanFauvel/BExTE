@@ -568,3 +568,374 @@ com_pp_params_filtering = function(key, parameter){ # TODO : remove ?
 
   return(filter)
 }
+
+
+## ---------------------------------------------------------------------------
+## Method plotting style
+##
+## A method has to look the same in every figure it appears in, otherwise a
+## reader cannot carry a symbol from one panel to the next. The shape carries
+## the method; within a method, the parameter values are shades of the method's
+## hue. Both come from the methods_style table rather than from the contents of
+## the figure being drawn.
+## ---------------------------------------------------------------------------
+
+#' Resolve a configuration object the plot code keeps in the global environment
+#'
+#' @description conf/methods_plots_config.R and the run's methods configuration
+#'   assign with `<<-`, so the plot code reads them as free variables the way it
+#'   already reads `font`, `dpi` and `textwidth`. Returning NULL rather than
+#'   erroring lets the style helpers be called with an explicit table in tests,
+#'   where no configuration has been loaded.
+#'
+#' @param name The object to look up.
+#' @return The object, or NULL when no configuration has been loaded.
+#' @keywords internal
+style_config_object <- function(name) {
+  mget(name, envir = environment(), ifnotfound = list(NULL), inherits = TRUE)[[1]]
+}
+
+style_methods_labels <- function() style_config_object("methods_labels")
+
+style_methods_dict <- function() style_config_object("methods_dict")
+
+#' Resolve a method to its configuration key
+#'
+#' @description The plot code overwrites `results_df$method` with the display
+#'   label before it builds the scales, so a method reaches the style helpers
+#'   as either `"conditional_power_prior"` or `"Conditional PP"`. Both have to
+#'   land on the same entry.
+#'
+#' @param method A method key or display label.
+#' @param labels The method label table.
+#' @return The method key, or the input unchanged when no label matches.
+#' @keywords internal
+method_key <- function(method, labels = style_methods_labels()) {
+  method <- as.character(method)[1]
+
+  if (is.null(labels) || method %in% names(labels)) {
+    return(method)
+  }
+
+  display <- vapply(labels, function(entry) {
+    if (is.null(entry$label)) NA_character_ else as.character(entry$label)[1]
+  }, character(1))
+
+  hit <- names(labels)[!is.na(display) & display == method]
+
+  if (length(hit) == 1) hit else method
+}
+
+#' Fixed shape and hue for a method
+#'
+#' @param method A method key or display label.
+#' @param styles The style table, from conf/methods_plots_config.R.
+#' @param labels The method label table, used to resolve a display label.
+#' @return A list with `shape` and `hue`.
+#' @keywords internal
+method_style <- function(method,
+                         styles = methods_style,
+                         labels = style_methods_labels()) {
+  style <- styles[[method_key(method, labels = labels)]]
+
+  if (is.null(style)) {
+    stop(sprintf(
+      "No plot style defined for method '%s'. Add an entry to methods_style in conf/methods_plots_config.R.",
+      as.character(method)[1]
+    ))
+  }
+
+  style
+}
+
+#' Shapes for a set of methods, keyed by method
+#'
+#' @description A named vector, so `scale_shape_manual()` matches by name
+#'   instead of by position. The codes used to be handed out as
+#'   `shape_codes[1:length(unique_methods)]` over the methods present in one
+#'   figure, which meant a case study missing a method shifted the shape of
+#'   every method after it.
+#'
+#' @param methods Method keys or display labels.
+#' @param styles The style table.
+#' @param labels The method label table.
+#' @return A named numeric vector of plotting characters.
+#' @keywords internal
+method_shape_map <- function(methods,
+                             styles = methods_style,
+                             labels = style_methods_labels()) {
+  methods <- unique(as.character(methods))
+
+  stats::setNames(
+    vapply(
+      methods,
+      function(method) as.numeric(method_style(method, styles = styles, labels = labels)$shape),
+      numeric(1)
+    ),
+    methods
+  )
+}
+
+#' Blend a colour towards another
+#'
+#' @param color The colour to start from.
+#' @param towards The colour to move towards.
+#' @param weight How far to move, between 0 and 1.
+#' @return A hex colour string.
+#' @keywords internal
+style_blend <- function(color, towards, weight) {
+  mixed <- (1 - weight) * grDevices::col2rgb(color)[, 1] +
+    weight * grDevices::col2rgb(towards)[, 1]
+
+  grDevices::rgb(mixed[1], mixed[2], mixed[3], maxColorValue = 255)
+}
+
+#' A light-to-dark ramp through a method's hue
+#'
+#' @param hue The method's base colour, which sits at the middle of the ramp.
+#' @param light_weight How far towards white the light end sits.
+#' @param dark_weight How far towards black the dark end sits.
+#' @return A function mapping positions in [0, 1] to hex colours.
+#' @keywords internal
+method_hue_ramp <- function(hue, light_weight = 0.75, dark_weight = 0.45) {
+  ramp <- grDevices::colorRamp(c(
+    style_blend(hue, "#FFFFFF", light_weight),
+    hue,
+    style_blend(hue, "#000000", dark_weight)
+  ))
+
+  function(positions) {
+    channels <- ramp(pmin(pmax(positions, 0), 1))
+    grDevices::rgb(channels[, 1], channels[, 2], channels[, 3], maxColorValue = 255)
+  }
+}
+
+#' Numbers a parameter label assigns to its parameters
+#'
+#' @description Only numbers introduced by "=" count. A notation such as the
+#'   initial prior's carries a digit of its own (pi nought) that has nothing to
+#'   do with the value the parameter took.
+#'
+#' @param label A parameter label, as plain text.
+#' @return The numbers in the order they appear, possibly none.
+#' @keywords internal
+style_label_numbers <- function(label) {
+  matches <- regmatches(label, gregexpr("=\\s*-?[0-9]+\\.?[0-9]*", label))[[1]]
+
+  if (length(matches) == 0) {
+    return(numeric(0))
+  }
+
+  suppressWarnings(as.numeric(sub("^=\\s*", "", matches)))
+}
+
+#' The numeric parameter ranges a method's configuration declares
+#'
+#' @description Mirrors the selection `make_labels_from_parameters()` makes, so
+#'   the ranges line up with the numbers that end up in the labels: a parameter
+#'   is shown when it says so through `display`, or when its range holds more
+#'   than one value. Non-numeric ranges are skipped - a categorical parameter
+#'   has no ramp to sit on.
+#'
+#' @param key The method key.
+#' @param dict The run's methods configuration.
+#' @return A list of numeric vectors, in configuration order.
+#' @keywords internal
+style_numeric_ranges <- function(key, dict) {
+  spec <- dict[[key]]
+
+  if (is.null(spec)) {
+    return(list())
+  }
+
+  ranges <- list()
+
+  for (name in names(spec)) {
+    parameter <- spec[[name]]
+    values <- suppressWarnings(as.numeric(unlist(parameter$range)))
+
+    if (length(values) == 0 || anyNA(values)) {
+      next
+    }
+
+    displayed <- if (!is.null(parameter$display)) {
+      isTRUE(parameter$display)
+    } else {
+      length(parameter$range) > 1
+    }
+
+    if (displayed) {
+      ranges[[name]] <- values
+    }
+  }
+
+  ranges
+}
+
+#' A tuple of parameter values as a lookup key
+#'
+#' @description Rounded to the two decimals `make_labels_from_parameters()`
+#'   rounds to, so a configured value and the number parsed back out of its
+#'   label agree despite floating point.
+#'
+#' @param values A numeric vector.
+#' @return A single string.
+#' @keywords internal
+style_tuple_key <- function(values) {
+  paste(format(round(values, 2), nsmall = 2, trim = TRUE), collapse = "|")
+}
+
+#' Where each parameter label sits on its method's ramp
+#'
+#' @description Anchored on the range the configuration declares rather than on
+#'   the values one figure happens to show. A figure plotting w in {0.1, 0.5,
+#'   0.9} and one plotting all nine weights put w = 0.5 at the same place, and
+#'   so give it the same shade; ranking the values present would not.
+#'
+#'   Labels carrying no recoverable number - categorical parameters - fall back
+#'   to sorted order, which is at least reproducible between runs.
+#'
+#' @param key The method key.
+#' @param parameter_labels The labels to place, as plain text.
+#' @param dict The run's methods configuration.
+#' @return A numeric vector of positions in [0, 1].
+#' @keywords internal
+method_parameter_positions <- function(key, parameter_labels, dict) {
+  values <- lapply(parameter_labels, style_label_numbers)
+  width <- unique(lengths(values))
+
+  if (length(width) == 1 && width > 0) {
+    ranges <- style_numeric_ranges(key, dict)
+
+    if (length(ranges) == width) {
+      if (width == 1) {
+        span <- range(ranges[[1]])
+
+        if (is.finite(diff(span)) && diff(span) > 0) {
+          observed <- vapply(values, function(value) value[1], numeric(1))
+          return(pmin(pmax((observed - span[1]) / diff(span), 0), 1))
+        }
+      } else {
+        ## More than one parameter varies, so there is no single number to
+        ## normalise. Walk the configured grid in order instead and take each
+        ## combination's place in it.
+        grid <- expand.grid(ranges, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+        grid <- grid[do.call(order, as.list(grid)), , drop = FALSE]
+
+        grid_keys <- apply(grid, 1, function(row) style_tuple_key(as.numeric(row)))
+        label_keys <- vapply(values, style_tuple_key, character(1))
+        place <- match(label_keys, grid_keys)
+
+        if (!anyNA(place) && length(grid_keys) > 1) {
+          return((place - 1) / (length(grid_keys) - 1))
+        }
+      }
+    }
+  }
+
+  ranks <- rank(parameter_labels, ties.method = "first")
+
+  (ranks - 1) / max(length(ranks) - 1, 1)
+}
+
+#' Colours for the parameter values of one method
+#'
+#' @description Shades of the method's hue, light for low parameter values and
+#'   dark for high ones. Returned named by the labels asked for, so that
+#'   `scale_color_manual()` is a lookup rather than a position - which is what
+#'   keeps a parameter value the same colour from one figure to the next. These
+#'   colours used to come from an unseeded `sample()` over a 50-colour palette,
+#'   so they differed between two runs of the same figure.
+#'
+#' @param method A method key or display label.
+#' @param parameter_labels The labels to colour, as plain text.
+#' @param styles The style table.
+#' @param dict The run's methods configuration.
+#' @param labels The method label table.
+#' @return A named character vector of hex colours.
+#' @keywords internal
+method_parameter_colors <- function(method,
+                                    parameter_labels,
+                                    styles = methods_style,
+                                    dict = style_methods_dict(),
+                                    labels = style_methods_labels()) {
+  hue <- method_style(method, styles = styles, labels = labels)$hue
+  parameter_labels <- unique(as.character(parameter_labels))
+
+  if (length(parameter_labels) == 0) {
+    return(stats::setNames(character(0), character(0)))
+  }
+
+  ## One key needs no ramp: Pooling and Separate take no parameters, and their
+  ## single entry should be the colour the table names rather than a washed-out
+  ## end of a ramp.
+  if (length(parameter_labels) == 1) {
+    return(stats::setNames(hue, parameter_labels))
+  }
+
+  positions <- method_parameter_positions(
+    method_key(method, labels = labels),
+    parameter_labels,
+    dict = dict
+  )
+
+  stats::setNames(method_hue_ramp(hue)(positions), parameter_labels)
+}
+
+#' Base hues for a set of methods, keyed by method
+#'
+#' @description The companion to `method_shape_map()`, for the figures that
+#'   colour by method rather than by parameter value.
+#'
+#' @param methods Method keys or display labels.
+#' @param styles The style table.
+#' @param labels The method label table.
+#' @return A named character vector of hex colours.
+#' @keywords internal
+method_hue_map <- function(methods,
+                           styles = methods_style,
+                           labels = style_methods_labels()) {
+  methods <- unique(as.character(methods))
+
+  stats::setNames(
+    vapply(
+      methods,
+      function(method) method_style(method, styles = styles, labels = labels)$hue,
+      character(1)
+    ),
+    methods
+  )
+}
+
+#' Colours for the parameter values present in one method's rows
+#'
+#' @description The plot code carries two spellings of each parameter label: the
+#'   plotmath expression the legend is drawn with, and the plain text it was
+#'   built from. Only the plain text still holds the numbers that place a value
+#'   on its method's ramp, while the scale has to be keyed by the expression the
+#'   layers map to, so the two are paired up row by row here.
+#'
+#' @param df_subset One method's rows, carrying `parameters_labels` and
+#'   `parameters_labels_not_latex`.
+#' @param method The method key or display label.
+#' @param ... Passed on to `method_parameter_colors()`.
+#' @return A character vector of hex colours, named by the plotmath labels.
+#' @keywords internal
+method_parameter_color_map <- function(df_subset, method, ...) {
+  display <- as.character(df_subset$parameters_labels)
+  plain <- as.character(df_subset$parameters_labels_not_latex)
+
+  if (length(plain) != length(display)) {
+    stop("parameters_labels_not_latex must accompany parameters_labels.")
+  }
+
+  keep <- !duplicated(display)
+  display <- display[keep]
+  plain <- plain[keep]
+
+  colors <- method_parameter_colors(method, plain, ...)
+
+  ## Empty parameter labels are valid for Pooling, Separate and EBPP.
+  ## Character indexing never matches an empty name; match() does.
+  stats::setNames(unname(colors[match(plain, names(colors))]), display)
+}

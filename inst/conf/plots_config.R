@@ -7,7 +7,10 @@ cmap <- viridis::viridis(255)
 markers_list <- c("o", "s", "D", "^", "v", "p", "*", "+", "x")
 markersize <- 1
 relative_error_cap_width <- 0.05
-dpi <- 300
+## Raster resolution for the PNG copies. The PDFs are vector and ignore
+## this. 600 is what journals ask for on line art; the figures are sized
+## in inches, so raising it adds pixels without shrinking the text.
+dpi <- 600
 ## Point sizes as rendered: the plot themes use these directly, so the
 ## number here is the font size you see on the figure.
 text_size <- 12

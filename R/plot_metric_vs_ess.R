@@ -145,8 +145,13 @@ plot_metric_vs_ess <- function(results_metrics_df,
       shape = "Methods" # Title for the shape legend
     )
 
+  ## Keyed by method, not by position among the methods this figure happens to
+  ## contain: viridis_d and the default shape scale both hand out their values
+  ## in level order, so a case study missing a method recoloured every method
+  ## after it. Here a method carries the same colour and symbol everywhere.
   plt <- plt +
-    scale_color_viridis_d()   # Apply viridis color scale
+    scale_color_manual(values = method_hue_map(results_df$method), name = "Methods") +
+    scale_shape_manual(values = method_shape_map(results_df$method), name = "Methods")
 
   # Save plot
   plot.size <- set_size(textwidth)

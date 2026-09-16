@@ -408,6 +408,12 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
     })
 
+    ## The plotmath labels cannot be read back for the numbers they carry, and
+    ## method_parameter_colors() needs those to place a value on its ramp.
+    results_df$parameters_labels_not_latex <- lapply(1:nrow(results_df), function(i) {
+      process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
+    })
+
     results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
     })
@@ -444,8 +450,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
 
     results_df_split <- split(results_df, results_df$method)
     unique_methods <- sort(unique(results_df$method))
-    shape_codes <- c(16, 2, 15, 18, 1, 8, 4, 3, 7, 9)
-    shapes <- setNames(shape_codes[seq_along(unique_methods)], unique_methods)
+    shapes <- method_shape_map(unique_methods)
 
 
     title = sprintf(
@@ -468,13 +473,8 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
         return()
       }
 
-      # Generate a large color palette
-      full_palette <- scales::hue_pal()(50)  # Generate a larger palette
-      # Randomly sample 'length(method_parameters)' colors from the full palette
-      method_colors <- setNames(
-        sample(full_palette, length(method_parameters), replace = FALSE),
-        method_parameters
-      )
+      # Shades of this method's hue, ordered by the parameter value
+      method_colors <- method_parameter_color_map(df_subset, method_name)
 
       # Get the shape for this method
       method_shape <- shapes[method_name]
