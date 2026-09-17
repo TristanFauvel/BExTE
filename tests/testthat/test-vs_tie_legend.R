@@ -5,7 +5,7 @@ make_vs_tie_legend_plot <- function() {
    n <- switch(method, RMP=9, 'Conditional PP'=3, 'Com. PP'=3, 1)
    params <- if (method %in% c('Pooling','Separate','EBPP')) list(expression('')) else lapply(seq_len(n),function(i) bquote(w == .(i/10)))
    d <- data.frame(x=seq_len(n)/20,y=seq_len(n)/10,k=factor(seq_len(n)))
-   p <- p + geom_point(data=d,aes(x,y,colour=k),shape=match(method,methods)) + scale_colour_discrete(name=if(n==1) NULL else method,labels=vs_tie_key_labels(method,params),guide=guide_legend(ncol=min(n,3),byrow=TRUE)) + new_scale_colour()
+   p <- p + geom_point(data=d,aes(x,y,colour=k),shape=match(method,methods)) + scale_colour_discrete(name=if(n==1) NULL else method,labels=vs_tie_key_labels(method,params),guide=guide_legend(ncol=min(n,3),byrow=TRUE)) + new_scale_color()
   }
   p <- p + theme_bw(base_size=12) + theme(legend.key.size=grid::unit(.1,'cm'),legend.margin=margin(2,2,2,2))
   list(plot = p, methods = methods)

@@ -73,6 +73,9 @@ PAPER_VS_TIE_LEGEND_LAYOUT <- rbind(
 ## the panel. The guide box is a gtable whose children are the individual
 ## legends, so they can be pulled out and arranged in columns.
 vs_tie_legend_grid <- function(plt, labels, available_in = Inf) {
+  close_device <- use_font_capable_device()
+  on.exit(close_device(), add = TRUE)
+
   built <- ggplot2::ggplotGrob(
     plt + ggplot2::theme(
       legend.position = "bottom", legend.box = "vertical",
@@ -169,6 +172,9 @@ vs_tie_legend_grid <- function(plt, labels, available_in = Inf) {
 ## Shared by frequentist and Bayesian metric plots. Grow the export when
 ## necessary; narrowing grid cells does not shrink the text inside them.
 vs_tie_compose <- function(plt, labels, width, height) {
+  close_device <- use_font_capable_device()
+  on.exit(close_device(), add = TRUE)
+
   legend <- vs_tie_legend_grid(plt, labels, available_in = width)
   if (is.null(legend)) return(list(plot = plt, width = width, height = height))
   legend_height <- grid::convertHeight(grid::grobHeight(legend), "in", valueOnly = TRUE)

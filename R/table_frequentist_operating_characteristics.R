@@ -442,13 +442,13 @@ table_metric_vs_parameters <- function(results_metrics_df,
     # Select the other parameters
     other_parameters <- unique(parameters_df[,-i])
 
-    if (is.null(nrow(other_parameters)) || nrow(other_parameters) == 0){
+    if (!has_other_parameters(other_parameters)){
       n_params_loop = 1
     } else {
       n_params_loop = nrow(other_parameters)
     }
     for (j in seq(n_params_loop)){
-      if (is.null(nrow(other_parameters)) || nrow(other_parameters) == 0){
+      if (!has_other_parameters(other_parameters)){
         other_params_label <- ""
         other_params_str <- ""
         parameters_subdf <- parameters_df
