@@ -669,6 +669,9 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     )
   )]
 
+  # Everything that identifies a scenario apart from the treatment effect. The
+  # type I error rate is joined back onto the scenarios it was computed for, so
+  # a design axis missing here would match one scenario's TIE to several rows.
   matching_columns <- c(
     "method",
     "parameters",
@@ -688,6 +691,14 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     "source_standard_error",
     "source_treatment_effect_estimate",
     "equivalent_source_sample_size_per_arm"
+  )
+
+  # Results written before the time-to-event design axes existed do not carry
+  # them, and such a run only ever had one design, so they join only when the
+  # columns are actually there.
+  matching_columns <- c(
+    matching_columns,
+    intersect(time_to_event_design_columns, names(results))
   )
 
   for (case_study in unique(results$case_study)){

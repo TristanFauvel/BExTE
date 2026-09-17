@@ -13,6 +13,25 @@ sample_size_factors:
 target_to_source_std_ratio_range:
     - 1
     - 2
+# Time-to-event design axes. They are only simulated for the time-to-event
+# endpoint, so the other case studies in this run are unaffected.
+# Control-arm heterogeneity kappa = log(target control rate) - log(source control
+# rate). The magnitude mirrors the denominator_change_factor range above: the
+# target placebo relapse rate is two thirds of, equal to, or half again the
+# source one. kappa = 0 is always simulated whether or not it is listed here.
+control_drift_range:
+    - -0.405
+    - 0
+    - 0.405
+# Probability that a patient is lost to follow-up over the maximum follow-up time.
+dropout_probability:
+    - 0
+    - 0.05
+    - 0.10
+# The Weibull arm is the sensitivity analysis; the exponential one is primary.
+event_time_distribution:
+    - exponential
+    - weibull
 case_studies:
     - belimumab
     - botox

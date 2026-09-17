@@ -73,11 +73,63 @@ important_drift_values <- function(source_treatment_effect,
 
 #' Compute the control drift range for a given source treatment effect.
 #'
+#' @description Control drift is the control-arm heterogeneity between the source
+#'   and the target population, kappa = log(control rate in the target) - log(control
+#'   rate in the source). Only the time-to-event endpoint simulates it; every other
+#'   case study keeps a single scenario with no control drift. The no-heterogeneity
+#'   scenario is always included, as it is the reference the others are read against.
+#'
 #' @param source_treatment_effect The source treatment effect.
+#' @param scenarios_config Configuration for the simulation.
+#' @param case_study_config Configuration for the case study.
 #'
 #' @return A vector representing the control drift range.
-compute_control_drift_range <- function(source_treatment_effect) {
-  return(c(0))
+compute_control_drift_range <- function(source_treatment_effect,
+                                        scenarios_config = NULL,
+                                        case_study_config = NULL) {
+  if (!identical(case_study_config$endpoint, "time_to_event")) {
+    return(c(0))
+  }
+
+  control_drift_range <- unlist(scenarios_config$control_drift_range)
+  if (is.null(control_drift_range)) {
+    return(c(0))
+  }
+
+  return(sort(unique(c(0, control_drift_range))))
+}
+
+#' Compute the ranges of the time-to-event design axes.
+#'
+#' @description The probability of loss to follow-up and the distribution of the
+#'   event times only change how a time-to-event trial is simulated, so every other
+#'   case study keeps a single scenario at the primary design rather than paying for
+#'   a cross product that would generate identical data.
+#'
+#' @param scenarios_config Configuration for the simulation.
+#' @param case_study_config Configuration for the case study.
+#'
+#' @return A list with the `dropout_probability` and `event_time_distribution` ranges.
+compute_time_to_event_ranges <- function(scenarios_config, case_study_config) {
+  if (!identical(case_study_config$endpoint, "time_to_event")) {
+    return(list(dropout_probability = 0, event_time_distribution = "exponential"))
+  }
+
+  dropout_probability <- unlist(scenarios_config$dropout_probability)
+  event_time_distribution <- unlist(scenarios_config$event_time_distribution)
+
+  list(
+    dropout_probability = if (is.null(dropout_probability)) {
+      0
+    } else {
+      sort(unique(dropout_probability))
+    },
+    event_time_distribution = if (is.null(event_time_distribution)) {
+      "exponential"
+    } else {
+      unique(event_time_distribution)
+    }
+  )
 }
 
 #' Compute the source denominator range for a given source data, simulation configuration, and case study configuration.
@@ -194,7 +246,16 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
     mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
     drift_range <- sort(c(drift_range, mandatory_drift_values))
 
-    control_drift_range <- compute_control_drift_range(source_treatment_effect_estimate)
+    control_drift_range <- compute_control_drift_range(
+      source_treatment_effect_estimate,
+      scenarios_config = scenarios_config,
+      case_study_config = case_study_config
+    )
+
+    time_to_event_ranges <- compute_time_to_event_ranges(
+      scenarios_config = scenarios_config,
+      case_study_config = case_study_config
+    )
 
     if (case_study_config$endpoint == "continuous") {
       target_to_source_std_ratio_range <- scenarios_config$target_to_source_std_ratio_range
@@ -205,10 +266,15 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
     n <- nrow(source_denominator)
 
     # Create drift/control drift pairs
+    # stringsAsFactors = FALSE keeps the event time distribution a character
+    # column: a factor would reach the results as its integer code.
     drift_combinations <- expand.grid(
       drift = drift_range,
       control_drift = control_drift_range,
-      target_to_source_std_ratio = target_to_source_std_ratio_range
+      target_to_source_std_ratio = target_to_source_std_ratio_range,
+      dropout_probability = time_to_event_ranges$dropout_probability,
+      event_time_distribution = time_to_event_ranges$event_time_distribution,
+      stringsAsFactors = FALSE
     )
 
     source_denominator_repeated <- source_denominator[rep(seq_len(n), each = nrow(drift_combinations)), ]
@@ -260,6 +326,8 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
           source_treatment_effect_estimate = source_treatment_effect_estimate,
           target_treatment_effect = target_treatment_effect,
           target_to_source_std_ratio = drift_combinations[i, "target_to_source_std_ratio"],
+          dropout_probability = drift_combinations[i, "dropout_probability"],
+          event_time_distribution = drift_combinations[i, "event_time_distribution"],
           theta_0 = theta_0,
           null_space = null_space
         )
