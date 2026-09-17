@@ -158,7 +158,19 @@ paper_manifest_figures_forest <- function() {
     manifest_forest("S34", "MSE for the three principal treatment-effect scenarios in the Aprepitant case study, with 143 participants per arm.", "aprepitant", 2, "mse"),
     manifest_forest("S35", "Empirical coverage of the 95% credible interval for the three principal treatment-effect scenarios in the Aprepitant case study, with 143 participants per arm.", "aprepitant", 2, "coverage"),
     manifest_forest("S36", "Probability of study success for the three principal treatment-effect scenarios in the Aprepitant case study (N_T/2 = 143).", "aprepitant", 2, "success_proba"),
-    manifest_forest("S37", "Probability of study success relative to a separate analysis for the three principal treatment-effect scenarios in the Aprepitant case study (N_T/2 = 143).", "aprepitant", 2, "success_proba", relative = TRUE)
+    manifest_forest("S37", "Probability of study success relative to a separate analysis for the three principal treatment-effect scenarios in the Aprepitant case study (N_T/2 = 143).", "aprepitant", 2, "success_proba", relative = TRUE),
+
+    ## Added in revision: a reviewer observed that the width of a credible
+    ## interval says little without its coverage, and asked for the interval
+    ## score, which charges an interval for its width and for excluding the
+    ## true effect in one number. These accompany the precision and coverage
+    ## figures for the same slice - S11, S19 and S21, S25, S35 - so that each
+    ## pair can be read together. Unlike every caption above, these are
+    ## written here rather than quoted from the manuscript.
+    manifest_forest("S38", "Interval score of the 95% credible interval, which combines its width with the penalty for excluding the true treatment effect, for the three principal treatment-effect scenarios in the Dapagliflozin case study (N_T/2 = 66). Smaller is better.", "dapagliflozin", 2, "interval_score"),
+    manifest_forest("S39", "Interval score of the 95% credible interval, which combines its width with the penalty for excluding the true treatment effect, for the three principal treatment-effect scenarios in the Belimumab case study, with 140 participants per arm. Smaller is better.", "belimumab", 4, "interval_score"),
+    manifest_forest("S40", "Interval score of the 95% credible interval, which combines its width with the penalty for excluding the true treatment effect, for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68). Smaller is better.", "mepolizumab", 4, "interval_score"),
+    manifest_forest("S41", "Interval score of the 95% credible interval, which combines its width with the penalty for excluding the true treatment effect, for the three principal treatment-effect scenarios in the Aprepitant case study, with 143 participants per arm. Smaller is better.", "aprepitant", 2, "interval_score")
   )
 }
 
@@ -173,7 +185,14 @@ paper_manifest_figures_vs_tie <- function() {
     manifest_vs_tie("S23", "Coverage of the 95% interval versus type I error rate in the Mepolizumab case study, with 68 participants per arm and no treatment effect.", "mepolizumab", 4, "coverage", "no_effect"),
     manifest_vs_tie("S28", "MSE versus type I error rate in the Teriflunomide case study (N_T/2 = 123), with a partially consistent treatment effect.", "teriflunomide", 6, "mse", "partially_consistent"),
     manifest_vs_tie("S29", "Coverage of the 95% interval versus type I error rate in the Teriflunomide case study, with 123 participants per arm and no treatment effect.", "teriflunomide", 6, "coverage", "no_effect"),
-    manifest_vs_tie("S33", "MSE versus type I error rate in the Aprepitant case study (N_T/2 = 71), with a partially consistent treatment effect.", "aprepitant", 4, "mse", "partially_consistent")
+    manifest_vs_tie("S33", "MSE versus type I error rate in the Aprepitant case study (N_T/2 = 71), with a partially consistent treatment effect.", "aprepitant", 4, "mse", "partially_consistent"),
+
+    ## Added in revision; see the note in paper_manifest_figures_forest().
+    ## One per coverage-versus-type-I-error figure - S8, S23, S29 - on the
+    ## same slice, so the score can be read against the coverage it folds in.
+    manifest_vs_tie("S42", "Interval score of the 95% credible interval versus type I error rate in the Botox case study, with 117 participants per arm, no treatment effect, and a target-to-source standard-deviation ratio of 1. Smaller is better.", "botox", 2, "interval_score", "no_effect"),
+    manifest_vs_tie("S43", "Interval score of the 95% credible interval versus type I error rate in the Mepolizumab case study, with 68 participants per arm and no treatment effect. Smaller is better.", "mepolizumab", 4, "interval_score", "no_effect"),
+    manifest_vs_tie("S44", "Interval score of the 95% credible interval versus type I error rate in the Teriflunomide case study, with 123 participants per arm and no treatment effect. Smaller is better.", "teriflunomide", 6, "interval_score", "no_effect")
   )
 }
 

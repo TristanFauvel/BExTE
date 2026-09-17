@@ -48,7 +48,7 @@ completed_run_results_dir <- function(env, dirs = list_results_dirs()) {
 ## `dirs` arrives newest-first from list_results_dirs(). Landing on whichever
 ## directory happens to sort first is how a 1000-replicate, two-method
 ## smoke-test directory ends up selected by default and reported as covering
-## 13 of 42 items - so an unfaithful directory is never chosen for you, only
+## 13 of 49 items - so an unfaithful directory is never chosen for you, only
 ## picked deliberately.
 default_results_dir <- function(dirs, requirements, config_reader = paper_run_config) {
   for (dir in dirs) {
@@ -212,7 +212,7 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     ## directory lacks. A run covering only the gap leaves a directory that
     ## cannot produce the rest on its own: with a botox-only directory
     ## selected, Step 2 used to simulate the five other case studies and omit
-    ## botox, so no single directory could make all 42 and Step 3 had to
+    ## botox, so no single directory could make all 49 and Step 3 had to
     ## export from one of them. character(0) means the selected directory
     ## already covers everything, at the paper's fidelity.
     run_ids <- shiny::reactive({

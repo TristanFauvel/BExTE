@@ -6,10 +6,12 @@
 test_that("the manifest covers every paper item exactly once", {
   ids <- paper_manifest_ids()
 
-  expect_length(ids, 42)
-  expect_length(unique(ids), 42)
+  expect_length(ids, 49)
+  expect_length(unique(ids), 49)
   expect_true(all(c("1", "2", "3", "4") %in% ids))
   expect_true(all(paste0("S", 3:37) %in% ids))
+  ## S38-S44 are the interval-score figures added in revision.
+  expect_true(all(paste0("S", 38:44) %in% ids))
   expect_true(all(c("TS1", "TS2", "TS7") %in% ids))
   ## Table S8 is out of scope; figure S8 is not.
   expect_false("TS8" %in% ids)
@@ -68,6 +70,41 @@ test_that("the headline figures name the slice their captions describe", {
   expect_equal(fig3$case_study, "botox")
   expect_equal(fig3$sample_size_factor, 2)
   expect_equal(fig3$metric, "mse")
+})
+
+test_that("the interval-score figures accompany the precision and coverage ones", {
+  ## Each new figure has to plot the same slice as the figure it is read
+  ## against, or the pair says nothing: a score on belimumab at 140 per arm
+  ## cannot be compared with a half-width on a different sample size.
+  pairs <- list(
+    list(new = "S38", existing = "S11"),
+    list(new = "S39", existing = "S19"),
+    list(new = "S39", existing = "S21"),
+    list(new = "S40", existing = "S25"),
+    list(new = "S41", existing = "S35"),
+    list(new = "S42", existing = "S8"),
+    list(new = "S43", existing = "S23"),
+    list(new = "S44", existing = "S29")
+  )
+
+  for (pair in pairs) {
+    new_entry <- paper_manifest_entry(pair$new)
+    existing <- paper_manifest_entry(pair$existing)
+
+    expect_equal(new_entry$metric, "interval_score", info = pair$new)
+    expect_equal(new_entry$case_study, existing$case_study, info = pair$new)
+    expect_equal(new_entry$sample_size_factor, existing$sample_size_factor,
+                 info = pair$new)
+  }
+})
+
+test_that("the added ids sort after the manuscript's own supplement", {
+  ## paper_manifest() orders by the numeric part of the id, so an id that is
+  ## not S<number> would sort as NA and land at the end silently.
+  ids <- paper_manifest_ids()
+  figures <- ids[!startsWith(ids, "TS")]
+
+  expect_equal(tail(figures, 7), paste0("S", 38:44))
 })
 
 test_that("paper_manifest_entry rejects an unknown id", {

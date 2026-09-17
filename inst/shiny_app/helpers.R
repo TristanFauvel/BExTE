@@ -64,6 +64,7 @@ BEXTE_METRIC_LABELS <- c(
   mse = "Mean squared error",
   bias = "Bias",
   precision = "95% credible interval half-width",
+  interval_score = "95% credible interval score",
   average_tie = "Average type I error",
   average_power = "Average power",
   prior_proba_no_benefit = "Prior probability of no benefit",
