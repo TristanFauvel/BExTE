@@ -247,5 +247,26 @@ methods_dict <- list(
       type = "categorical",
       is_updated = FALSE
     )
+  ),
+  commensurate_prior = list(
+    heterogeneity_prior = list(
+      range = list(
+        list(family = "inverse_gamma", alpha = 1 / 7, beta = 1)
+      ),
+      parameter_name = "Heterogeneity prior",
+      parameter_label = "tau",
+      parameter_notation = "$\\tau$",
+      type = "categorical",
+      important_values = list(family = "inverse_gamma", alpha = 1 / 7, beta = 1),
+      is_updated = FALSE
+    ),
+    initial_prior = list(
+      range = list("noninformative"),
+      parameter_name = "Initial prior",
+      parameter_label = "pi_0",
+      parameter_notation = "$\\pi_0$",
+      type = "categorical",
+      is_updated = FALSE
+    )
   )
 )

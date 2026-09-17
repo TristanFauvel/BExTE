@@ -7,7 +7,8 @@
 PAPER_METHODS <- c(
   "RMP", "separate", "pooling", "conditional_power_prior",
   "test_then_pool_equivalence", "test_then_pool_difference",
-  "p_value_based_PP", "EB_PP", "PDCCPP", "NPP", "commensurate_power_prior"
+  "p_value_based_PP", "EB_PP", "PDCCPP", "NPP", "commensurate_power_prior",
+  "commensurate_prior"
 )
 
 #' Minimal simulation config for a set of paper figures

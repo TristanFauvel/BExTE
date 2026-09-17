@@ -1,32 +1,17 @@
-# The commensurate power prior is the one model on the vectorised fast path
-# whose scalar path is a Stan fit rather than a closed form. It therefore
-# cannot be compared replicate by replicate to machine precision, the way
-# test-vectorised_kernel_equivalence.R and test-vectorised_npp.R compare the
-# others: the scalar path is exact only up to Monte Carlo error.
+# The gamma == 1 counterpart of test-commensurate-stan-equivalence.R: the plain
+# commensurate prior also runs the simulation through a quadrature mixture
+# rather than a Stan fit per replicate, so the same agreement has to hold.
 #
-# What can be pinned is that Monte Carlo error is the only thing between them.
-# On fixed data the largest absolute gap falls off like the square root of the
-# chain length, with no floor:
-#
-#   iterations per chain    1000      4000     16000     64000
-#   posterior mean       3.7e-03   7.1e-04   9.0e-04   5.3e-04
-#   posterior median     2.2e-03   1.4e-03   1.2e-03   2.5e-04
-#   credible interval    1.3e-02   5.2e-03   3.1e-03   2.1e-03
-#   power parameter      9.9e-03   3.0e-03   3.0e-03   1.2e-03
-#   tau                  1.7e-02   7.3e-03   3.4e-03   3.4e-03
-#
-# The bounds below are set several times the 4000-iteration column, which is
-# what this test samples, so they fail on a systematic difference rather than
-# on an unlucky seed.
+# Its mixture is one dimensional where the power prior's is two, so the
+# quadrature error is smaller here, but the scalar path is still a sampler and
+# the bounds are still set several times the Monte Carlo error at this chain
+# length. The case study and the sampler settings are shared with that file,
+# through helper-commensurate.R.
 #
 # Sampling means compiling and running the Stan program, so the test is skipped
 # wherever CmdStan is unavailable, as it is in CI.
 
-# commensurate_equivalence_config() and commensurate_equivalence_mcmc_config()
-# live in helper-commensurate.R, so that the gamma == 1 model's equivalence
-# test compares the two paths on exactly the same case study.
-
-test_that("the commensurate fast path agrees with the Stan fit it replaces", {
+test_that("the commensurate prior fast path agrees with the Stan fit", {
   skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"
@@ -45,11 +30,10 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
     target_to_source_std_ratio = 1
   )
 
-  # A half-normal tau, so that every reported moment exists on both paths. The
-  # families whose moments diverge are covered separately below.
+  # A half-normal tau, so that every reported moment exists on both paths.
   model <- Model$new()$create(
     case_study_config = case_study_config,
-    method = "commensurate_power_prior",
+    method = "commensurate_prior",
     method_parameters = list(
       initial_prior = list("noninformative"),
       heterogeneity_prior = list(family = "half_normal", std_dev = 1)
@@ -58,9 +42,11 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
     mcmc_config = mcmc_config
   )
 
+  expect_s3_class(model, "GaussianCommensuratePrior")
+
   scalar_class <- R6::R6Class(
-    "ScalarOnlyCommensurate",
-    inherit = GaussianCommensuratePowerPrior,
+    "ScalarOnlyCommensuratePrior",
+    inherit = GaussianCommensuratePrior,
     public = list(vectorised_replicate_inference = function(...) NULL)
   )
   reference <- scalar_class$new(prior = model$prior, mcmc_config = mcmc_config)
@@ -96,7 +82,7 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
       confidence_level = 0.95,
       null_space = "left",
       case_study = "unit_test",
-      method = "commensurate_power_prior",
+      method = "commensurate_prior",
       to_return = to_return,
       n_samples_quantiles_estimation = 100
     )
@@ -112,12 +98,6 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
   expect_lt(largest_gap(function(x) x$posterior_medians), 5e-3)
   expect_lt(largest_gap(function(x) x$credible_intervals), 2e-2)
   expect_lt(
-    largest_gap(function(x) x$posterior_parameters$power_parameter_mean), 1.5e-2
-  )
-  expect_lt(
-    largest_gap(function(x) x$posterior_parameters$power_parameter_std), 1.5e-2
-  )
-  expect_lt(
     largest_gap(function(x) x$posterior_parameters$heterogeneity_parameter_mean),
     3e-2
   )
@@ -125,6 +105,10 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
     largest_gap(function(x) x$posterior_parameters$heterogeneity_parameter_std),
     3e-2
   )
+
+  # Neither path has a power parameter to report.
+  expect_null(vectorised$posterior_parameters$power_parameter_mean)
+  expect_null(scalar$posterior_parameters$power_parameter_mean)
 
   # The decision compares the lower interval bound against theta_0, so a
   # replicate whose bound sits within Monte Carlo error of it can legitimately
@@ -135,14 +119,19 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
 })
 
 
-test_that("the fast path parts from Stan only where the moments diverge", {
+test_that("the Stan fit borrows more than the power prior's does", {
   skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"
   )
 
+  # Dropping gamma removes a discount that can only ever widen the prior, so on
+  # the same data and the same tau prior the commensurate prior has to sit
+  # closer to the source estimate than the commensurate power prior does. This
+  # is the substantive difference between the two methods, and it is what the
+  # paper compares them for.
   case_study_config <- commensurate_equivalence_config()
-  mcmc_config <- commensurate_equivalence_mcmc_config(chain_length = 2000L)
+  mcmc_config <- commensurate_equivalence_mcmc_config()
   source_data <- SourceData$new(case_study_config)
   target_data <- TargetDataFactory$new()$create(
     source_data = source_data,
@@ -154,64 +143,46 @@ test_that("the fast path parts from Stan only where the moments diverge", {
     target_to_source_std_ratio = 1
   )
 
-  model <- Model$new()$create(
-    case_study_config = case_study_config,
-    method = "commensurate_power_prior",
-    method_parameters = list(
-      initial_prior = list("noninformative"),
-      heterogeneity_prior = list(family = "inverse_gamma", alpha = 1 / 3, beta = 1)
-    ),
-    source_data = source_data,
-    mcmc_config = mcmc_config
+  method_parameters <- list(
+    initial_prior = list("noninformative"),
+    heterogeneity_prior = list(family = "half_normal", std_dev = 1)
   )
+  fitted <- function(method) {
+    Model$new()$create(
+      case_study_config = case_study_config,
+      method = method,
+      method_parameters = method_parameters,
+      source_data = source_data,
+      mcmc_config = mcmc_config
+    )
+  }
 
-  scalar_class <- R6::R6Class(
-    "ScalarOnlyCommensurate",
-    inherit = GaussianCommensuratePowerPrior,
-    public = list(vectorised_replicate_inference = function(...) NULL)
-  )
-  reference <- scalar_class$new(prior = model$prior, mcmc_config = mcmc_config)
-  reference$prior <- model$prior
-  reference$draws_dir <- model$draws_dir
-
-  to_return <- c("posterior_mean", "posterior_parameters")
-  run <- function(fitted) {
-    set.seed(11)
-    fitted$simulation_for_given_treatment_effect(
+  run <- function(method) {
+    set.seed(7)
+    fitted(method)$simulation_for_given_treatment_effect(
       target_data = target_data,
-      n_replicates = 3,
+      n_replicates = 4,
       critical_value = 0.975,
       theta_0 = 0,
       confidence_level = 0.95,
       null_space = "left",
       case_study = "unit_test",
-      method = "commensurate_power_prior",
-      to_return = to_return,
+      method = method,
+      to_return = c("posterior_mean", "credible_interval"),
       n_samples_quantiles_estimation = 100
     )
   }
 
-  vectorised <- run(model)
-  scalar <- run(reference)
+  commensurate <- run("commensurate_prior")
+  power <- run("commensurate_power_prior")
 
-  # The treatment effect and the power parameter are unaffected by the tau
-  # tail, so they still agree.
-  expect_lt(max(abs(vectorised$posterior_means - scalar$posterior_means)), 5e-3)
-  expect_lt(
-    max(abs(vectorised$posterior_parameters$power_parameter_mean -
-              scalar$posterior_parameters$power_parameter_mean)),
-    2e-2
-  )
+  source_estimate <- source_data$treatment_effect_estimate
+  expect_true(all(
+    abs(commensurate$posterior_means - source_estimate) <=
+      abs(power$posterior_means - source_estimate) + 1e-8
+  ))
 
-  # E[tau] does not exist under an InvGamma(1/3, 1) prior on tau^2, and the
-  # target marginal likelihood tends to a positive constant as tau grows, so
-  # the posterior does not restore it. The sampler still returns a number,
-  # because it only ever visits finitely many draws, but that number is a
-  # property of the run rather than of the posterior. The fast path says so.
-  expect_true(all(is.infinite(
-    vectorised$posterior_parameters$heterogeneity_parameter_mean
-  )))
-  expect_true(all(is.finite(
-    scalar$posterior_parameters$heterogeneity_parameter_mean
-  )))
+  # More borrowing also means a tighter interval.
+  width <- function(x) x$credible_intervals[, 2] - x$credible_intervals[, 1]
+  expect_true(all(width(commensurate) <= width(power) + 1e-8))
 })
