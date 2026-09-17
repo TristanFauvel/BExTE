@@ -939,3 +939,68 @@ method_parameter_color_map <- function(df_subset, method, ...) {
   ## Character indexing never matches an empty name; match() does.
   stats::setNames(unname(colors[match(plain, names(colors))]), display)
 }
+
+#' Axis breaks that always show the nominal type-I error
+#'
+#' `pretty()` picks breaks that ignore the nominal TIE, so forcing the
+#' nominal value in alongside them leaves two labels sitting on top of each
+#' other. `check.overlap` resolves that collision the wrong way round: it
+#' draws labels leftmost-first and discards the nominal tick, which is the
+#' one the plot is read against. Drop the neighbouring pretty breaks
+#' instead, so the nominal value is the only label in its neighbourhood.
+#'
+#' @param nominal_tie The nominal type-I error rate, or `NULL` when the
+#'   scale has no nominal value to mark.
+#' @return A function of the scale limits returning a sorted break vector.
+#' @keywords internal
+nominal_tie_breaks <- function(nominal_tie) {
+  force(nominal_tie)
+
+  function(limits) {
+    breaks <- pretty(limits)
+
+    if (length(nominal_tie) != 1 || !is.finite(nominal_tie)) {
+      return(breaks)
+    }
+
+    # Half a step is roughly the width of a break label at these font sizes.
+    spacing <- if (length(breaks) > 1) min(diff(breaks)) else diff(range(limits))
+    clear <- abs(breaks - nominal_tie) >= 0.5 * spacing
+
+    sort(unique(c(breaks[clear], nominal_tie)))
+  }
+}
+
+#' Whether a pair of bound columns carries Monte Carlo uncertainty
+#'
+#' The power baselines are estimated one of two ways. A closed-form power has
+#' no Monte Carlo error, and the compute_freq_power() family reports that as a
+#' degenerate interval, `c(power, power)`. Drawing those bounds would put a
+#' zero-height error bar - a bare cap tick - through every marker, so a plot
+#' asks this first and adds the layer only when the bounds say something.
+#'
+#' Bound columns missing from `data` count as no uncertainty: results written
+#' before the bounds were recorded still have to plot.
+#'
+#' @param data The dataframe backing the layer.
+#' @param lower,upper Names of the bound columns, or `NULL`.
+#'
+#' @return `TRUE` when both columns are present and some row spans a non-zero
+#'   width, `FALSE` otherwise.
+#' @keywords internal
+has_monte_carlo_uncertainty <- function(data, lower, upper) {
+  if (is.null(lower) || is.null(upper)) {
+    return(FALSE)
+  }
+
+  lower <- as.character(lower)
+  upper <- as.character(upper)
+
+  if (!all(c(lower, upper) %in% colnames(data))) {
+    return(FALSE)
+  }
+
+  width <- data[[upper]] - data[[lower]]
+
+  any(is.finite(width) & width > 0)
+}

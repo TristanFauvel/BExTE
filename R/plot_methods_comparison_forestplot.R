@@ -174,14 +174,14 @@ forest_ess_values <- function(data) {
 ## colour scale on the N_T/2 and N_S/2 reference lines.
 forest_ess_layer <- function(data, palette, ess_limits) {
   if (is.null(forest_ess_values(data)) || !is.null(palette)) {
-    return(forest_ink_layer(geom_pointrange, palette, size = 0.001))
+    return(forest_ink_layer(geom_pointrange, palette, size = 0.001, linewidth = 1))
   }
   ggplot2::geom_pointrange(
     ggplot2::aes(fill = ess_moment),
     ## No explicit colour: the outline stays at ggplot2's default so the
     ## dark-theme palette can still set it, which is the contract
     ## forest_ink_layer() exists to honour.
-    shape = 21, stroke = 0.2, size = 0.61, linewidth = 0.6
+    shape = 21, stroke = 0.2, size = 0.61, linewidth = 1.2
   )
 }
 
@@ -612,7 +612,7 @@ forest_combined_plot <- function(data,
       color = effect_type
     )
   ) +
-    geom_pointrange(size = 0.001) +
+    geom_pointrange(size = 0.001, linewidth = 1) +
     ggplot2::labs(
       title = "Add title",
       x = x_metric_label,
