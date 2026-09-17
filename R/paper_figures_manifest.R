@@ -79,7 +79,11 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   ## single combination and nothing to thin.
   egidi_empirical_mixture = list(),
   p_value_based_PP = list(shape_parameter = 1, equivalence_margin = 0.5),
-  NPP = list(power_parameter_mean = 0.5, power_parameter_std = 0.2)
+  NPP = list(power_parameter_mean = 0.5, power_parameter_std = 0.2),
+  ## Both maximum-tolerable-discrepancy multipliers: the calibration is what
+  ## distinguishes this method from the plain NPP, and the multiplier is the
+  ## knob it turns, so thinning to one would hide the thing being shown.
+  NPP_KL = list()
 )
 
 ## Keep only the rows PAPER_VS_TIE_COMBINATIONS names.
