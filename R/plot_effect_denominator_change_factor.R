@@ -31,7 +31,7 @@ plot_effect_denominator_change = function(results_df, metric, figures_dir, treat
     for (key in names(methods_dict[[method]])) {
       # Loop over the method's parameters
 
-      if (method == "commensurate_power_prior"){
+      if (is_commensurate_method(method)){
         filter <- (parameters$heterogeneity_prior.family == "half_normal" &  parameters$heterogeneity_prior.std_dev == 1) | (parameters$heterogeneity_prior.family == "inverse_gamma" &  parameters$heterogeneity_prior.alpha == 0.3333)
       } else {
         # Get the important values for which we will make plots
