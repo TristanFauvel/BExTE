@@ -27,5 +27,6 @@ methods:
     # - EB_PP
     # - PDCCPP
     # - NPP
+    # - NPP_KL
     # - commensurate_power_prior
     # - commensurate_prior

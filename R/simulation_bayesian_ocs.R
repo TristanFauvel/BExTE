@@ -21,6 +21,8 @@ bayesian_ocs_scenario_simulation <- function(scenario,
   set.seed(simulation_config$seed)
 
   target_sample_size_per_arm <- scenario$target_sample_size_per_arm[[1]]
+  treatment_drift <- scenario$treatment_drift[[1]]
+  control_drift <- scenario$control_drift[[1]]
   case_study <- scenario$case_study[[1]]
   method <- scenario$method[[1]]
   method_parameters <- scenario$parameters[[1]]
@@ -50,6 +52,27 @@ bayesian_ocs_scenario_simulation <- function(scenario,
     method_parameters = method_parameters,
     source_data = source_data,
     mcmc_config = mcmc_config
+  )
+
+  # The Bayesian operating characteristics draw a target treatment effect
+  # from the design prior for each sample, and
+  # estimate_bayesian_operating_characteristics() builds a target data object
+  # per draw, with a drift of its own. Calibrating from one of those would
+  # give a different prior for every draw. The prior belongs to the scenario,
+  # so it is calibrated once here, from the scenario's own design, and held
+  # fixed across the draws and across the three design prior types.
+  model$calibrate_for_design(
+    TargetDataFactory$new()$create(
+      source_data = source_data,
+      case_study_config = case_study_config,
+      target_sample_size_per_arm = target_sample_size_per_arm,
+      control_drift = control_drift,
+      treatment_drift = treatment_drift,
+      summary_measure_likelihood = case_study_config$summary_measure_likelihood,
+      target_to_source_std_ratio = target_to_source_std_ratio,
+      dropout_probability = dropout_probability,
+      event_time_distribution = event_time_distribution
+    )
   )
 
   theta_0 <- case_study_config$theta_0
