@@ -197,6 +197,7 @@ reference:
   - truncated_normal_mixture_elir
   - adaptive_power_prior_type_I_error
   - compute_binomial_credible_interval
+  - interval_score
   - compute_power_with_tie_ci
 
 - title: Monte Carlo uncertainty

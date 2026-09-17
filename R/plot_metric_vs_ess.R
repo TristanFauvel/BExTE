@@ -7,7 +7,7 @@ plot_metric_vs_ess <- function(results_metrics_df,
                          source_denominator_change_factor = 1,
                          target_to_source_std_ratio = 1) {
 
-  if (!(metric$name %in% c("mse", "bias", "coverage", "precision"))){
+  if (!(metric$name %in% c("mse", "bias", "coverage", "precision", "interval_score"))){
    return()
   }
 

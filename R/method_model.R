@@ -1012,6 +1012,18 @@ Model <- R6::R6Class(
       half_widths <- (credible_intervals[, 2] - credible_intervals[, 1]) / 2
       precision <- mean(half_widths)
 
+      # The half width says how tight the interval is and the coverage says
+      # whether it is in the right place; read apart, a method that buys a
+      # narrow interval by shifting it off the true effect looks good on one
+      # and bad on the other. The interval score charges both at once.
+      interval_scores <- interval_score(
+        credible_intervals[, 1],
+        credible_intervals[, 2],
+        target_treatment_effect,
+        confidence_level
+      )
+      mean_interval_score <- mean(interval_scores)
+
       credible_interval <- colMeans(credible_intervals)
 
       proba_success <- mean(test_decisions)
@@ -1067,6 +1079,7 @@ Model <- R6::R6Class(
 
       if (n_successful_replicates >= 1000){
         conf_int_precision <-  Hmisc::smean.cl.normal(half_widths, conf.int = confidence_level)[2:3]
+        conf_int_interval_score <- Hmisc::smean.cl.normal(interval_scores, conf.int = confidence_level)[2:3]
         conf_int_ess_moment <- Hmisc::smean.cl.normal(ess_moments, conf.int = confidence_level)[2:3]
         conf_int_ess_precision <- Hmisc::smean.cl.normal(ess_precisions, conf.int = confidence_level)[2:3]
         conf_int_ess_elir <- Hmisc::smean.cl.normal(results$ess_elir, conf.int = confidence_level)[2:3]
@@ -1079,6 +1092,7 @@ Model <- R6::R6Class(
         conf_int_n_divergences <- Hmisc::smean.cl.normal(n_divergences_values, conf.int = confidence_level)[2:3]
       } else {
         conf_int_precision <-  Hmisc::smean.cl.boot(half_widths, conf.int = confidence_level)[2:3]
+        conf_int_interval_score <- Hmisc::smean.cl.boot(interval_scores, conf.int = confidence_level)[2:3]
         conf_int_ess_moment <- Hmisc::smean.cl.boot(ess_moments, conf.int = confidence_level)[2:3]
         conf_int_ess_precision <- Hmisc::smean.cl.boot(ess_precisions, conf.int = confidence_level)[2:3]
         conf_int_ess_elir <- Hmisc::smean.cl.boot(results$ess_elir, conf.int = confidence_level)[2:3]
@@ -1114,6 +1128,9 @@ Model <- R6::R6Class(
         precision = precision,
         conf_int_precision_lower = conf_int_precision[1],
         conf_int_precision_upper = conf_int_precision[2],
+        interval_score = mean_interval_score,
+        conf_int_interval_score_lower = conf_int_interval_score[1],
+        conf_int_interval_score_upper = conf_int_interval_score[2],
         credible_interval_lower = credible_interval[1],
         credible_interval_upper = credible_interval[2],
         posterior_parameters = posterior_params,
