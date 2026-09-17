@@ -63,7 +63,8 @@ PAPER_VS_TIE_LEGEND_LAYOUT <- rbind(
   c("EBPP",     "RMP", "p-PP"),
   c("Com. PP",  "Com. PP", "Com. PP"),
   c("Com. prior", "Com. prior", "Com. prior"),
-  c("Emp. mixture", "Emp. mixture", "Emp. mixture")
+  c("Emp. mixture", "Emp. mixture", "Emp. mixture"),
+  c("NPP (KL)", "NPP (KL)", "NPP (KL)")
 )
 
 ## Lay the method legends out as a grid of groups rather than a single row
@@ -306,11 +307,9 @@ operating_characteristic_vs_tie <- function(
   x_width <- xmax - xmin
   y_width <- ymax - ymin
 
+  # geom_errorbar() measures its cap width on the TIE (x) axis.
   y_cap_size <- x_width * relative_error_cap_width / 2
   x_cap_size <- y_width * relative_error_cap_width / 2
-  cap_size <- min(x_cap_size, y_cap_size)
-  x_cap_size <- cap_size
-  y_cap_size <- cap_size
 
   treatment_effects_labels <- list(
     no_effect = "No effect",
@@ -497,7 +496,7 @@ operating_characteristic_vs_tie <- function(
   composed <- vs_tie_compose(plt, names(results_df_split), fig_width_in, fig_height_in)
   plt <- composed$plot
   fig_width_in <- composed$width
-  fig_height_in <- composed$height
+  fig_height_in <- composed$height * 0.85
 
   # Export the plots
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
@@ -865,7 +864,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
   composed <- vs_tie_compose(plt, names(results_df_split), fig_width_in, fig_height_in)
   plt <- composed$plot
   fig_width_in <- composed$width
-  fig_height_in <- composed$height
+  fig_height_in <- composed$height * 0.85
 
   # Export the plots
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
