@@ -16,6 +16,11 @@ It provides methods for creating the model, performing inference, and calculatin
 
     \item{\code{posterior_parameters}}{Parameters of the posterior distribution.}
 
+    \item{\code{quantile_summary_columns}}{Names of \code{posterior_parameters} columns that
+are also summarised by their quantiles. A mean describes a quantity the
+model reports, but not the spread of one it selects per replicate. Empty
+for every method that does not select anything.}
+
     \item{\code{post_mean}}{Mean of the posterior distribution.}
 
     \item{\code{post_median}}{Median of the posterior distribution.}

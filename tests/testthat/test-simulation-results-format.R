@@ -41,7 +41,8 @@ methods <- c(
   "test_then_pool_difference",
   "p_value_based_PP",
   "commensurate_power_prior",
-  "commensurate_prior"
+  "commensurate_prior",
+  "egidi_empirical_mixture"
 )
 
 test_results_format <- function(df, config) {
