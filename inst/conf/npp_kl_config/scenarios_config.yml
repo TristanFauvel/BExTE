@@ -1,0 +1,28 @@
+n_replicates: 1000
+ndrift: 8
+denominator_change_factor:
+    - 1
+sample_size_factors:
+    - 2
+target_to_source_std_ratio_range:
+    - 1
+# Sequential: the parallel workers load the installed BExTE, so a run from a
+# source checkout would not see this method at all. This env is small enough
+# not to need the workers.
+parallelization: FALSE
+# Botox is continuous, so the standard error its design implies does not move
+# with the drift. The KL calibration therefore returns one Beta(a, b) for the
+# whole grid, which is what makes "a and b are constant across replicates"
+# checkable by eye in the results.
+#
+# important_drift_values() always injects drift in {-theta_S, -theta_S/2, 0},
+# so the three true target effects the validation needs - compatible, halfway
+# to the null, and at the null - are simulated whatever ndrift is set to.
+case_studies:
+    - botox
+methods:
+    # The separate analysis is the reference the power-at-equivalent-type-I
+    # -error metrics are measured against.
+    - separate
+    - NPP
+    - NPP_KL
