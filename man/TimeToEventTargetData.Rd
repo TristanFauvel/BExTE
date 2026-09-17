@@ -6,9 +6,15 @@
 \description{
 This class represents target data for time-to-event analysis.
 It inherits from the TargetData class.
+
+The target trial follows the modified fixed-calendar design: patients enter
+uniformly over an accrual window, each may be followed for at most
+\code{max_follow_up_time}, and the database closes \code{final_follow_up} after the end
+of recruitment. See \code{R/simulation_time_to_event.R} for the generator and the
+Cox fit.
 }
 \section{Super class}{
-\code{\link[BExTE:TargetData]{TargetData}}
+\code{\link[BExTE:TargetData]{TargetData}} -> \code{TimeToEventTargetData}
 }
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
@@ -17,17 +23,31 @@ It inherits from the TargetData class.
 
     \item{\code{treatment_rate}}{Rate in the treatment arm of the target study}
 
-    \item{\code{max_follow_up_time}}{Maximum follow-up time}
+    \item{\code{max_follow_up_time}}{Maximum individual follow-up time, L}
+
+    \item{\code{accrual_period}}{Length of the recruitment window, A}
+
+    \item{\code{final_follow_up}}{Time from the end of recruitment to database closure, F}
+
+    \item{\code{dropout_probability}}{Probability of loss to follow-up over the maximum follow-up time}
+
+    \item{\code{event_time_distribution}}{Either "exponential" or "weibull"}
+
+    \item{\code{weibull_shape}}{Common Weibull shape parameter, q}
+
+    \item{\code{weibull_scale}}{Control-arm Weibull scale, calibrated to the reported relapse-free probability}
   }
   \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
-    \item \href{#method-NA-initialize}{\code{NA$new()}}
-    \item \href{#method-NA-generate}{\code{NA$generate()}}
-    \item \href{#method-NA-to_dict}{\code{NA$to_dict()}}
-    \item \href{#method-unknown-clone}{\code{unknown$clone()}}
+    \item \href{#method-TimeToEventTargetData-initialize}{\code{TimeToEventTargetData$new()}}
+    \item \href{#method-TimeToEventTargetData-dropout_rate}{\code{TimeToEventTargetData$dropout_rate()}}
+    \item \href{#method-TimeToEventTargetData-arm_parameters}{\code{TimeToEventTargetData$arm_parameters()}}
+    \item \href{#method-TimeToEventTargetData-generate}{\code{TimeToEventTargetData$generate()}}
+    \item \href{#method-TimeToEventTargetData-to_dict}{\code{TimeToEventTargetData$to_dict()}}
+    \item \href{#method-TimeToEventTargetData-clone}{\code{TimeToEventTargetData$clone()}}
   }
 }
 \if{html}{\out{<details open><summary>Inherited methods</summary>
@@ -36,20 +56,26 @@ It inherits from the TargetData class.
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-NA-initialize"></a>}}
-\if{latex}{\out{\hypertarget{method-NA-initialize}{}}}
-\subsection{\code{NA$new()}}{
+\if{html}{\out{<a id="method-TimeToEventTargetData-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-TimeToEventTargetData-initialize}{}}}
+\subsection{\code{TimeToEventTargetData$new()}}{
   Initialize the TimeToEventTargetData object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{NA$new(
+    \preformatted{TimeToEventTargetData$new(
   source_data,
   sampling_approximation,
   target_sample_size_per_arm,
   control_drift = 0,
   treatment_drift,
   summary_measure_likelihood,
-  max_follow_up_time
+  max_follow_up_time,
+  accrual_period = NULL,
+  final_follow_up = NULL,
+  weibull_shape = NULL,
+  weibull_relapse_free_probability = NULL,
+  dropout_probability = 0,
+  event_time_distribution = "exponential"
 )}
     \if{html}{\out{</div>}}
   }
@@ -62,21 +88,60 @@ It inherits from the TargetData class.
       \item{\code{control_drift}}{The control drift.}
       \item{\code{treatment_drift}}{The treatment drift.}
       \item{\code{summary_measure_likelihood}}{The summary measure distribution.}
-      \item{\code{max_follow_up_time}}{The maximum follow-up time.
-Generate target data}
+      \item{\code{max_follow_up_time}}{The maximum individual follow-up time.}
+      \item{\code{accrual_period}}{The length of the recruitment window.}
+      \item{\code{final_follow_up}}{The time between the end of recruitment and database closure.}
+      \item{\code{weibull_shape}}{The common Weibull shape parameter.}
+      \item{\code{weibull_relapse_free_probability}}{The control-arm relapse-free probability at
+the maximum follow-up time, used to calibrate the Weibull scale.}
+      \item{\code{dropout_probability}}{The probability of loss to follow-up over the maximum
+follow-up time.}
+      \item{\code{event_time_distribution}}{Either "exponential" or "weibull".}
     }
     \if{html}{\out{</div>}}
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-NA-generate"></a>}}
-\if{latex}{\out{\hypertarget{method-NA-generate}{}}}
-\subsection{\code{NA$generate()}}{
+\if{html}{\out{<a id="method-TimeToEventTargetData-dropout_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-TimeToEventTargetData-dropout_rate}{}}}
+\subsection{\code{TimeToEventTargetData$dropout_rate()}}{
+  The loss-to-follow-up rate implied by the dropout probability.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TimeToEventTargetData$dropout_rate()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A single number, zero when there is no loss to follow-up.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-TimeToEventTargetData-arm_parameters"></a>}}
+\if{latex}{\out{\hypertarget{method-TimeToEventTargetData-arm_parameters}{}}}
+\subsection{\code{TimeToEventTargetData$arm_parameters()}}{
+  The event-time parameters of each arm: rates under the
+exponential model, scales under the Weibull model.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TimeToEventTargetData$arm_parameters()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with elements \code{control} and \code{treatment}.
+Generate target data
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-TimeToEventTargetData-generate"></a>}}
+\if{latex}{\out{\hypertarget{method-TimeToEventTargetData-generate}{}}}
+\subsection{\code{TimeToEventTargetData$generate()}}{
   This function generates target data based on the specified parameters.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{NA$generate(n_replicates)}
+    \preformatted{TimeToEventTargetData$generate(n_replicates)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -92,13 +157,13 @@ Generate target data}
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-NA-to_dict"></a>}}
-\if{latex}{\out{\hypertarget{method-NA-to_dict}{}}}
-\subsection{\code{NA$to_dict()}}{
+\if{html}{\out{<a id="method-TimeToEventTargetData-to_dict"></a>}}
+\if{latex}{\out{\hypertarget{method-TimeToEventTargetData-to_dict}{}}}
+\subsection{\code{TimeToEventTargetData$to_dict()}}{
   Converts the target data object to a dictionary.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{NA$to_dict()}
+    \preformatted{TimeToEventTargetData$to_dict()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
@@ -107,13 +172,13 @@ Generate target data}
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-unknown-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-unknown-clone}{}}}
-\subsection{\code{unknown$clone()}}{
+\if{html}{\out{<a id="method-TimeToEventTargetData-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-TimeToEventTargetData-clone}{}}}
+\subsection{\code{TimeToEventTargetData$clone()}}{
   The objects of this class are cloneable with this method.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{unknown$clone(deep = FALSE)}
+    \preformatted{TimeToEventTargetData$clone(deep = FALSE)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{

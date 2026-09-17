@@ -12,6 +12,8 @@ upper_bound_proba_FP_MC(
   target_sample_size_per_arm,
   case_study_config,
   target_to_source_std_ratio,
+  dropout_probability = 0,
+  event_time_distribution = "exponential",
   n_replicates,
   confidence_level,
   null_space,
@@ -35,6 +37,12 @@ upper_bound_proba_FP_MC(
 \item{case_study_config}{The case study configuration.}
 
 \item{target_to_source_std_ratio}{Ratio between target and source sampling standard deviations.}
+
+\item{dropout_probability}{Probability of loss to follow-up over the maximum follow-up
+time. Only used for the time-to-event endpoint.}
+
+\item{event_time_distribution}{Distribution of the event times, either "exponential" or
+"weibull". Only used for the time-to-event endpoint.}
 
 \item{n_replicates}{The number of replicates.}
 

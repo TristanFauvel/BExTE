@@ -31,6 +31,8 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   method_parameters <- scenario$parameters[[1]]
   source_denominator <- scenario$source_denominator[[1]]
   target_to_source_std_ratio <- scenario$target_to_source_std_ratio[[1]]
+  dropout_probability <- scenario$dropout_probability[[1]]
+  event_time_distribution <- scenario$event_time_distribution[[1]]
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
   mcmc_config <- read_config(paste0(config_dir, "/mcmc_config.yml"), mcmc_config_schema)
@@ -74,7 +76,9 @@ frequentist_ocs_scenario_simulation <- function(scenario,
     control_drift = control_drift,
     treatment_drift = treatment_drift,
     summary_measure_likelihood = summary_measure_likelihood,
-    target_to_source_std_ratio = target_to_source_std_ratio
+    target_to_source_std_ratio = target_to_source_std_ratio,
+    dropout_probability = dropout_probability,
+    event_time_distribution = event_time_distribution
   )
 
   # Get the current RNG state

@@ -157,6 +157,16 @@ config_frequentist <- list(
     range = c(-Inf, Inf),
     not_missing = TRUE
   ),
+  dropout_probability = list(
+    type = "numeric",
+    range = c(0, 1),
+    not_missing = TRUE
+  ),
+  event_time_distribution = list(
+    type = "character",
+    accepted_values = c("exponential", "weibull"),
+    not_missing = TRUE
+  ),
   source_denominator = list(
     type = "numeric",
     range = c(0, Inf),

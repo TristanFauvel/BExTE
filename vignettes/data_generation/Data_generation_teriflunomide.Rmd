@@ -11,7 +11,7 @@ vignette: >
   %\VignetteIndexEntry{Data Generation : Teriflunomide case study}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{BExTE, ggplot2}
+  %\VignetteDepends{BExTE, ggplot2, survival}
 ---
 
 
@@ -29,9 +29,16 @@ library(ggplot2)
 Sources: 
 [Bovis et al (2022)](https://jamanetwork.com/journals/jamaneurology/fullarticle/2793703)
 
-Table 4 in the TOWER paper by [Confavreux et al (2014)](https://linkinghub.elsevier.com/retrieve/pii/S1474442213703089) contains a joint analysis of the TOWER and TEMSO studies. We focus on the 14mg Teriflunomide treatment.
+The source study is the pooled analysis of the adult TEMSO and TOWER trials of
+14 mg teriflunomide; Table 4 of the TOWER paper by
+[Confavreux et al (2014)](https://linkinghub.elsevier.com/retrieve/pii/S1474442213703089)
+reports it. The target study is a paediatric trial inspired by the TERIKIDS
+design. The endpoint is the time to first relapse.
 
-The treatment effect is defined as $\theta_T =  log(\lambda_T^{T}/\lambda_T^{c})$, where the $\lambda$s are rate parameters of an exponential distribution. The standard error on the log rate ratio is approximately $\sqrt{\frac{1}{N_T^{t}} + \frac{1}{N_T^{c}}}$.
+The source treatment effect is the pooled log hazard ratio
+$\widehat{\theta}_S = \log(\widehat{HR}_S) = -0.393$, with
+$\widehat{\sigma}_{\theta_S} = 0.081$. The target treatment effect is
+$\theta_T = \widehat{\theta}_S + \delta$, where $\delta$ is the drift.
 
 ```{r}
 set.seed(42)
@@ -42,63 +49,90 @@ format_case_study_config(case_study_config)
 ```
 
 
+# The target trial design
+
+In the original TERIKIDS design every participant could be followed for up to
+96 weeks, so accrual would not affect the follow-up distribution. To study the
+effect of staggered accrual we use a modified fixed-calendar design: the maximum
+individual follow-up stays at $L = 96$ weeks, but the database is closed
+$F = 48$ weeks after the end of recruitment.
+
+Patients enter over an accrual period of $A = 3.41$ years, with calendar entry
+times $R_i \sim \mathcal{U}(0, A)$. The database closes at $C = A + F$, so the
+administrative censoring time of patient $i$ is
+
+$$C_i = \min\{L,\ A + F - R_i\}.$$
+
+Control-arm heterogeneity is $\kappa = \log \lambda_T^{(c)} - \log \lambda_S^{(c)}$,
+so that $\lambda_T^{(c)} = \lambda_S^{(c)} e^{\kappa}$ and
+$\lambda_T^{(t)} = \lambda_T^{(c)} e^{\theta_T}$. In the package $\kappa$ is the
+`control_drift` of a scenario and $\delta$ is its `drift`.
+
+Independent loss to follow-up is $D_i \sim \operatorname{Exp}(\lambda_D)$ with
+$\lambda_D = -\log(1 - p_D)/L$ for a prespecified probability $p_D$ of being
+lost over $L$. The observed follow-up time and the event indicator are
+
+$$X_i = \min(T_i, D_i, C_i), \qquad \Delta_i = \mathbb{1}\{T_i \leq D_i,\ T_i \leq C_i\}.$$
 
 ```{r}
-source_relapse_rate_control <- 0.534 # Average number of relapses per year
-source_relapse_rate_treatment <- 0.354 # Average number of relapses per year
+design <- case_study_config$target
+L <- design$max_follow_up_time
+A <- design$accrual_period
+Fu <- design$final_follow_up
 
-# Calculate the log of the rate ratio
-log_RR_source <- log(source_relapse_rate_treatment / source_relapse_rate_control)
-print(paste("Observed logRR in the source study: ", log_RR_source))
+# Only patients recruited before A + F - L are followed for the full L.
+c(max_follow_up = L, accrual = A, final_follow_up = Fu,
+  proportion_with_full_follow_up = (A + Fu - L) / A)
 ```
 
 
-# Initializing a TimeToEventTargetData object with a normal treatment effect summary measure distribution
+# Creating the target data
 
-### Usage
 ```{r}
 source_data <- SourceData$new(case_study_config)
 
-drift <- 0.4
-control_drift <- 0
+drift <- 0.2 # delta
+control_drift <- 0 # kappa
 treatment_drift <- drift + control_drift
 
-target_sample_size_per_arm <- 100
+target_sample_size_per_arm <- 185
 ```
 
 ```{r} 
 target_data <- TargetDataFactory$new()
-target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+target_data <- target_data$create(
+  source_data = source_data,
+  case_study_config = case_study_config,
+  target_sample_size_per_arm = target_sample_size_per_arm,
+  control_drift = control_drift,
+  treatment_drift = treatment_drift,
+  summary_measure_likelihood = source_data$summary_measure_likelihood,
+  dropout_probability = 0.05,
+  event_time_distribution = "exponential"
+)
+
+c(theta_T = target_data$treatment_effect,
+  control_rate = target_data$control_rate,
+  treatment_rate = target_data$treatment_rate)
 ```
 
+The arm rates follow from $\kappa$ and $\theta_T$:
 
 ```{r}
 read_function_code(rate_from_drift_logRR)
 ```
 
-```{r}
-target_data$control_rate <- rate_from_drift_logRR(control_drift, source_data$control_rate)
-target_data$treatment_rate <- rate_from_drift_logRR(treatment_drift, source_data$treatment_rate)
-
-# Estimation of the sampling standard deviation on the log(RR)
-n_control_target <- target_data$sample_size_per_arm
-n_treatment_target <- target_data$sample_size_per_arm
-
-target_data$standard_deviation <- sqrt(1 / (target_data$control_rate * target_data$max_follow_up_time * n_control_target) + 1 / (target_data$treatment_rate * target_data$max_follow_up_time * n_treatment_target))
-```
 
 # Aggregate data generation
 
 ## Generation of aggregate data without sampling approximation
 
 ### Usage
-```{r}
-case_study_config$sampling_approximation <- FALSE
-target_data <- TargetDataFactory$new()
-target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 
-n_replicates <- 10000
+```{r}
+n_replicates <- 2000
 data <- target_data$generate(n_replicates = n_replicates)
+head(data)
 ```
 
 ```{r}
@@ -107,67 +141,130 @@ target_data$plot_sample(data)
 
 ### Implementation details
 
+Under the primary proportional-hazards model the time to first relapse is
+exponential, $T_i \mid Z_i = a \sim \operatorname{Exp}(\lambda_T^{(a)})$. Each
+simulated trial is analysed with a Cox proportional-hazards model
+$h_i(t) = h_0(t)\exp\{\beta \mathbb{1}(Z_i = t)\}$, and
+$\widehat{\theta}_T = \widehat{\beta}$ with
+$\widehat{\sigma}_{\theta_T} = \operatorname{SE}(\widehat{\beta})$ are passed to
+the Bayesian borrowing procedures as in the other case studies.
 
-We are interested in the time-to-first relapse. We will assume that relapse times follow a Poisson distribution. Therefore, the time-to-first relapse follows an exponential distribution, with arm-specific rates. The parameters of these exponential distribution correspond to the adjusted annualised relapse rates (0.534 in the control group and 0.354 in the treatment group).
+Fitting one `survival::coxph()` per replicate would be far too slow for the
+simulation grid, so the package solves the two-sample Cox model directly. With a
+single binary covariate the risk set at an event time is described entirely by
+the numbers still at risk in each arm, $(n_0, n_1)$, so the score and observed
+information reduce to
 
-Now, we are interested in generating target data with various drift values with respect to the treatment effect (measured as the log rate ratio) and various control rates at constant treatment effect (the so-called control drift).
+$$U(\beta) = d_1 - \sum_{\text{events}} \frac{n_1 e^{\beta}}{n_0 + n_1 e^{\beta}},
+\qquad
+I(\beta) = \sum_{\text{events}} \frac{n_0 n_1 e^{\beta}}{(n_0 + n_1 e^{\beta})^2},$$
 
+which a few Newton steps solve for every replicate at once. Event times are
+continuous, so ties have probability zero and this agrees with `coxph()` to
+machine precision. The patient-level version below is what the vectorised code
+computes:
+
+```{r reference_implementation}
+simulate_one_trial <- function(n_per_arm, control_rate, treatment_rate,
+                               L, A, Fu, dropout_rate) {
+  n <- 2 * n_per_arm
+  arm <- rep(c(0, 1), each = n_per_arm)
+  rate <- ifelse(arm == 0, control_rate, treatment_rate)
+
+  entry <- runif(n, 0, A)
+  administrative <- pmin(L, A + Fu - entry)
+  event_time <- rexp(n, rate = rate)
+  dropout <- if (dropout_rate > 0) rexp(n, rate = dropout_rate) else Inf
+
+  data.frame(
+    time = pmin(event_time, dropout, administrative),
+    status = as.integer(event_time <= dropout & event_time <= administrative),
+    arm = arm
+  )
+}
+
+dropout_rate <- -log1p(-0.05) / L
+
+set.seed(123)
+trial <- simulate_one_trial(
+  n_per_arm = target_sample_size_per_arm,
+  control_rate = target_data$control_rate,
+  treatment_rate = target_data$treatment_rate,
+  L = L, A = A, Fu = Fu, dropout_rate = dropout_rate
+)
+
+fit <- survival::coxph(survival::Surv(time, status) ~ arm, data = trial)
+c(estimate = unname(coef(fit)), standard_error = unname(sqrt(diag(vcov(fit)))))
+```
+
+The package reproduces that fit exactly:
 
 ```{r}
-# Vector to store log rate ratios
-log_rate_ratios <- numeric(n_replicates)
-se_log_rate_ratios <- numeric(n_replicates)
-
-for (i in 1:n_replicates) {
-  # Sample relapse times for control and treatment groups using an exponential distribution
-  control_relapse_times <- rexp(n_control_target, rate = target_data$control_rate) # target_data$control_rate is the relapse rate in the control arm
-
-  treatment_relapse_times <- rexp(n_treatment_target, rate = target_data$treatment_rate)
-
-  # Filter out relapse times exceeding max_follow_up_time (right censoring)
-  control_event_status <- control_relapse_times <= target_data$max_follow_up_time
-  treatment_event_status <- treatment_relapse_times <= target_data$max_follow_up_time
-
-  control_relapse_times_filtered <- control_relapse_times[control_event_status]
-  treatment_relapse_times_filtered <- treatment_relapse_times[treatment_event_status]
-
-
-  control_relapse_times[!control_event_status] <- target_data$max_follow_up_time
-  treatment_relapse_times[!treatment_event_status] <- target_data$max_follow_up_time
-
-  control_event_status <- as.integer(control_event_status)
-  treatment_event_status <- as.integer(treatment_event_status)
-
-  # Count the number of events
-  n_control_events <- length(control_relapse_times_filtered)
-  n_treatment_events <- length(treatment_relapse_times_filtered)
-
-  # Perform survival analysis, assuming an exponential distribution of events times.
-  trt <- c(rep(0, n_control_target), rep(1, n_treatment_target))
-  df <- data.frame(
-    time = c(control_relapse_times, treatment_relapse_times),
-    trt = trt,
-    status = c(control_event_status, treatment_event_status)
-  )
-  fit <- survival::survreg(survival::Surv(time, status) ~ trt,
-    dist = "exponential",
-    data = df
-  )
-  summary(fit)
-  estimated_rate_control <- 1 / exp(coef(fit)[1])
-  sample_rate_ratio <- 1 / exp(coef(fit)[2])
-  estimated_rate_treatment <- sample_rate_ratio * estimated_rate_control
-
-  log_rate_ratios[i] <- log(sample_rate_ratio)
-
-  # Calculate the SE of the Log rate ratio
-  se_log_rate_ratios[i] <- sqrt(1 / n_control_events + 1 / n_treatment_events) # this can be shown using the delta method
-}
-samples <- data.frame(
-  treatment_effect_estimate = log_rate_ratios,
-  treatment_effect_standard_error = se_log_rate_ratios,
-  sample_size_per_arm = target_data$sample_size_per_arm
+vectorised <- BExTE:::fit_two_sample_cox(
+  time = matrix(trial$time, nrow = 1),
+  event = matrix(trial$status, nrow = 1),
+  arm = trial$arm
 )
+c(estimate = vectorised$estimate, standard_error = vectorised$standard_error)
+```
+
+Averaged over replicates, the estimates recover $\theta_T$ and the reported
+standard errors match their spread:
+
+```{r}
+c(theta_T = target_data$treatment_effect,
+  mean_estimate = mean(data$treatment_effect_estimate, na.rm = TRUE),
+  mean_standard_error = mean(data$treatment_effect_standard_error, na.rm = TRUE),
+  observed_spread = sd(data$treatment_effect_estimate, na.rm = TRUE))
+```
+
+
+## Weibull sensitivity analysis
+
+As a sensitivity analysis, event times are generated from a Weibull
+proportional-hazards model with conditional survival function
+$S(t \mid Z_i) = \exp\{-(t/b_c)^q \exp(\theta_T Z_i)\}$, where $q$ is the common
+shape parameter and $b_c$ the control-arm scale. This implies a hazard ratio of
+$\exp(\theta_T)$. We use $q = 0.72$, based on the aggregate TERIKIDS
+relapse-free probabilities. The control scale is calibrated to reproduce the
+reported 96-week relapse-free probability $S_c(L) = 0.442$, giving
+
+$$b_c = L / [-\log\{S_c(L)\}]^{1/q} = 2.45 \text{ years},$$
+
+and the treatment-arm scale is $b_t = b_c \exp(-\theta_T/q)$. The exponential
+model is recovered when $q = 1$.
+
+Because $\exp(\kappa)$ multiplies the control hazard, and multiplying a Weibull
+hazard by a constant divides its scale by that constant raised to $1/q$, control
+heterogeneity enters as $b_c(\kappa) = b_c \exp(-\kappa/q)$.
+
+```{r}
+weibull_data <- TargetDataFactory$new()$create(
+  source_data = source_data,
+  case_study_config = case_study_config,
+  target_sample_size_per_arm = target_sample_size_per_arm,
+  control_drift = control_drift,
+  treatment_drift = treatment_drift,
+  summary_measure_likelihood = source_data$summary_measure_likelihood,
+  dropout_probability = 0.05,
+  event_time_distribution = "weibull"
+)
+
+c(shape = weibull_data$weibull_shape,
+  control_scale = weibull_data$weibull_scale,
+  relapse_free_at_L = 1 - pweibull(L, weibull_data$weibull_shape,
+                                   weibull_data$weibull_scale))
+```
+
+Note that the two data-generating models are deliberately not nested: the
+exponential arm is calibrated on the source placebo relapse rate, the Weibull
+arm on the aggregate relapse-free probability, so they do not coincide at
+$\kappa = 0$.
+
+```{r}
+weibull_samples <- weibull_data$generate(n_replicates = n_replicates)
+c(theta_T = weibull_data$treatment_effect,
+  mean_estimate = mean(weibull_samples$treatment_effect_estimate, na.rm = TRUE))
 ```
 
 
@@ -176,43 +273,36 @@ samples <- data.frame(
 ### Usage
 
 ```{r}
-case_study_config$sampling_approximation <- TRUE
-target_data <- TargetDataFactory$new()
-target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+approximate_config <- case_study_config
+approximate_config$sampling_approximation <- TRUE
 
-n_replicates <- 10000
-data <- target_data$generate(n_replicates = n_replicates)
+approximate_data <- TargetDataFactory$new()$create(
+  source_data = source_data,
+  case_study_config = approximate_config,
+  target_sample_size_per_arm = target_sample_size_per_arm,
+  control_drift = control_drift,
+  treatment_drift = treatment_drift,
+  summary_measure_likelihood = source_data$summary_measure_likelihood
+)
+
+samples <- approximate_data$generate(n_replicates = n_replicates)
 ```
 ```{r}
-target_data$plot_sample(data)
+approximate_data$plot_sample(samples)
 ```
 
 ### Implementation details
 
   
-It may be simpler for evaluating the OCs to sample the summary data from a normal distribution directly, instead of sampling data using the true data-generating process. Below, we compare this approximate sampling to the exact sampling approach :
+It may be simpler for evaluating the OCs to sample the summary data from a
+normal distribution directly, instead of sampling data using the true data
+generating process. This branch keeps the simpler follow-up model in which every
+patient is observed for `max_follow_up_time`: it samples the number of events in
+each arm from a Poisson distribution, forms
+$\operatorname{SE}(\log RR) = \sqrt{1/e_c + 1/e_t}$, and draws the summary
+measure from a normal distribution. It therefore ignores the staggered accrual,
+the database lock and the loss to follow-up, and is not the design described
+above.
 
-```{r gaussian_sampling}
-# Sample number of events over the follow-up period in each arm according to a Poisson distributions.
-n_control_events <- rpois(
-  n_replicates,
-  target_data$control_rate * target_data$max_follow_up_time * n_control_target
-)
-n_treatment_events <- rpois(
-  n_replicates,
-  target_data$treatment_rate * target_data$max_follow_up_time * n_treatment_target
-)
-
-SE_log_RR <- sqrt(1 / n_control_events + 1 / n_treatment_events)
-
-sampling_standard_deviation <- SE_log_RR * sqrt(target_data$sample_size_per_arm)
-
-samples <- sample_aggregate_normal_data(
-  mean = target_data$treatment_effect,
-  variance = sampling_standard_deviation^2,
-  n_replicates = n_replicates,
-  n_samples_per_arm = target_data$sample_size_per_arm
-)
-```
-
-See [Data_generation_botox](../doc/Data_generation_botox.html) for details on aggregate normal data generation.
+See [Data_generation_botox](../doc/Data_generation_botox.html) for details on
+aggregate normal data generation.

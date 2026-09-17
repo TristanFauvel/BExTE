@@ -175,6 +175,12 @@ scenarios_config_schema <- list(
   denominator_change_factor = "numeric_vector",
   sample_size_factors = "numeric_vector",
   target_to_source_std_ratio_range = "numeric_vector?",
+  # Optional, and only simulated for the time-to-event endpoint. They default
+  # to the primary design, so a config that omits them keeps its current grid -
+  # see compute_control_drift_range() and compute_time_to_event_ranges().
+  control_drift_range = "numeric_vector?",
+  dropout_probability = "numeric_vector?",
+  event_time_distribution = "character_vector?",
   case_studies = "character_vector",
   methods = "character_vector",
   # Optional. Restricts the sample size factors simulated for a given

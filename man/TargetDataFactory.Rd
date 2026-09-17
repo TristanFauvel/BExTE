@@ -27,7 +27,9 @@ A factory class for creating different types of target data objects.
   control_drift = 0,
   treatment_drift,
   summary_measure_likelihood,
-  target_to_source_std_ratio = NULL
+  target_to_source_std_ratio = NULL,
+  dropout_probability = 0,
+  event_time_distribution = "exponential"
 )}
     \if{html}{\out{</div>}}
   }
@@ -41,6 +43,10 @@ A factory class for creating different types of target data objects.
       \item{\code{treatment_drift}}{The treatment drift.}
       \item{\code{summary_measure_likelihood}}{The summary measure distribution.}
       \item{\code{target_to_source_std_ratio}}{Ratio between the target and source study sampling standard deviation}
+      \item{\code{dropout_probability}}{Probability that a patient is lost to follow-up over the
+maximum follow-up time. Only used for the time-to-event endpoint.}
+      \item{\code{event_time_distribution}}{Distribution of the event times, either "exponential"
+or "weibull". Only used for the time-to-event endpoint.}
     }
     \if{html}{\out{</div>}}
   }

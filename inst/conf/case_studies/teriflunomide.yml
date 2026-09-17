@@ -4,7 +4,7 @@ summary_measure_likelihood: normal
 theta_0: 0
 endpoint: time_to_event
 null_space: right
-sampling_approximation: TRUE # Whether to sample the summary measure according to the approximation used in the analysis or not (that is, sample according to the true data generating process)
+sampling_approximation: FALSE # Whether to sample the summary measure according to the approximation used in the analysis or not (that is, sample according to the true data generating process)
 # Warning: the parameters are defined on the log scale
 target:
   control: 57
@@ -14,7 +14,14 @@ target:
   treatment_rate: NA
   treatment_effect: -0.4155154439616658 # 0.66 on the natural scale
   standard_error: 0.2668287130568081 # standard_error = (confidence_interval[1] - confidence_interval[0]) / (2 * 1.96)
-  max_follow_up_time : 2 # in years
+  # Modified fixed-calendar design: recruitment runs for accrual_period, the database is
+  # closed final_follow_up later, and no patient is followed beyond max_follow_up_time.
+  max_follow_up_time: 1.846154 # L, 96 weeks expressed in years
+  accrual_period: 3.41 # A, in years
+  final_follow_up: 0.923077 # F, 48 weeks expressed in years
+  # Weibull sensitivity analysis, calibrated on the aggregate relapse-free probability
+  weibull_shape: 0.72 # q, from the aggregate relapse-free probabilities
+  weibull_relapse_free_probability: 0.442 # S_c(L); implies a control scale of 2.4468 years
   # confidence_interval: [-0.941608539858445, 0.10436001532424286] # [0.39, 1.11] on the natural scale
 
 source:
@@ -22,7 +29,7 @@ source:
   treatment: 731
   total: 1483
   control_rate: 0.534 # Average number of relapses per year
-  treatment_rate: 0.354 # Average number of relapses per year
-  treatment_effect: -0.4110989 # Log rate ratio : log_RR_source <- log(relapse_rate_treatment / relapse_rate_placebo)  # In Bovis et al : -0.3856624808119846 # 0.68 on the natural scale
-  standard_error: 0.05194012 # SE_log_RR_source <- sqrt(1 / n_placebo_source + 1 / n_treatment_source) # If we use Bovis et al : 0.07882776579607201
+  treatment_rate: 0.360465 # = control_rate * exp(treatment_effect)
+  treatment_effect: -0.393 # Pooled log hazard ratio from the adult TEMSO and TOWER trials
+  standard_error: 0.081 # Standard error of that pooled log hazard ratio
   max_follow_up_time: 2 # in years

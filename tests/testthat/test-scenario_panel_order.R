@@ -16,13 +16,13 @@ panel_order <- function(source_effect) {
 }
 
 test_that("a negative source effect no longer puts the full effect first", {
-  ordering <- panel_order(-0.4110989)
+  ordering <- panel_order(-0.393)
 
   ## What the old sort did: the full effect labelled "No treatment effect".
-  expect_equal(ordering$signed[1], -0.4110989)
+  expect_equal(ordering$signed[1], -0.393)
   ## What sorting by distance from no effect does.
   expect_equal(ordering$distance[1], 0)
-  expect_equal(abs(ordering$distance[3]), 0.4110989)
+  expect_equal(abs(ordering$distance[3]), 0.393)
 })
 
 test_that("a positive source effect is unaffected", {
@@ -36,7 +36,7 @@ test_that("a positive source effect is unaffected", {
 })
 
 test_that("the null scenario is always first, whatever the sign", {
-  for (source_effect in c(-0.6931472, -0.4110989, 0.2, 0.481)) {
+  for (source_effect in c(-0.6931472, -0.393, 0.2, 0.481)) {
     expect_equal(panel_order(source_effect)$distance[1], 0, info = source_effect)
   }
 })

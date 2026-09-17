@@ -26,6 +26,8 @@ bayesian_ocs_scenario_simulation <- function(scenario,
   method_parameters <- scenario$parameters[[1]]
   source_denominator <- scenario$source_denominator[[1]]
   target_to_source_std_ratio <- scenario$target_to_source_std_ratio[[1]]
+  dropout_probability <- scenario$dropout_probability[[1]]
+  event_time_distribution <- scenario$event_time_distribution[[1]]
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
   mcmc_config <- read_config(paste0(config_dir, "/mcmc_config.yml"), mcmc_config_schema)
@@ -226,6 +228,8 @@ estimate_bayesian_ocs <- function(scenario,
       target_sample_size_per_arm = target_sample_size_per_arm,
       case_study_config = case_study_config,
       target_to_source_std_ratio = target_to_source_std_ratio,
+      dropout_probability = dropout_probability,
+      event_time_distribution = event_time_distribution,
       simulation_config = simulation_config,
       case_study = scenario$case_study[[1]],
       method = scenario$method[[1]],

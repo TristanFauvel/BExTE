@@ -27,6 +27,8 @@ frequentist_col_types <- cols(
   source_treatment_effect_estimate = col_double(),
   target_treatment_effect = col_double(),
   target_to_source_std_ratio = col_double(),
+  dropout_probability = col_double(),
+  event_time_distribution = col_character(),
   theta_0 = col_double(),
   null_space = col_character(),
   summary_measure_likelihood = col_character(),
@@ -144,6 +146,8 @@ sweet_spot_col_types <- cols(
   sampling_approximation = col_logical(),
   source_treatment_effect_estimate = col_double(),
   target_to_source_std_ratio = col_double(),
+  dropout_probability = col_double(),
+  event_time_distribution = col_character(),
   theta_0 = col_double(),
   null_space = col_character(),
   summary_measure_likelihood = col_character(),
@@ -163,15 +167,25 @@ sweet_spot_col_types <- cols(
 )
 
 
+# The time-to-event design axes. They were added to the scenario grid after some
+# results had already been written, and a results file that predates them
+# describes a single design, so keys built from one leave them out - see the
+# intersect() calls in the analysis.
+time_to_event_design_columns <- c("dropout_probability", "event_time_distribution")
+
+# The columns that, together with the drift, identify one simulated scenario.
+# They are the key the analysis joins a method's results to the separate
+# analysis on, so a design axis missing here would make that join fan out.
 scenario_columns <- c("target_sample_size_per_arm", "control_drift", "source_denominator", "source_denominator_change_factor",
                       "case_study", "sampling_approximation", "source_treatment_effect_estimate",
-                      "target_to_source_std_ratio", "theta_0", "null_space",
+                      "target_to_source_std_ratio", "dropout_probability", "event_time_distribution",
+                      "theta_0", "null_space",
                       "summary_measure_likelihood", "source_standard_error", "source_sample_size_control",
                       "source_sample_size_treatment", "equivalent_source_sample_size_per_arm", "endpoint",
                       "source_control_rate", "source_treatment_rate")
 
 unique_scenario_columns <- c("case_study", "target_sample_size_per_arm", "source_denominator_change_factor",
-                      "target_to_source_std_ratio")
+                      "target_to_source_std_ratio", "dropout_probability", "event_time_distribution")
 
 
 results_columns <- c("success_proba", "mcse_success_proba", "conf_int_success_proba_lower",
@@ -212,6 +226,8 @@ expected_colnames_scenario <- c(
   "source_treatment_effect_estimate",
   "target_treatment_effect",
   "target_to_source_std_ratio",
+  "dropout_probability",
+  "event_time_distribution",
   "theta_0",
   "null_space"
 )
@@ -876,6 +892,10 @@ format_case_study_config <- function(case_study_config) {
         "Treatment Effect (Target)",
         "Standard Error (Target)",
         "Maximum follow-up time (Target)",
+        "Accrual period (Target)",
+        "Follow-up after recruitment (Target)",
+        "Weibull shape (Target)",
+        "Weibull relapse-free probability (Target)",
         "Control (Source)",
         "Treatment (Source)",
         "Total (Source)",
@@ -896,6 +916,10 @@ format_case_study_config <- function(case_study_config) {
         case_study_config$target$treatment_effect,
         case_study_config$target$standard_error,
         case_study_config$target$max_follow_up_time,
+        case_study_config$target$accrual_period,
+        case_study_config$target$final_follow_up,
+        case_study_config$target$weibull_shape,
+        case_study_config$target$weibull_relapse_free_probability,
         case_study_config$source$control,
         case_study_config$source$treatment,
         case_study_config$source$total,
@@ -912,8 +936,8 @@ format_case_study_config <- function(case_study_config) {
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
       kableExtra::kable_styling("striped", full_width = FALSE) %>%
       kableExtra::pack_rows("General", 1, 6) %>%
-      kableExtra::pack_rows("Target", 7, 12) %>%
-      kableExtra::pack_rows("Source", 13, 18)
+      kableExtra::pack_rows("Target", 7, 16) %>%
+      kableExtra::pack_rows("Source", 17, 22)
   } else if (case_study_config$endpoint == "binary") {
     data <- data.frame(
       Parameter = c(

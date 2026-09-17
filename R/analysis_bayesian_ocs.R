@@ -170,6 +170,10 @@ average_power <- function(prepost_proba_TP,
 #' @param target_sample_size_per_arm The target sample size per arm.
 #' @param case_study_config The case study configuration.
 #' @param target_to_source_std_ratio Ratio between target and source sampling standard deviations.
+#' @param dropout_probability Probability of loss to follow-up over the maximum follow-up
+#'   time. Only used for the time-to-event endpoint.
+#' @param event_time_distribution Distribution of the event times, either "exponential" or
+#'   "weibull". Only used for the time-to-event endpoint.
 #' @param n_replicates The number of replicates.
 #' @param confidence_level The confidence level.
 #' @param null_space The null space (either "left" or "right").
@@ -190,6 +194,8 @@ upper_bound_proba_FP_MC <- function(model,
                                     target_sample_size_per_arm,
                                     case_study_config,
                                     target_to_source_std_ratio,
+                                    dropout_probability = 0,
+                                    event_time_distribution = "exponential",
                                     n_replicates,
                                     confidence_level,
                                     null_space,
@@ -208,7 +214,9 @@ upper_bound_proba_FP_MC <- function(model,
     treatment_drift = treatment_drift,
     control_drift = 0,
     summary_measure_likelihood = source_data$summary_measure_likelihood,
-    target_to_source_std_ratio = target_to_source_std_ratio
+    target_to_source_std_ratio = target_to_source_std_ratio,
+    dropout_probability = dropout_probability,
+    event_time_distribution = event_time_distribution
   )
 
   results <- model$simulation_for_given_treatment_effect(
@@ -567,20 +575,38 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
             results_df_4 <- results_df_3 %>%
               dplyr::filter(target_sample_size_per_arm == !!target_sample_size_per_arm)
 
-            # Get the different parameters combinations studies for this method
-            parameters_combinations <- data.frame(parameters = unique(results_df_4[, "parameters"]))
+            # Get the different parameters combinations studies for this method,
+            # once per trial design. Control-arm heterogeneity, loss to follow-up
+            # and the event time distribution each describe a different trial, and
+            # the preposterior quantities below interpolate the probability of
+            # success over the treatment effect, so they have to be computed
+            # within a single design rather than across a mixture of them.
+            design_columns <- intersect(
+              c("control_drift", time_to_event_design_columns),
+              names(results_df_4)
+            )
+            parameters_combinations <- unique(
+              results_df_4[, c("parameters", design_columns), drop = FALSE]
+            )
 
             for (i in seq_len(nrow(parameters_combinations))) {
               # We unpack the parameter inside this loop (and not inside the previous one), because for some methods such as the commensurate power prior, there is a nested parameters structure which implies that they cannot all be stored in a single dataframe.
-              method_parameters <- as.list(get_parameters(parameters_combinations[i, , drop = FALSE]))
+              method_parameters <- as.list(get_parameters(
+                parameters_combinations[i, "parameters", drop = FALSE]
+              ))
               # convert strings to numeric or boolean if possible
               method_parameters <- data.frame(lapply(method_parameters, convert_if_possible))
 
               # The following applies to a single row dataframe, to recover the nested list structure
               method_params <- extract_nested_parameter(method_parameters)
 
-              results_df <- results_df_4 %>%
-                dplyr::filter(parameters == !!unlist(parameters_combinations[i, ]))
+              # Joining against the one-row combination keeps this working
+              # whichever of the design columns the results happen to carry.
+              results_df <- dplyr::inner_join(
+                results_df_4,
+                parameters_combinations[i, , drop = FALSE],
+                by = c("parameters", design_columns)
+              )
 
               conditional_proba_success <- results_df$success_proba
               treatment_effect_values <- results_df$target_treatment_effect
