@@ -96,7 +96,7 @@ forest_subplot_sweet_spot <- function(data,
       xmax = !!rlang::sym(sweet_spot_upper)
     )
   ) +
-    geom_errorbarh(height = 0.2) +
+    geom_errorbarh(height = 0.2, linewidth = 1) +
     labs(title = title, x = NULL, y = NULL) +
     theme(
       axis.title.y = element_blank(),

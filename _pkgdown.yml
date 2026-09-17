@@ -143,6 +143,9 @@ reference:
   - format_uncertainty
   - estimate_bayesian_ocs
   - set_size
+  - nominal_tie_breaks
+  - has_monte_carlo_uncertainty
+  - plot_baseline_success_proba_vs_xvar
   - bayesian_metric_vs_parameters
   - bayesian_metric_vs_sample_size
   - bayesian_ocs_plots

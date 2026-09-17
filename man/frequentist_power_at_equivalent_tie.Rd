@@ -8,13 +8,18 @@ frequentist_power_at_equivalent_tie(
   results,
   analysis_config,
   simulation_config,
-  parallelization = FALSE
+  parallelization = FALSE,
+  n_replicates = 1000
 )
 }
 \arguments{
 \item{results}{The results data frame.}
 
 \item{analysis_config}{The analysis configuration.}
+
+\item{n_replicates}{Number of Monte Carlo replicates the simulated power
+estimates are built from, for the case studies analytical_power() cannot
+be used for.}
 }
 \value{
 The final results data frame with power and frequentist test columns added.

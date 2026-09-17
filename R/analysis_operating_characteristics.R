@@ -579,11 +579,14 @@ compute_power_with_tie_ci <- function(alpha,
 #'
 #' @param results The results data frame.
 #' @param analysis_config The analysis configuration.
+#' @param n_replicates Number of Monte Carlo replicates the simulated power
+#'   estimates are built from, for the case studies analytical_power() cannot
+#'   be used for.
 #'
 #' @return The final results data frame with power and frequentist test columns added.
 #'
 #' @export
-frequentist_power_at_equivalent_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE) {
+frequentist_power_at_equivalent_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000) {
   if (nrow(results) == 0) {
     stop("The results dataframe is empty.")
   }
@@ -695,7 +698,8 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
         theta_0 = results$theta_0[i],
         null_space = results$null_space[i],
         case_study = results[i, ]$case_study,
-        simulation_config = simulation_config
+        simulation_config = simulation_config,
+        n_replicates = n_replicates
       )
 
       list(
@@ -741,7 +745,8 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
         theta_0 = results$theta_0[i],
         null_space = results$null_space[i],
         case_study =  results[i, ]$case_study,
-        simulation_config = simulation_config
+        simulation_config = simulation_config,
+        n_replicates = n_replicates
       )
 
       results$frequentist_power_at_equivalent_tie[i] <- power_estimation$power
@@ -759,7 +764,7 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 }
 
 
-frequentist_power_at_nominal_tie <- function(results, analysis_config, simulation_config) {
+frequentist_power_at_nominal_tie <- function(results, analysis_config, simulation_config, n_replicates = 1000) {
   if (nrow(results) == 0) {
     stop("The results dataframe is empty.")
   }
@@ -767,20 +772,27 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   results <- results[, !(
     names(results) %in% c(
      "nominal_frequentist_power_separate",
-     "nominal_frequentist_power_pooling"
+     "nominal_frequentist_power_separate_lower",
+     "nominal_frequentist_power_separate_upper",
+     "nominal_frequentist_power_pooling",
+     "nominal_frequentist_power_pooling_lower",
+     "nominal_frequentist_power_pooling_upper"
     )
   )]
 
   nominal_tie <- analysis_config[["nominal_tie"]]
   frequentist_test <- analysis_config[["frequentist_test"]]
 
-  # Initialize the new columns
-  results$nominal_frequentist_power_separate <- NA
-  results$nominal_frequentist_power_pooling <- NA
-
-  # Initialize the new columns
-  results$nominal_frequentist_power_separate <- NA
-  results$nominal_frequentist_power_pooling <- NA
+  # Initialize the new columns. The bounds are the confidence interval
+  # compute_freq_power() returns: an exact binomial interval when it estimates
+  # the power by simulation, and a degenerate c(power, power) when it has a
+  # closed form. The plot layer reads the width to tell the two apart.
+  results$nominal_frequentist_power_separate <- NA_real_
+  results$nominal_frequentist_power_separate_lower <- NA_real_
+  results$nominal_frequentist_power_separate_upper <- NA_real_
+  results$nominal_frequentist_power_pooling <- NA_real_
+  results$nominal_frequentist_power_pooling_lower <- NA_real_
+  results$nominal_frequentist_power_pooling_upper <- NA_real_
 
   # Progress bar function in R
   progress_bar <- function(n) {
@@ -810,10 +822,13 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
       theta_0 = results$theta_0[i],
       null_space = results$null_space[i],
       case_study =  results[i, ]$case_study,
-      simulation_config = simulation_config
+      simulation_config = simulation_config,
+      n_replicates = n_replicates
     )
 
     results$nominal_frequentist_power_separate[i] <- nominal_frequentist_power_separate$power
+    results$nominal_frequentist_power_separate_lower[i] <- nominal_frequentist_power_separate$conf_int_power[1]
+    results$nominal_frequentist_power_separate_upper[i] <- nominal_frequentist_power_separate$conf_int_power[2]
 
     nominal_frequentist_power_pooling <- compute_freq_power_pooling(
       alpha = nominal_tie,
@@ -823,10 +838,13 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
       theta_0 = results$theta_0[i],
       null_space = results$null_space[i],
       case_study =  results[i, ]$case_study,
-      simulation_config = simulation_config
+      simulation_config = simulation_config,
+      n_replicates = n_replicates
     )
 
     results$nominal_frequentist_power_pooling[i] <- nominal_frequentist_power_pooling$power
+    results$nominal_frequentist_power_pooling_lower[i] <- nominal_frequentist_power_pooling$conf_int_power[1]
+    results$nominal_frequentist_power_pooling_upper[i] <- nominal_frequentist_power_pooling$conf_int_power[2]
 
     # Update progress bar
     pb <- progress_bar(nrow(results))(i)

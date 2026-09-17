@@ -12,6 +12,9 @@
 #'   logical, or a list of method names, in the same form as the
 #'   `parallelization` entry of `scenarios_config.yml`. Defaults to that
 #'   entry, read from `config_dir`.
+#' @param n_replicates Number of Monte Carlo replicates the simulated power
+#'   estimates are built from. Defaults to the `n_replicates` entry of
+#'   `scenarios_config.yml`, read from `config_dir`.
 #'
 #' @return This function does not return a value. It writes the results and sweet spot analysis
 #' to CSV files in the specified results directory.
@@ -24,19 +27,27 @@ simulation_analysis <- function(env,
                                 analysis_config,
                                 config_dir,
                                 frequentist_metrics, case_studies = "all", to_compute = c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs"), methods = "all", case_studies_config_dir = NULL,
-                                parallelization = NULL) {
+                                parallelization = NULL,
+                                n_replicates = NULL) {
   futile.logger::flog.info("Starting the analysis of results in environment %s", env)
 
   # The caller usually already holds the scenarios config; fall back to
-  # reading it so a direct call still honours the environment's setting. A
-  # config_dir without one keeps the behaviour this argument replaced:
-  # analyse sequentially.
-  if (is.null(parallelization)) {
+  # reading it so a direct call still honours the environment's settings. A
+  # config_dir without one keeps the behaviour these arguments replaced:
+  # analyse sequentially, and leave the replicate count at the power
+  # functions' own default.
+  if (is.null(parallelization) || is.null(n_replicates)) {
     scenarios_config_path <- paste0(config_dir, "scenarios_config.yml")
-    parallelization <- if (file.exists(scenarios_config_path)) {
-      read_config(scenarios_config_path, scenarios_config_schema)$parallelization
+    scenarios_config <- if (file.exists(scenarios_config_path)) {
+      read_config(scenarios_config_path, scenarios_config_schema)
     } else {
-      FALSE
+      list(parallelization = FALSE, n_replicates = 1000)
+    }
+    if (is.null(parallelization)) {
+      parallelization <- scenarios_config$parallelization
+    }
+    if (is.null(n_replicates)) {
+      n_replicates <- scenarios_config$n_replicates
     }
   }
   run_in_parallel <- analysis_runs_in_parallel(parallelization)
@@ -91,7 +102,7 @@ simulation_analysis <- function(env,
   )
 
   if ("frequentist_power_at_equivalent_tie" %in% to_compute){
-    new_results_power_df <- frequentist_power_at_equivalent_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = run_in_parallel)
+    new_results_power_df <- frequentist_power_at_equivalent_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = run_in_parallel, n_replicates = n_replicates)
 
     updated_results_df <- results_freq_df %>%
       dplyr::anti_join(new_results_power_df, by = matching_columns)
@@ -106,7 +117,7 @@ simulation_analysis <- function(env,
     readr::write_csv(results_freq_df, freq_filename)
   }
   if ("frequentist_power_at_nominal_tie" %in% to_compute){
-    new_results_power_df <- frequentist_power_at_nominal_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config)
+    new_results_power_df <- frequentist_power_at_nominal_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, n_replicates = n_replicates)
 
     updated_results_df <- results_freq_df %>%
       dplyr::anti_join(new_results_power_df, by = matching_columns)

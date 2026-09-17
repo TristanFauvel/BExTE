@@ -436,7 +436,7 @@ plot_metric_vs_drift <- function(metric,
   if(metric %in% c("tie", "success_proba")){
     plt <- plt +
       ggplot2::geom_hline(yintercept = analysis_config$nominal_tie, color = "black", linetype = "dashed") + # Add horizontal line at y = 0.05
-      ggplot2::scale_y_continuous(breaks = function(x) unique(c(pretty(x), analysis_config$nominal_tie)))  # Add y-tick at y = 0.05
+      ggplot2::scale_y_continuous(breaks = nominal_tie_breaks(analysis_config$nominal_tie))  # Add y-tick at y = 0.05
   }
 
 
@@ -806,7 +806,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
       if(metric %in% c("tie", "success_proba")){
         plt <- plt +
           ggplot2::geom_hline(yintercept = analysis_config$nominal_tie, color = "black", linetype = "dashed") + # Add horizontal line at y = 0.05
-          ggplot2::scale_y_continuous(breaks = function(x) unique(c(pretty(x), analysis_config$nominal_tie)))  # Add y-tick at y = 0.05
+          ggplot2::scale_y_continuous(breaks = nominal_tie_breaks(analysis_config$nominal_tie))  # Add y-tick at y = 0.05
       }
 
       plt <- plt + geom_point(position = position_dodge(width = cap_size)) +
@@ -1045,7 +1045,7 @@ plot_metric_vs_sample_size <- function(metric,
   if(metric %in% c("tie", "success_proba")){
     plt <- plt +
       ggplot2::geom_hline(yintercept = analysis_config$nominal_tie, color = "black", linetype = "dashed") + # Add horizontal line at y = 0.05
-      ggplot2::scale_y_continuous(breaks = function(x) unique(c(pretty(x), analysis_config$nominal_tie)))  # Add y-tick at y = 0.05
+      ggplot2::scale_y_continuous(breaks = nominal_tie_breaks(analysis_config$nominal_tie))  # Add y-tick at y = 0.05
   }
 
   param_label <- make_labels_from_parameters(parameters_combinations, method)

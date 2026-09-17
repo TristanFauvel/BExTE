@@ -14,7 +14,8 @@ simulation_analysis(
     "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs"),
   methods = "all",
   case_studies_config_dir = NULL,
-  parallelization = NULL
+  parallelization = NULL,
+  n_replicates = NULL
 )
 }
 \arguments{
@@ -30,6 +31,10 @@ simulation_analysis(
 logical, or a list of method names, in the same form as the
 \code{parallelization} entry of \code{scenarios_config.yml}. Defaults to that
 entry, read from \code{config_dir}.}
+
+\item{n_replicates}{Number of Monte Carlo replicates the simulated power
+estimates are built from. Defaults to the \code{n_replicates} entry of
+\code{scenarios_config.yml}, read from \code{config_dir}.}
 }
 \value{
 This function does not return a value. It writes the results and sweet spot analysis
