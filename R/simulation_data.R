@@ -355,19 +355,13 @@ SourceData <- R6::R6Class("SourceData",
                                   self$control_rate <- source_denominator
                                 }
 
-                                self$treatment_rate <- case_study_config$source$treatment_rate
-
                                 self$treatment_rate <- self$control_rate * exp(self$treatment_effect_estimate)
 
-                                # The expected number of events in each arm is P(time_to_first_event <= max_time) * N_participants
-                                n_control_events <- pexp(case_study_config$source$max_follow_up_time,
-                                                         rate = self$control_rate) * self$sample_size_control
-                                n_treatment_events <- pexp(case_study_config$source$max_follow_up_time,
-                                                           rate = self$treatment_rate) * self$sample_size_treatment
-
-                                SE_log_RR <- sqrt(1 / n_control_events + 1 / n_treatment_events)
-
-                                self$standard_error <- SE_log_RR
+                                # The source estimate is the pooled log hazard ratio the source trials
+                                # reported, so its standard error is the one they reported with it. It is
+                                # read from the configuration rather than reconstructed from the arm sizes
+                                # and the control rate, which would describe a different source design.
+                                self$standard_error <- case_study_config$source$standard_error
                               } else if (self$endpoint == "recurrent_event") {
                                 if (is.na(source_denominator)) {
                                   self$control_rate <- case_study_config$source$control_rate
@@ -544,6 +538,10 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
   #' @param treatment_drift The treatment drift.
   #' @param summary_measure_likelihood The summary measure distribution.
   #' @param target_to_source_std_ratio Ratio between the target and source study sampling standard deviation
+  #' @param dropout_probability Probability that a patient is lost to follow-up over the
+  #'   maximum follow-up time. Only used for the time-to-event endpoint.
+  #' @param event_time_distribution Distribution of the event times, either "exponential"
+  #'   or "weibull". Only used for the time-to-event endpoint.
   #' @return The created target data object.
   create = function(source_data,
                     case_study_config,
@@ -551,7 +549,9 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
                     control_drift = 0,
                     treatment_drift,
                     summary_measure_likelihood,
-                    target_to_source_std_ratio = NULL) {
+                    target_to_source_std_ratio = NULL,
+                    dropout_probability = 0,
+                    event_time_distribution = "exponential") {
     assertions::assert_class(source_data, c("SourceData", "ObservedSourceData"))
     assert_single_number(target_sample_size_per_arm)
     assert_single_number(control_drift)
@@ -596,7 +596,14 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
         control_drift = control_drift,
         treatment_drift = treatment_drift,
         summary_measure_likelihood = summary_measure_likelihood,
-        max_follow_up_time = case_study_config$target$max_follow_up_time
+        max_follow_up_time = case_study_config$target$max_follow_up_time,
+        accrual_period = case_study_config$target$accrual_period,
+        final_follow_up = case_study_config$target$final_follow_up,
+        weibull_shape = case_study_config$target$weibull_shape,
+        weibull_relapse_free_probability =
+          case_study_config$target$weibull_relapse_free_probability,
+        dropout_probability = dropout_probability,
+        event_time_distribution = event_time_distribution
       )
     } else {
       stop("Not implemented for other endpoints")
@@ -1311,59 +1318,41 @@ RecurrentEventTargetData <- R6::R6Class(
   )
 )
 
-# Sample the sufficient statistics of one exponential survival arm, for every
-# replicate at once. The exponential MLE depends on the patient-level data only
-# through the number of events and the total exposure time, so the individual
-# survival times never have to be materialised: the number of events is
-# binomial, and each observed event time is exponential truncated to the
-# follow-up window.
-sample_exponential_arm_statistics <- function(n_subjects,
-                                              rate,
-                                              max_follow_up_time,
-                                              n_replicates) {
-  event_probability <- stats::pexp(max_follow_up_time, rate = rate)
-  n_events <- stats::rbinom(n_replicates, n_subjects, event_probability)
-
-  # Exposure contributed by the patients who relapse before the end of
-  # follow-up. Their relapse times are drawn in a single call and totalled per
-  # replicate; censored patients each contribute max_follow_up_time.
-  exposure_from_events <- numeric(n_replicates)
-  total_events <- sum(n_events)
-
-  if (total_events > 0) {
-    event_times <- stats::qexp(
-      stats::runif(total_events) * event_probability,
-      rate = rate
-    )
-    per_replicate <- rowsum(
-      event_times,
-      rep.int(seq_len(n_replicates), n_events)
-    )
-    exposure_from_events[as.integer(rownames(per_replicate))] <- per_replicate[, 1]
-  }
-
-  exposure <- exposure_from_events +
-    (n_subjects - n_events) * max_follow_up_time
-
-  return(list(n_events = n_events, exposure = exposure))
-}
-
 #' Time To Event Target Data
 #'
 #' @description This class represents target data for time-to-event analysis.
 #' It inherits from the TargetData class.
 #'
+#' The target trial follows the modified fixed-calendar design: patients enter
+#' uniformly over an accrual window, each may be followed for at most
+#' `max_follow_up_time`, and the database closes `final_follow_up` after the end
+#' of recruitment. See `R/simulation_time_to_event.R` for the generator and the
+#' Cox fit.
+#'
 #' @field control_rate Rate in the control arm of the target study
 #' @field treatment_rate Rate in the treatment arm of the target study
-#' @field max_follow_up_time Maximum follow-up time
+#' @field max_follow_up_time Maximum individual follow-up time, L
+#' @field accrual_period Length of the recruitment window, A
+#' @field final_follow_up Time from the end of recruitment to database closure, F
+#' @field dropout_probability Probability of loss to follow-up over the maximum follow-up time
+#' @field event_time_distribution Either "exponential" or "weibull"
+#' @field weibull_shape Common Weibull shape parameter, q
+#' @field weibull_scale Control-arm Weibull scale, calibrated to the reported relapse-free probability
 #'
 #' @export
 TimeToEventTargetData <- R6::R6Class(
+  "TimeToEventTargetData",
   inherit = TargetData,
   public = list(
     control_rate = NULL,
     treatment_rate = NULL,
     max_follow_up_time = NULL,
+    accrual_period = NULL,
+    final_follow_up = NULL,
+    dropout_probability = NULL,
+    event_time_distribution = NULL,
+    weibull_shape = NULL,
+    weibull_scale = NULL,
 
     #' @description Initialize the TimeToEventTargetData object
     #'
@@ -1373,14 +1362,28 @@ TimeToEventTargetData <- R6::R6Class(
     #' @param control_drift The control drift.
     #' @param treatment_drift The treatment drift.
     #' @param summary_measure_likelihood The summary measure distribution.
-    #' @param max_follow_up_time The maximum follow-up time.
+    #' @param max_follow_up_time The maximum individual follow-up time.
+    #' @param accrual_period The length of the recruitment window.
+    #' @param final_follow_up The time between the end of recruitment and database closure.
+    #' @param weibull_shape The common Weibull shape parameter.
+    #' @param weibull_relapse_free_probability The control-arm relapse-free probability at
+    #'   the maximum follow-up time, used to calibrate the Weibull scale.
+    #' @param dropout_probability The probability of loss to follow-up over the maximum
+    #'   follow-up time.
+    #' @param event_time_distribution Either "exponential" or "weibull".
     initialize = function(source_data,
                           sampling_approximation,
                           target_sample_size_per_arm,
                           control_drift = 0,
                           treatment_drift,
                           summary_measure_likelihood,
-                          max_follow_up_time) {
+                          max_follow_up_time,
+                          accrual_period = NULL,
+                          final_follow_up = NULL,
+                          weibull_shape = NULL,
+                          weibull_relapse_free_probability = NULL,
+                          dropout_probability = 0,
+                          event_time_distribution = "exponential") {
       super$initialize(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
@@ -1393,7 +1396,42 @@ TimeToEventTargetData <- R6::R6Class(
         stop("Invalid endpoint")
       }
 
+      # The calendar design is what makes the follow-up distribution non-trivial,
+      # so a configuration missing it would silently simulate a different trial.
+      missing_design <- c(
+        accrual_period = is.null(accrual_period),
+        final_follow_up = is.null(final_follow_up)
+      )
+      if (any(missing_design)) {
+        stop(paste0(
+          "The time-to-event case study configuration is missing ",
+          paste(names(missing_design)[missing_design], collapse = " and "),
+          " under target:. They describe the recruitment window and the database",
+          " lock, which set each patient's administrative censoring time."
+        ), call. = FALSE)
+      }
+
       self$max_follow_up_time <- max_follow_up_time
+      self$accrual_period <- accrual_period
+      self$final_follow_up <- final_follow_up
+      self$dropout_probability <- dropout_probability
+      self$event_time_distribution <- event_time_distribution
+      self$weibull_shape <- weibull_shape
+
+      if (event_time_distribution == "weibull") {
+        if (is.null(weibull_shape) || is.null(weibull_relapse_free_probability)) {
+          stop(paste0(
+            "The Weibull sensitivity analysis needs weibull_shape and",
+            " weibull_relapse_free_probability under target: in the case study",
+            " configuration."
+          ), call. = FALSE)
+        }
+        self$weibull_scale <- weibull_control_scale(
+          max_follow_up_time = max_follow_up_time,
+          shape = weibull_shape,
+          relapse_free_probability = weibull_relapse_free_probability
+        )
+      }
 
       self$sample_size_per_arm <- target_sample_size_per_arm
 
@@ -1413,15 +1451,41 @@ TimeToEventTargetData <- R6::R6Class(
         stop("The treatment effect (log rates ratio) is not consistent with the drift")
       }
 
-      # Estimation of the sampling standard deviation on the log(RR)
-      n_control_target <- self$sample_size_per_arm
-      n_treatment_target <- self$sample_size_per_arm
-      self$standard_deviation <- sqrt(
-        1 / (
-          self$control_rate * self$max_follow_up_time * n_control_target
-        ) + 1 / (
-          self$treatment_rate * self$max_follow_up_time * n_treatment_target
-        )
+      # Sampling standard deviation of the log hazard ratio, per patient as for
+      # the other endpoints. It is driven by the expected number of observed
+      # events, so it has to account for the staggered entry, the database lock
+      # and the loss to follow-up rather than for a common follow-up time.
+      parameters <- self$arm_parameters()
+      self$standard_deviation <- time_to_event_standard_deviation(
+        control_parameter = parameters$control,
+        treatment_parameter = parameters$treatment,
+        event_time_distribution = self$event_time_distribution,
+        weibull_shape = self$weibull_shape,
+        accrual_period = self$accrual_period,
+        final_follow_up = self$final_follow_up,
+        max_follow_up_time = self$max_follow_up_time,
+        dropout_rate = self$dropout_rate()
+      )
+    },
+
+    #' @description The loss-to-follow-up rate implied by the dropout probability.
+    #' @return A single number, zero when there is no loss to follow-up.
+    dropout_rate = function() {
+      time_to_event_dropout_rate(self$dropout_probability, self$max_follow_up_time)
+    },
+
+    #' @description The event-time parameters of each arm: rates under the
+    #'   exponential model, scales under the Weibull model.
+    #' @return A list with elements `control` and `treatment`.
+    arm_parameters = function() {
+      time_to_event_arm_parameters(
+        event_time_distribution = self$event_time_distribution,
+        control_rate = self$control_rate,
+        treatment_rate = self$treatment_rate,
+        treatment_effect = self$treatment_effect,
+        control_drift = self$control_drift,
+        weibull_shape = self$weibull_shape,
+        weibull_scale = self$weibull_scale
       )
     },
 
@@ -1457,41 +1521,23 @@ TimeToEventTargetData <- R6::R6Class(
         )
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
-        # The exponential model fitted below has a closed-form maximum
-        # likelihood estimate: the rate of an arm is its number of events
-        # divided by its total exposure time. Sampling those two sufficient
-        # statistics directly avoids fitting one survreg() per replicate.
-        control <- sample_exponential_arm_statistics(
-          n_subjects = n_control_target,
-          rate = self$control_rate,
-          max_follow_up_time = self$max_follow_up_time,
-          n_replicates = n_replicates
-        )
-        treatment <- sample_exponential_arm_statistics(
-          n_subjects = n_treatment_target,
-          rate = self$treatment_rate,
-          max_follow_up_time = self$max_follow_up_time,
-          n_replicates = n_replicates
-        )
+        # Simulate the trial patient by patient under the fixed-calendar design
+        # and analyse each replicate with a Cox proportional-hazards model. The
+        # log hazard ratio and its standard error are the summary measure the
+        # borrowing methods consume.
+        parameters <- self$arm_parameters()
 
-        estimated_rate_control <- control$n_events / control$exposure
-        estimated_rate_treatment <- treatment$n_events / treatment$exposure
-
-        log_rate_ratios <- log(estimated_rate_treatment) -
-          log(estimated_rate_control)
-
-        # SE of the log rate ratio, obtained with the delta method
-        se_log_rate_ratios <- sqrt(1 / control$n_events + 1 / treatment$n_events)
-
-        # The rate ratio is not estimable if an arm records no event at all
-        no_event <- control$n_events == 0 | treatment$n_events == 0
-        log_rate_ratios[no_event] <- NA_real_
-
-        samples <- data.frame(
-          treatment_effect_estimate = log_rate_ratios,
-          treatment_effect_standard_error = se_log_rate_ratios,
+        samples <- simulate_time_to_event_trial(
+          n_replicates = n_replicates,
           sample_size_per_arm = self$sample_size_per_arm,
-          standard_deviation = se_log_rate_ratios*sqrt(self$sample_size_per_arm)
+          control_parameter = parameters$control,
+          treatment_parameter = parameters$treatment,
+          event_time_distribution = self$event_time_distribution,
+          weibull_shape = self$weibull_shape,
+          accrual_period = self$accrual_period,
+          final_follow_up = self$final_follow_up,
+          max_follow_up_time = self$max_follow_up_time,
+          dropout_rate = self$dropout_rate()
         )
       } else {
         stop("Not implemented for other distributions")

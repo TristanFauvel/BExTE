@@ -503,7 +503,10 @@ estimate_configured_workload <- function(case_studies, methods_dict, ndrift,
                                          sample_size_factors,
                                          denominator_change_factor,
                                          target_to_source_std_ratio_range,
-                                         n_replicates) {
+                                         n_replicates,
+                                         control_drift_range = NULL,
+                                         dropout_probability = NULL,
+                                         event_time_distribution = NULL) {
   if (length(case_studies) == 0 || length(methods_dict) == 0) {
     return(NULL)
   }
@@ -525,7 +528,16 @@ estimate_configured_workload <- function(case_studies, methods_dict, ndrift,
     ratio_rows <- if (identical(config$endpoint, "continuous")) {
       length(target_to_source_std_ratio_range)
     } else 1L
-    drift_rows * denominator_rows * ratio_rows * length(sample_size_factors)
+    # Control-arm heterogeneity, loss to follow-up and the event time
+    # distribution are only simulated for the time-to-event endpoint - see
+    # compute_control_drift_range() and compute_time_to_event_ranges().
+    design_rows <- if (identical(config$endpoint, "time_to_event")) {
+      length(unique(c(0, control_drift_range))) *
+        max(1L, length(dropout_probability)) *
+        max(1L, length(event_time_distribution))
+    } else 1L
+    drift_rows * denominator_rows * ratio_rows * design_rows *
+      length(sample_size_factors)
   }, numeric(1)))
 
   scenarios <- as.double(method_rows) * as.double(case_rows)
