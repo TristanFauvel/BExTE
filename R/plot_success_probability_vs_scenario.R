@@ -1,3 +1,33 @@
+#' Add a reference probability of success to a metric-vs-x-variable plot
+#'
+#' @description Draws the baseline as points, optionally joined by a line.
+#'   When `selected_metric_uncertainty_lower`/`_upper` name columns that carry
+#'   a non-degenerate interval, the baseline also gets error bars.
+#'
+#'   The bounds are only informative where the power was approximated by Monte
+#'   Carlo: `compute_freq_power()` returns an exact binomial interval when it
+#'   simulates, but a degenerate `c(power, power)` when it has a closed form.
+#'   Handing those degenerate bounds to `geom_errorbar()` would draw a
+#'   zero-height bar - a bare cap tick - through every marker, so they are
+#'   left off. Results that predate the bound columns are treated the same
+#'   way, which keeps their figures rendering.
+#'
+#' @param plt The plot to add the baseline to.
+#' @param data The dataframe holding the baseline.
+#' @param xvar_name Name of the x-axis variable.
+#' @param selected_metric_name Name of the column holding the baseline.
+#' @param cap_size Width of the error bar caps.
+#' @param markersize Size of the points.
+#' @param join_points Whether to join the points with a line.
+#' @param label Legend label for the baseline.
+#' @param selected_metric_uncertainty_lower Name of the column holding the
+#'   lower confidence bound, or `NULL` for no error bars.
+#' @param selected_metric_uncertainty_upper Name of the column holding the
+#'   upper confidence bound, or `NULL` for no error bars.
+#'
+#' @return The plot, with the baseline added.
+#'
+#' @keywords internal
 plot_baseline_success_proba_vs_xvar <- function(plt,
                                                 data,
                                                 xvar_name,
@@ -5,9 +35,29 @@ plot_baseline_success_proba_vs_xvar <- function(plt,
                                                 cap_size,
                                                 markersize,
                                                 join_points,
-                                                label = NULL) {
+                                                label = NULL,
+                                                selected_metric_uncertainty_lower = NULL,
+                                                selected_metric_uncertainty_upper = NULL) {
   if (nrow(data) == 0) {
     stop("The dataframe is empty.")
+  }
+
+  if (has_monte_carlo_uncertainty(data,
+                                  selected_metric_uncertainty_lower,
+                                  selected_metric_uncertainty_upper)) {
+    plt <- plt +
+      geom_errorbar(
+        data = data,
+        ggplot2::aes(
+          x = !!sym(xvar_name),
+          y = !!sym(selected_metric_name),
+          ymin = !!sym(selected_metric_uncertainty_lower),
+          ymax = !!sym(selected_metric_uncertainty_upper),
+          color = label
+        ),
+        position = position_dodge(width = cap_size),
+        width = cap_size
+      )
   }
 
   plt <- plt +
@@ -245,7 +295,9 @@ plot_success_proba_vs_drift <- function(metric,
       cap_size = cap_size,
       markersize = markersize,
       join_points = join_points,
-      label = "Nominal Pr(Success)"
+      label = "Nominal Pr(Success)",
+      selected_metric_uncertainty_lower = "nominal_frequentist_power_separate_lower",
+      selected_metric_uncertainty_upper = "nominal_frequentist_power_separate_upper"
     )
     # plt <- plot_baseline_success_proba_vs_xvar(plt,
     #                                            data = results_df,

@@ -410,12 +410,7 @@ operating_characteristic_vs_tie <- function(
       linetype = "dashed"
     ) +
     ggplot2::scale_x_continuous(
-      breaks = function(x) unique(c(pretty(x), analysis_config$nominal_tie)),
-      ## The nominal TIE is forced in alongside the pretty breaks, and at
-      ## 12pt it can land close enough to one of them to overprint it
-      ## ("0.000" over "0.025"). check.overlap drops whichever labels
-      ## would collide instead of drawing them on top of each other.
-      guide = ggplot2::guide_axis(check.overlap = TRUE)
+      breaks = nominal_tie_breaks(analysis_config$nominal_tie)
     )
 
   # Add shape scale for methods

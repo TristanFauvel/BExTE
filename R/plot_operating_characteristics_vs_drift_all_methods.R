@@ -259,7 +259,7 @@ plot_metric_vs_drift_methods <- function(metric,
   if(metric %in% c("tie", "success_proba")){
     plt <- plt +
       ggplot2::geom_hline(yintercept = analysis_config$nominal_tie, color = "black", linetype = "dashed") + # Add horizontal line at y = 0.05
-      ggplot2::scale_y_continuous(breaks = function(x) unique(c(pretty(x), analysis_config$nominal_tie)))  # Add y-tick at y = 0.05
+      ggplot2::scale_y_continuous(breaks = nominal_tie_breaks(analysis_config$nominal_tie))  # Add y-tick at y = 0.05
   }
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
@@ -596,7 +596,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
   if(metric %in% c("tie", "success_proba")){
     plt <- plt +
       ggplot2::geom_hline(yintercept = analysis_config$nominal_tie, color = "black", linetype = "dashed") + # Add horizontal line at y = 0.05
-      ggplot2::scale_y_continuous(breaks = function(x) unique(c(pretty(x), analysis_config$nominal_tie)))  # Add y-tick at y = 0.05
+      ggplot2::scale_y_continuous(breaks = nominal_tie_breaks(analysis_config$nominal_tie))  # Add y-tick at y = 0.05
   }
 
   plot_title = sprintf(
