@@ -40,6 +40,14 @@ frequentist_metrics <<- list(
     baseline = 0,
     larger_is_better = FALSE
   ),
+  interval_score = list(
+    name = "interval_score",
+    metric_uncertainty = "conf_int_interval_score",
+    label = "Interval score of the 95% CrI",
+    uncertainty_label = "95% CI",
+    baseline = 0,
+    larger_is_better = FALSE
+  ),
   tie = list(
     name = "tie",
     metric_uncertainty = "conf_int_tie",
@@ -184,6 +192,10 @@ sweet_spots_metrics <<- list(
   precision = list(
     name = "precision",
     label = "Sweet spot width - half width of the 95% CrI"
+  ),
+  interval_score = list(
+    name = "interval_score",
+    label = "Sweet spot width - interval score of the 95% CrI"
   ),
   tie = list(
     name = "tie",
