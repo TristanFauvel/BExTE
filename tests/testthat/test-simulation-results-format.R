@@ -359,6 +359,23 @@ config_frequentist <- list(
     not_missing = TRUE,
     compare = list(column = "conf_int_precision_lower", operator = ">=")
   ),
+  interval_score = list(
+    type = "numeric",
+    range = c(0, Inf),
+    not_missing = TRUE
+  ),
+  conf_int_interval_score_lower = list(
+    type = "numeric",
+    range = c(0, Inf),
+    not_missing = TRUE,
+    compare = list(column = "conf_int_interval_score_upper", operator = "<=")
+  ),
+  conf_int_interval_score_upper = list(
+    type = "numeric",
+    range = c(0, Inf),
+    not_missing = TRUE,
+    compare = list(column = "conf_int_interval_score_lower", operator = ">=")
+  ),
   credible_interval_lower = list(
     type = "numeric",
     range = c(-Inf, Inf),
