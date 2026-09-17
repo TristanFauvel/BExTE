@@ -170,6 +170,12 @@ Model <- R6::R6Class(
         model <- Gaussian_Gravestock_EBPP$new(prior, null_space = null_space, theta_0 = case_study_config$theta_0)
       } else if (method == "NPP") {
         model <- Gaussian_NPP$new(prior)
+      } else if (method == "NPP_KL") {
+        model <- Gaussian_NPP_KL$new(
+          prior,
+          theta_0 = case_study_config$theta_0,
+          null_space = null_space
+        )
       } else if (method == "commensurate_power_prior") {
         if (case_study_config$summary_measure_likelihood == "normal") {
           model <- GaussianCommensuratePowerPrior$new(
@@ -229,6 +235,21 @@ Model <- R6::R6Class(
     #'   [Model$simulation_for_given_treatment_effect()].
     vectorised_replicate_inference = function(...) {
       NULL
+    },
+
+    #' @description Fix any hyperparameter that the scenario's design decides
+    #'
+    #' Most methods take their hyperparameters from the configuration grid,
+    #' and for them this does nothing. A method that instead derives them from
+    #' the target design - its sample size, and so the standard error it can
+    #' expect - overrides this, and the drivers call it once per scenario,
+    #' before any replicate is generated. Deriving them inside the replicate
+    #' loop instead would make the prior a function of the data.
+    #'
+    #' @param target_data Target study data for the scenario.
+    #' @return `NULL`, invisibly.
+    calibrate_for_design = function(target_data) {
+      invisible(NULL)
     },
 
     #' @description Scenario identity under which replicate analyses may be shared

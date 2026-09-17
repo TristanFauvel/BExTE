@@ -51,6 +51,7 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="calibrate_for_design"><a href='../../BExTE/html/Model.html#method-Model-calibrate_for_design'><code>Model$calibrate_for_design()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>

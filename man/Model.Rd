@@ -71,6 +71,7 @@ the test that is actually performed.}
     \item \href{#method-Model-create}{\code{Model$create()}}
     \item \href{#method-Model-inference}{\code{Model$inference()}}
     \item \href{#method-Model-vectorised_replicate_inference}{\code{Model$vectorised_replicate_inference()}}
+    \item \href{#method-Model-calibrate_for_design}{\code{Model$calibrate_for_design()}}
     \item \href{#method-Model-inference_cache_scope}{\code{Model$inference_cache_scope()}}
     \item \href{#method-Model-check_data}{\code{Model$check_data()}}
     \item \href{#method-Model-posterior_moments}{\code{Model$posterior_moments()}}
@@ -195,6 +196,35 @@ replicate loop.
   \subsection{Returns}{
     \code{NULL}, or a list shaped like the return value of
 \code{\link[=Model$simulation_for_given_treatment_effect]{Model$simulation_for_given_treatment_effect()}}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Model-calibrate_for_design"></a>}}
+\if{latex}{\out{\hypertarget{method-Model-calibrate_for_design}{}}}
+\subsection{\code{Model$calibrate_for_design()}}{
+  Fix any hyperparameter that the scenario's design decides
+
+Most methods take their hyperparameters from the configuration grid,
+and for them this does nothing. A method that instead derives them from
+the target design - its sample size, and so the standard error it can
+expect - overrides this, and the drivers call it once per scenario,
+before any replicate is generated. Deriving them inside the replicate
+loop instead would make the prior a function of the data.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model$calibrate_for_design(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data for the scenario.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{NULL}, invisibly.
   }
 }
 

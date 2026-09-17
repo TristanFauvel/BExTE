@@ -51,6 +51,7 @@ This class represents a conjugate Gaussian model (Gaussian prior and Gaussian li
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="calibrate_for_design"><a href='../../BExTE/html/Model.html#method-Model-calibrate_for_design'><code>Model$calibrate_for_design()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="empirical_bayes_update"><a href='../../BExTE/html/Model.html#method-Model-empirical_bayes_update'><code>Model$empirical_bayes_update()</code></a></span></li>

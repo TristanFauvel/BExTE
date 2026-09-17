@@ -81,6 +81,13 @@ frequentist_ocs_scenario_simulation <- function(scenario,
     event_time_distribution = event_time_distribution
   )
 
+  # A method whose hyperparameters follow from the design fixes them here:
+  # after the source data and the scenario are known, and before any
+  # replicate is generated, so that every replicate of this scenario is
+  # analysed under the same prior. Methods taking their hyperparameters from
+  # the configuration grid are unaffected - the base class does nothing.
+  model$calibrate_for_design(target_data)
+
   # Get the current RNG state
   computation_state <- list(rng_state = .Random.seed, computation_time = 0)
 

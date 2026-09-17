@@ -695,6 +695,260 @@ Gaussian_NPP <- R6::R6Class(
   )
 )
 
+
+#' Gaussian_NPP_KL class
+#'
+#' @description This class represents a normalised power prior whose `Beta`
+#' prior on the power parameter is calibrated rather than configured.
+#'
+#' The ordinary normalised power prior takes the mean and standard deviation of
+#' that prior from the configuration grid, so a run uses the same prior however
+#' precise the target trial is. Whether a given source/target discrepancy is
+#' even distinguishable from noise depends on the target standard error, so a
+#' prior fixed in advance cannot express "borrow when the two studies agree,
+#' stop borrowing at a discrepancy I would not tolerate". This class states that
+#' intention instead, as a Kullback-Leibler criterion over two hypothetical
+#' target estimates, and solves for the shape parameters it implies - see
+#' [calibrate_npp_kl()].
+#'
+#' Everything downstream of the prior is inherited unchanged: the joint and
+#' marginal posteriors, the quadrature mixture, the summaries and the effective
+#' sample sizes are the ones `Gaussian_NPP` already computes. Only where `p` and
+#' `q` come from differs.
+#'
+#' The calibration reads the design, not the data, so it happens once per
+#' scenario, in [Model]`$calibrate_for_design()`, before any replicate is
+#' generated. `p` and `q` are left `NULL` until then: a model analysed before it
+#' has been calibrated would otherwise silently use whatever placeholder stood
+#' in for them.
+#'
+#' @field method Name of the method
+#' @field theta_0 Boundary of the null hypothesis space
+#' @field null_space The null hypothesis space, which gives the benefit direction
+#' @field calibration The result of [calibrate_npp_kl()] for this scenario
+#' @field calibration_settings The criterion settings read from the method parameters
+#' @export
+Gaussian_NPP_KL <- R6::R6Class(
+  "Gaussian_NPP_KL",
+  inherit = Gaussian_NPP,
+  public = list(
+    method = "NPP_KL",
+    theta_0 = NULL,
+    null_space = NULL,
+    calibration = NULL,
+    calibration_settings = NULL,
+
+    #' @description Initialize a new Gaussian_NPP_KL object.
+    #' @param prior Prior object containing method parameters.
+    #' @param theta_0 Value of the treatment effect under the null hypothesis.
+    #' @param null_space The null hypothesis space, either "left" or "right".
+    #' @return A new Gaussian_NPP_KL object.
+    initialize = function(prior, theta_0, null_space) {
+      # The parent validates and converts a mean and standard deviation into
+      # shape parameters, and sets up the rest of the model. Neither is
+      # configured here, so it is run on the Beta(1, 1) placeholder those
+      # moments describe purely to reach that setup, and the shape parameters it
+      # derives are then discarded.
+      placeholder <- prior
+      placeholder$method_parameters$power_parameter_mean <- list(0.5)
+      placeholder$method_parameters$power_parameter_std <- list(sqrt(1 / 12))
+      super$initialize(placeholder)
+
+      self$p <- NULL
+      self$q <- NULL
+      self$power_parameter_mean <- NULL
+      self$power_parameter_std <- NULL
+
+      self$theta_0 <- theta_0
+      self$null_space <- null_space
+
+      parameters <- prior$method_parameters
+
+      first_or <- function(value, fallback) {
+        if (is.null(value)) fallback else value[[1]]
+      }
+
+      d_mtd_rule <- first_or(parameters$d_mtd_rule, "source_to_null")
+      if (!identical(d_mtd_rule, "source_to_null")) {
+        stop(
+          "The only maximum tolerable discrepancy rule implemented is ",
+          "'source_to_null', but d_mtd_rule is '", d_mtd_rule,
+          "'. Pass an explicit numeric d_mtd to use a different discrepancy."
+        )
+      }
+
+      # An absent benefit_sign is the usual case: the case study records the
+      # benefit direction as its null space, and deriving it there is what keeps
+      # the maximum tolerable discrepancy on the side that moves the target
+      # towards the null for the log-ratio case studies as well.
+      self$calibration_settings <- list(
+        lambda_kl = first_or(parameters$lambda_kl, 0.5),
+        c_target = first_or(parameters$c_target, 10),
+        d_mtd_rule = d_mtd_rule,
+        d_mtd_multiplier = first_or(parameters$d_mtd_multiplier, 1),
+        d_mtd = if (is.null(parameters$d_mtd)) NULL else parameters$d_mtd[[1]],
+        benefit_sign = if (is.null(parameters$benefit_sign)) {
+          benefit_sign_from_null_space(null_space)
+        } else {
+          parameters$benefit_sign[[1]]
+        },
+        beta_parameter_bounds = if (is.null(parameters$beta_parameter_bounds)) {
+          NPP_KL_DEFAULT_BOUNDS
+        } else {
+          unlist(parameters$beta_parameter_bounds)
+        }
+      )
+    },
+
+    #' @description Calibrate the prior on the power parameter to this design.
+    #'
+    #' The expected target standard error is the one the design implies, which
+    #' every target data class carries as a sampling standard deviation on the
+    #' per-patient scale. It is not the standard error of any replicate: those
+    #' vary around this one, and using them would make the prior a function of
+    #' the data it is supposed to be a prior for.
+    #'
+    #' @param target_data Target study data for the scenario.
+    #' @return The calibration, invisibly.
+    calibrate_for_design = function(target_data) {
+      se_target_expected <- target_data$standard_deviation /
+        sqrt(target_data$sample_size_per_arm)
+
+      settings <- self$calibration_settings
+
+      self$calibration <- calibrate_npp_kl(
+        theta_source = self$prior$source$treatment_effect_estimate,
+        se_source = self$prior$source$standard_error,
+        se_target_expected = se_target_expected,
+        theta_null = self$theta_0,
+        benefit_sign = settings$benefit_sign,
+        d_mtd = settings$d_mtd,
+        d_mtd_multiplier = settings$d_mtd_multiplier,
+        lambda_kl = settings$lambda_kl,
+        c_target = settings$c_target,
+        beta_parameter_bounds = settings$beta_parameter_bounds
+      )
+
+      self$p <- self$calibration$alpha_gamma
+      self$q <- self$calibration$beta_gamma
+
+      moments <- npp_kl_beta_moments(self$p, self$q)
+      self$power_parameter_mean <- moments$mean
+      self$power_parameter_std <- moments$sd
+
+      invisible(self$calibration)
+    },
+
+    #' @description Stop unless the prior has been calibrated.
+    #' @return `NULL`, invisibly.
+    assert_calibrated = function() {
+      if (is.null(self$p) || is.null(self$q)) {
+        stop(
+          "The KL-calibrated normalised power prior has no prior on the power ",
+          "parameter yet. Call calibrate_for_design() with this scenario's ",
+          "target data before running inference."
+        )
+      }
+      invisible(NULL)
+    },
+
+    #' @description Run every replicate at once
+    #'
+    #' The parent's fast path, widened by the calibration columns. They are
+    #' constant within a scenario, and are reported per replicate because the
+    #' reporting layer averages every posterior parameter over the replicates.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @param to_return Character vector of requested outputs.
+    #' @param critical_value Critical value for hypothesis testing.
+    #' @param theta_0 Null hypothesis value.
+    #' @param confidence_level Confidence level for the credible interval.
+    #' @param null_space The null space for hypothesis testing.
+    #' @return A list of simulation results.
+    vectorised_replicate_inference = function(target_data, samples, to_return,
+                                              critical_value, theta_0,
+                                              confidence_level, null_space) {
+      self$assert_calibrated()
+
+      prior <- npp_prior_mixture(self)
+
+      posterior <- normal_mixture_posterior(
+        weights = prior$weights,
+        means = prior$means,
+        sds = prior$sds,
+        estimate = samples$treatment_effect_estimate,
+        standard_error = samples$treatment_effect_standard_error
+      )
+
+      vectorised_normal_mixture_simulation(
+        weights = prior$weights,
+        means = prior$means,
+        sds = prior$sds,
+        samples = samples,
+        target_data = target_data,
+        to_return = to_return,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        posterior_parameters = cbind(
+          npp_power_parameter_summary(posterior$weights, prior$power_parameter),
+          npp_kl_calibration_columns(self$calibration, nrow(samples))
+        ),
+        posterior = posterior
+      )
+    },
+
+    #' @description Sample from the prior on the treatment effect.
+    #'
+    #' The prior is what the calibration chooses, so reaching for it before the
+    #' design has been seen is the same mistake as running inference early. It
+    #' is worth catching separately because this is the door the design priors
+    #' and the effective sample sizes come in through, and the shape parameters
+    #' being absent surfaces there as `rbeta`'s "invalid arguments" rather than
+    #' as anything that names the cause.
+    #'
+    #' @param n_samples Number of samples to draw.
+    #' @return A vector of samples from the prior.
+    sample_prior = function(n_samples) {
+      self$assert_calibrated()
+      super$sample_prior(n_samples)
+    },
+
+    #' @description Density of the prior on the treatment effect.
+    #' @param x Values at which to evaluate the density.
+    #' @return The prior density at `x`.
+    prior_pdf = function(x) {
+      self$assert_calibrated()
+      super$prior_pdf(x)
+    },
+
+    #' @description Perform inference on the target data.
+    #'
+    #' The scalar path, which the vignette and the reference tests use, reports
+    #' the same columns as the vectorised one so that the two can be compared.
+    #'
+    #' @param target_data Target study data.
+    #' @return A string indicating the success status of the inference.
+    inference = function(target_data) {
+      self$assert_calibrated()
+
+      fit_success <- super$inference(target_data)
+
+      # Assigned by name rather than appended: the scalar path is called once
+      # per replicate, on the same object, so appending would grow the list a
+      # set of duplicate columns at a time and the replicate loop would then
+      # fail to rbind them.
+      calibration_columns <- as.list(
+        npp_kl_calibration_columns(self$calibration, 1L)
+      )
+      self$posterior_parameters[names(calibration_columns)] <- calibration_columns
+
+      fit_success
+    }
+  )
+)
 g_function <- function(log_tau) {
   return(pmax(log_tau, 1))
 }
