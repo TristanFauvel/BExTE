@@ -5,6 +5,11 @@ methods_labels <<- list(
     short_name = "RMP",
     label = "RMP"
   ),
+  egidi_empirical_mixture = list(
+    full_name = "Empirical Mixture Prior",
+    short_name = "egidi_empirical_mixture",
+    label = "Emp. mixture"
+  ),
   separate = list(
     full_name = "Separate analysis",
     short_name = "Separate",
@@ -81,6 +86,10 @@ methods_labels <<- list(
 # plots three weights or nine.
 methods_style <<- list(
   RMP = list(shape = 16, hue = "#0072B2"),
+  # The same circle family as the robust mixture prior it is the empirical
+  # counterpart of, in a darker shade of its blue, which is the device the
+  # commensurate and normalised power prior pairs already use.
+  egidi_empirical_mixture = list(shape = 10, hue = "#003F5C"),
   separate = list(shape = 4, hue = "#7F7F7F"),
   pooling = list(shape = 3, hue = "#000000"),
   conditional_power_prior = list(shape = 15, hue = "#009E73"),
@@ -102,6 +111,27 @@ methods_style <<- list(
 
 # Contains information for plotting hyperparameters that are set using Empirical Bayes
 empirical_bayes_hyperparameters <<- list(
+  # The weight this method selects from the observed target data, which is what
+  # its behaviour is read from. Reported as the weight on the informative
+  # component as well, so it shares an axis with the RMP's w.
+  egidi_empirical_mixture = list(
+    informative_prior_weight = list(
+      parameter_name = "informative_prior_weight",
+      parameter_label = "1 - psi",
+      parameter_notation = "$1 - \\hat\\psi$",
+      type = "continuous",
+      range = c(0, 1),
+      suffix = ""
+    ),
+    psi_weak = list(
+      parameter_name = "psi_weak",
+      parameter_label = "psi",
+      parameter_notation = "$\\hat\\psi$",
+      type = "continuous",
+      range = c(0, 1),
+      suffix = ""
+    )
+  ),
   RMP = list(
     prior_weight = list(
       parameter_name = "prior_weight",

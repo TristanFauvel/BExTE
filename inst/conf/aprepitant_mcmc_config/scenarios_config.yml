@@ -18,3 +18,4 @@ methods:
     - test_then_pool_equivalence
     - test_then_pool_difference
     - p_value_based_PP
+    - egidi_empirical_mixture

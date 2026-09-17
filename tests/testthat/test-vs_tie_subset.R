@@ -27,7 +27,7 @@ test_that("the subset names exactly the methods the paper's vs-TIE panels show",
     names(PAPER_VS_TIE_COMBINATIONS),
     c("pooling", "separate", "EB_PP", "RMP", "conditional_power_prior",
       "commensurate_power_prior", "commensurate_prior", "p_value_based_PP",
-      "NPP")
+      "NPP", "egidi_empirical_mixture")
   )
   ## Test-then-pool and PDCCPP are deliberately absent from these panels.
   expect_false("test_then_pool_equivalence" %in% names(PAPER_VS_TIE_COMBINATIONS))
@@ -48,7 +48,7 @@ test_that("the parameter grids are thinned to their informative range", {
   )
 })
 
-test_that("the subset selects 23 combinations from a real results slice", {
+test_that("the subset selects 24 combinations from a real results slice", {
   df <- local_botox_slice()
 
   kept <- paper_vs_tie_subset(df)
@@ -56,8 +56,9 @@ test_that("the subset selects 23 combinations from a real results slice", {
 
   ## 1 pooling + 1 separate + 1 EBPP + 9 RMP + 3 conditional PP
   ## + 3 commensurate PP and 3 commensurate prior (the inverse-gamma priors
-  ## of each) + 1 p-PP + 1 NPP.
-  expect_equal(nrow(combinations), 23)
+  ## of each) + 1 p-PP + 1 NPP + 1 empirical mixture prior, whose weight is
+  ## selected rather than swept and so has a single combination.
+  expect_equal(nrow(combinations), 24)
   expect_lt(nrow(kept), nrow(df))
 })
 

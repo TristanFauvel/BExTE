@@ -75,6 +75,9 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   ## same holds for the plain commensurate prior, which runs the same grid.
   commensurate_power_prior = list(`heterogeneity_prior.family` = "inverse_gamma"),
   commensurate_prior = list(`heterogeneity_prior.family` = "inverse_gamma"),
+  ## The weight is selected from the data rather than swept, so there is a
+  ## single combination and nothing to thin.
+  egidi_empirical_mixture = list(),
   p_value_based_PP = list(shape_parameter = 1, equivalence_margin = 0.5),
   NPP = list(power_parameter_mean = 0.5, power_parameter_std = 0.2)
 )

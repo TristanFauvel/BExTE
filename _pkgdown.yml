@@ -34,6 +34,7 @@ articles:
   - methods/Commensurate_Power_Prior
   - methods/Commensurate_Prior
   - methods/Conditional_Power_Prior
+  - methods/Egidi_Mixture_Prior
   # methods/conditional_power_prior_binary is excluded (leading
   # underscore) - it now renders correctly, but its demo loops (two
   # ~200 x 100-replicate loops requesting quantile-based posterior
@@ -106,6 +107,8 @@ reference:
   - BinomialCPP
   - GaussianCommensuratePowerPrior
   - GaussianCommensuratePrior
+  - GaussianEgidiMixture
+  - TruncatedEgidiMixture
   - GaussianRMP_RBesT
   - Model_RBesT
   - PoolGaussian_RBesT
@@ -121,6 +124,7 @@ reference:
     replicates of a scenario at once
 - contents:
   - normal_mixture_posterior
+  - fit_egidi_mixture
   - normal_mixture_summary
   - normal_mixture_elir_ess
   - npp_prior_mixture
