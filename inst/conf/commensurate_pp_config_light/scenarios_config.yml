@@ -17,3 +17,4 @@ case_studies:
 methods:
     - commensurate_power_prior
     - commensurate_prior
+    - egidi_empirical_mixture
