@@ -26,7 +26,8 @@ BEXTE_METHOD_LABELS <- c(
   test_then_pool_difference = "Test then pool (difference)",
   test_then_pool_equivalence = "Test then pool (equivalence)",
   commensurate_power_prior = "Commensurate power prior",
-  commensurate_prior = "Commensurate prior"
+  commensurate_prior = "Commensurate prior",
+  egidi_empirical_mixture = "Empirical mixture prior (Egidi)"
 )
 
 ## Short descriptions shown as hover tooltips next to each method's checkbox
@@ -44,7 +45,8 @@ BEXTE_METHOD_DESCRIPTIONS <- c(
   test_then_pool_difference = "A two-stage rule: pools the source and target data only if a hypothesis test finds no significant difference between them; analyzes them separately otherwise.",
   test_then_pool_equivalence = "A two-stage rule: pools the source and target data only if an equivalence test finds them close enough; analyzes them separately otherwise.",
   commensurate_power_prior = "Lets the degree of borrowing be governed by a heterogeneity parameter estimated from how commensurate (similar) the source and target data are.",
-  commensurate_prior = "As the commensurate power prior, but without the additional power-prior discount: borrowing is governed by the heterogeneity parameter alone, and the source data otherwise enter undiscounted."
+  commensurate_prior = "As the commensurate power prior, but without the additional power-prior discount: borrowing is governed by the heterogeneity parameter alone, and the source data otherwise enter undiscounted.",
+  egidi_empirical_mixture = "The robust mixture prior's two components, but with the weight chosen from the observed target data rather than prespecified: it is the smallest weight on the vague component at which the prior-predictive conflict p-value reaches 5%. The target data are therefore used both to choose the prior and to update it."
 )
 
 ## Short descriptions shown as hover tooltips next to each case study's
