@@ -235,6 +235,9 @@ forest_scientific_x <- function(values, label) {
 ## panel that carries both guides, so the three panels can then be drawn
 ## without any legend of their own.
 forest_legend_grob <- function(plt) {
+  close_device <- use_font_capable_device()
+  on.exit(close_device(), add = TRUE)
+
   with_legend <- plt + ggplot2::theme(
     legend.position = "bottom",
     legend.direction = "horizontal",
@@ -679,6 +682,9 @@ forest_combined_plot <- function(data,
 #' @return None
 forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL,
                         relative_to_separate = FALSE) {
+  close_device <- use_font_capable_device()
+  on.exit(close_device(), add = TRUE)
+
   selected_case_study <- unique(results_freq_df$case_study)
   selected_target_sample_size_per_arm <- unique(results_freq_df$target_sample_size_per_arm)
 
@@ -1080,6 +1086,9 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
 #'
 #' @return None
 forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
+  close_device <- use_font_capable_device()
+  on.exit(close_device(), add = TRUE)
+
   selected_case_study <- unique(results_bayes_df$case_study)
   selected_target_sample_size_per_arm <- unique(results_bayes_df$target_sample_size_per_arm)
 

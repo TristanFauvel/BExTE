@@ -238,6 +238,75 @@ test_that("a versus-type-I-error figure exports without a missing-import error",
   })
 })
 
+test_that("a figure exports even with a plain graphics device left open", {
+  ## grid measures text - including the measurement ggplotGrob() does while
+  ## assembling guides - on whatever device is current. options(device=) only
+  ## decides what gets opened when none is open, so a pdf() device the caller
+  ## already has is used as it is, and a plain pdf() device cannot load the
+  ## Computer Modern CID font the plot themes ask for. That is why this file
+  ## passed on its own and failed inside the suite, where an earlier test file
+  ## had left a device open: the figure died on a font error that had nothing
+  ## to do with the figure.
+  skip_if_not(isTRUE(capabilities("cairo")))
+
+  df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
+  df$target_sample_size_per_arm <- 58
+
+  grDevices::pdf(NULL)
+  on.exit(while (grDevices::dev.cur() > 1) grDevices::dev.off(), add = TRUE)
+
+  withr::with_tempdir({
+    results_dir <- file.path(getwd(), "results")
+    dir.create(results_dir)
+    readr::write_csv(df, file.path(results_dir, "results_frequentist.csv"))
+
+    status <- export_paper_outputs(
+      results_dir = results_dir,
+      figures_dir = file.path(getwd(), "figures", ""),
+      tables_dir = file.path(getwd(), "tables"),
+      ids = "2",
+      case_studies_config_dir = config_dir()
+    )
+
+    expect_equal(status$message[status$id == "2"], "")
+    expect_equal(status$status[status$id == "2"], "ok")
+  })
+})
+
+test_that("a figures directory given without a trailing slash still reports what it wrote", {
+  ## The generators build their own paths with paste0(figures_dir, case_study),
+  ## so a directory named without a trailing separator concatenates into a
+  ## sibling of itself - "figures" and "botox" become "figuresbotox". The
+  ## figure is written, but not where the before/after snapshot is watching,
+  ## so the run reported "no output" for a file that is on disk. A wrong status
+  ## is worse than a missing figure: it sends you looking for a results gap
+  ## that is not there.
+  df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
+  df$target_sample_size_per_arm <- 58
+
+  withr::with_tempdir({
+    results_dir <- file.path(getwd(), "results")
+    dir.create(results_dir)
+    readr::write_csv(df, file.path(results_dir, "results_frequentist.csv"))
+
+    figures_dir <- file.path(getwd(), "figures")
+    status <- export_paper_outputs(
+      results_dir = results_dir,
+      figures_dir = figures_dir,
+      tables_dir = file.path(getwd(), "tables"),
+      ids = "2",
+      case_studies_config_dir = config_dir()
+    )
+
+    expect_equal(status$status[status$id == "2"], "ok")
+    expect_true(any(grepl(
+      "\\.(pdf|png)$",
+      list.files(figures_dir, recursive = TRUE)
+    )))
+    expect_false(dir.exists(paste0(figures_dir, "botox")))
+  })
+})
+
 test_that("export_paper_outputs does not report ok for an entry that wrote no file", {
   df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
   df$target_sample_size_per_arm <- 58

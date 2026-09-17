@@ -3,6 +3,78 @@ format_num <- function(x, digits = 2, scientific = FALSE) {
   format(x, digits = digits, scientific = scientific)
 }
 
+#' Open a graphics device that can render the plot font
+#'
+#' @description Composing a figure measures text: `grid::convertWidth()` and
+#'   friends do it directly, and `ggplot2::ggplotGrob()` does it again while it
+#'   assembles the guides. That measurement runs on whatever graphics device is
+#'   current. Setting `options(device = )` is not enough, because it only
+#'   decides what gets opened when no device is open at all; a device the
+#'   caller already had open is used as it is, and a plain `pdf()` device
+#'   cannot load the Computer Modern CID font the plot themes ask for. A stray
+#'   device left behind by earlier code - another test file, an interactive
+#'   session, a previous figure - then breaks a figure that is itself fine.
+#'
+#'   Opening a cairo device here makes the measurement independent of what the
+#'   caller left behind. It is a no-op when cairo is unavailable, or when the
+#'   current device is already a cairo one, so nesting these costs nothing.
+#'
+#' @return A function that closes the device this opened and makes the
+#'   caller's previous device current again. Call it from `on.exit()`.
+#'
+#' @keywords internal
+use_font_capable_device <- function() {
+  no_op <- function() invisible(NULL)
+  if (!isTRUE(capabilities("cairo")) ||
+      identical(names(grDevices::dev.cur()), "cairo_pdf")) {
+    return(no_op)
+  }
+
+  previous <- grDevices::dev.cur()
+  path <- tempfile(fileext = ".pdf")
+  grDevices::cairo_pdf(filename = path)
+  opened <- grDevices::dev.cur()
+
+  function() {
+    if (opened %in% grDevices::dev.list()) {
+      grDevices::dev.off(opened)
+    }
+    if (previous > 1 && previous %in% grDevices::dev.list()) {
+      grDevices::dev.set(previous)
+    }
+    unlink(path)
+    invisible(NULL)
+  }
+}
+
+
+#' Are there parameters left to condition a plot or table on?
+#'
+#' @description The metric-versus-parameters plots and tables loop over one of
+#'   a method's parameters at a time and condition on the rest, taken as
+#'   `parameters[, -i]`. Whether any rest remain is not the same question as
+#'   whether that frame has rows. A method carrying a single parameter -
+#'   separate and pooling carry only `initial_prior` - loses its only column,
+#'   and a data frame with no columns keeps every one of its rows, so `nrow()`
+#'   still reports something to loop over. The loop then asks for a label for a
+#'   row that holds nothing, which fails with `invalid subscript type 'list'`.
+#'
+#'   A remainder that has collapsed to a bare vector also counts as nothing,
+#'   which is what these call sites have always done.
+#'
+#' @param other_parameters The remaining parameters, as returned by
+#'   `parameters[, -i]`.
+#'
+#' @return `TRUE` when there is at least one parameter left to condition on.
+#'
+#' @keywords internal
+has_other_parameters <- function(other_parameters) {
+  !is.null(nrow(other_parameters)) &&
+    nrow(other_parameters) > 0 &&
+    ncol(other_parameters) > 0
+}
+
+
 #' Function to return markers from a list
 #'
 #' @param i The index of the marker to return.

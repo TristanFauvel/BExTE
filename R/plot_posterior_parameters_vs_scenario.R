@@ -56,7 +56,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
     # Select the other parameters
     other_parameters <- unique(prior_parameters_df[,-k])
 
-    if (is.null(nrow(other_parameters)) || nrow(other_parameters) == 0){
+    if (!has_other_parameters(other_parameters)){
       n_params_loop = 1
     } else {
       n_params_loop = nrow(other_parameters)
@@ -64,7 +64,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 
     # Loop over other prior parameters values
     for (j in seq(n_params_loop)){
-      if ((is.null(nrow(other_parameters)) || nrow(other_parameters) == 0) || method == "commensurate_power_prior"){
+      if ((!has_other_parameters(other_parameters)) || method == "commensurate_power_prior"){
         other_params_label <- ""
         other_params_str <- ""
         prior_parameters_subdf <- prior_parameters_df
