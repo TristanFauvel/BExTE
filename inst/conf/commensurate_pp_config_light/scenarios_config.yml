@@ -16,3 +16,4 @@ case_studies:
     - teriflunomide
 methods:
     - commensurate_power_prior
+    - commensurate_prior

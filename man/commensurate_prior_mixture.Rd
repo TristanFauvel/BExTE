@@ -7,18 +7,23 @@
 commensurate_prior_mixture(model, n_tau = 48L, n_gamma = 24L)
 }
 \arguments{
-\item{model}{A \link{GaussianCommensuratePowerPrior} object.}
+\item{model}{A \link{GaussianCommensuratePowerPrior} or
+\link{GaussianCommensuratePrior} object. The latter fixes the power parameter
+at one, which collapses the second quadrature dimension: the mixture is
+then one normal component per \code{tau} node rather than \code{n_gamma} of them.}
 
 \item{n_tau}{Number of quadrature nodes for the commensurability parameter.
 At the default every configured prior family agrees with a 1536-node rule
 to four significant figures, including the \code{inverse_gamma(0.001, 1)} prior,
 whose quantile function is the steepest of them.}
 
-\item{n_gamma}{Number of conditional power-parameter nodes per \code{tau} node.}
+\item{n_gamma}{Number of conditional power-parameter nodes per \code{tau} node.
+Ignored when the model does not borrow a power parameter.}
 }
 \value{
 A list containing normal-mixture \code{weights}, \code{means} and \code{sds}, plus
 the \code{tau} and \code{power_parameter} value represented by each component.
+\code{power_parameter} is \code{NULL} when the model does not have one.
 }
 \description{
 Conditional on the commensurability precision \code{tau} and power

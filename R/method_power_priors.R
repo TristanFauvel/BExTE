@@ -699,37 +699,27 @@ g_function <- function(log_tau) {
   return(pmax(log_tau, 1))
 }
 
-#' GaussianCommensuratePowerPrior class
+#' Stan program for the commensurate prior, with or without a power parameter
 #'
-#' @description This class represents a Gaussian Commensurate Power Prior model.
+#' @description The two commensurate methods fit the same model up to one
+#'   term. The commensurate power prior of Hobbs et al. (2011) samples a power
+#'   parameter `gamma ~ Beta(g(tau), 1)` alongside the commensurability
+#'   precision; the plain commensurate prior is its `gamma == 1` case, in which
+#'   every product `gamma * NS` collapses to `NS` and the Beta statement and
+#'   `g_function` fall away. Holding both programs here keeps that relationship
+#'   visible.
 #'
-#' @field method Method name
-#' @field heterogeneity_prior_family Heterogeneity prior family (half_normal, inverse_gamma)
+#'   The `data` block is deliberately identical in the two, so a single
+#'   `prepare_data()` serves both classes; Stan accepts data a program does not
+#'   read. `test-commensurate-stan-model.R` checks that the two blocks have not
+#'   drifted apart.
 #'
-#' @export
-GaussianCommensuratePowerPrior <- R6::R6Class(
-  "GaussianCommensuratePowerPrior",
-  inherit = MCMCModel,
-  public = list(
-    method = "commensurate_power_prior",
-    heterogeneity_prior_family = NULL,
-    # compute_posterior_parameters reads the borrowing parameters out of the
-    # posterior summary, so they have to be summarised alongside the treatment
-    # effect.
-    summary_variables = c("target_treatment_effect", "tau", "power_parameter"),
-
-    #' @description Initialize the GaussianCommensuratePowerPrior object
-    #'
-    #' @param prior The prior object
-    #' @param mcmc_config The MCMC configuration parameters
-    #'
-    initialize = function(prior, mcmc_config) {
-      if (!(prior$method_parameters$initial_prior[[1]] == "noninformative")) {
-        stop("Only implemented for a noninformative initial prior")
-      }
-      super$initialize(prior, mcmc_config)
-      self$summary_measure_likelihood <- "normal"
-      self$stan_model_code <- "
+#' @param with_power_parameter Whether the program samples the power parameter.
+#' @return The Stan program, as a single string.
+#' @keywords internal
+commensurate_stan_code <- function(with_power_parameter) {
+  if (with_power_parameter) {
+    return("
                                       functions {
                                         real g_function(real log_tau) {
                                           return fmax(log_tau, 1); // Define g(τ)
@@ -807,11 +797,121 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
     (power_parameter * NS * tau * target_sampling_variance + NT * u),
     sqrt((u * target_sampling_variance) / (power_parameter * NS * tau * target_sampling_variance + NT * u)));
                                       }
+                                      ")
+  }
+
+  "
+                                      data {
+                                        int<lower=0,upper=2> prior_type; // Type of prior on the commensurability parameter; 0 for inverse_gamma, 1 for half normal, 2 for Cauchy
+                                        int<lower=1> NS;       // Number of samples in dataset S
+                                        int<lower=1> NT;       // Number of samples in dataset T
+                                        real<lower=0> target_sampling_variance;  // Known variance of the target data
+                                        real<lower=0> prior_variance; // Prior variance component
+                                        real source_treatment_effect_estimate;      // Estimate from dataset S
+                                        real target_treatment_effect_estimate;      // Estimate from dataset T
+                                        real std_dev; // Parameter for the half normal prior
+                                        real location; // Location parameter for the Cauchy prior
+                                        real scale; // Scale parameter for the Cauchy prior
+                                        real alpha; // Parameter for the inverse_gamma prior
+                                        real beta; // Pocation parameter for the inverse_gamma prior
+                                      }
+
+                                      parameters {
+                                        real<lower=0> tau;     // Commensurability parameter
+                                        real target_treatment_effect;          // Target treatment effect
+                                      }
+
+                                      model {
+                                        // Local to the model block, as in the power prior variant:
+                                        // intermediate quantities, which as transformed parameters
+                                        // would write extra columns per draw to the output CSV for no
+                                        // downstream use. Stan does not allow constraints on local
+                                        // declarations; both are non-negative by construction here.
+                                        real u = NS + tau * prior_variance;
+                                        real tau2 = tau^2;
+                                        real log_tau = log(tau);
+                                        real marginal_variance = target_sampling_variance / NT
+                                                                  + 1 / tau
+                                                                  + prior_variance / NS;
+
+                                        // Priors
+                                        if (prior_type == 0) {
+                                          tau2 ~ inv_gamma(alpha, beta);
+                                          // tau is the parameter and tau2 is a transform of it, so this
+                                          // statement needs the log Jacobian of tau -> tau^2, which is
+                                          // log(2 * tau). Without it the prior is InvGamma(alpha + 0.5, beta).
+                                          target += log(tau);
+                                        } else if (prior_type == 1){
+                                          // tau is the parameter itself, so Stan's own <lower=0> transform
+                                          // already supplies the Jacobian and the truncation normalises it.
+                                          tau ~ normal(0, std_dev) T[0, ];
+                                        } else if (prior_type == 2){
+                                          log_tau ~ cauchy(location, scale);
+                                          // Log Jacobian of tau -> log(tau). Without it the prior is improper.
+                                          target += -log_tau;
+                                        }
+
+                                        // Marginal target-data likelihood for the commensurability
+                                        // parameter. With the conditional distribution below this is
+                                        // equation (9) of Hobbs et al. (2011) at gamma = 1. Omitting it
+                                        // would leave tau distributed according to its prior.
+                                        target_treatment_effect_estimate ~ normal(
+                                          source_treatment_effect_estimate,
+                                          sqrt(marginal_variance));
+
+                                        target_treatment_effect ~ normal(
+    (NS * tau * target_sampling_variance * source_treatment_effect_estimate + NT * u * target_treatment_effect_estimate) /
+    (NS * tau * target_sampling_variance + NT * u),
+    sqrt((u * target_sampling_variance) / (NS * tau * target_sampling_variance + NT * u)));
+                                      }
                                       "
+}
+
+#' GaussianCommensuratePowerPrior class
+#'
+#' @description This class represents a Gaussian Commensurate Power Prior model.
+#'
+#' @field method Method name
+#' @field heterogeneity_prior_family Heterogeneity prior family (half_normal, inverse_gamma)
+#' @field borrows_power_parameter Whether the model samples a power parameter
+#' @field stan_model_prefix Prefix of the compiled Stan model's name
+#'
+#' @export
+GaussianCommensuratePowerPrior <- R6::R6Class(
+  "GaussianCommensuratePowerPrior",
+  inherit = MCMCModel,
+  public = list(
+    method = "commensurate_power_prior",
+    heterogeneity_prior_family = NULL,
+    # Selects the Stan program and the quadrature mixture. GaussianCommensuratePrior
+    # sets this FALSE, which is the whole of what makes it the gamma == 1 case.
+    # R6 assigns field defaults before initialize() runs, so the parent's
+    # initialize() reads the subclass's value.
+    borrows_power_parameter = TRUE,
+    stan_model_prefix = "gaussian_commensurate_pp",
+    # compute_posterior_parameters reads the borrowing parameters out of the
+    # posterior summary, so they have to be summarised alongside the treatment
+    # effect.
+    summary_variables = c("target_treatment_effect", "tau", "power_parameter"),
+
+    #' @description Initialize the GaussianCommensuratePowerPrior object
+    #'
+    #' @param prior The prior object
+    #' @param mcmc_config The MCMC configuration parameters
+    #'
+    initialize = function(prior, mcmc_config) {
+      if (!(prior$method_parameters$initial_prior[[1]] == "noninformative")) {
+        stop("Only implemented for a noninformative initial prior")
+      }
+      super$initialize(prior, mcmc_config)
+      self$summary_measure_likelihood <- "normal"
+      self$stan_model_code <- commensurate_stan_code(self$borrows_power_parameter)
 
       self$heterogeneity_prior_family <- prior$method_parameters$heterogeneity_prior$family
 
-      model_name <- paste0("gaussian_commensurate_pp_", self$heterogeneity_prior_family)
+      model_name <- paste0(
+        self$stan_model_prefix, "_", self$heterogeneity_prior_family
+      )
       self$stan_model <- compile_stan_model(model_name, self$stan_model_code)
 
       self$posterior_parameters <- list(
@@ -908,7 +1008,8 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
         posterior_weights = posterior$weights,
         mixture = prior_mixture,
         heterogeneity_prior_family = self$heterogeneity_prior_family,
-        heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior
+        heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior,
+        borrows_power_parameter = self$borrows_power_parameter
       )
 
       vectorised_normal_mixture_simulation(
@@ -1063,6 +1164,182 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
                                         upper = Inf)$value
       normalized_pdf_treatment_effect <- unnormalized_prior_pdf_vec(treatment_effect) / normalizing_constant
       return(normalized_pdf_treatment_effect)
+    }
+  )
+)
+
+#' GaussianCommensuratePrior class
+#'
+#' @description This class represents a Gaussian Commensurate Prior model: the
+#' commensurability link of [Hobbs et al.
+#' (2011)](https://onlinelibrary.wiley.com/doi/10.1111/j.1541-0420.2011.01564.x)
+#' without the power parameter, so that
+#' \eqn{\theta_T | \theta_S, \tau \sim N(\theta_S, 1 / \tau)} and the source
+#' likelihood enters undiscounted. Borrowing is then governed by the
+#' commensurability precision \eqn{\tau} alone.
+#'
+#' Formally it is [GaussianCommensuratePowerPrior] at \eqn{\gamma = 1}, which
+#' is why it inherits from it: the data preparation, the three heterogeneity
+#' prior families, the Stan program and the quadrature mixture are all the same
+#' machinery, selected by `borrows_power_parameter`. Only the members that
+#' mention \eqn{\gamma} are overridden here.
+#'
+#' @field method Method name
+#' @field borrows_power_parameter Always `FALSE` for this model
+#' @field stan_model_prefix Prefix of the compiled Stan model's name
+#'
+#' @export
+GaussianCommensuratePrior <- R6::R6Class(
+  "GaussianCommensuratePrior",
+  inherit = GaussianCommensuratePowerPrior,
+  public = list(
+    method = "commensurate_prior",
+    borrows_power_parameter = FALSE,
+    stan_model_prefix = "gaussian_commensurate",
+    # No power_parameter is sampled, so summarising it would fail rather than
+    # return a constant.
+    summary_variables = c("target_treatment_effect", "tau"),
+
+    #' @description Initialize the GaussianCommensuratePrior object
+    #'
+    #' @param prior The prior object
+    #' @param mcmc_config The MCMC configuration parameters
+    #'
+    initialize = function(prior, mcmc_config) {
+      super$initialize(prior, mcmc_config)
+
+      # The parent reserves two further entries for the power parameter.
+      self$posterior_parameters <- list(
+        heterogeneity_parameter_mean = NA,
+        heterogeneity_parameter_std = NA
+      )
+    },
+
+    #' @description Compute posterior parameters
+    compute_posterior_parameters = function() {
+      tau_summary <- self$fit_summary[self$fit_summary$variable == "tau", ]
+
+      self$posterior_parameters <- list(
+        heterogeneity_parameter_mean = tau_summary %>% dplyr::pull(mean),
+        heterogeneity_parameter_std = tau_summary %>% dplyr::pull(sd)
+      )
+    },
+
+    #' @description Draw samples from the prior distribution. Equation 8 in
+    #' Hobbs et al (2011) at a power parameter of one.
+    #' @param n_samples Number of samples
+    sample_prior = function(n_samples) {
+      heterogeneity_prior <- self$prior$method_parameters$heterogeneity_prior
+      if (self$heterogeneity_prior_family == "cauchy") {
+        tau_samples <- exp(rcauchy(
+          n = n_samples,
+          location = heterogeneity_prior$location,
+          scale = heterogeneity_prior$scale
+        ))
+      } else if (self$heterogeneity_prior_family == "half_normal") {
+        tau_samples <- extraDistr::rhnorm(
+          n = n_samples,
+          sigma = heterogeneity_prior$std_dev
+        )
+      } else if (self$heterogeneity_prior_family == "inverse_gamma") {
+        tau_samples <- sqrt(extraDistr::rinvgamma(
+          n = n_samples,
+          alpha = heterogeneity_prior$alpha,
+          beta = heterogeneity_prior$beta
+        ))
+      } else {
+        stop(paste0(
+          "Heterogeneity prior not implemented : ",
+          self$heterogeneity_prior_family
+        ))
+      }
+
+      prior_variance <- self$prior$source$standard_error^2 *
+        self$prior$source$equivalent_source_sample_size_per_arm
+
+      NS <- as.integer(self$prior$source$equivalent_source_sample_size_per_arm)
+
+      std <- sqrt(1 / tau_samples + prior_variance / NS)
+
+      # A Cauchy prior on log(tau) reaches beyond the floating-point range, so
+      # the limiting zero-precision components have to be dropped rather than
+      # sampled from.
+      std <- std[is.finite(std)]
+
+      treatment_effect_samples <- rnorm(
+        n_samples,
+        mean = self$prior$source$treatment_effect_estimate,
+        sd = std
+      )
+
+      if (any(is.na(treatment_effect_samples))) {
+        stop("Some samples are NA.")
+      }
+
+      return(treatment_effect_samples)
+    },
+
+    #' @description Joint prior p.d.f. of the treatment effect and the
+    #' commensurability parameter. Equation (8) in Hobbs et al (2011) with the
+    #' power parameter fixed at one, so the Beta factor is absent and this
+    #' takes one fewer argument than the power prior's version.
+    #' @param treatment_effect Treatment effect
+    #' @param tau Heterogeneity parameter
+    joint_prior_pdf = function(treatment_effect, tau) {
+      source_variance <- self$prior$source$standard_error^2 *
+        self$prior$source$equivalent_source_sample_size_per_arm
+
+      NS <- self$prior$source$equivalent_source_sample_size_per_arm
+
+      sigma_T_squared <- 1 / tau + source_variance / NS
+      normal_component <- dnorm(
+        treatment_effect,
+        mean = self$prior$source$treatment_effect_estimate,
+        sd = sqrt(sigma_T_squared)
+      )
+
+      heterogeneity_prior <- self$prior$method_parameters$heterogeneity_prior
+
+      if (self$heterogeneity_prior_family == "cauchy") {
+        # Adjust for the Jacobian of the transformation.
+        prior_tau <- dcauchy(
+          log(tau),
+          location = heterogeneity_prior$location,
+          scale = heterogeneity_prior$scale
+        ) / tau
+      } else if (self$heterogeneity_prior_family == "inverse_gamma") {
+        # Adjust for the Jacobian of the transformation.
+        prior_tau <- 2 * tau * extraDistr::dinvgamma(
+          tau^2,
+          alpha = heterogeneity_prior$alpha,
+          beta = heterogeneity_prior$beta
+        )
+      } else if (self$heterogeneity_prior_family == "half_normal") {
+        prior_tau <- extraDistr::dhnorm(
+          tau,
+          sigma = heterogeneity_prior$std_dev
+        )
+      } else {
+        stop(paste0(
+          "Heterogeneity prior not implemented : ",
+          self$heterogeneity_prior_family
+        ))
+      }
+
+      return(normal_component * prior_tau)
+    },
+
+    #' @description Integrate out tau to get the marginal PDF for
+    #' treatment_effect. One dimensional, where the power prior's version is
+    #' a double integral over the power parameter as well.
+    #' @param treatment_effect Treatment effect
+    unnormalized_prior_pdf = function(treatment_effect) {
+      stats::integrate(
+        function(tau) self$joint_prior_pdf(treatment_effect, tau),
+        lower = 0.001,
+        upper = 100,
+        rel.tol = 1e-6
+      )$value
     }
   )
 )
