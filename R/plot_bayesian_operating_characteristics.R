@@ -424,7 +424,7 @@ bayesian_metric_vs_sample_size <- function(metric,
         } else {
           important_parameters_values <- methods_dict[[selected_method]][[key]][["important_values"]]
         }
-        if (selected_method == "commensurate_power_prior" && key == "heterogeneity_prior"){
+        if (is_commensurate_method(selected_method) && key == "heterogeneity_prior"){
           key <- paste0(key, ".family")
         }
         filter <- parameters[,key] %in% important_parameters_values

@@ -22,39 +22,9 @@
 # Sampling means compiling and running the Stan program, so the test is skipped
 # wherever CmdStan is unavailable, as it is in CI.
 
-commensurate_equivalence_config <- function() {
-  list(
-    name = "unit_test",
-    endpoint = "continuous",
-    summary_measure_likelihood = "normal",
-    sampling_approximation = TRUE,
-    theta_0 = 0,
-    null_space = "left",
-    source = list(
-      control = 100,
-      treatment = 100,
-      treatment_effect = 0.5,
-      standard_error = 0.12
-    )
-  )
-}
-
-# Long chains, and thresholds loose enough that the replicate loop never
-# restarts an iteration: the point here is to compare the two paths on the same
-# data, not to exercise the chain-length adaptation.
-commensurate_equivalence_mcmc_config <- function(chain_length = 4000L) {
-  list(
-    num_chains = 4L,
-    parallel_chains = 4L,
-    tune = 1000L,
-    target_accept = 0.9,
-    chain_length = chain_length,
-    max_chain_length = chain_length,
-    target_ess = 1L,
-    rhat_threshold = 1.5,
-    max_divergence_rate = 1
-  )
-}
+# commensurate_equivalence_config() and commensurate_equivalence_mcmc_config()
+# live in helper-commensurate.R, so that the gamma == 1 model's equivalence
+# test compares the two paths on exactly the same case study.
 
 test_that("the commensurate fast path agrees with the Stan fit it replaces", {
   skip_if_not(

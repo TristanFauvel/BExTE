@@ -174,6 +174,27 @@ convert_params_to_str <- function(method, parameters) {
   return(labels)
 }
 
+#' The methods whose parameters nest under a heterogeneity prior
+#'
+#' @description The commensurate power prior and the plain commensurate prior
+#' both take their `heterogeneity_prior` as a nested list of a family and its
+#' hyperparameters, rather than as a scalar. That shape is what the figure and
+#' table code has to special-case, so it is what this names - the two methods
+#' differ in whether they also carry a power parameter, which is irrelevant
+#' everywhere this predicate is used.
+#'
+#' @keywords internal
+COMMENSURATE_METHODS <- c("commensurate_power_prior", "commensurate_prior")
+
+#' Whether a method's parameters nest under a heterogeneity prior
+#'
+#' @param method Method name.
+#' @return A single logical.
+#' @keywords internal
+is_commensurate_method <- function(method) {
+  method %in% COMMENSURATE_METHODS
+}
+
 #' Function to make labels from parameters. Return a label formatted in Tex, for example "$\\xi_\\gamma$ = 0.5, $\\sigma_\\gamma$ = 0.1"
 #'
 #' @param parameter The parameter dataframe.
@@ -188,7 +209,7 @@ make_labels_from_parameters <- function(parameter, method) {
   selection <- list()
 
   colnames(parameter) <- gsub("heterogeneity_prior\\.", "", colnames(parameter))
-  if (method == "commensurate_power_prior"){
+  if (is_commensurate_method(method)){
     if (is.null(parameter$family)){
       if (!is.null(parameter$alpha) && !is.na(parameter$alpha)){
         parameter$family = "inverse_gamma"

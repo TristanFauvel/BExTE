@@ -1,29 +1,5 @@
 # Fixtures live in helper-commensurate.R, alongside the ones the Stan program
-# tests use.
-
-commensurate_replicate_samples <- function() {
-  data.frame(
-    treatment_effect_estimate = c(0.2, 0.5, 0.9),
-    treatment_effect_standard_error = rep(0.1, 3),
-    standard_deviation = rep(0.1 * sqrt(60), 3)
-  )
-}
-
-commensurate_fast_path_run <- function(model, to_return,
-                                       critical_value = 0.975,
-                                       confidence_level = 0.95,
-                                       samples = commensurate_replicate_samples()) {
-  model$vectorised_replicate_inference(
-    target_data = list(sample_size_per_arm = 60),
-    samples = samples,
-    to_return = to_return,
-    critical_value = critical_value,
-    theta_0 = 0,
-    confidence_level = confidence_level,
-    null_space = "left"
-  )
-}
-
+# tests use and the ones the gamma == 1 model is run through.
 
 test_that("commensurate quadrature represents each configured prior family", {
   for (prior in commensurate_configured_priors()) {

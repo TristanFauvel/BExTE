@@ -40,7 +40,8 @@ methods <- c(
   "test_then_pool_equivalence",
   "test_then_pool_difference",
   "p_value_based_PP",
-  "commensurate_power_prior"
+  "commensurate_power_prior",
+  "commensurate_prior"
 )
 
 test_results_format <- function(df, config) {

@@ -8,7 +8,8 @@ commensurate_parameter_summary(
   posterior_weights,
   mixture,
   heterogeneity_prior_family,
-  heterogeneity_prior
+  heterogeneity_prior,
+  borrows_power_parameter = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,11 @@ commensurate_parameter_summary(
 \item{heterogeneity_prior_family}{Name of the prior family.}
 
 \item{heterogeneity_prior}{Prior parameters.}
+
+\item{borrows_power_parameter}{Whether the model has a power parameter. When
+it does not, the two power-parameter columns are absent rather than
+constant: the plain commensurate prior has no such parameter to report,
+and a column of ones would read as an estimate.}
 }
 \value{
 A data frame of posterior means and standard deviations.

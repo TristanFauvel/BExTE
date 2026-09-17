@@ -489,7 +489,7 @@ simulation_frequentist_ocs <- function(env,
       options(error = global_error_handler)
 
       if (tolower(case_study) == "aprepitant" ||
-          method == "commensurate_power_prior") {
+          is_commensurate_method(method)) {
         # remove remaining MCMC csv files related to the run
         clear_stan_draws(case_study, method)
       }

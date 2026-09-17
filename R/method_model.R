@@ -179,6 +179,13 @@ Model <- R6::R6Class(
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- GaussianCommensuratePowerPrior$new(prior = prior, mcmc_config = mcmc_config)
         }
+      } else if (method == "commensurate_prior") {
+        # The gamma == 1 case of the above. Like it, the Gaussian model serves
+        # both summary measure likelihoods.
+        model <- GaussianCommensuratePrior$new(
+          prior = prior,
+          mcmc_config = mcmc_config
+        )
       } else {
         stop("Method not implemented for this endpoint")
       }

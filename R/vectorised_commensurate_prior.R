@@ -13,17 +13,42 @@
 #' as 0.001, for which direct density quadrature is dominated by an endpoint
 #' singularity.
 #'
-#' @param model A [GaussianCommensuratePowerPrior] object.
+#' @param model A [GaussianCommensuratePowerPrior] or
+#'   [GaussianCommensuratePrior] object. The latter fixes the power parameter
+#'   at one, which collapses the second quadrature dimension: the mixture is
+#'   then one normal component per `tau` node rather than `n_gamma` of them.
 #' @param n_tau Number of quadrature nodes for the commensurability parameter.
 #'   At the default every configured prior family agrees with a 1536-node rule
 #'   to four significant figures, including the `inverse_gamma(0.001, 1)` prior,
 #'   whose quantile function is the steepest of them.
 #' @param n_gamma Number of conditional power-parameter nodes per `tau` node.
+#'   Ignored when the model does not borrow a power parameter.
 #' @return A list containing normal-mixture `weights`, `means` and `sds`, plus
 #'   the `tau` and `power_parameter` value represented by each component.
+#'   `power_parameter` is `NULL` when the model does not have one.
 #' @keywords internal
 commensurate_prior_mixture <- function(model, n_tau = 48L, n_gamma = 24L) {
   tau_rule <- commensurate_tau_quadrature(model, n_tau)
+  source_standard_error <- model$prior$source$standard_error
+
+  if (!isTRUE(model$borrows_power_parameter)) {
+    # gamma == 1, so the source contributes its whole likelihood and the
+    # component variance loses the 1 / gamma factor. Integrating over tau
+    # alone is all that remains.
+    weights <- tau_rule$weights / sum(tau_rule$weights)
+
+    return(list(
+      weights = weights,
+      means = rep(
+        model$prior$source$treatment_effect_estimate,
+        length(weights)
+      ),
+      sds = sqrt(tau_rule$inverse_tau + source_standard_error^2),
+      tau = tau_rule$tau,
+      power_parameter = NULL
+    ))
+  }
+
   gamma_rule <- statmod::gauss.quad(n_gamma, kind = "legendre")
   uniform_node <- (gamma_rule$nodes + 1) / 2
   uniform_weight <- gamma_rule$weights / 2
@@ -42,7 +67,6 @@ commensurate_prior_mixture <- function(model, n_tau = 48L, n_gamma = 24L) {
   weights <- as.vector(outer(uniform_weight, tau_rule$weights))
   weights <- weights / sum(weights)
 
-  source_standard_error <- model$prior$source$standard_error
   component_variance <- inverse_tau +
     source_standard_error^2 / power_parameter
 
@@ -61,7 +85,8 @@ commensurate_prior_mixture <- function(model, n_tau = 48L, n_gamma = 24L) {
 
 #' Quadrature rule for the commensurability parameter
 #'
-#' @param model A [GaussianCommensuratePowerPrior] object.
+#' @param model A [GaussianCommensuratePowerPrior] or
+#'   [GaussianCommensuratePrior] object.
 #' @param n_nodes Number of nodes.
 #' @return A list with `tau`, `inverse_tau`, `log_tau` and `weights`.
 #' @keywords internal
@@ -150,11 +175,16 @@ commensurate_tau_quadrature <- function(model, n_nodes) {
 #' @param mixture Output from [commensurate_prior_mixture()].
 #' @param heterogeneity_prior_family Name of the prior family.
 #' @param heterogeneity_prior Prior parameters.
+#' @param borrows_power_parameter Whether the model has a power parameter. When
+#'   it does not, the two power-parameter columns are absent rather than
+#'   constant: the plain commensurate prior has no such parameter to report,
+#'   and a column of ones would read as an estimate.
 #' @return A data frame of posterior means and standard deviations.
 #' @keywords internal
 commensurate_parameter_summary <- function(posterior_weights, mixture,
                                            heterogeneity_prior_family,
-                                           heterogeneity_prior) {
+                                           heterogeneity_prior,
+                                           borrows_power_parameter = TRUE) {
   weighted_summary <- function(values) {
     mean_value <- drop(posterior_weights %*% values)
     second_moment <- drop(posterior_weights %*% values^2)
@@ -164,7 +194,6 @@ commensurate_parameter_summary <- function(posterior_weights, mixture,
     )
   }
 
-  power <- weighted_summary(mixture$power_parameter)
   tau <- weighted_summary(mixture$tau)
 
   # The target marginal likelihood approaches a positive constant as tau goes
@@ -183,10 +212,18 @@ commensurate_parameter_summary <- function(posterior_weights, mixture,
     }
   }
 
-  data.frame(
+  summary <- data.frame(
     heterogeneity_parameter_mean = tau$mean,
-    heterogeneity_parameter_std = tau$sd,
-    power_parameter_mean = power$mean,
-    power_parameter_std = power$sd
+    heterogeneity_parameter_std = tau$sd
   )
+
+  if (!borrows_power_parameter) {
+    return(summary)
+  }
+
+  power <- weighted_summary(mixture$power_parameter)
+  summary$power_parameter_mean <- power$mean
+  summary$power_parameter_std <- power$sd
+
+  summary
 }

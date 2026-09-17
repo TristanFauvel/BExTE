@@ -5,7 +5,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
                                                source_denominator_change_factor,
                                                target_to_source_std_ratio) {
 
-  if (method == "commensurate_power_prior"){
+  if (is_commensurate_method(method)){
     warning("Not implemented for the commensurate power prior, refer to the corresponding table instead.")
     return()
   }
@@ -45,7 +45,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
   for (key in names(methods_dict[[method]])) {
     k <- k+1
     # Check if the parameter is updated
-    if (method != "commensurate_power_prior" & !key %in% colnames(posterior_parameters_df)) {
+    if (!is_commensurate_method(method) & !key %in% colnames(posterior_parameters_df)) {
       next
     }
 
@@ -64,7 +64,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 
     # Loop over other prior parameters values
     for (j in seq(n_params_loop)){
-      if ((!has_other_parameters(other_parameters)) || method == "commensurate_power_prior"){
+      if ((!has_other_parameters(other_parameters)) || is_commensurate_method(method)){
         other_params_label <- ""
         other_params_str <- ""
         prior_parameters_subdf <- prior_parameters_df
@@ -273,13 +273,13 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
 
   parameters_names <- names(methods_dict[[method]])
 
-  if (method == "commensurate_power_prior"){
+  if (is_commensurate_method(method)){
     parameters_combinations <- get_parameters(results_metrics_df[, "parameters"])
   }
 
   for (key in parameters_names) {
     # Loop over the method's parameters
-    if (method != "commensurate_power_prior" & !key %in% posterior_parameters_names) {
+    if (!is_commensurate_method(method) & !key %in% posterior_parameters_names) {
       next
     }
 
@@ -290,7 +290,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
       important_parameters_values <- methods_dict[[method]][[key]][["important_values"]]
     }
 
-    if (!(method == "commensurate_power_prior")){
+    if (!(is_commensurate_method(method))){
 
       # Other prior parameters can take different values, so we filter based on their reference value
       # Filter based on reference values of other parameters
@@ -324,7 +324,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     for (i in 1:nrow(parameters_combinations)) {
       prior_param <- parameters_combinations[i,]
 
-      if (method == "commensurate_power_prior"){
+      if (is_commensurate_method(method)){
         # Compare each row of prior_parameters_df with the single row of prior_param
         filter_df <- apply(prior_parameters_df, 1, function(row) compare_ignore_na(row, as.vector(prior_param)))
       } else {
@@ -335,7 +335,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
 
       drift <- unlist(filter_results_metrics_df[, xvar[["name"]]])
 
-      if (method == "commensurate_power_prior"){
+      if (is_commensurate_method(method)){
         keys <- c("heterogeneity_parameter_mean", "heterogeneity_parameter_std", "power_parameter_mean", "power_parameter_std")
         y <- unlist(posterior_parameters_df[filter_df, keys])
         conf_int_lower <- unlist(posterior_parameters_df[filter_df, paste0("conf_int_lower_", keys)])

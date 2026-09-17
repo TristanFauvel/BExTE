@@ -16,6 +16,10 @@ This class represents a Gaussian Commensurate Power Prior model.
 
     \item{\code{heterogeneity_prior_family}}{Heterogeneity prior family (half_normal, inverse_gamma)}
 
+    \item{\code{borrows_power_parameter}}{Whether the model samples a power parameter}
+
+    \item{\code{stan_model_prefix}}{Prefix of the compiled Stan model's name}
+
     \item{\code{summary_variables}}{Variables to summarise from the posterior draws}
   }
   \if{html}{\out{</div>}}

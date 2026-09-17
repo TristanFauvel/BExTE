@@ -152,18 +152,26 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
 
   title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor, as_latex = TRUE)
 
-  if (method == "commensurate_power_prior"){ # TODO: replace this hard-coded part
-    colnames(data_table) <- c(
+  if (is_commensurate_method(method)){ # TODO: replace this hard-coded part
+    column_names <- c(
       "Drift",
       "Heterogeneity prior",
       "Prior $\\alpha$",
       "Prior $\\beta$",
       "Prior $\\sigma_\\tau$",
       "Posterior $\\mu_\\tau$",
-      "Posterior $\\sigma_\\tau$",
-      "Posterior $\\mu_\\gamma$",
-      "Posterior $\\sigma_\\gamma$"
+      "Posterior $\\sigma_\\tau$"
     )
+    if (method == "commensurate_power_prior") {
+      # The plain commensurate prior has no power parameter to report, so its
+      # table stops at the heterogeneity parameter.
+      column_names <- c(
+        column_names,
+        "Posterior $\\mu_\\gamma$",
+        "Posterior $\\sigma_\\gamma$"
+      )
+    }
+    colnames(data_table) <- column_names
   }
 
   # Replace all "_" with " " in string values

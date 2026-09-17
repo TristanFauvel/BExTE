@@ -61,7 +61,8 @@ PAPER_VS_TIE_LEGEND_LAYOUT <- rbind(
   c("Pooling",  "RMP", "Conditional PP"),
   c("Separate", "RMP", "NPP"),
   c("EBPP",     "RMP", "p-PP"),
-  c("Com. PP",  "Com. PP", "Com. PP")
+  c("Com. PP",  "Com. PP", "Com. PP"),
+  c("Com. prior", "Com. prior", "Com. prior")
 )
 
 ## Lay the method legends out as a grid of groups rather than a single row
