@@ -49,6 +49,7 @@ articles:
   # variance, so this needs a real design decision, not a vignette fix.
   - methods/Gaussian_RMP
   - methods/NPP
+  - methods/NPP_KL
   - methods/Truncated_Gaussian_RMP
   - methods/PDCCPP
   - methods/Pooling
@@ -101,6 +102,7 @@ reference:
   - Gaussian_empirical_Bayes_PP
   - Gaussian_Gravestock_EBPP
   - Gaussian_NPP
+  - Gaussian_NPP_KL
   - BinomialCPP
   - GaussianCommensuratePowerPrior
   - GaussianCommensuratePrior
@@ -122,6 +124,7 @@ reference:
   - normal_mixture_summary
   - normal_mixture_elir_ess
   - npp_prior_mixture
+  - calibrate_npp_kl
   - summary_t_test_p_value
   - summary_z_test_p_value
 
@@ -286,6 +289,8 @@ reference:
 - contents:
   - inference_cache_size
   - inference_cache_reset
+  - npp_kl_calibration_cache_size
+  - npp_kl_calibration_cache_reset
   - clear_stan_draws
   - clear_stan_model_cache
 

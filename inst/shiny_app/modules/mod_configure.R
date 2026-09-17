@@ -303,7 +303,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
       numeric_values <- unlist(values)
       probability_parameters <- c(
         "prior_weight", "power_parameter", "power_parameter_mean",
-        "desired_tie", "significance_level"
+        "desired_tie", "significance_level", "lambda_kl"
       )
       if (is.numeric(original_first_value) && parameter_id %in% probability_parameters &&
           any(numeric_values < 0 | numeric_values > 1)) {
@@ -311,7 +311,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
       }
       positive_parameters <- c(
         "power_parameter_std", "shape_parameter", "equivalence_margin",
-        "tolerance", "n_iter"
+        "tolerance", "n_iter", "c_target", "d_mtd_multiplier", "d_mtd"
       )
       if (is.numeric(original_first_value) && parameter_id %in% positive_parameters &&
           any(numeric_values <= 0)) {

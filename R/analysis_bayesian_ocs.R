@@ -620,6 +620,43 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
                 mcmc_config = mcmc_config
               )
 
+              # A method whose hyperparameters follow from the design has to be
+              # given one here as well: this model is rebuilt from the results
+              # file rather than handed over by the simulation, so it arrives
+              # uncalibrated.
+              #
+              # The design used is the nominal one - the trial this row
+              # describes, at zero treatment drift - rather than any particular
+              # drift, because the model stands for the whole curve here: it
+              # supplies the design prior, which is a property of the method and
+              # the design and not of the treatment effect the curve is indexed
+              # by. On a continuous endpoint that is the same design the
+              # simulation calibrated against at every drift, since the standard
+              # error the design implies does not move with the drift there.
+              first_row <- results_df[1, , drop = FALSE]
+              column_or <- function(name, fallback) {
+                if (name %in% names(first_row) && !is.na(first_row[[name]])) {
+                  first_row[[name]]
+                } else {
+                  fallback
+                }
+              }
+              model$calibrate_for_design(
+                TargetDataFactory$new()$create(
+                  source_data = source_data,
+                  case_study_config = case_study_config,
+                  target_sample_size_per_arm = target_sample_size_per_arm,
+                  control_drift = column_or("control_drift", 0),
+                  treatment_drift = 0,
+                  summary_measure_likelihood =
+                    case_study_config$summary_measure_likelihood,
+                  target_to_source_std_ratio = target_to_source_std_ratio,
+                  dropout_probability = column_or("dropout_probability", 0),
+                  event_time_distribution =
+                    column_or("event_time_distribution", "exponential")
+                )
+              )
+
               for (design_prior_type in design_prior_types) {
                 if (design_prior_type == "analysis_prior" &&
                     model$empirical_bayes) {

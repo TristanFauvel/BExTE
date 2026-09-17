@@ -16,6 +16,7 @@ BEXTE_NAME_PATTERN <- "^[a-z0-9][a-z0-9_-]*$"
 BEXTE_METHOD_LABELS <- c(
   RMP = "Robust mixture prior (RMP)",
   NPP = "Normalized power prior (NPP)",
+  NPP_KL = "KL-calibrated normalized power prior (NPP-KL)",
   separate = "Separate analysis",
   pooling = "Pooled analysis",
   conditional_power_prior = "Conditional power prior",
@@ -33,6 +34,7 @@ BEXTE_METHOD_LABELS <- c(
 BEXTE_METHOD_DESCRIPTIONS <- c(
   RMP = "Combines an informative prior built from the source data with a vague component. When the target data conflict with the source, the mixture shifts weight onto the vague component, automatically discounting the source.",
   NPP = "Discounts the source data's likelihood by a power parameter, with a proper normalizing constant so the discount does not distort the prior's own dispersion.",
+  NPP_KL = "The normalized power prior with the prior on the power parameter calibrated, rather than configured: it is chosen so that the power parameter concentrates near full borrowing when the two studies agree and near no borrowing at a discrepancy the user declares intolerable.",
   separate = "Analyzes the target trial alone, ignoring the source data entirely. The reference case with no borrowing.",
   pooling = "Combines source and target data as if they came from a single, homogeneous population - the reference case with full (unadjusted) borrowing.",
   conditional_power_prior = "Discounts the source data's likelihood by a fixed power parameter, without a normalizing constant - the discount is conditional on the target data actually observed.",

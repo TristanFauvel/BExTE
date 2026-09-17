@@ -35,6 +35,11 @@ methods_labels <<- list(
     short_name = "NPP",
     label = "NPP"
   ),
+  NPP_KL = list(
+    full_name = "KL-calibrated Normalized Power Prior",
+    short_name = "NPP_KL",
+    label = "NPP (KL)"
+  ),
   PDCCPP = list(
     full_name = "Prior-Data Conflict Calibrated Power Prior",
     short_name = "PDCCPP",
@@ -84,6 +89,10 @@ methods_style <<- list(
   # commensurate methods read as a pair without sharing a hue.
   commensurate_prior = list(shape = 23, hue = "#882255"),
   NPP = list(shape = 17, hue = "#D55E00"),
+  # The down triangle against the normalised power prior's up triangle, so
+  # the two read as a pair; the hue is a darker shade of the same orange,
+  # the device the two commensurate methods already use.
+  NPP_KL = list(shape = 25, hue = "#B35806"),
   PDCCPP = list(shape = 1, hue = "#56B4E9"),
   EB_PP = list(shape = 8, hue = "#E69F00"),
   p_value_based_PP = list(shape = 2, hue = "#9467BD"),
@@ -118,6 +127,93 @@ empirical_bayes_hyperparameters <<- list(
       parameter_notation = "$\\sigma_\\gamma$",
       type = "continuous",
       range = NA,
+      suffix = ""
+    )
+  ),
+  # The KL-calibrated variant reports the same two posterior summaries, plus
+  # the prior the calibration chose for this scenario and the criterion it
+  # attained. Those last ones are constant across the replicates of a scenario:
+  # they describe the design, not any replicate, and plotting them against the
+  # drift is how one checks that they are.
+  NPP_KL = list(
+    power_parameter_mean = list(
+      parameter_name = "power_parameter_mean",
+      parameter_label = "xi_gamma",
+      parameter_notation = "$\\xi_\\gamma$",
+      type = "continuous",
+      range = c(0,1),
+      suffix = ""
+    ),
+    power_parameter_std = list(
+      parameter_name = "power_parameter_std",
+      parameter_label = "sigma_gamma",
+      parameter_notation = "$\\sigma_\\gamma$",
+      type = "continuous",
+      range = NA,
+      suffix = ""
+    ),
+    alpha_gamma = list(
+      parameter_name = "alpha_gamma",
+      parameter_label = "a_gamma",
+      parameter_notation = "$a_\\gamma$",
+      type = "continuous",
+      range = NA,
+      suffix = ""
+    ),
+    beta_gamma = list(
+      parameter_name = "beta_gamma",
+      parameter_label = "b_gamma",
+      parameter_notation = "$b_\\gamma$",
+      type = "continuous",
+      range = NA,
+      suffix = ""
+    ),
+    prior_gamma_mean = list(
+      parameter_name = "prior_gamma_mean",
+      parameter_label = "xi_gamma_prior",
+      parameter_notation = "$\\xi_\\gamma^{(0)}$",
+      type = "continuous",
+      range = c(0,1),
+      suffix = ""
+    ),
+    prior_gamma_sd = list(
+      parameter_name = "prior_gamma_sd",
+      parameter_label = "sigma_gamma_prior",
+      parameter_notation = "$\\sigma_\\gamma^{(0)}$",
+      type = "continuous",
+      range = NA,
+      suffix = ""
+    ),
+    d_mtd = list(
+      parameter_name = "d_mtd",
+      parameter_label = "d_MTD",
+      parameter_notation = "$d_{MTD}$",
+      type = "continuous",
+      range = NA,
+      suffix = ""
+    ),
+    se_target_expected = list(
+      parameter_name = "se_target_expected",
+      parameter_label = "se_target_expected",
+      parameter_notation = "$s_T$",
+      type = "continuous",
+      range = NA,
+      suffix = ""
+    ),
+    kl_objective_value = list(
+      parameter_name = "kl_objective_value",
+      parameter_label = "K",
+      parameter_notation = "$K(a, b)$",
+      type = "continuous",
+      range = NA,
+      suffix = ""
+    ),
+    calibration_converged = list(
+      parameter_name = "calibration_converged",
+      parameter_label = "calibration_converged",
+      parameter_notation = "converged",
+      type = "continuous",
+      range = c(0,1),
       suffix = ""
     )
   ),
