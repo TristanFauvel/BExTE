@@ -7,8 +7,8 @@
 
 # Teriflunomide-like inputs: a very precise source study and a small target one.
 source_data <- list(
-  treatment_effect_estimate = -0.4110989,
-  standard_error = 0.05194012,
+  treatment_effect_estimate = -0.393,
+  standard_error = 0.081,
   equivalent_source_sample_size_per_arm = 2 * 752 * 731 / (752 + 731)
 )
 

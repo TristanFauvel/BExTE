@@ -209,7 +209,12 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
               df <- df %>%
                 mutate_if(is.numeric, round, digits = 12)
 
-              merged_df <- dplyr::left_join(df, separate_df, by = c("drift", "target_treatment_effect", scenario_columns), suffix = c("", "_separate"))
+              join_columns <- intersect(
+                c("drift", "target_treatment_effect", scenario_columns),
+                names(df)
+              )
+
+              merged_df <- dplyr::left_join(df, separate_df, by = join_columns, suffix = c("", "_separate"))
 
               if (nrow(merged_df) != nrow(df)){
                 stop("The number of rows in the merged df does not match the number of rows in the results df.")
@@ -251,7 +256,7 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
                     drift_range <- range(method_df$drift)
 
 
-                    df_to_add <- cbind(unique(method_df[, c("method", "parameters", scenario_columns)]), data.frame(
+                    df_to_add <- cbind(unique(method_df[, intersect(c("method", "parameters", scenario_columns), names(method_df))]), data.frame(
                       sweet_spot_lower = sweet_spot$start,
                       sweet_spot_upper = sweet_spot$end,
                       sweet_spot_width = sweet_spot$width,
@@ -276,7 +281,7 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
                                                              method_df$metric_diff,
                                                              larger_is_better = FALSE)
 
-                      df_to_add <- cbind(unique(method_df[, c("method", "parameters", scenario_columns)]), data.frame(
+                      df_to_add <- cbind(unique(method_df[, intersect(c("method", "parameters", scenario_columns), names(method_df))]), data.frame(
                         sweet_spot_lower = sweet_spot$start,
                         sweet_spot_upper = sweet_spot$end,
                         sweet_spot_width = sweet_spot$width,
@@ -301,7 +306,7 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
                                                              larger_is_better =  TRUE)
 
 
-                      df_to_add <- cbind(unique(method_df[, c("method", "parameters", scenario_columns)]), data.frame(
+                      df_to_add <- cbind(unique(method_df[, intersect(c("method", "parameters", scenario_columns), names(method_df))]), data.frame(
                         sweet_spot_lower = sweet_spot$start,
                         sweet_spot_upper = sweet_spot$end,
                         sweet_spot_width = sweet_spot$width,

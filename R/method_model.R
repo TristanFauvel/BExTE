@@ -1170,6 +1170,10 @@ Model <- R6::R6Class(
     #' @param target_sample_size_per_arm Sample size per arm in the target study
     #' @param case_study_config Configuration of the case study
     #' @param target_to_source_std_ratio Ratio between the target and source study standard deviation
+    #' @param dropout_probability Probability of loss to follow-up over the maximum
+    #'   follow-up time. Only used for the time-to-event endpoint.
+    #' @param event_time_distribution Distribution of the event times, either
+    #'   "exponential" or "weibull". Only used for the time-to-event endpoint.
     #' @param simulation_config Simulation configuration
     #' @param case_study Case study name
     #' @param method Method name
@@ -1186,6 +1190,8 @@ Model <- R6::R6Class(
                                                            target_sample_size_per_arm,
                                                            case_study_config,
                                                            target_to_source_std_ratio,
+                                                           dropout_probability = 0,
+                                                           event_time_distribution = "exponential",
                                                            simulation_config,
                                                            case_study,
                                                            method,
@@ -1212,7 +1218,9 @@ Model <- R6::R6Class(
           control_drift = control_drift,
           treatment_drift = treatment_drift,
           summary_measure_likelihood = case_study_config$summary_measure_likelihood,
-          target_to_source_std_ratio = target_to_source_std_ratio
+          target_to_source_std_ratio = target_to_source_std_ratio,
+          dropout_probability = dropout_probability,
+          event_time_distribution = event_time_distribution
         )
 
 
@@ -1269,6 +1277,8 @@ Model <- R6::R6Class(
         target_sample_size_per_arm = target_sample_size_per_arm,
         case_study_config = case_study_config,
         target_to_source_std_ratio = target_to_source_std_ratio,
+        dropout_probability = dropout_probability,
+        event_time_distribution = event_time_distribution,
         n_replicates = n_replicates,
         confidence_level = confidence_level,
         null_space = null_space,
