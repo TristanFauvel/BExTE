@@ -13,6 +13,12 @@ local_botox_slice <- function() {
   path <- testthat::test_path("..", "..", "results", env, "results_frequentist.csv")
   skip_if_not(file.exists(path), "no results_frequentist.csv")
   df <- readr::read_csv(path, show_col_types = FALSE)
+  ## A run that predates a method the subset names cannot satisfy the counts
+  ## below, and would fail for its vintage rather than for the subset logic.
+  skip_if_not(
+    all(names(PAPER_VS_TIE_COMBINATIONS) %in% df$method),
+    "the completed run predates a method the vs-TIE panels show"
+  )
   df[df$case_study == "botox" & df$target_sample_size_per_arm == 117, ]
 }
 
@@ -20,7 +26,8 @@ test_that("the subset names exactly the methods the paper's vs-TIE panels show",
   expect_setequal(
     names(PAPER_VS_TIE_COMBINATIONS),
     c("pooling", "separate", "EB_PP", "RMP", "conditional_power_prior",
-      "commensurate_power_prior", "p_value_based_PP", "NPP")
+      "commensurate_power_prior", "commensurate_prior", "p_value_based_PP",
+      "NPP")
   )
   ## Test-then-pool and PDCCPP are deliberately absent from these panels.
   expect_false("test_then_pool_equivalence" %in% names(PAPER_VS_TIE_COMBINATIONS))
@@ -41,15 +48,16 @@ test_that("the parameter grids are thinned to their informative range", {
   )
 })
 
-test_that("the subset selects 20 combinations from a real results slice", {
+test_that("the subset selects 23 combinations from a real results slice", {
   df <- local_botox_slice()
 
   kept <- paper_vs_tie_subset(df)
   combinations <- unique(kept[, c("method", "parameters")])
 
   ## 1 pooling + 1 separate + 1 EBPP + 9 RMP + 3 conditional PP
-  ## + 3 commensurate (the inverse-gamma priors) + 1 p-PP + 1 NPP.
-  expect_equal(nrow(combinations), 20)
+  ## + 3 commensurate PP and 3 commensurate prior (the inverse-gamma priors
+  ## of each) + 1 p-PP + 1 NPP.
+  expect_equal(nrow(combinations), 23)
   expect_lt(nrow(kept), nrow(df))
 })
 
@@ -67,11 +75,17 @@ test_that("only the inverse-gamma commensurate priors survive", {
   df <- local_botox_slice()
 
   kept <- paper_vs_tie_subset(df)
-  commensurate <- kept[kept$method == "commensurate_power_prior", ]
-  families <- get_parameters(commensurate[, "parameters"])$heterogeneity_prior.family
 
-  expect_equal(nrow(commensurate) / length(unique(commensurate$drift)), 3)
-  expect_setequal(unique(families), "inverse_gamma")
+  ## Both commensurate methods run the same heterogeneity prior grid and both
+  ## are thinned to its inverse-gamma half.
+  for (method in c("commensurate_power_prior", "commensurate_prior")) {
+    commensurate <- kept[kept$method == method, ]
+    families <- get_parameters(commensurate[, "parameters"])$heterogeneity_prior.family
+
+    expect_equal(nrow(commensurate) / length(unique(commensurate$drift)), 3,
+                 info = method)
+    expect_setequal(unique(families), "inverse_gamma")
+  }
 })
 
 test_that("the subset works on a plain data frame, not only a tibble", {

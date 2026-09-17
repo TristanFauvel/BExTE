@@ -24,7 +24,8 @@ BEXTE_METHOD_LABELS <- c(
   EB_PP = "Empirical Bayes power prior",
   test_then_pool_difference = "Test then pool (difference)",
   test_then_pool_equivalence = "Test then pool (equivalence)",
-  commensurate_power_prior = "Commensurate power prior"
+  commensurate_power_prior = "Commensurate power prior",
+  commensurate_prior = "Commensurate prior"
 )
 
 ## Short descriptions shown as hover tooltips next to each method's checkbox
@@ -40,7 +41,8 @@ BEXTE_METHOD_DESCRIPTIONS <- c(
   EB_PP = "Estimates the power-prior discount weight from the data itself via an empirical Bayes procedure, rather than fixing or eliciting it in advance.",
   test_then_pool_difference = "A two-stage rule: pools the source and target data only if a hypothesis test finds no significant difference between them; analyzes them separately otherwise.",
   test_then_pool_equivalence = "A two-stage rule: pools the source and target data only if an equivalence test finds them close enough; analyzes them separately otherwise.",
-  commensurate_power_prior = "Lets the degree of borrowing be governed by a heterogeneity parameter estimated from how commensurate (similar) the source and target data are."
+  commensurate_power_prior = "Lets the degree of borrowing be governed by a heterogeneity parameter estimated from how commensurate (similar) the source and target data are.",
+  commensurate_prior = "As the commensurate power prior, but without the additional power-prior discount: borrowing is governed by the heterogeneity parameter alone, and the source data otherwise enter undiscounted."
 )
 
 ## Short descriptions shown as hover tooltips next to each case study's

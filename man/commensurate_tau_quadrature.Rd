@@ -7,7 +7,8 @@
 commensurate_tau_quadrature(model, n_nodes)
 }
 \arguments{
-\item{model}{A \link{GaussianCommensuratePowerPrior} object.}
+\item{model}{A \link{GaussianCommensuratePowerPrior} or
+\link{GaussianCommensuratePrior} object.}
 
 \item{n_nodes}{Number of nodes.}
 }

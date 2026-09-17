@@ -39,7 +39,7 @@ test_that("fidelity settings are fixed regardless of how little is selected", {
 test_that("every method is requested, because the forest plots compare all of them", {
   requirements <- paper_replication_requirements("1", config_dir())
 
-  expect_length(requirements$methods, 11)
+  expect_length(requirements$methods, length(PAPER_METHODS))
   expect_true("separate" %in% requirements$methods)
 })
 
@@ -471,14 +471,14 @@ test_that("a forest plot still requires every method", {
   ## Figure 1 compares all of them, so nothing may narrow it.
   requirements <- paper_replication_requirements("1", config_dir())
 
-  expect_length(requirements$methods, 11)
+  expect_length(requirements$methods, length(PAPER_METHODS))
   expect_setequal(requirements$methods, PAPER_METHODS)
 })
 
 test_that("mixing a narrow figure with a forest plot widens back to every method", {
   requirements <- paper_replication_requirements(c("S4", "1"), config_dir())
 
-  expect_length(requirements$methods, 11)
+  expect_length(requirements$methods, length(PAPER_METHODS))
 })
 
 test_that("an entry declaring no methods is treated as needing all of them", {
