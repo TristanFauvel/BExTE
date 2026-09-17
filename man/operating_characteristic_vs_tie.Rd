@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_operating_characteristics_vs_tie.R
 \name{operating_characteristic_vs_tie}
 \alias{operating_characteristic_vs_tie}
-\title{Function to generate an operating characteristic vs tie plot}
+\title{Plot an operating characteristic against the type I error rate}
 \usage{
 operating_characteristic_vs_tie(
   results_metrics_df,
@@ -11,25 +11,36 @@ operating_characteristic_vs_tie(
   treatment_effect,
   operating_characteristic,
   source_denominator_change_factor,
-  target_to_source_std_ratio
+  target_to_source_std_ratio,
+  show_tie_error_bars = FALSE
 )
 }
 \arguments{
-\item{results_metrics_df}{The dataframe containing the results and metrics}
+\item{results_metrics_df}{The dataframe containing the results and metrics.}
 
-\item{case_study}{The case study name}
+\item{case_study}{The case study name.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm}
+\item{target_sample_size_per_arm}{The target sample size per arm.}
 
-\item{treatment_effect}{The treatment effect type ("consistent", "no_effect", "partially_consistent")}
+\item{treatment_effect}{The treatment effect scenario ("consistent",
+"no_effect" or "partially_consistent").}
 
-\item{operating_characteristic}{The operating characteristic to plot (e.g., "power", "type_1_error")}
+\item{operating_characteristic}{The metric to plot, as an entry of
+\code{frequentist_metrics} or \code{inference_metrics}.}
 
-\item{power_difference}{Logical indicating whether to calculate difference for the operating characteristic}
+\item{source_denominator_change_factor}{The source denominator change factor.}
+
+\item{target_to_source_std_ratio}{The target to source standard deviation ratio.}
+
+\item{show_tie_error_bars}{Whether to draw the Monte Carlo interval on the
+type I error axis.}
 }
 \value{
 None
 }
 \description{
-Function to generate an operating characteristic vs tie plot
+Draws one point per method and parameter combination, placing
+the operating characteristic against the type I error rate that method
+incurs, so that methods can be compared at the error rate they actually
+spend rather than at their nominal one.
 }
