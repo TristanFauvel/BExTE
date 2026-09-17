@@ -25,6 +25,11 @@ methods_labels <<- list(
     short_name = "commensurate_power_prior",
     label = "Com. PP"
   ),
+  commensurate_prior = list(
+    full_name = "Commensurate Prior",
+    short_name = "commensurate_prior",
+    label = "Com. prior"
+  ),
   NPP = list(
     full_name = "Normalized Power Prior",
     short_name = "NPP",
@@ -75,6 +80,9 @@ methods_style <<- list(
   pooling = list(shape = 3, hue = "#000000"),
   conditional_power_prior = list(shape = 15, hue = "#009E73"),
   commensurate_power_prior = list(shape = 18, hue = "#CC79A7"),
+  # The open diamond against the power prior's filled one, so the two
+  # commensurate methods read as a pair without sharing a hue.
+  commensurate_prior = list(shape = 23, hue = "#882255"),
   NPP = list(shape = 17, hue = "#D55E00"),
   PDCCPP = list(shape = 1, hue = "#56B4E9"),
   EB_PP = list(shape = 8, hue = "#E69F00"),
@@ -195,6 +203,25 @@ empirical_bayes_hyperparameters <<- list(
       parameter_name = "Power parameter std",
       parameter_label = "power_parameter_std",
       parameter_notation = "$\\sigma_\\gamma$",
+      type = "continuous",
+      range =  NA,
+      suffix = ""
+    )
+  ),
+  # As above, minus the power parameter: this method does not have one.
+  commensurate_prior = list(
+    heterogeneity_parameter_mean = list(
+      parameter_name = "Heterogeneity parameter mean",
+      parameter_label = "heterogeneity_parameter_mean",
+      parameter_notation = "$\\mu_\\tau$",
+      type = "continuous",
+      range =  NA,
+      suffix = ""
+    ),
+    heterogeneity_parameter_std = list(
+      parameter_name = "Heterogeneity parameter std",
+      parameter_label = "heterogeneity_parameter_mean",
+      parameter_notation = "$\\sigma_\\tau$",
       type = "continuous",
       range =  NA,
       suffix = ""

@@ -51,3 +51,4 @@ methods:
     - PDCCPP
     - NPP
     - commensurate_power_prior
+    - commensurate_prior
