@@ -207,6 +207,10 @@ test_that("a failed fit's decision and credible interval are excluded from the a
   expect_equal(result$credible_interval_lower, mean(c(0, 1, 2)))
   expect_equal(result$credible_interval_upper, mean(c(1, 3, 4)))
   expect_equal(result$precision, mean(c(0.5, 1, 1)))
+  # The runaway replicate's interval spans [-500, 1500] and so would have been
+  # scored as covered; only the first interval misses the true effect of 2,
+  # by 1, at the 2 / 0.05 rate.
+  expect_equal(result$interval_score, mean(c(1 + 40 * 1, 2, 2)))
 })
 
 
