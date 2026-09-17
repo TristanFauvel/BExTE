@@ -181,6 +181,10 @@ scenarios_config_schema <- list(
   control_drift_range = "numeric_vector?",
   dropout_probability = "numeric_vector?",
   event_time_distribution = "character_vector?",
+  # Optional. Restricts the sensitivity designs above to one sample size factor
+  # and one source denominator change factor, instead of crossing them with the
+  # whole grid - see time_to_event_sensitivity_reference().
+  sensitivity_reference = "named_numeric_list?",
   case_studies = "character_vector",
   methods = "character_vector",
   # Optional. Restricts the sample size factors simulated for a given
