@@ -57,6 +57,54 @@ methods_dict <- list(
       display = TRUE
     )
   ),
+  # The prior on the power parameter is not on this grid: it is calibrated per
+  # scenario from the design, by calibrate_npp_kl(). What is configured here is
+  # the criterion that calibration minimises.
+  NPP_KL = list(
+    initial_prior = list(
+      range = list("noninformative"),
+      parameter_name = "Initial prior",
+      parameter_label = "pi_0",
+      parameter_notation = "$\\pi_0$",
+      type = "categorical",
+      is_updated = FALSE
+    ),
+    lambda_kl = list(
+      range = list(0.5),
+      parameter_name = "Weight on the compatible scenario",
+      parameter_label = "lambda_kl",
+      parameter_notation = "$\\lambda$",
+      type = "continuous",
+      is_updated = FALSE,
+      display = TRUE
+    ),
+    c_target = list(
+      range = list(10),
+      parameter_name = "Reference Beta shape",
+      parameter_label = "c_target",
+      parameter_notation = "$c$",
+      type = "continuous",
+      is_updated = FALSE,
+      display = TRUE
+    ),
+    d_mtd_rule = list(
+      range = list("source_to_null"),
+      parameter_name = "Maximum tolerable discrepancy rule",
+      parameter_label = "d_mtd_rule",
+      parameter_notation = "$d_{MTD}$ rule",
+      type = "categorical",
+      is_updated = FALSE
+    ),
+    d_mtd_multiplier = list(
+      range = list(0.5, 1.0),
+      parameter_name = "Maximum tolerable discrepancy multiplier",
+      parameter_label = "d_mtd_multiplier",
+      parameter_notation = "$k_{MTD}$",
+      type = "continuous",
+      is_updated = FALSE,
+      display = TRUE
+    )
+  ),
   separate = list(
     initial_prior = list(
       range = list("noninformative"),
