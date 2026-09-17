@@ -63,7 +63,8 @@ PAPER_VS_TIE_LEGEND_LAYOUT <- rbind(
   c("EBPP",     "RMP", "p-PP"),
   c("Com. PP",  "Com. PP", "Com. PP"),
   c("Com. prior", "Com. prior", "Com. prior"),
-  c("Emp. mixture", "Emp. mixture", "Emp. mixture")
+  c("Emp. mixture", "Emp. mixture", "Emp. mixture"),
+  c("NPP (KL)", "NPP (KL)", "NPP (KL)")
 )
 
 ## Lay the method legends out as a grid of groups rather than a single row
