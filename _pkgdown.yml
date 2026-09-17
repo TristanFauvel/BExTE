@@ -170,6 +170,7 @@ reference:
   - forest_plot_sweet_spots_comparison
   - operating_characteristics_vs_tie_plots
   - operating_characteristic_vs_tie
+  - vs_tie_legend_text
   - plot_metric_vs_drift_methods
   - plot_sweet_spot_width_vs_scenario
   - plot_metric_vs_sample_size_methods

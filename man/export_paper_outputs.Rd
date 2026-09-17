@@ -10,7 +10,8 @@ export_paper_outputs(
   tables_dir,
   ids,
   case_studies_config_dir,
-  progress = NULL
+  progress = NULL,
+  numbered_dir = NULL
 )
 }
 \arguments{
@@ -26,6 +27,10 @@ the plot generators append their own \verb{<case_study>/} below it.}
 \item{case_studies_config_dir}{Directory holding the case study YAMLs.}
 
 \item{progress}{Optional \verb{function(index, total, id)} progress callback.}
+
+\item{numbered_dir}{Optional directory to copy each produced output into
+under its paper number ("Figure 1.png", "Table S1.tex"). Figures are
+copied as PNG, tables as both \code{.tex} and \code{.pdf}. \code{NULL} skips it.}
 }
 \value{
 A status data frame, invisibly.
