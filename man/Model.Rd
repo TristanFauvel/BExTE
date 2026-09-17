@@ -649,6 +649,8 @@ computed via \code{posterior_to_RBesT()}/\code{prior_to_RBesT()}, which need
   target_sample_size_per_arm,
   case_study_config,
   target_to_source_std_ratio,
+  dropout_probability = 0,
+  event_time_distribution = "exponential",
   simulation_config,
   case_study,
   method,
@@ -670,6 +672,10 @@ computed via \code{posterior_to_RBesT()}/\code{prior_to_RBesT()}, which need
       \item{\code{target_sample_size_per_arm}}{Sample size per arm in the target study}
       \item{\code{case_study_config}}{Configuration of the case study}
       \item{\code{target_to_source_std_ratio}}{Ratio between the target and source study standard deviation}
+      \item{\code{dropout_probability}}{Probability of loss to follow-up over the maximum
+follow-up time. Only used for the time-to-event endpoint.}
+      \item{\code{event_time_distribution}}{Distribution of the event times, either
+"exponential" or "weibull". Only used for the time-to-event endpoint.}
       \item{\code{simulation_config}}{Simulation configuration}
       \item{\code{case_study}}{Case study name}
       \item{\code{method}}{Method name}

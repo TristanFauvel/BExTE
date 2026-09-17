@@ -63,7 +63,7 @@ analyze_power_loss <- function(results_freq_df, output_path){
   power_loss_cases <- subset(subdf, power_loss)
 
 
-  write.csv(file = paste0(output_path, "/","power_loss_cases.csv"), power_loss_cases[,expected_colnames_scenario])
+  write.csv(file = paste0(output_path, "/","power_loss_cases.csv"), power_loss_cases[, intersect(expected_colnames_scenario, names(power_loss_cases))])
 }
 
 analyze_power_loss_inflated_tie <- function(results_freq_df, output_path){
@@ -89,7 +89,7 @@ analyze_power_loss_inflated_tie <- function(results_freq_df, output_path){
   power_loss_cases <- subset(subdf, power_loss)
 
 
-  write.csv(file = paste0(output_path, "/", "power_loss_inflated_tie_cases.csv"), power_loss_cases[,expected_colnames_scenario])
+  write.csv(file = paste0(output_path, "/", "power_loss_inflated_tie_cases.csv"), power_loss_cases[, intersect(expected_colnames_scenario, names(power_loss_cases))])
 
 }
 
