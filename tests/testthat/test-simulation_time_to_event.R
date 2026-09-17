@@ -346,3 +346,98 @@ test_that("the time-to-event grid axes are only simulated for that endpoint", {
   expect_equal(defaults$dropout_probability, 0)
   expect_equal(defaults$event_time_distribution, "exponential")
 })
+
+
+test_that("the primary design is no heterogeneity, no dropout and exponential times", {
+  expect_true(is_primary_time_to_event_design(0, 0, "exponential"))
+  expect_false(is_primary_time_to_event_design(0.405, 0, "exponential"))
+  expect_false(is_primary_time_to_event_design(0, 0.05, "exponential"))
+  expect_false(is_primary_time_to_event_design(0, 0, "weibull"))
+})
+
+
+test_that("the sensitivity reference is read only for the time-to-event endpoint", {
+  scenarios <- list(sensitivity_reference = list(
+    sample_size_factor = 6, denominator_change_factor = 1
+  ))
+  time_to_event <- list(endpoint = "time_to_event")
+
+  reference <- time_to_event_sensitivity_reference(scenarios, time_to_event)
+  expect_equal(reference$sample_size_factor, 6)
+  expect_equal(reference$denominator_change_factor, 1)
+
+  expect_null(time_to_event_sensitivity_reference(scenarios, list(endpoint = "continuous")))
+  # Without the key every design crosses the whole grid, as it did before the
+  # key existed.
+  expect_null(time_to_event_sensitivity_reference(list(), time_to_event))
+
+  expect_error(
+    time_to_event_sensitivity_reference(
+      list(sensitivity_reference = list(sample_size_factor = 6)), time_to_event
+    ),
+    "denominator_change_factor"
+  )
+})
+
+
+test_that("the sensitivity designs are simulated only at the reference point", {
+  config_dir <- paste0(system.file("conf/combined_teriflunomide", package = "BExTE"), "/")
+  case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+  skip_if(!nzchar(config_dir) || !file.exists(paste0(config_dir, "scenarios_config.yml")))
+
+  scenarios_config <- read_config(
+    paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema
+  )
+  scenarios_config$case_studies <- "teriflunomide"
+  scenarios_config$methods <- "separate"
+
+  grid <- unwrap_scalar_list_columns(simulation_scenarios(
+    config_dir = config_dir,
+    scenarios_config = scenarios_config,
+    case_studies_config_dir = case_studies_config_dir
+  ))
+
+  primary <- mapply(
+    is_primary_time_to_event_design,
+    grid$control_drift, grid$dropout_probability, grid$event_time_distribution
+  )
+
+  reference <- scenarios_config$sensitivity_reference
+  expected_size <- floor((1483 / reference$sample_size_factor) / 2)
+
+  # The whole grid runs under the primary design.
+  expect_setequal(grid$source_denominator_change_factor[primary],
+                  unlist(scenarios_config$denominator_change_factor))
+  expect_length(unique(grid$target_sample_size_per_arm[primary]),
+                length(unlist(scenarios_config$sample_size_factors)))
+
+  # The sensitivity designs run at one trial size and one source denominator,
+  # but still across the whole drift range.
+  expect_equal(unique(grid$target_sample_size_per_arm[!primary]), expected_size)
+  expect_equal(unique(grid$source_denominator_change_factor[!primary]),
+               reference$denominator_change_factor)
+  expect_setequal(grid$drift[!primary], grid$drift[primary])
+})
+
+
+test_that("a sensitivity reference outside the sample size factors is refused", {
+  config_dir <- paste0(system.file("conf/combined_teriflunomide", package = "BExTE"), "/")
+  case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+  skip_if(!nzchar(config_dir) || !file.exists(paste0(config_dir, "scenarios_config.yml")))
+
+  scenarios_config <- read_config(
+    paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema
+  )
+  scenarios_config$case_studies <- "teriflunomide"
+  scenarios_config$methods <- "separate"
+  scenarios_config$sensitivity_reference$sample_size_factor <- 99
+
+  expect_error(
+    simulation_scenarios(
+      config_dir = config_dir,
+      scenarios_config = scenarios_config,
+      case_studies_config_dir = case_studies_config_dir
+    ),
+    "never be simulated"
+  )
+})

@@ -12,6 +12,71 @@ hellinger_distance <- function(mu1, sigma1, mu2, sigma2) {
                                                                          2 / (sigma1 ^ 2 + sigma2 ^ 2)))
 }
 
+#' The design a time-to-event case study is primarily simulated under
+#'
+#' @description No control-arm heterogeneity, no loss to follow-up and
+#'   exponential event times. It is the design a configuration that does not
+#'   mention the sensitivity axes produces, and the one the whole scenario grid
+#'   is simulated at.
+#'
+#' @param control_drift Control-arm heterogeneity, kappa.
+#' @param dropout_probability Probability of loss to follow-up over the maximum
+#'   follow-up time.
+#' @param event_time_distribution Either "exponential" or "weibull".
+#'
+#' @return TRUE when the three describe the primary design.
+is_primary_time_to_event_design <- function(control_drift,
+                                            dropout_probability,
+                                            event_time_distribution) {
+  control_drift == 0 &&
+    dropout_probability == 0 &&
+    identical(as.character(event_time_distribution), "exponential")
+}
+
+#' The point at which the time-to-event sensitivity designs are simulated
+#'
+#' @description Crossing control-arm heterogeneity, loss to follow-up and the
+#'   event time distribution with the whole grid multiplies a run by the product
+#'   of their lengths, and most of that is spent re-simulating designs nobody
+#'   reads. When `sensitivity_reference` names a sample size factor and a source
+#'   denominator change factor, a design other than the primary one is simulated
+#'   only there, so the sensitivity analysis still varies the drift across its
+#'   full range at a single trial size. Without the key the axes cross the whole
+#'   grid, which is what a configuration written before it existed does.
+#'
+#' @param scenarios_config Configuration for the simulation.
+#' @param case_study_config Configuration for the case study.
+#'
+#' @return A list with `sample_size_factor` and `denominator_change_factor`, or
+#'   NULL when every design is simulated across the whole grid.
+time_to_event_sensitivity_reference <- function(scenarios_config,
+                                                case_study_config) {
+  if (!identical(case_study_config$endpoint, "time_to_event")) {
+    return(NULL)
+  }
+
+  reference <- scenarios_config$sensitivity_reference
+  if (is.null(reference)) {
+    return(NULL)
+  }
+
+  missing_keys <- setdiff(
+    c("sample_size_factor", "denominator_change_factor"), names(reference)
+  )
+  if (length(missing_keys) > 0) {
+    stop(paste0(
+      "sensitivity_reference is missing ", paste(missing_keys, collapse = " and "),
+      ". It names the one sample size factor and source denominator change",
+      " factor the sensitivity designs are simulated at."
+    ), call. = FALSE)
+  }
+
+  list(
+    sample_size_factor = as.numeric(reference$sample_size_factor),
+    denominator_change_factor = as.numeric(reference$denominator_change_factor)
+  )
+}
+
 #' Compute the drift range for a given simulation and case study configuration.
 #'
 #' @param scenarios_config Configuration for the simulation.
@@ -301,18 +366,55 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
       drift_combinations <- subset(drift_combinations, condition)
     }
 
-    total_target_sample_sizes <- (source_data$sample_size_control + source_data$sample_size_treatment) / scenarios_config$sample_size_factors
+    sample_size_factors <- unlist(scenarios_config$sample_size_factors)
+    total_target_sample_sizes <- (source_data$sample_size_control + source_data$sample_size_treatment) / sample_size_factors
     current_scenario_configurations <- list()
+
+    sensitivity_reference <- time_to_event_sensitivity_reference(
+      scenarios_config = scenarios_config,
+      case_study_config = case_study_config
+    )
+
+    if (!is.null(sensitivity_reference) &&
+        !sensitivity_reference$sample_size_factor %in% sample_size_factors) {
+      stop(paste0(
+        "sensitivity_reference$sample_size_factor (",
+        sensitivity_reference$sample_size_factor,
+        ") is not one of the sample_size_factors being simulated, so the",
+        " sensitivity designs would never be simulated at all."
+      ), call. = FALSE)
+    }
 
     for (i in seq_len(nrow(drift_combinations))) {
       drift <- drift_combinations[i, "drift"]
       control_drift <- drift_combinations[i, "control_drift"]
       source_denominator <- drift_combinations[i, "source_denominator"]
       source_denominator_change_factor <- drift_combinations[i, "source_denominator_change_factor"]
+      dropout_probability <- drift_combinations[i, "dropout_probability"]
+      event_time_distribution <- drift_combinations[i, "event_time_distribution"]
       treatment_drift <- drift + control_drift
       target_treatment_effect <- source_treatment_effect_estimate + drift
-      for (total_target_sample_size in total_target_sample_sizes) {
+
+      primary_design <- is_primary_time_to_event_design(
+        control_drift, dropout_probability, event_time_distribution
+      )
+
+      for (factor_index in seq_along(total_target_sample_sizes)) {
+        total_target_sample_size <- total_target_sample_sizes[factor_index]
         target_sample_size_per_arm <- floor(total_target_sample_size / 2)
+
+        # The whole grid is simulated under the primary design; the sensitivity
+        # designs are simulated only at the reference point, so they still vary
+        # the drift without multiplying the run by the sample sizes and source
+        # denominators as well.
+        if (!is.null(sensitivity_reference) && !primary_design &&
+            !(sample_size_factors[factor_index] == sensitivity_reference$sample_size_factor &&
+              isTRUE(all.equal(
+                source_denominator_change_factor,
+                sensitivity_reference$denominator_change_factor
+              )))) {
+          next
+        }
 
         current_scenario_configurations[[length(current_scenario_configurations) + 1]] <- list(
           target_sample_size_per_arm = target_sample_size_per_arm,
@@ -326,8 +428,8 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
           source_treatment_effect_estimate = source_treatment_effect_estimate,
           target_treatment_effect = target_treatment_effect,
           target_to_source_std_ratio = drift_combinations[i, "target_to_source_std_ratio"],
-          dropout_probability = drift_combinations[i, "dropout_probability"],
-          event_time_distribution = drift_combinations[i, "event_time_distribution"],
+          dropout_probability = dropout_probability,
+          event_time_distribution = event_time_distribution,
           theta_0 = theta_0,
           null_space = null_space
         )
