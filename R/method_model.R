@@ -6,6 +6,10 @@
 #' @field empirical_bayes Logical indicating if empirical Bayes method is used.
 #' @field analytic_ocs Results of the analytic operating characteristics simulation.
 #' @field posterior_parameters Parameters of the posterior distribution.
+#' @field quantile_summary_columns Names of `posterior_parameters` columns that
+#'   are also summarised by their quantiles. A mean describes a quantity the
+#'   model reports, but not the spread of one it selects per replicate. Empty
+#'   for every method that does not select anything.
 #' @field post_mean Mean of the posterior distribution.
 #' @field post_median Median of the posterior distribution.
 #' @field prior_mean Mean of the prior distribution.
@@ -37,6 +41,7 @@ Model <- R6::R6Class(
     prior_elir_unit_information = NULL,
     analytic_ocs = NULL,
     posterior_parameters = NULL,
+    quantile_summary_columns = character(0),
     post_mean = NULL,
     post_median = NULL,
     prior_mean = NULL,
@@ -192,6 +197,18 @@ Model <- R6::R6Class(
           prior = prior,
           mcmc_config = mcmc_config
         )
+      } else if (method == "egidi_empirical_mixture") {
+        # The robust mixture prior's two components, with the weight chosen
+        # from each replicate's own target data rather than prespecified. The
+        # weak component is centred on theta_0, as it is there.
+        prior$vague_mean <- case_study_config$theta_0
+        if (case_study_config$summary_measure_likelihood == "normal") {
+          model <- GaussianEgidiMixture$new(prior = prior)
+        } else if (case_study_config$summary_measure_likelihood == "binomial") {
+          model <- TruncatedEgidiMixture$new(prior = prior, mcmc_config = mcmc_config)
+        } else {
+          stop('Only "normal" or "binomial" treatment effect distributions are supported')
+        }
       } else {
         stop("Method not implemented for this endpoint")
       }
@@ -1034,6 +1051,23 @@ Model <- R6::R6Class(
           }
           posterior_params[[paste0("conf_int_lower_", parameter)]] <- ci[2]
           posterior_params[[paste0("conf_int_upper_", parameter)]] <- ci[3]
+        }
+
+        # A method that selects a quantity per replicate is not described by its
+        # mean alone, so it may name columns to summarise by quantile as well.
+        # No other method names any, and their output is unchanged.
+        for (parameter in intersect(self$quantile_summary_columns,
+                                    colnames(posterior_parameters))) {
+          quantiles <- stats::quantile(
+            posterior_parameters[[parameter]],
+            probs = c(0.025, 0.25, 0.5, 0.75, 0.975),
+            na.rm = TRUE
+          )
+          labels <- c("q025_", "q25_", "median_", "q75_", "q975_")
+          for (position in seq_along(labels)) {
+            posterior_params[[paste0(labels[position], parameter)]] <-
+              unname(quantiles[position])
+          }
         }
       }
 
