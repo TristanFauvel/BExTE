@@ -187,6 +187,28 @@ vs_tie_compose <- function(plt, labels, width, height) {
   )
 }
 
+#' Plot an operating characteristic against the type I error rate
+#'
+#' @description Draws one point per method and parameter combination, placing
+#'   the operating characteristic against the type I error rate that method
+#'   incurs, so that methods can be compared at the error rate they actually
+#'   spend rather than at their nominal one.
+#'
+#' @param results_metrics_df The dataframe containing the results and metrics.
+#' @param case_study The case study name.
+#' @param target_sample_size_per_arm The target sample size per arm.
+#' @param treatment_effect The treatment effect scenario ("consistent",
+#'   "no_effect" or "partially_consistent").
+#' @param operating_characteristic The metric to plot, as an entry of
+#'   `frequentist_metrics` or `inference_metrics`.
+#' @param source_denominator_change_factor The source denominator change factor.
+#' @param target_to_source_std_ratio The target to source standard deviation ratio.
+#' @param show_tie_error_bars Whether to draw the Monte Carlo interval on the
+#'   type I error axis.
+#'
+#' @return None
+#'
+#' @export
 operating_characteristic_vs_tie <- function(
     results_metrics_df,
     case_study,
