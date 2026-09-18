@@ -66,7 +66,18 @@ analyze_power_loss <- function(results_freq_df, output_path){
   write.csv(file = paste0(output_path, "/","power_loss_cases.csv"), power_loss_cases[, intersect(expected_colnames_scenario, names(power_loss_cases))])
 }
 
-analyze_power_loss_inflated_tie <- function(results_freq_df, output_path){
+# The results carry no record of the critical value they were simulated at, so
+# the nominal type I error rate has to be passed in, from the same
+# analysis_config$nominal_tie the figures use, rather than assumed.
+check_nominal_tie <- function(nominal_tie) {
+  if (!is.numeric(nominal_tie) || length(nominal_tie) != 1 ||
+      !is.finite(nominal_tie) || nominal_tie <= 0 || nominal_tie >= 1) {
+    stop("nominal_tie must be a single number strictly between 0 and 1.")
+  }
+}
+
+analyze_power_loss_inflated_tie <- function(results_freq_df, output_path, nominal_tie){
+  check_nominal_tie(nominal_tie)
   check_required_colnames(
     results_freq_df,
     c(  "null_space",
@@ -83,7 +94,7 @@ analyze_power_loss_inflated_tie <- function(results_freq_df, output_path){
                   (null_space == "left" & target_treatment_effect > theta_0) |
                     (null_space == "right" & target_treatment_effect < theta_0))
 
-  subdf <- subset(subdf, conf_int_tie_lower > 0.025)
+  subdf <- subset(subdf, conf_int_tie_lower > nominal_tie)
 
   subdf <- flag_power_differences(subdf)
   power_loss_cases <- subset(subdf, power_loss)
@@ -93,11 +104,28 @@ analyze_power_loss_inflated_tie <- function(results_freq_df, output_path){
 
 }
 
-analyze_noninflated_tie <- function(results_freq_df, output_path){
+analyze_noninflated_tie <- function(results_freq_df, output_path, nominal_tie){
+  check_nominal_tie(nominal_tie)
+  check_required_colnames(
+    results_freq_df,
+    c("conf_int_tie_upper",
+      "target_treatment_effect",
+      "theta_0"),
+    context = "analyze_noninflated_tie"
+  )
+
   # Check whether there are cases where the TIE is not inflated
 
-  non_inflated_tie_cases <- subset(results_freq_df, conf_int_tie_upper < 0.025)
-  non_inflated_tie_cases <- subset(non_inflated_tie_cases, drift == - source_treatment_effect_estimate)
+  non_inflated_tie_cases <- subset(results_freq_df, conf_int_tie_upper < nominal_tie)
+
+  # Scenarios whose target effect sits on the boundary of the null hypothesis
+  # space. The target effect is drift + source estimate, so this is the drift
+  # of -source estimate only when theta_0 is 0, and the sum is not exactly
+  # theta_0 in floating point either way.
+  at_null_boundary <- abs(
+    non_inflated_tie_cases$target_treatment_effect - non_inflated_tie_cases$theta_0
+  ) <= sqrt(.Machine$double.eps) * pmax(1, abs(non_inflated_tie_cases$theta_0))
+  non_inflated_tie_cases <- non_inflated_tie_cases[at_null_boundary, , drop = FALSE]
 
   # Remove the cases where there was no borrowing
   # filter <- non_inflated_tie_cases$conf_int_ess_moment_upper >= 0 & non_inflated_tie_cases$conf_int_ess_moment_lower >= 0

@@ -55,7 +55,7 @@ test_that("analyze_power_loss_inflated_tie rejects a frame missing its TIE colum
   df$conf_int_tie_lower <- NULL
 
   expect_error(
-    analyze_power_loss_inflated_tie(df, tempdir()),
+    analyze_power_loss_inflated_tie(df, tempdir(), nominal_tie = 0.025),
     "conf_int_tie_lower"
   )
 })
