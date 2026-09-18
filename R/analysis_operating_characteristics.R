@@ -839,7 +839,88 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 }
 
 
-frequentist_power_at_nominal_tie <- function(results, analysis_config, simulation_config, n_replicates = 1000) {
+#' Power of the separate and pooling baselines for one scenario row
+#'
+#' @description Neither baseline depends on the borrowing method, only on the
+#'   design, so both branches of [frequentist_power_at_nominal_tie()] need
+#'   exactly this computation. A worker cannot see a copy of it that lives
+#'   inside the loop body, so it lives here rather than being written twice.
+#'
+#' @param row One row of the results data frame.
+#' @param nominal_tie The type I error rate the power is evaluated at.
+#' @param frequentist_test The test the power is computed for.
+#' @param simulation_config The simulation configuration.
+#' @param n_replicates Number of Monte Carlo replicates the simulated power
+#'   estimates are built from, for the case studies analytical_power() cannot
+#'   be used for.
+#'
+#' @return A named list holding the six power columns for that row.
+#' @noRd
+nominal_tie_power_row <- function(row,
+                                  nominal_tie,
+                                  frequentist_test,
+                                  simulation_config,
+                                  n_replicates) {
+  target_data <- load_data(row, type = "target", reload_data_objects = TRUE)
+  source_data <- load_data(row, type = "source", reload_data_objects = TRUE)
+
+  assert_target_data_numbers(target_data)
+
+  separate <- compute_freq_power(
+    alpha = nominal_tie,
+    target_data = target_data,
+    frequentist_test = frequentist_test,
+    theta_0 = row$theta_0,
+    null_space = row$null_space,
+    case_study = row$case_study,
+    simulation_config = simulation_config,
+    n_replicates = n_replicates
+  )
+
+  pooling <- compute_freq_power_pooling(
+    alpha = nominal_tie,
+    target_data = target_data,
+    source_data = source_data,
+    frequentist_test = frequentist_test,
+    theta_0 = row$theta_0,
+    null_space = row$null_space,
+    case_study = row$case_study,
+    simulation_config = simulation_config,
+    n_replicates = n_replicates
+  )
+
+  # The bounds are unnamed so that binding the rows together downstream gives
+  # plain numeric columns, whichever of the two intervals came back.
+  list(
+    nominal_frequentist_power_separate = separate$power,
+    nominal_frequentist_power_separate_lower = unname(separate$conf_int_power[1]),
+    nominal_frequentist_power_separate_upper = unname(separate$conf_int_power[2]),
+    nominal_frequentist_power_pooling = pooling$power,
+    nominal_frequentist_power_pooling_lower = unname(pooling$conf_int_power[1]),
+    nominal_frequentist_power_pooling_upper = unname(pooling$conf_int_power[2])
+  )
+}
+
+
+#' Compute the frequentist power at the nominal type I error rate
+#'
+#' @description Computes the power of the separate and the pooled analysis at
+#'   the nominal type I error rate, which the plots use as the two baselines
+#'   every borrowing method is read against.
+#'
+#' @param results The results data frame.
+#' @param analysis_config The analysis configuration.
+#' @param simulation_config The simulation configuration.
+#' @param parallelization Whether the caller asked for parallelism, as
+#'   [analysis_runs_in_parallel()] resolves it. A row costs seconds here -
+#'   two power computations, each of which may be a simulation - so on a full
+#'   environment this is the difference between a day and a couple of hours.
+#' @param n_replicates Number of Monte Carlo replicates the simulated power
+#'   estimates are built from, for the case studies analytical_power() cannot
+#'   be used for.
+#'
+#' @return The results data frame with the six baseline power columns added.
+frequentist_power_at_nominal_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000) {
   if (nrow(results) == 0) {
     stop("The results dataframe is empty.")
   }
@@ -869,60 +950,60 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   results$nominal_frequentist_power_pooling_lower <- NA_real_
   results$nominal_frequentist_power_pooling_upper <- NA_real_
 
-  # Progress bar function in R
-  progress_bar <- function(n) {
-    pb <- txtProgressBar(min = 0,
-                         max = n,
-                         style = 3)
-    return(function(i) {
+  if (analysis_uses_cluster(parallelization, nrow(results))) {
+    # Set up parallel backend
+    n_cores <- get_parallel_worker_count()
+    cl <- parallel::makeCluster(n_cores)
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    doParallel::registerDoParallel(cl)
+
+    # As in frequentist_power_at_equivalent_tie(): BExTE is often loaded from
+    # source rather than installed, which a bare library(BExTE) in the
+    # workers cannot cope with - see load_bexte_in_workers().
+    load_bexte_in_workers(cl, packages = c("pwr", "dplyr", "yaml", "BSDA"))
+
+    results_list <- foreach(i = seq_len(nrow(results)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
+      nominal_tie_power_row(
+        row = results[i, ],
+        nominal_tie = nominal_tie,
+        frequentist_test = frequentist_test,
+        simulation_config = simulation_config,
+        n_replicates = n_replicates
+      )
+    }
+
+    # Assigned by name rather than cbind()ed on, because the columns are
+    # already there: a second copy of each is one the plot layer may read
+    # instead, and it would hold nothing.
+    computed <- dplyr::bind_rows(results_list)
+    for (column in names(computed)) {
+      results[[column]] <- as.numeric(computed[[column]])
+    }
+  } else {
+    # One progress bar for the whole loop. Building it inside the loop, as
+    # this did, restarts it on every row: 18,480 rows then print 18,480 bars
+    # that never pass the first few percent.
+    pb <- txtProgressBar(min = 0, max = nrow(results), style = 3)
+    on.exit(close(pb), add = TRUE)
+
+    # Iterate through rows and compute power
+    for (i in seq_len(nrow(results))) {
+      row_power <- nominal_tie_power_row(
+        row = results[i, ],
+        nominal_tie = nominal_tie,
+        frequentist_test = frequentist_test,
+        simulation_config = simulation_config,
+        n_replicates = n_replicates
+      )
+
+      for (column in names(row_power)) {
+        results[[column]][i] <- row_power[[column]]
+      }
+
+      # Update progress bar
       setTxtProgressBar(pb, i)
-    })
+    }
   }
 
-  # Iterate through rows and compute power
-  for (i in seq_len(nrow(results))) {
-    target_data <- load_data(results[i, ],
-                             type = "target",
-                             reload_data_objects = TRUE)
-    source_data <- load_data(results[i, ],
-                             type = "source",
-                             reload_data_objects = TRUE)
-
-
-    assert_target_data_numbers(target_data)
-    nominal_frequentist_power_separate <- compute_freq_power(
-      alpha = nominal_tie,
-      target_data = target_data,
-      frequentist_test = frequentist_test,
-      theta_0 = results$theta_0[i],
-      null_space = results$null_space[i],
-      case_study =  results[i, ]$case_study,
-      simulation_config = simulation_config,
-      n_replicates = n_replicates
-    )
-
-    results$nominal_frequentist_power_separate[i] <- nominal_frequentist_power_separate$power
-    results$nominal_frequentist_power_separate_lower[i] <- nominal_frequentist_power_separate$conf_int_power[1]
-    results$nominal_frequentist_power_separate_upper[i] <- nominal_frequentist_power_separate$conf_int_power[2]
-
-    nominal_frequentist_power_pooling <- compute_freq_power_pooling(
-      alpha = nominal_tie,
-      target_data = target_data,
-      source_data = source_data,
-      frequentist_test = frequentist_test,
-      theta_0 = results$theta_0[i],
-      null_space = results$null_space[i],
-      case_study =  results[i, ]$case_study,
-      simulation_config = simulation_config,
-      n_replicates = n_replicates
-    )
-
-    results$nominal_frequentist_power_pooling[i] <- nominal_frequentist_power_pooling$power
-    results$nominal_frequentist_power_pooling_lower[i] <- nominal_frequentist_power_pooling$conf_int_power[1]
-    results$nominal_frequentist_power_pooling_upper[i] <- nominal_frequentist_power_pooling$conf_int_power[2]
-
-    # Update progress bar
-    pb <- progress_bar(nrow(results))(i)
-  }
   return(results)
 }
