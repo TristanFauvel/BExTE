@@ -1,3 +1,65 @@
+#' The analysis steps that follow a simulation
+#'
+#' An environment's `scenarios_config.yml` selects a subset of these by name
+#' through its `analysis_steps` key. They are a constant so that a name which
+#' does not exist is rejected where the config is read, rather than quietly
+#' running nothing.
+#' @noRd
+ANALYSIS_STEPS <- c(
+  "frequentist_power_at_equivalent_tie",
+  "frequentist_power_at_nominal_tie",
+  "sweet_spot",
+  "bayesian_ocs"
+)
+
+
+
+#' Resolve which analysis steps to run for an environment
+#'
+#' @description A `scenarios_config.yml` without an `analysis_steps` key runs
+#'   all of [ANALYSIS_STEPS], so nothing written before that key existed
+#'   changes behaviour. Naming a subset skips the rest, which is worth doing
+#'   because no step is cheap and not every run needs every output - the
+#'   paper's figures, for one, read neither the sweet spot nor the Bayesian
+#'   operating characteristics.
+#'
+#' @param scenarios_config The environment's scenarios configuration.
+#' @param all_case_studies_shipped Whether every case study of the run ships
+#'   with the package. Both power steps call `load_data()` without threading
+#'   `case_studies_config_dir` through, so they only resolve shipped case
+#'   studies and are dropped rather than left to crash.
+#'
+#' @return A character vector of step names, which may be empty.
+#' @noRd
+resolve_analysis_steps <- function(scenarios_config, all_case_studies_shipped) {
+  steps <- if (is.null(scenarios_config$analysis_steps)) {
+    ANALYSIS_STEPS
+  } else {
+    as.character(unlist(scenarios_config$analysis_steps, use.names = FALSE))
+  }
+
+  # A misspelled step would otherwise be skipped in silence, and the omission
+  # only surfaces much later, as a figure with nothing to plot.
+  unknown_steps <- setdiff(steps, ANALYSIS_STEPS)
+  if (length(unknown_steps) > 0) {
+    stop(
+      "analysis_steps names steps that do not exist: ",
+      paste(unknown_steps, collapse = ", "),
+      ". The steps are: ", paste(ANALYSIS_STEPS, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  if (!all_case_studies_shipped) {
+    steps <- setdiff(steps, c("frequentist_power_at_equivalent_tie",
+                              "frequentist_power_at_nominal_tie"))
+  }
+
+  steps
+}
+
+
+
 #' Run a full simulation for one environment
 #'
 #' @description Runs the frequentist and/or Bayesian Monte Carlo operating
@@ -113,17 +175,16 @@ run_simulation_env <- function(env,
     all_case_studies_shipped <- all(vapply(scenarios_config$case_studies, function(cs) {
       nzchar(system.file(file.path("conf", "case_studies", paste0(cs, ".yml")), package = "BExTE"))
     }, logical(1)))
-    analysis_to_compute <- if (all_case_studies_shipped) {
-      c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs")
-    } else {
-      c("sweet_spot", "bayesian_ocs")
-    }
+    analysis_to_compute <- resolve_analysis_steps(scenarios_config,
+                                                  all_case_studies_shipped)
 
-    # The analysis is performed on the results concatenated at the level of the environment.
-    simulation_analysis(env, analysis_config, config_dir, frequentist_metrics,
-                        to_compute = analysis_to_compute,
-                        case_studies_config_dir = case_studies_config_dir,
-                        parallelization = scenarios_config$parallelization)
+    if (length(analysis_to_compute) > 0) {
+      # The analysis is performed on the results concatenated at the level of the environment.
+      simulation_analysis(env, analysis_config, config_dir, frequentist_metrics,
+                          to_compute = analysis_to_compute,
+                          case_studies_config_dir = case_studies_config_dir,
+                          parallelization = scenarios_config$parallelization)
+    }
   }
 
   if (simulation_config$compute_bayesian_ocs_mc == TRUE) {

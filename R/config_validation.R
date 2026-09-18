@@ -187,6 +187,10 @@ scenarios_config_schema <- list(
   sensitivity_reference = "named_numeric_list?",
   case_studies = "character_vector",
   methods = "character_vector",
+  # Optional. The analysis steps to run after the simulation, out of
+  # ANALYSIS_STEPS. Absent means all of them, so a config written before
+  # this key keeps its behaviour - see run_simulation_env().
+  analysis_steps = "character_vector?",
   # Optional. Restricts the sample size factors simulated for a given
   # case study, so a run need not take the cross product of every case
   # study with every factor - see simulation_frequentist_ocs(). Case
