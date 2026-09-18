@@ -82,3 +82,68 @@ test_that("assert_target_data_numbers still rejects malformed target data", {
   expect_error(assert_target_data_numbers(utils::modifyList(good, list(standard_deviation = c(1, 2)))))
   expect_error(assert_target_data_numbers(list(treatment_effect = 0.3, standard_deviation = 1.1)))
 })
+
+test_that("the nominal-TIE step is handed the resolved setting, like the equivalent-TIE one", {
+  # It was the only analysis step with no parallel branch at all. On the
+  # paper's 18,480-row environment that cost 26 hours single-threaded, while
+  # the equivalent-TIE step over the same rows took 30 minutes on a cluster.
+  expect_true("parallelization" %in% names(formals(frequentist_power_at_nominal_tie)))
+
+  body_text <- paste(deparse(body(simulation_analysis)), collapse = " ")
+  hits <- gregexpr("parallelization = run_in_parallel", body_text, fixed = TRUE)[[1]]
+  expect_equal(sum(hits > 0), 2L)
+
+  nominal <- paste(deparse(body(frequentist_power_at_nominal_tie)), collapse = " ")
+  expect_true(grepl("analysis_uses_cluster(parallelization, nrow(results))",
+                    nominal, fixed = TRUE))
+})
+
+test_that("both branches of the nominal-TIE step compute a row the same way", {
+  # The two branches cannot be allowed to drift apart, and a worker cannot
+  # see a copy of the computation that lives inside the loop body, so both
+  # call the same helper rather than holding a copy of it.
+  nominal <- paste(deparse(body(frequentist_power_at_nominal_tie)), collapse = " ")
+  hits <- gregexpr("nominal_tie_power_row", nominal, fixed = TRUE)[[1]]
+  expect_equal(sum(hits > 0), 2L)
+
+  expect_false(grepl("compute_freq_power(", nominal, fixed = TRUE))
+  expect_false(grepl("compute_freq_power_pooling(", nominal, fixed = TRUE))
+})
+
+test_that("nominal_tie_power_row returns exactly the six baseline columns", {
+  mock_load_data <- function(results_row, type, reload_data_objects = FALSE) {
+    list(type = type, treatment_effect = 0.5, standard_deviation = 1,
+         sample_size_per_arm = 30)
+  }
+
+  with_mocked_bindings(
+    {
+      row_power <- nominal_tie_power_row(
+        row = data.frame(case_study = "example", theta_0 = 0, null_space = "left"),
+        nominal_tie = 0.025,
+        frequentist_test = "t-test",
+        simulation_config = list(),
+        n_replicates = 100
+      )
+
+      expect_equal(names(row_power), c(
+        "nominal_frequentist_power_separate",
+        "nominal_frequentist_power_separate_lower",
+        "nominal_frequentist_power_separate_upper",
+        "nominal_frequentist_power_pooling",
+        "nominal_frequentist_power_pooling_lower",
+        "nominal_frequentist_power_pooling_upper"
+      ))
+      expect_equal(unlist(row_power, use.names = FALSE),
+                   c(0.8, 0.75, 0.85, 0.9, 0.87, 0.93))
+
+      # dplyr::bind_rows() is how the parallel branch turns these into
+      # columns, and a named bound would carry its name into the column.
+      expect_null(names(row_power$nominal_frequentist_power_separate_lower))
+    },
+    load_data = mock_load_data,
+    compute_freq_power = function(...) list(power = 0.8, conf_int_power = c(lower = 0.75, upper = 0.85)),
+    compute_freq_power_pooling = function(...) list(power = 0.9, conf_int_power = c(lower = 0.87, upper = 0.93)),
+    .package = "BExTE"
+  )
+})
