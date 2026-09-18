@@ -901,6 +901,55 @@ nominal_tie_power_row <- function(row,
   )
 }
 
+#' The columns that identify one baseline computation
+#'
+#' Neither baseline depends on the borrowing method, so rows that agree on
+#' every column here yield the same two numbers however they were analysed.
+#'
+#' This list must stay a *superset* of what [nominal_tie_power_row()] reads.
+#' An extra column only splits a group that could have been shared, which
+#' costs a little time; a missing one merges rows that genuinely differ, which
+#' is silently wrong. It is therefore every design column of the results
+#' frame, not only the six `load_data()` happens to read today.
+#' @noRd
+NOMINAL_TIE_DESIGN_COLUMNS <- c(
+  "case_study", "theta_0", "null_space",
+  "target_sample_size_per_arm", "target_treatment_effect",
+  "target_standard_deviation", "target_to_source_std_ratio",
+  "target_treatment_rate", "target_control_rate",
+  "drift", "treatment_drift", "control_drift",
+  "source_denominator", "source_denominator_change_factor",
+  "source_treatment_effect_estimate", "source_standard_error",
+  "source_sample_size_control", "source_sample_size_treatment",
+  "source_treatment_rate", "source_control_rate",
+  "equivalent_source_sample_size_per_arm",
+  "summary_measure_likelihood", "endpoint", "sampling_approximation",
+  "dropout_probability", "event_time_distribution"
+)
+
+
+#' Group rows of a results frame by the design they describe
+#'
+#' @param design The design columns of the results frame.
+#'
+#' @return A character vector, one entry per row, equal exactly for rows
+#'   describing the same design.
+#' @noRd
+nominal_tie_design_key <- function(design) {
+  if (length(design) == 0) {
+    return(rep("", nrow(design)))
+  }
+
+  # A missing entry is given a token no value of its own can take, so that it
+  # never collides with a column that literally holds the string "NA".
+  tokens <- lapply(design, function(column) {
+    column <- as.character(column)
+    ifelse(is.na(column), "\001missing\001", column)
+  })
+
+  do.call(paste, c(tokens, list(sep = "\002")))
+}
+
 
 #' Compute the frequentist power at the nominal type I error rate
 #'
@@ -908,13 +957,21 @@ nominal_tie_power_row <- function(row,
 #'   the nominal type I error rate, which the plots use as the two baselines
 #'   every borrowing method is read against.
 #'
+#'   Both baselines are a property of the design alone, while the results
+#'   frame holds one row per design *and* method-parameter combination: the
+#'   paper's environment repeats each of its 330 designs 56 times. They are
+#'   therefore computed once per design and copied to the rows that share it.
+#'   That is exact rather than an approximation, because
+#'   `simulate_test_p_values()` reseeds from `simulation_config$seed` on every
+#'   call, so the repeats were identical to the last bit anyway.
+#'
 #' @param results The results data frame.
 #' @param analysis_config The analysis configuration.
 #' @param simulation_config The simulation configuration.
 #' @param parallelization Whether the caller asked for parallelism, as
-#'   [analysis_runs_in_parallel()] resolves it. A row costs seconds here -
-#'   two power computations, each of which may be a simulation - so on a full
-#'   environment this is the difference between a day and a couple of hours.
+#'   [analysis_runs_in_parallel()] resolves it. A design costs seconds here -
+#'   two power computations, either of which may be a simulation - so a run
+#'   with many of them is worth spreading over a cluster.
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
@@ -939,18 +996,29 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   nominal_tie <- analysis_config[["nominal_tie"]]
   frequentist_test <- analysis_config[["frequentist_test"]]
 
-  # Initialize the new columns. The bounds are the confidence interval
-  # compute_freq_power() returns: an exact binomial interval when it estimates
-  # the power by simulation, and a degenerate c(power, power) when it has a
-  # closed form. The plot layer reads the width to tell the two apart.
-  results$nominal_frequentist_power_separate <- NA_real_
-  results$nominal_frequentist_power_separate_lower <- NA_real_
-  results$nominal_frequentist_power_separate_upper <- NA_real_
-  results$nominal_frequentist_power_pooling <- NA_real_
-  results$nominal_frequentist_power_pooling_lower <- NA_real_
-  results$nominal_frequentist_power_pooling_upper <- NA_real_
+  # One row per distinct design, and the index that puts each computed value
+  # back on every row sharing it.
+  design_key <- nominal_tie_design_key(
+    results[intersect(NOMINAL_TIE_DESIGN_COLUMNS, names(results))]
+  )
+  representatives <- !duplicated(design_key)
+  design_rows <- results[representatives, , drop = FALSE]
+  design_index <- match(design_key, design_key[representatives])
 
-  if (analysis_uses_cluster(parallelization, nrow(results))) {
+  # Only the distinct designs are handed to the workers, rather than the whole
+  # results frame: on the paper's environment that is 330 rows to serialise
+  # instead of 18,480, each carrying its parameters as JSON.
+  compute_design <- function(i) {
+    nominal_tie_power_row(
+      row = design_rows[i, ],
+      nominal_tie = nominal_tie,
+      frequentist_test = frequentist_test,
+      simulation_config = simulation_config,
+      n_replicates = n_replicates
+    )
+  }
+
+  if (analysis_uses_cluster(parallelization, nrow(design_rows))) {
     # Set up parallel backend
     n_cores <- get_parallel_worker_count()
     cl <- parallel::makeCluster(n_cores)
@@ -962,47 +1030,30 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
     # workers cannot cope with - see load_bexte_in_workers().
     load_bexte_in_workers(cl, packages = c("pwr", "dplyr", "yaml", "BSDA"))
 
-    results_list <- foreach(i = seq_len(nrow(results)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
-      nominal_tie_power_row(
-        row = results[i, ],
-        nominal_tie = nominal_tie,
-        frequentist_test = frequentist_test,
-        simulation_config = simulation_config,
-        n_replicates = n_replicates
-      )
-    }
-
-    # Assigned by name rather than cbind()ed on, because the columns are
-    # already there: a second copy of each is one the plot layer may read
-    # instead, and it would hold nothing.
-    computed <- dplyr::bind_rows(results_list)
-    for (column in names(computed)) {
-      results[[column]] <- as.numeric(computed[[column]])
+    computed_list <- foreach(i = seq_len(nrow(design_rows)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
+      compute_design(i)
     }
   } else {
     # One progress bar for the whole loop. Building it inside the loop, as
-    # this did, restarts it on every row: 18,480 rows then print 18,480 bars
-    # that never pass the first few percent.
-    pb <- txtProgressBar(min = 0, max = nrow(results), style = 3)
+    # this did, restarts it on every step, and what gets printed is then
+    # thousands of bars that never pass the first few percent.
+    pb <- txtProgressBar(min = 0, max = nrow(design_rows), style = 3)
     on.exit(close(pb), add = TRUE)
 
-    # Iterate through rows and compute power
-    for (i in seq_len(nrow(results))) {
-      row_power <- nominal_tie_power_row(
-        row = results[i, ],
-        nominal_tie = nominal_tie,
-        frequentist_test = frequentist_test,
-        simulation_config = simulation_config,
-        n_replicates = n_replicates
-      )
-
-      for (column in names(row_power)) {
-        results[[column]][i] <- row_power[[column]]
-      }
+    computed_list <- vector("list", nrow(design_rows))
+    for (i in seq_len(nrow(design_rows))) {
+      computed_list[[i]] <- compute_design(i)
 
       # Update progress bar
       setTxtProgressBar(pb, i)
     }
+  }
+
+  # Assigned by name rather than cbind()ed on, so that a stale column is
+  # replaced instead of being shadowed by a second copy of itself.
+  computed <- dplyr::bind_rows(computed_list)
+  for (column in names(computed)) {
+    results[[column]] <- as.numeric(computed[[column]])[design_index]
   }
 
   return(results)

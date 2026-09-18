@@ -93,8 +93,10 @@ test_that("the nominal-TIE step is handed the resolved setting, like the equival
   hits <- gregexpr("parallelization = run_in_parallel", body_text, fixed = TRUE)[[1]]
   expect_equal(sum(hits > 0), 2L)
 
+  # The cluster is worth standing up for the number of distinct designs, which
+  # is the work, not for the number of rows, which is 56 times larger.
   nominal <- paste(deparse(body(frequentist_power_at_nominal_tie)), collapse = " ")
-  expect_true(grepl("analysis_uses_cluster(parallelization, nrow(results))",
+  expect_true(grepl("analysis_uses_cluster(parallelization, nrow(design_rows))",
                     nominal, fixed = TRUE))
 })
 
@@ -103,8 +105,14 @@ test_that("both branches of the nominal-TIE step compute a row the same way", {
   # see a copy of the computation that lives inside the loop body, so both
   # call the same helper rather than holding a copy of it.
   nominal <- paste(deparse(body(frequentist_power_at_nominal_tie)), collapse = " ")
+
+  # Written once, as a closure, and called from each branch: the definition
+  # plus the two call sites.
+  calls <- gregexpr("compute_design", nominal, fixed = TRUE)[[1]]
+  expect_gte(sum(calls > 0), 3L)
+
   hits <- gregexpr("nominal_tie_power_row", nominal, fixed = TRUE)[[1]]
-  expect_equal(sum(hits > 0), 2L)
+  expect_equal(sum(hits > 0), 1L)
 
   expect_false(grepl("compute_freq_power(", nominal, fixed = TRUE))
   expect_false(grepl("compute_freq_power_pooling(", nominal, fixed = TRUE))
