@@ -647,9 +647,8 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
                "(\"Figure 1.png\", \"Table S1.tex\"), is in ", numbered_dir, ".")
       },
       "",
-      "Not produced here: tables S3-S6 (design priors and the definitions of",
-      "the Bayesian operating characteristics) are hand-authored in the",
-      "manuscript, and table S8 is out of scope. Figure S8 is produced.",
+      "Not produced here: tables S2 (methods and parameters) and S4",
+      "(simulation configuration) are hand-authored in the manuscript.",
       "",
       paste0(sum(status$status == "ok"), " of ", nrow(status),
              " items produced successfully.")
