@@ -43,8 +43,13 @@ export_table <- function(data_table, ncollapses = 1, column_names = NULL, title,
       escape = FALSE,
       digits = 3,
       align = align_spec
-    ) %>%
-    kableExtra::collapse_rows(columns = 1:ncollapses, valign = "middle") %>%
+    )
+  if (ncollapses > 0) {
+    data_kable <- kableExtra::collapse_rows(
+      data_kable, columns = seq_len(ncollapses), valign = "middle"
+    )
+  }
+  data_kable <- data_kable %>%
     kableExtra::kable_styling(
       latex_options = c("striped", "hold_position", "scale_down"),
       position = "center"

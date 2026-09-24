@@ -17,7 +17,8 @@
 #'   (R/simulation_scenarios.R): the total target sample size is the source
 #'   study's arm sizes summed and divided by the factor, and the per-arm size
 #'   is half of that, floored. Note this uses `control + treatment` rather than
-#'   the `total:` field, which is stale for aprepitant.
+#'   the `total:` field, which duplicates them and has drifted out of step
+#'   before (aprepitant's once read 673).
 #'
 #' @param case_study Case study name.
 #' @param factor Sample size factor.
@@ -58,9 +59,13 @@ manifest_forest <- function(id, caption, case_study, factor, metric,
 ## Those figures plot one point per combination, and every combination the
 ## run simulated comes to about 45 of them - behind a legend taller than the
 ## panel it explains. The paper shows a curated subset instead: the parameter
-## grids thinned to their informative range, and test-then-pool (both
-## variants) and PDCCPP left out of these panels entirely. They remain in the
-## forest plots, which is where the paper compares every method.
+## grids thinned to their informative range, and PDCCPP left out of these
+## panels. It remains in the forest plots, which compare every method.
+##
+## Test-then-pool keeps every setting of both variants. The text reads its
+## conclusions about test-then-pool - less power, larger MSE and worse
+## coverage at a given type I error rate - off these very panels, so they
+## have to show it.
 ##
 ## A method mapped to an empty list keeps all of its rows (it has no
 ## parameters to choose between); a method absent from this list is dropped.
@@ -68,7 +73,7 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   pooling = list(),
   separate = list(),
   EB_PP = list(),
-  RMP = list(prior_weight = seq(0.1, 0.9, by = 0.1)),
+  RMP = list(prior_weight = c(0.1, 0.3, 0.5, 0.7, 0.9)),
   conditional_power_prior = list(power_parameter = c(0.25, 0.5, 0.75)),
   ## The three inverse-gamma heterogeneity priors; the half-normal ones are
   ## not shown. Selecting on the family alone picks exactly those three. The
@@ -83,7 +88,11 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   ## Both maximum-tolerable-discrepancy multipliers: the calibration is what
   ## distinguishes this method from the plain NPP, and the multiplier is the
   ## knob it turns, so thinning to one would hide the thing being shown.
-  NPP_KL = list()
+  NPP_KL = list(),
+  ## Four significance levels for the difference test, and two levels by
+  ## three equivalence margins for the equivalence test.
+  test_then_pool_difference = list(),
+  test_then_pool_equivalence = list()
 )
 
 ## Keep only the rows PAPER_VS_TIE_COMBINATIONS names.
@@ -159,7 +168,11 @@ paper_manifest_figures_forest <- function() {
     manifest_forest("S21", "Coverage probability of the 95% credible interval for the three principal treatment-effect scenarios in the Belimumab case study, with 140 participants per arm.", "belimumab", 4, "coverage"),
     manifest_forest("S24", "MSE for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68).", "mepolizumab", 4, "mse"),
     manifest_forest("S25", "Empirical coverage probability for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68).", "mepolizumab", 4, "coverage"),
-    manifest_forest("S26", "Probability of study success for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 45).", "mepolizumab", 6, "success_proba"),
+    ## The manuscript's caption reads N_T/2 = 45, but its relative companion
+    ## S27, like every other Mepolizumab figure, is at 68, and each other case
+    ## study pairs its absolute and relative panels at one sample size. The
+    ## author confirmed 68.
+    manifest_forest("S26", "Probability of study success for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68).", "mepolizumab", 4, "success_proba"),
     manifest_forest("S27", "Probability of study success relative to a separate analysis for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68).", "mepolizumab", 4, "success_proba", relative = TRUE),
     manifest_forest("S30", "MSE for the three principal treatment-effect scenarios in the Teriflunomide case study (N_T/2 = 185).", "teriflunomide", 4, "mse"),
     manifest_forest("S31", "Probability of study success for the three principal treatment-effect scenarios in the Teriflunomide case study (N_T/2 = 123).", "teriflunomide", 6, "success_proba"),
@@ -202,6 +215,17 @@ paper_manifest_figures_vs_tie <- function() {
     manifest_vs_tie("S42", "Interval score of the 95% credible interval versus type I error rate in the Botox case study, with 117 participants per arm, no treatment effect, and a target-to-source standard-deviation ratio of 1. Smaller is better.", "botox", 2, "interval_score", "no_effect"),
     manifest_vs_tie("S43", "Interval score of the 95% credible interval versus type I error rate in the Mepolizumab case study, with 68 participants per arm and no treatment effect. Smaller is better.", "mepolizumab", 4, "interval_score", "no_effect"),
     manifest_vs_tie("S44", "Interval score of the 95% credible interval versus type I error rate in the Teriflunomide case study, with 123 participants per arm and no treatment effect. Smaller is better.", "teriflunomide", 6, "interval_score", "no_effect")
+  )
+}
+
+## These PDFs are referenced by the manuscript but have no figure number in
+## the paper manifest. Keep separate ids so their outputs and failures are
+## visible during a replication run.
+paper_manifest_figures_unnumbered <- function() {
+  list(
+    manifest_vs_tie("X1", "Coverage versus type I error rate in the Botox case study, with 117 participants per arm and a partially consistent treatment effect.", "botox", 2, "coverage", "partially_consistent"),
+    manifest_vs_tie("X2", "Coverage versus type I error rate in the Mepolizumab case study, with 68 participants per arm and a partially consistent treatment effect.", "mepolizumab", 4, "coverage", "partially_consistent"),
+    manifest_forest("X3", "Coverage probability for the three principal treatment-effect scenarios in the Teriflunomide case study, with 123 participants per arm.", "teriflunomide", 6, "coverage")
   )
 }
 
@@ -303,37 +327,24 @@ paper_manifest_figures_special <- function() {
   )
 }
 
+## Table numbers follow the revised supplement, in which the drift ranges and
+## the target sample sizes were merged into table S1. Tables S2 (methods and
+## parameters) and S4 (simulation configuration) are written by hand in the
+## manuscript and have no generator. The precision and coverage table is not
+## yet numbered in the manuscript; S5 is the next free number.
 paper_manifest_tables <- function() {
   list(
     list(
       id = "TS1", kind = "table",
-      caption = "Total target-study sample sizes considered for each case study.",
+      caption = "Drift and treatment effect ranges, and target study sample sizes considered for each case study.",
       case_study = NA_character_, sample_size_factor = NA_real_, metric = NA_character_,
       needs = "configs",
       generator = function(ctx) {
-        table_target_sample_sizes(ctx$case_studies, ctx$sample_size_factors,
-                                  ctx$case_studies_config_dir, ctx$tables_dir)
+        table_drift_ranges_and_sample_sizes(ctx$case_studies_config_dir, ctx$tables_dir)
       }
     ),
     list(
-      id = "TS2", kind = "table",
-      caption = "Treatment-effect drift ranges considered for each case study.",
-      case_study = NA_character_, sample_size_factor = NA_real_, metric = NA_character_,
-      ## Written by R/simulation_scenarios.R during the run itself.
-      needs = "run_artifact",
-      generator = function(ctx) {
-        source_path <- file.path(ctx$results_dir, "drift_ranges.tex")
-        if (!file.exists(source_path)) {
-          stop("drift_ranges.tex is not in ", ctx$results_dir,
-               " - it is written by the simulation run, not by the exporter.")
-        }
-        destination <- file.path(ctx$tables_dir, "drift_ranges.tex")
-        file.copy(source_path, destination, overwrite = TRUE)
-        destination
-      }
-    ),
-    list(
-      id = "TS7", kind = "table",
+      id = "TS3", kind = "table",
       caption = "Summary of the clinical case studies used to construct the simulation-study design.",
       case_study = NA_character_, sample_size_factor = NA_real_, metric = NA_character_,
       needs = "configs",
@@ -341,17 +352,25 @@ paper_manifest_tables <- function() {
         table_case_study_summary(ctx$case_studies, ctx$case_studies_config_dir,
                                  ctx$tables_dir)
       }
+    ),
+    list(
+      id = "TS5", kind = "table",
+      caption = "Precision and empirical coverage probability for the three principal treatment-effect scenarios in the Belimumab case study, with 140 participants per arm.",
+      case_study = "belimumab", sample_size_factor = 4, metric = "precision_ecp",
+      needs = "frequentist", methods = "all",
+      generator = function(ctx) {
+        table_precision_ecp(ctx$df, ctx$tables_dir)
+      }
     )
   )
 }
 
 #' The paper figure and table manifest
 #'
-#' @description Every figure and generated table in the paper, in publication
-#'   order, each paired with the generator call that produces it. Table ids are
-#'   prefixed `TS` so they never collide with a figure of the same number -
-#'   figure S8 and table S8 are different objects, and only the figure is in
-#'   scope.
+#' @description Every figure and generated table in the paper, plus unnumbered
+#'   figures referenced by the manuscript, each paired with its generator.
+#'   Table ids are prefixed `TS` so they never collide with a figure of the
+#'   same number; unnumbered manuscript figures use `X` ids.
 #'
 #' @return A list of manifest entries.
 #'
@@ -361,11 +380,15 @@ paper_manifest <- function() {
     paper_manifest_figures_forest(),
     paper_manifest_figures_vs_tie(),
     paper_manifest_figures_special(),
+    paper_manifest_figures_unnumbered(),
     paper_manifest_tables()
   )
   order_key <- function(entry) {
     if (entry$kind == "table") {
       return(1000 + as.numeric(sub("^TS", "", entry$id)))
+    }
+    if (startsWith(entry$id, "X")) {
+      return(500 + as.numeric(sub("^X", "", entry$id)))
     }
     if (startsWith(entry$id, "S")) {
       return(100 + as.numeric(sub("^S", "", entry$id)))
@@ -386,7 +409,7 @@ paper_manifest_ids <- function() {
 
 #' Look up one manifest entry by id
 #'
-#' @param id A manifest id, e.g. "1", "S20" or "TS7".
+#' @param id A manifest id, e.g. "1", "S20" or "TS3".
 #'
 #' @return The matching manifest entry.
 #'

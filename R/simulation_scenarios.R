@@ -100,10 +100,14 @@ compute_drift_range <- function(scenarios_config, case_study_config) {
     upper_bound <- solver_result$root
     lower_bound <- -upper_bound
 
-    if (lower_bound > theta_0 - source_treatment_effect) {
-      lower_bound <- theta_0 - source_treatment_effect
-    }
-    upper_bound <- abs(lower_bound) / 2
+    # The range must also contain every drift between the source estimate and
+    # the null, [theta_0 - source_treatment_effect, 0]. That interval lies on
+    # either side of zero depending on the direction of the null hypothesis
+    # (it is positive for teriflunomide and mepolizumab), so widen whichever
+    # bound it crosses.
+    null_drift <- theta_0 - source_treatment_effect
+    lower_bound <- min(lower_bound, null_drift)
+    upper_bound <- max(upper_bound, null_drift)
   } else if (case_study_config$summary_measure_likelihood == "binomial") {
     source_control_rate <- case_study_config$source$responses$control / case_study_config$source$control
     source_treatment_rate <- case_study_config$source$responses$treatment / case_study_config$source$treatment

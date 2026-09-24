@@ -1,9 +1,12 @@
 make_vs_tie_legend_plot <- function() {
-  methods <- c('p-PP','Separate','RMP','Pooling','NPP','EBPP','Conditional PP','Com. PP')
+  methods <- c('p-PP','Separate','RMP','Pooling','NPP','EBPP',
+    'Conditional PP','Com. PP','Com. prior','Empirical RMP','NPP (KL)')
   p <- ggplot()
   for (method in methods) {
-   n <- switch(method, RMP=9, 'Conditional PP'=3, 'Com. PP'=3, 1)
-   params <- if (method %in% c('Pooling','Separate','EBPP')) list(expression('')) else lapply(seq_len(n),function(i) bquote(w == .(i/10)))
+   n <- switch(method, RMP=9, 'Conditional PP'=3, 'Com. PP'=3,
+     'Com. prior'=3, 'NPP (KL)'=2, 1)
+   params <- if (method %in% c('Pooling','Separate','EBPP','Empirical RMP'))
+     list(expression('')) else lapply(seq_len(n),function(i) bquote(w == .(i/10)))
    d <- data.frame(x=seq_len(n)/20,y=seq_len(n)/10,k=factor(seq_len(n)))
    p <- p + geom_point(data=d,aes(x,y,colour=k),shape=match(method,methods)) + scale_colour_discrete(name=if(n==1) NULL else method,labels=vs_tie_key_labels(method,params),guide=guide_legend(ncol=min(n,3),byrow=TRUE)) + new_scale_color()
   }
@@ -22,7 +25,13 @@ test_that("legend placement follows method names, including inline math labels",
     expect_true(any(texts == method | startsWith(texts, paste0('"', method, '" ~'))))
     expect_true(all(expected[cell$t:cell$b, cell$l:cell$r] == method))
   }
-  expect_length(legend$grobs, 8)
+  expect_length(legend$grobs, 11)
+  expect_equal(nrow(expected), 6)
+  expect_identical(expected[4, 3], "Empirical RMP")
+  expect_identical(expected[5, 3], "NPP (KL)")
+  ## Test-then-pool gets the last row: its six equivalence settings span two
+  ## columns, beside the four difference settings.
+  expect_identical(expected[6, ], c("TtP (diff.)", "TtP (eq.)", "TtP (eq.)"))
 })
 
 test_that("spanning legends fit without counting their size repeatedly", {
