@@ -997,7 +997,11 @@ commensurate_stan_code <- function(with_power_parameter) {
 
                                       parameters {
                                         real<lower=0, upper=1> power_parameter;   // Power parameter
-                                        real<lower=0> tau;     // Commensurability parameter
+                                        // Sampled on the log scale, which Stan's <lower=0> transform on tau
+                                        // already did internally, so that tau itself is never formed where
+                                        // it would overflow: a Cauchy(0, 30) prior on log(tau) puts about 3%
+                                        // of its mass beyond log(tau) = +-709, the limit of exp().
+                                        real log_tau;     // Log commensurability parameter
                                         real target_treatment_effect;          // Target treatment effect
                                       }
 
@@ -1005,33 +1009,40 @@ commensurate_stan_code <- function(with_power_parameter) {
                                         // Local to the model block: these are
                                         // intermediate quantities, and declaring
                                         // them as transformed parameters would
-                                        // write three extra columns per draw to
-                                        // the output CSV for no downstream use.
-                                        // Stan does not allow constraints on
-                                        // local declarations; both quantities are
-                                        // non-negative by construction here.
-                                        real u = power_parameter * NS + tau * prior_variance;
-                                        real tau2 = tau^2;
-                                        real log_tau = log(tau);
+                                        // write extra columns per draw to the
+                                        // output CSV for no downstream use.
+                                        // Every expression below is written in
+                                        // 1 / tau rather than tau, so it stays
+                                        // finite however large tau grows.
+                                        real a = power_parameter * NS;
+                                        // Capped so that no product below overflows. The marginal
+                                        // likelihood weights log(tau) < -600 by about exp(-300), so
+                                        // the cap moves no posterior mass that a double can represent.
+                                        real inverse_tau = exp(fmin(-log_tau, 600));
+                                        real u_over_tau = a * inverse_tau + prior_variance;
+                                        real denominator = a * target_sampling_variance + NT * u_over_tau;
                                         real marginal_variance = target_sampling_variance / NT
-                                                                  + 1 / tau
-                                                                  + prior_variance / (power_parameter * NS);
+                                                                  + inverse_tau
+                                                                  + prior_variance / a;
 
                                         // Priors
+                                        // Each prior is stated on its own quantity and carried to log_tau
+                                        // by the log Jacobian of that change of variables; constant terms
+                                        // are dropped.
                                         if (prior_type == 0) {
-                                          tau2 ~ inv_gamma(alpha, beta);
-                                          // tau is the parameter and tau2 is a transform of it, so this
-                                          // statement needs the log Jacobian of tau -> tau^2, which is
-                                          // log(2 * tau). Without it the prior is InvGamma(alpha + 0.5, beta).
-                                          target += log(tau);
+                                          // tau^2 ~ InvGamma(alpha, beta). With s = log(tau^2) = 2 * log_tau
+                                          // the density of s is inv_gamma_lpdf(exp(s)) + s, which reduces to
+                                          // -alpha * s - beta * exp(-s); ds / dlog_tau = 2 is constant.
+                                          // Writing it out avoids forming tau^2, which overflows at the
+                                          // log(tau) of about 354 that alpha = 1/1000 reaches.
+                                          target += -2 * alpha * log_tau - beta * exp(-2 * log_tau);
                                         } else if (prior_type == 1){
-                                          // tau is the parameter itself, so Stan's own <lower=0> transform
-                                          // already supplies the Jacobian and the truncation normalises it.
-                                          tau ~ normal(0, std_dev) T[0, ];
+                                          // tau ~ HN(std_dev), plus the log Jacobian of tau = exp(log_tau).
+                                          // The half-normal's normalising constant is fixed by the data.
+                                          target += normal_lpdf(exp(log_tau) | 0, std_dev) + log_tau;
                                         } else if (prior_type == 2){
+                                          // The prior is on log_tau itself, so there is no Jacobian.
                                           log_tau ~ cauchy(location, scale);
-                                          // Log Jacobian of tau -> log(tau). Without it the prior is improper.
-                                          target += -log_tau;
                                         }
 
 
@@ -1046,10 +1057,16 @@ commensurate_stan_code <- function(with_power_parameter) {
                                           source_treatment_effect_estimate,
                                           sqrt(marginal_variance));
 
+                                        // Equation (9) of Hobbs et al. (2011) with numerator and
+                                        // denominator divided by tau.
                                         target_treatment_effect ~ normal(
-    (power_parameter * NS * tau * target_sampling_variance * source_treatment_effect_estimate + NT * u * target_treatment_effect_estimate) /
-    (power_parameter * NS * tau * target_sampling_variance + NT * u),
-    sqrt((u * target_sampling_variance) / (power_parameter * NS * tau * target_sampling_variance + NT * u)));
+    (a * target_sampling_variance * source_treatment_effect_estimate + NT * u_over_tau * target_treatment_effect_estimate) /
+    denominator,
+    sqrt(u_over_tau * target_sampling_variance / denominator));
+                                      }
+
+                                      generated quantities {
+                                        real tau = exp(log_tau);     // Commensurability parameter
                                       }
                                       ")
   }
@@ -1071,38 +1088,46 @@ commensurate_stan_code <- function(with_power_parameter) {
                                       }
 
                                       parameters {
-                                        real<lower=0> tau;     // Commensurability parameter
+                                        // Sampled on the log scale, which Stan's <lower=0> transform on tau
+                                        // already did internally, so that tau itself is never formed where
+                                        // it would overflow: a Cauchy(0, 30) prior on log(tau) puts about 3%
+                                        // of its mass beyond log(tau) = +-709, the limit of exp().
+                                        real log_tau;     // Log commensurability parameter
                                         real target_treatment_effect;          // Target treatment effect
                                       }
 
                                       model {
-                                        // Local to the model block, as in the power prior variant:
-                                        // intermediate quantities, which as transformed parameters
-                                        // would write extra columns per draw to the output CSV for no
-                                        // downstream use. Stan does not allow constraints on local
-                                        // declarations; both are non-negative by construction here.
-                                        real u = NS + tau * prior_variance;
-                                        real tau2 = tau^2;
-                                        real log_tau = log(tau);
+                                        // Local to the model block, as in the power prior variant, and
+                                        // likewise written in 1 / tau so that they stay finite however
+                                        // large tau grows.
+                                        // Capped so that no product below overflows. The marginal
+                                        // likelihood weights log(tau) < -600 by about exp(-300), so
+                                        // the cap moves no posterior mass that a double can represent.
+                                        real inverse_tau = exp(fmin(-log_tau, 600));
+                                        real u_over_tau = NS * inverse_tau + prior_variance;
+                                        real denominator = NS * target_sampling_variance + NT * u_over_tau;
                                         real marginal_variance = target_sampling_variance / NT
-                                                                  + 1 / tau
+                                                                  + inverse_tau
                                                                   + prior_variance / NS;
 
                                         // Priors
+                                        // Each prior is stated on its own quantity and carried to log_tau
+                                        // by the log Jacobian of that change of variables; constant terms
+                                        // are dropped.
                                         if (prior_type == 0) {
-                                          tau2 ~ inv_gamma(alpha, beta);
-                                          // tau is the parameter and tau2 is a transform of it, so this
-                                          // statement needs the log Jacobian of tau -> tau^2, which is
-                                          // log(2 * tau). Without it the prior is InvGamma(alpha + 0.5, beta).
-                                          target += log(tau);
+                                          // tau^2 ~ InvGamma(alpha, beta). With s = log(tau^2) = 2 * log_tau
+                                          // the density of s is inv_gamma_lpdf(exp(s)) + s, which reduces to
+                                          // -alpha * s - beta * exp(-s); ds / dlog_tau = 2 is constant.
+                                          // Writing it out avoids forming tau^2, which overflows at the
+                                          // log(tau) of about 354 that alpha = 1/1000 reaches.
+                                          target += -2 * alpha * log_tau - beta * exp(-2 * log_tau);
                                         } else if (prior_type == 1){
-                                          // tau is the parameter itself, so Stan's own <lower=0> transform
-                                          // already supplies the Jacobian and the truncation normalises it.
-                                          tau ~ normal(0, std_dev) T[0, ];
+                                          // tau ~ HN(std_dev), plus the log Jacobian of tau = exp(log_tau).
+                                          // The half-normal's normalising constant is fixed by the data.
+                                          target += normal_lpdf(exp(log_tau) | 0, std_dev) + log_tau;
                                         } else if (prior_type == 2){
+                                          // The prior is on log_tau itself, so there is no Jacobian.
                                           log_tau ~ cauchy(location, scale);
-                                          // Log Jacobian of tau -> log(tau). Without it the prior is improper.
-                                          target += -log_tau;
                                         }
 
                                         // Marginal target-data likelihood for the commensurability
@@ -1113,10 +1138,16 @@ commensurate_stan_code <- function(with_power_parameter) {
                                           source_treatment_effect_estimate,
                                           sqrt(marginal_variance));
 
+                                        // Numerator and denominator divided by tau, as in the power
+                                        // prior variant.
                                         target_treatment_effect ~ normal(
-    (NS * tau * target_sampling_variance * source_treatment_effect_estimate + NT * u * target_treatment_effect_estimate) /
-    (NS * tau * target_sampling_variance + NT * u),
-    sqrt((u * target_sampling_variance) / (NS * tau * target_sampling_variance + NT * u)));
+    (NS * target_sampling_variance * source_treatment_effect_estimate + NT * u_over_tau * target_treatment_effect_estimate) /
+    denominator,
+    sqrt(u_over_tau * target_sampling_variance / denominator));
+                                      }
+
+                                      generated quantities {
+                                        real tau = exp(log_tau);     // Commensurability parameter
                                       }
                                       "
 }
@@ -1286,62 +1317,88 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
     },
     #' @description Compute posterior parameters
     compute_posterior_parameters = function() {
-      self$posterior_parameters <- list(
-        heterogeneity_parameter_mean = self$fit_summary[self$fit_summary$variable == "tau", "mean"] %>% dplyr::pull(mean),
-        heterogeneity_parameter_std = self$fit_summary[self$fit_summary$variable == "tau", "sd"] %>% dplyr::pull(sd),
-        power_parameter_mean = self$fit_summary[self$fit_summary$variable == "power_parameter", "mean"] %>% dplyr::pull(mean),
-        power_parameter_std = self$fit_summary[self$fit_summary$variable == "power_parameter", "sd"] %>% dplyr::pull(sd)
+      self$posterior_parameters <- c(
+        self$tau_posterior_moments(),
+        list(
+          power_parameter_mean = self$fit_summary[self$fit_summary$variable == "power_parameter", "mean"] %>% dplyr::pull(mean),
+          power_parameter_std = self$fit_summary[self$fit_summary$variable == "power_parameter", "sd"] %>% dplyr::pull(sd)
+        )
       )
     },
-    #' @description Draw samples from the prior distribution. Based on equation 8 in Hobbs et al (2011).
+    #' @description Posterior mean and standard deviation of tau from the Stan
+    #' draws, reported as `Inf` where the moment does not exist, exactly as
+    #' the quadrature path reports them. A sample mean of such a moment would
+    #' be finite and run-dependent, or `Inf` and `NaN` once a draw overflows.
+    tau_posterior_moments = function() {
+      tau_summary <- self$fit_summary[self$fit_summary$variable == "tau", ]
+      exists <- commensurate_tau_moments_exist(
+        self$heterogeneity_prior_family,
+        self$prior$method_parameters$heterogeneity_prior
+      )
+      list(
+        heterogeneity_parameter_mean = if (exists[["mean"]]) {
+          tau_summary %>% dplyr::pull(mean)
+        } else {
+          Inf
+        },
+        heterogeneity_parameter_std = if (exists[["sd"]]) {
+          tau_summary %>% dplyr::pull(sd)
+        } else {
+          Inf
+        }
+      )
+    },
+    #' @description Draw samples from the prior distribution. Based on
+    #' equation (8) in Hobbs et al (2011); the plain commensurate prior shares
+    #' it, with the power parameter at one.
     #' @param n_samples Number of samples
     sample_prior = function(n_samples) {
       heterogeneity_prior <- self$prior$method_parameters$heterogeneity_prior
-      if (self$heterogeneity_prior_family == "cauchy"){
-        log_tau_samples <- rcauchy(n = n_samples, location = heterogeneity_prior$location, scale = heterogeneity_prior$scale)
-        tau_samples <- exp(log_tau_samples)
-      } else if (self$heterogeneity_prior_family == "half_normal"){
-        tau_samples <- extraDistr::rhnorm(n = n_samples, sigma =  heterogeneity_prior$std_dev)
-        log_tau_samples <- log(tau_samples)
-      } else if (self$heterogeneity_prior_family == "inverse_gamma"){
-        # Sample the power_parameter from the Beta distribution
-        tau2_samples <- extraDistr::rinvgamma(n = n_samples, alpha = heterogeneity_prior$alpha, beta = heterogeneity_prior$beta)
-        tau_samples <- sqrt(tau2_samples)
-        log_tau_samples <- log(sqrt(tau2_samples))
-      } else {
-        stop(paste0("Heterogeneity prior not implemented : ", self$heterogeneity_prior_family))
-      }
 
-      power_parameter_samples <- rbeta(n_samples, g_function(log_tau_samples), 1) # power_parameter ~ beta(g_function(log_tau), 1)
-
-      prior_variance <- self$prior$source$standard_error ^ 2 * self$prior$source$equivalent_source_sample_size_per_arm
-
-      NS <- as.integer(self$prior$source$equivalent_source_sample_size_per_arm)
-
-      std <- sqrt(1 / tau_samples + prior_variance /
-                    (power_parameter_samples * NS))
-
-      # Filter out Inf elements
-      std <- sapply(std, function(x)
-        if (!is.infinite(x))
-          x
-        else
-          NULL)
-      # Removing NULL elements from the list (which replaced the Inf elements)
-      std <- unlist(std[!sapply(std, is.null)])
-
-      # Compute the target treatment effect for each sample
-      treatment_effect_samples <- rnorm(
-        n_samples,
-        mean = self$prior$source$treatment_effect_estimate,
-        sd = std
+      # Everything is drawn on the log(tau) scale. A Cauchy(0, 30) prior puts
+      # about 1.3% of its mass below log(tau) = -745, where tau itself
+      # underflows to zero.
+      log_tau <- switch(
+        self$heterogeneity_prior_family,
+        cauchy = stats::rcauchy(
+          n_samples,
+          location = heterogeneity_prior$location,
+          scale = heterogeneity_prior$scale
+        ),
+        half_normal = log(extraDistr::rhnorm(
+          n_samples,
+          sigma = heterogeneity_prior$std_dev
+        )),
+        inverse_gamma = 0.5 * log(extraDistr::rinvgamma(
+          n_samples,
+          alpha = heterogeneity_prior$alpha,
+          beta = heterogeneity_prior$beta
+        )),
+        stop(paste0(
+          "Heterogeneity prior not implemented : ",
+          self$heterogeneity_prior_family
+        ))
       )
 
-      if (any(is.na(treatment_effect_samples))) {
-        stop("Some samples are NA.")
+      power_parameter <- if (self$borrows_power_parameter) {
+        stats::rbeta(n_samples, g_function(log_tau), 1)
+      } else {
+        1
       }
 
-      return(treatment_effect_samples)
+      # The same clipping as the quadrature in commensurate_tau_quadrature():
+      # a precision too small to represent becomes a standard deviation of
+      # about 1e77 rather than an infinite one, so every draw is kept. Dropping
+      # them instead removed the most diffuse part of the prior.
+      log_limit <- log(.Machine$double.xmax) / 2
+      inverse_tau <- exp(pmin(-log_tau, log_limit))
+
+      stats::rnorm(
+        n_samples,
+        mean = self$prior$source$treatment_effect_estimate,
+        sd = sqrt(inverse_tau +
+                    self$prior$source$standard_error^2 / power_parameter)
+      )
     },
     #' @description Joint prior p.d.f. Based on equation (8) in Hobbs et al (2011).
     #' @param treatment_effect Treatment effect
@@ -1390,34 +1447,39 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
       return(normal_component * beta_component * prior_tau)
     },
 
-    #' @description Integrate out gamma and tau to get the marginal PDF for treatment_effect
-    #' @param treatment_effect Treatment effect
-    unnormalized_prior_pdf = function(treatment_effect) {
-      return(
-        pracma::integral2(
-          function(gamma, tau) {
-            self$joint_prior_pdf(treatment_effect, gamma, tau)
-          },
-          xmin = 0,
-          xmax = 1,
-          ymin = 0.001,
-          ymax = 100,
-          reltol = 1e-6
-        )$Q
-      ) # Double integration
-    },
-    #' @description Prior p.d.f. of the treatment effect
+    #' @description Prior p.d.f. of the treatment effect: the quadrature
+    #' mixture the simulations use, which covers the whole prior. Integrating
+    #' tau numerically over a finite window instead would drop most of the
+    #' heavy-tailed priors: [0.001, 100] keeps 0.9% of inverse_gamma(1/1000, 1)
+    #' and 12% of a Cauchy(0, 30) on log(tau).
     #' @param treatment_effect Treatment effect
     prior_pdf = function(treatment_effect) {
-      # Vectorize the marginal PDF function
-      unnormalized_prior_pdf_vec <- Vectorize(self$unnormalized_prior_pdf)
-
-      # Normalize the marginal PDF
-      normalizing_constant <- integrate(unnormalized_prior_pdf_vec,
-                                        lower = -Inf,
-                                        upper = Inf)$value
-      normalized_pdf_treatment_effect <- unnormalized_prior_pdf_vec(treatment_effect) / normalizing_constant
-      return(normalized_pdf_treatment_effect)
+      mixture <- commensurate_prior_mixture(self)
+      densities <- vapply(
+        seq_along(mixture$weights),
+        function(k) {
+          stats::dnorm(treatment_effect, mixture$means[k], mixture$sds[k])
+        },
+        numeric(length(treatment_effect))
+      )
+      drop(matrix(densities, nrow = length(treatment_effect)) %*% mixture$weights)
+    },
+    #' @description Prior c.d.f. of the treatment effect, from the same mixture
+    #' as [prior_pdf()]. Without it the MCMC parent would take the empirical
+    #' c.d.f. of prior draws.
+    #' @param treatment_effect Treatment effect
+    #' @param ... Unused; accepted for compatibility with the parent's
+    #'   sample-size argument.
+    prior_cdf = function(treatment_effect, ...) {
+      mixture <- commensurate_prior_mixture(self)
+      probabilities <- vapply(
+        seq_along(mixture$weights),
+        function(k) {
+          stats::pnorm(treatment_effect, mixture$means[k], mixture$sds[k])
+        },
+        numeric(length(treatment_effect))
+      )
+      drop(matrix(probabilities, nrow = length(treatment_effect)) %*% mixture$weights)
     }
   )
 )
@@ -1471,66 +1533,7 @@ GaussianCommensuratePrior <- R6::R6Class(
 
     #' @description Compute posterior parameters
     compute_posterior_parameters = function() {
-      tau_summary <- self$fit_summary[self$fit_summary$variable == "tau", ]
-
-      self$posterior_parameters <- list(
-        heterogeneity_parameter_mean = tau_summary %>% dplyr::pull(mean),
-        heterogeneity_parameter_std = tau_summary %>% dplyr::pull(sd)
-      )
-    },
-
-    #' @description Draw samples from the prior distribution. Equation 8 in
-    #' Hobbs et al (2011) at a power parameter of one.
-    #' @param n_samples Number of samples
-    sample_prior = function(n_samples) {
-      heterogeneity_prior <- self$prior$method_parameters$heterogeneity_prior
-      if (self$heterogeneity_prior_family == "cauchy") {
-        tau_samples <- exp(rcauchy(
-          n = n_samples,
-          location = heterogeneity_prior$location,
-          scale = heterogeneity_prior$scale
-        ))
-      } else if (self$heterogeneity_prior_family == "half_normal") {
-        tau_samples <- extraDistr::rhnorm(
-          n = n_samples,
-          sigma = heterogeneity_prior$std_dev
-        )
-      } else if (self$heterogeneity_prior_family == "inverse_gamma") {
-        tau_samples <- sqrt(extraDistr::rinvgamma(
-          n = n_samples,
-          alpha = heterogeneity_prior$alpha,
-          beta = heterogeneity_prior$beta
-        ))
-      } else {
-        stop(paste0(
-          "Heterogeneity prior not implemented : ",
-          self$heterogeneity_prior_family
-        ))
-      }
-
-      prior_variance <- self$prior$source$standard_error^2 *
-        self$prior$source$equivalent_source_sample_size_per_arm
-
-      NS <- as.integer(self$prior$source$equivalent_source_sample_size_per_arm)
-
-      std <- sqrt(1 / tau_samples + prior_variance / NS)
-
-      # A Cauchy prior on log(tau) reaches beyond the floating-point range, so
-      # the limiting zero-precision components have to be dropped rather than
-      # sampled from.
-      std <- std[is.finite(std)]
-
-      treatment_effect_samples <- rnorm(
-        n_samples,
-        mean = self$prior$source$treatment_effect_estimate,
-        sd = std
-      )
-
-      if (any(is.na(treatment_effect_samples))) {
-        stop("Some samples are NA.")
-      }
-
-      return(treatment_effect_samples)
+      self$posterior_parameters <- self$tau_posterior_moments()
     },
 
     #' @description Joint prior p.d.f. of the treatment effect and the
@@ -1581,19 +1584,6 @@ GaussianCommensuratePrior <- R6::R6Class(
       }
 
       return(normal_component * prior_tau)
-    },
-
-    #' @description Integrate out tau to get the marginal PDF for
-    #' treatment_effect. One dimensional, where the power prior's version is
-    #' a double integral over the power parameter as well.
-    #' @param treatment_effect Treatment effect
-    unnormalized_prior_pdf = function(treatment_effect) {
-      stats::integrate(
-        function(tau) self$joint_prior_pdf(treatment_effect, tau),
-        lower = 0.001,
-        upper = 100,
-        rel.tol = 1e-6
-      )$value
     }
   )
 )

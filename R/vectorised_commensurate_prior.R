@@ -9,8 +9,8 @@
 #'
 #' All three families are integrated the same way, through their quantile
 #' representation on a Gauss-Legendre rule over the probability scale. For the
-#' inverse-gamma family this remains stable for the configured shapes as small
-#' as 0.001, for which direct density quadrature is dominated by an endpoint
+#' inverse-gamma family this remains stable for shapes as small as 0.001,
+#' for which direct density quadrature is dominated by an endpoint
 #' singularity.
 #'
 #' @param model A [GaussianCommensuratePowerPrior] or
@@ -18,9 +18,11 @@
 #'   at one, which collapses the second quadrature dimension: the mixture is
 #'   then one normal component per `tau` node rather than `n_gamma` of them.
 #' @param n_tau Number of quadrature nodes for the commensurability parameter.
-#'   At the default every configured prior family agrees with a 1536-node rule
-#'   to four significant figures, including the `inverse_gamma(0.001, 1)` prior,
-#'   whose quantile function is the steepest of them.
+#'   Two families multiply it, because their quantile functions are too steep
+#'   for the default: an inverse gamma with a shape below 0.01 by four, and a
+#'   log-Cauchy by `ceiling(scale / 10)`. With those, every configured prior's
+#'   posterior summaries agree with a 3072-node rule to within 5e-5 over target
+#'   estimates from 0 to 2.
 #' @param n_gamma Number of conditional power-parameter nodes per `tau` node.
 #'   Ignored when the model does not borrow a power parameter.
 #' @return A list containing normal-mixture `weights`, `means` and `sds`, plus
@@ -97,6 +99,15 @@ commensurate_tau_quadrature <- function(model, n_nodes) {
     alpha <- prior$alpha
     beta <- prior$beta
 
+    # Below a shape of 0.01 the quantile function steepens faster than the
+    # default rule can follow. Measured as the worst posterior-summary error
+    # over target estimates from 0 to 2, against a 3072-node rule: 48 nodes
+    # give 4e-5 at a shape of 0.01 but 3e-3 at 1/1000, where 192 bring it
+    # back to 2e-5.
+    if (alpha < 0.01) {
+      n_nodes <- 4L * n_nodes
+    }
+
     # 1 / tau^2 ~ Gamma(alpha, rate = beta). Integrating its quantile
     # representation avoids evaluating the sharply singular density at zero.
     rule <- statmod::gauss.quad(n_nodes, kind = "legendre")
@@ -139,6 +150,12 @@ commensurate_tau_quadrature <- function(model, n_nodes) {
   }
 
   if (model$heterogeneity_prior_family == "cauchy") {
+    # Near its centre the Cauchy quantile function spaces the nodes on
+    # log(tau) in proportion to the scale. The node count was validated at a
+    # scale of 10; wider priors get proportionally more nodes to keep that
+    # spacing. At the Cauchy(0, 30) of Hobbs et al. (2011), 48 nodes left the
+    # posterior summaries 3e-3 out, and 144 bring them to 2e-5.
+    n_nodes <- n_nodes * max(1L, as.integer(ceiling(prior$scale / 10)))
     rule <- statmod::gauss.quad(n_nodes, kind = "legendre")
     probability <- (rule$nodes + 1) / 2
     log_tau <- stats::qcauchy(
@@ -147,7 +164,7 @@ commensurate_tau_quadrature <- function(model, n_nodes) {
       scale = prior$scale
     )
 
-    # The configured scale of 10 reaches beyond the floating-point range at
+    # A scale of 10 already reaches beyond the floating-point range at
     # the outer quadrature nodes. Those values are limiting zero/infinite
     # precisions; clipping only their representation keeps the likelihood and
     # normal-mixture calculations finite.
@@ -165,6 +182,40 @@ commensurate_tau_quadrature <- function(model, n_nodes) {
     "Heterogeneity prior not implemented: ",
     model$heterogeneity_prior_family,
     call. = FALSE
+  )
+}
+
+
+#' Which posterior moments of the commensurability parameter exist
+#'
+#' @description The target marginal likelihood approaches a positive constant
+#'   as `tau` goes to infinity, so it does not repair a divergent positive
+#'   moment of the prior: the posterior mean and standard deviation of `tau`
+#'   exist exactly when the prior's do. Where they do not, both inference paths
+#'   report `Inf` rather than a finite, run-dependent truncation - the
+#'   quadrature because its outer nodes are clipped, Stan because its draws are
+#'   a sample.
+#'
+#' @param heterogeneity_prior_family Name of the prior family.
+#' @param heterogeneity_prior Prior parameters.
+#' @return A logical vector with elements `mean` and `sd`.
+#' @keywords internal
+commensurate_tau_moments_exist <- function(heterogeneity_prior_family,
+                                           heterogeneity_prior) {
+  switch(
+    heterogeneity_prior_family,
+    # A log-Cauchy has no positive moment at all.
+    cauchy = c(mean = FALSE, sd = FALSE),
+    # tau^2 ~ InvGamma(alpha): E[tau] needs alpha > 1/2, E[tau^2] alpha > 1.
+    inverse_gamma = c(
+      mean = heterogeneity_prior$alpha > 0.5,
+      sd = heterogeneity_prior$alpha > 1
+    ),
+    half_normal = c(mean = TRUE, sd = TRUE),
+    stop(
+      "Heterogeneity prior not implemented: ", heterogeneity_prior_family,
+      call. = FALSE
+    )
   )
 }
 
@@ -196,20 +247,15 @@ commensurate_parameter_summary <- function(posterior_weights, mixture,
 
   tau <- weighted_summary(mixture$tau)
 
-  # The target marginal likelihood approaches a positive constant as tau goes
-  # to infinity, so it does not repair divergent positive moments in these
-  # priors. Report the mathematical moments rather than a finite, sampler-run-
-  # dependent truncation of them.
-  if (heterogeneity_prior_family == "cauchy") {
+  exists <- commensurate_tau_moments_exist(
+    heterogeneity_prior_family,
+    heterogeneity_prior
+  )
+  if (!exists[["mean"]]) {
     tau$mean[] <- Inf
+  }
+  if (!exists[["sd"]]) {
     tau$sd[] <- Inf
-  } else if (heterogeneity_prior_family == "inverse_gamma") {
-    if (heterogeneity_prior$alpha <= 0.5) {
-      tau$mean[] <- Inf
-    }
-    if (heterogeneity_prior$alpha <= 1) {
-      tau$sd[] <- Inf
-    }
   }
 
   summary <- data.frame(

@@ -888,7 +888,7 @@ BinaryTargetData <- R6::R6Class(
       if (summary_measure_likelihood == "binomial") {
         # compute the standard deviation
         treatment_effect_standard_error <- sqrt((
-          self$treatment_rate * (1 - self$treatment_rate) / self$sample_size_control + self$control_rate * (1 - self$control_rate) / self$sample_size_treatment
+          self$treatment_rate * (1 - self$treatment_rate) / self$sample_size_treatment + self$control_rate * (1 - self$control_rate) / self$sample_size_control
         )
         )
         self$standard_deviation <- treatment_effect_standard_error * sqrt(target_sample_size_per_arm)
@@ -938,7 +938,7 @@ BinaryTargetData <- R6::R6Class(
                                                             n_replicates)
 
         treatment_effect_standard_error <- sqrt(
-          sample_treatment_rate * (1 - sample_treatment_rate) / self$sample_size_control + sample_control_rate * (1 - sample_control_rate) / self$sample_size_treatment
+          sample_treatment_rate * (1 - sample_treatment_rate) / self$sample_size_treatment + sample_control_rate * (1 - sample_control_rate) / self$sample_size_control
         )
 
         standard_deviation <- sqrt(
