@@ -507,7 +507,7 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
     case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
   }
   scenarios_config <- read_config(paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema)
-  simulation_config <- read_config(system.file("conf/simulation_config.yml", package = "BExTE"), simulation_config_schema)
+  simulation_config <- read_simulation_config(system.file("conf/simulation_config.yml", package = "BExTE"))
 
   if (is.null(simulation_config)) {
     stop("Simulation config is NULL")

@@ -101,6 +101,8 @@ run_simulation_env <- function(env,
                                inference_metrics,
                                results_dir = paste0("./results/", env, "/"),
                                check_results_completeness = TRUE) {
+  check_decision_threshold(simulation_config, "simulation_config")
+
   # Set up the log file location
   dir.create(paste0("./logs/", env, "/checkpoints/"), showWarnings = FALSE, recursive = TRUE)
   dir.create(paste0("./logs/", env, "/error_logs/"), showWarnings = FALSE, recursive = TRUE)
