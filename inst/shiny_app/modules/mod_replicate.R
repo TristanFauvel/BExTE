@@ -229,10 +229,18 @@ mod_replicate_server <- function(id, color_mode = NULL) {
       shiny::div(
         class = "bexte-workload",
         shiny::strong(sprintf(
-          "%d case studies, sample size factors %s, %d replicates, %d drift points",
+          "%d case studies, sample size factors %s, %d replicates%s, %d drift points",
           length(requirements$case_studies),
           paste(requirements$sample_size_factors, collapse = ", "),
           requirements$n_replicates,
+          if (is.null(requirements$case_study_n_replicates)) "" else paste0(
+            " (", paste(
+              sprintf("%s for %s",
+                      unlist(requirements$case_study_n_replicates),
+                      names(requirements$case_study_n_replicates)),
+              collapse = ", "
+            ), ")"
+          ),
           requirements$ndrift
         ))
       )
