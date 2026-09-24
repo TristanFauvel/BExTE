@@ -1,0 +1,45 @@
+\documentclass[../main.tex]{subfiles} 
+\begin{document}
+
+\afterpage{
+\begingroup
+\setlength{\tabcolsep}{10pt} % Default value: 6pt
+\renewcommand{\arraystretch}{1.4} % Default value: 1
+\begin{landscape}
+\begin{table}[htbp]
+\begin{center}
+\begin{tabularx}{\dimexpr 1.35\textwidth\relax} {|>{\centering\arraybackslash\hsize=.5\hsize}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash\hsize=.5\hsize}X|}
+\hline 
+\textbf{Method} & \textbf{Fixed parameters/Priors} & \textbf{Parameters to vary} & \textbf{Range of variation}  \\
+\hline
+Test-then-pool, equivalence test & None & Significance level of the equivalence test $\eta$. Equivalence margin $\lambda$. & $\eta \in \{0.1, 0.5\}$, $\lambda \in \{0.1, 0.5, 0.8\}$\\
+\hline
+Test-then-pool, difference test & None & Significance level of the difference test $\eta$ & $\eta \in \{0.1, 0.5\}$\\
+\hline
+Conditional power prior (\acrshort{PP}) & Initial prior on $\theta$  & Power parameter $\gamma$ & $\gamma \in \{0, 0.25, 0.5, 0.75, 1\}$  \\
+\hline
+Normalized \acrshort{PP} & Initial prior on $\theta$  $\gamma \sim Beta(\xi_\gamma/\omega_\gamma,(1-\xi_\gamma)/\omega_\gamma)$. $\xi_\gamma = 0.5$ &$\omega_\gamma$ & $\omega_\gamma$ is varied so that the standard deviation of the Beta prior ranges from 0 to 0.50  \\ %\parencite{neelon_bayesian_2010}
+\hline
+KL-NPP & Initial prior on $\theta$; source-to-null calibration with $\lambda=0.5$ and $c=10$ & Discrepancy multiplier $k_{\mathrm{MTD}}$ & $k_{\mathrm{MTD}} \in \{0.5, 1\}$\\
+\hline
+Empirical Bayes PP & Initial prior on $\theta$  & None & None \\
+\hline
+\textit{p}-value based PP & Initial prior on $\theta$   & Shape parameter $k$ & $k \in \{0.01, 0.1, 1, 10, 20\}$ \\
+\hline
+Commensurate PP & Initial prior on $\theta_S$  &  Prior on the commensurability parameter $\tau$ & See the text\\
+\hline 
+Commensurate prior & Initial prior on $\theta_S$; power parameter fixed at 1 & Prior on $\tau$ & Same five priors as commensurate PP\\
+\hline
+Robust mixture prior & Variance of the vague component &  Mixture weight $w$.  &  $w$ in a grid of values ranging from 0 to 1 in steps of 0.1.\\
+\hline 
+Empirical RMP & RMP components; $\alpha_{\mathrm{PC}}=0.05$ & None; $\psi=1-w$ chosen from target data & No between-scenario sweep; selected per replicate\\
+\hline
+\end{tabularx}
+\end{center}
+\caption[Methods and parameters considered in the simulation study]{Methods and parameters considered in the simulation study. When the method is based on a consistency assumption ($\theta_T = \theta_S$), we denote the treatment effect as $\theta$.}
+\label{tab:study_protocol_methods_range}
+\end{table}
+\end{landscape}
+\endgroup
+}
+\end{document}
