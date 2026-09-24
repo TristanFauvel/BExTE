@@ -14,7 +14,7 @@ test_that("figures and tables are labelled the way the paper refers to them", {
   ## The manifest's table ids carry a "T" prefix that the paper does not:
   ## TS1 is the paper's table S1.
   expect_equal(paper_numbered_label(paper_manifest_entry("TS1")), "Table S1")
-  expect_equal(paper_numbered_label(paper_manifest_entry("TS7")), "Table S7")
+  expect_equal(paper_numbered_label(paper_manifest_entry("TS3")), "Table S3")
 })
 
 test_that("a numbered copy of each produced output is written", {

@@ -7,7 +7,7 @@
 paper_manifest_entry(id)
 }
 \arguments{
-\item{id}{A manifest id, e.g. "1", "S20" or "TS7".}
+\item{id}{A manifest id, e.g. "1", "S20" or "TS3".}
 }
 \value{
 The matching manifest entry.

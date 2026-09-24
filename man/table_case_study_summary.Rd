@@ -2,7 +2,7 @@
 % Please edit documentation in R/table_case_study_summary.R
 \name{table_case_study_summary}
 \alias{table_case_study_summary}
-\title{Summary of the clinical case studies (table S7)}
+\title{Summary of the clinical case studies (table S3)}
 \usage{
 table_case_study_summary(case_studies, case_studies_config_dir, tables_dir)
 }
@@ -17,5 +17,5 @@ table_case_study_summary(case_studies, case_studies_config_dir, tables_dir)
 The path of the written \code{.tex} file.
 }
 \description{
-Summary of the clinical case studies (table S7)
+Summary of the clinical case studies (table S3)
 }

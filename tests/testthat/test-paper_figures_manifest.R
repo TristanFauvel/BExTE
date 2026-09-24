@@ -6,15 +6,15 @@
 test_that("the manifest covers every paper item exactly once", {
   ids <- paper_manifest_ids()
 
-  expect_length(ids, 49)
-  expect_length(unique(ids), 49)
+  expect_length(ids, 48)
+  expect_length(unique(ids), 48)
   expect_true(all(c("1", "2", "3", "4") %in% ids))
   expect_true(all(paste0("S", 3:37) %in% ids))
   ## S38-S44 are the interval-score figures added in revision.
   expect_true(all(paste0("S", 38:44) %in% ids))
-  expect_true(all(c("TS1", "TS2", "TS7") %in% ids))
-  ## Table S8 is out of scope; figure S8 is not.
-  expect_false("TS8" %in% ids)
+  ## Tables S2 and S4 are hand-authored in the manuscript.
+  expect_true(all(c("TS1", "TS3") %in% ids))
+  expect_false(any(c("TS2", "TS4", "TS7", "TS8") %in% ids))
   expect_true("S8" %in% ids)
 })
 

@@ -304,37 +304,23 @@ paper_manifest_figures_special <- function() {
   )
 }
 
+## Table numbers follow the revised supplement, in which the drift ranges and
+## the target sample sizes were merged into table S1. Tables S2 (methods and
+## parameters) and S4 (simulation configuration) are written by hand in the
+## manuscript and have no generator.
 paper_manifest_tables <- function() {
   list(
     list(
       id = "TS1", kind = "table",
-      caption = "Total target-study sample sizes considered for each case study.",
+      caption = "Drift and treatment effect ranges, and target study sample sizes considered for each case study.",
       case_study = NA_character_, sample_size_factor = NA_real_, metric = NA_character_,
       needs = "configs",
       generator = function(ctx) {
-        table_target_sample_sizes(ctx$case_studies, ctx$sample_size_factors,
-                                  ctx$case_studies_config_dir, ctx$tables_dir)
+        table_drift_ranges_and_sample_sizes(ctx$case_studies_config_dir, ctx$tables_dir)
       }
     ),
     list(
-      id = "TS2", kind = "table",
-      caption = "Treatment-effect drift ranges considered for each case study.",
-      case_study = NA_character_, sample_size_factor = NA_real_, metric = NA_character_,
-      ## Written by R/simulation_scenarios.R during the run itself.
-      needs = "run_artifact",
-      generator = function(ctx) {
-        source_path <- file.path(ctx$results_dir, "drift_ranges.tex")
-        if (!file.exists(source_path)) {
-          stop("drift_ranges.tex is not in ", ctx$results_dir,
-               " - it is written by the simulation run, not by the exporter.")
-        }
-        destination <- file.path(ctx$tables_dir, "drift_ranges.tex")
-        file.copy(source_path, destination, overwrite = TRUE)
-        destination
-      }
-    ),
-    list(
-      id = "TS7", kind = "table",
+      id = "TS3", kind = "table",
       caption = "Summary of the clinical case studies used to construct the simulation-study design.",
       case_study = NA_character_, sample_size_factor = NA_real_, metric = NA_character_,
       needs = "configs",
@@ -387,7 +373,7 @@ paper_manifest_ids <- function() {
 
 #' Look up one manifest entry by id
 #'
-#' @param id A manifest id, e.g. "1", "S20" or "TS7".
+#' @param id A manifest id, e.g. "1", "S20" or "TS3".
 #'
 #' @return The matching manifest entry.
 #'
