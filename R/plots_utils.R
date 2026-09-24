@@ -471,7 +471,7 @@ export_plots <- function(plt,
                          fig_width_in,
                          fig_height_in,
                          type = "pdf", forest_plot = FALSE, adjust_theme = TRUE,
-                         bg = NULL) {
+                         bg = NULL, theme_extra = NULL) {
 
   if (!(forest_plot) && adjust_theme == TRUE){
     plt <- plt + theme_bw() + theme(
@@ -487,6 +487,11 @@ export_plots <- function(plt,
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank()
     )
+  }
+
+  # Apply caller styling after theme_bw(), which resets legend placement.
+  if (!is.null(theme_extra)) {
+    plt <- plt + theme_extra
   }
 
   if (type == "pdf") {
