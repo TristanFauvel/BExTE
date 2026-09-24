@@ -12,7 +12,8 @@
 ##
 ## Environment variables, for a quick smoke test of the pipeline only (the
 ## outputs are not the paper's at these settings):
-##   BEXTE_N_REPLICATES  replicates per scenario (paper: 10000)
+##   BEXTE_N_REPLICATES  replicates per scenario, for every case study (paper:
+##                       10000, and 1000 for a binomial-likelihood case study)
 ##   BEXTE_NDRIFT        drift points per scenario (paper: 30)
 ##   BEXTE_PARALLEL      "false" to run in a single process
 ##   BEXTE_RESULTS_DIR   export from this existing results directory instead
@@ -53,6 +54,7 @@ if (!nzchar(results_dir)) {
 
   if (nzchar(Sys.getenv("BEXTE_N_REPLICATES"))) {
     requirements$n_replicates <- as.integer(Sys.getenv("BEXTE_N_REPLICATES"))
+    requirements$case_study_n_replicates <- NULL
   }
   if (nzchar(Sys.getenv("BEXTE_NDRIFT"))) {
     requirements$ndrift <- as.integer(Sys.getenv("BEXTE_NDRIFT"))
@@ -82,10 +84,15 @@ if (!nzchar(results_dir)) {
     file.path(config_dir, "methods_config.R")
   )
 
+  replicates <- vapply(requirements$case_studies, function(case_study) {
+    sprintf("%s %d", case_study, as.integer(
+      case_study_n_replicates(requirements, case_study)
+    ))
+  }, character(1))
   message(sprintf(
-    "Simulating %s: %d case studies, %d methods, %d replicates, %d drift points.",
-    env, length(requirements$case_studies), length(requirements$methods),
-    requirements$n_replicates, requirements$ndrift
+    "Simulating %s: %d methods, %d drift points; replicates per case study: %s.",
+    env, length(requirements$methods), requirements$ndrift,
+    paste(replicates, collapse = ", ")
   ))
 
   metrics <- new.env()
