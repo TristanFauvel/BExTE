@@ -6,14 +6,14 @@
 test_that("the manifest covers every paper item exactly once", {
   ids <- paper_manifest_ids()
 
-  expect_length(ids, 48)
-  expect_length(unique(ids), 48)
+  expect_length(ids, 49)
+  expect_length(unique(ids), 49)
   expect_true(all(c("1", "2", "3", "4") %in% ids))
   expect_true(all(paste0("S", 3:37) %in% ids))
   ## S38-S44 are the interval-score figures added in revision.
   expect_true(all(paste0("S", 38:44) %in% ids))
   ## Tables S2 and S4 are hand-authored in the manuscript.
-  expect_true(all(c("TS1", "TS3") %in% ids))
+  expect_true(all(c("TS1", "TS3", "TS5") %in% ids))
   expect_false(any(c("TS2", "TS4", "TS7", "TS8") %in% ids))
   expect_true("S8" %in% ids)
 })
@@ -70,6 +70,11 @@ test_that("the headline figures name the slice their captions describe", {
   expect_equal(fig3$case_study, "botox")
   expect_equal(fig3$sample_size_factor, 2)
   expect_equal(fig3$metric, "mse")
+
+  table_s5 <- paper_manifest_entry("TS5")
+  expect_equal(table_s5$case_study, "belimumab")
+  expect_equal(table_s5$sample_size_factor, 4)
+  expect_equal(table_s5$metric, "precision_ecp")
 })
 
 test_that("the interval-score figures accompany the precision and coverage ones", {
