@@ -248,7 +248,7 @@ reference:
   - table_empirical_bayes_hyperparameters_vs_scenario
   - table_bayesian_metrics
   - table_case_study_summary
-  - table_target_sample_sizes
+  - table_drift_ranges_and_sample_sizes
 
 - title: Paper replication
   desc: The manifest of the paper's figures and tables, and what a
