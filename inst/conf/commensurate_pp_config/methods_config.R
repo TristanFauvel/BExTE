@@ -221,10 +221,9 @@ methods_dict <- list(
       range = list(
         list(family = "inverse_gamma", alpha = 1 / 3, beta = 1),
         list(family = "inverse_gamma", alpha = 1 / 7, beta = 1),
-        list(family = "inverse_gamma", alpha = 1 / 1000, beta = 1),
         list(family = "half_normal", std_dev = 1),
         list(family = "half_normal", std_dev = 5),
-        list(family = "cauchy", location = 0, scale = 10)
+        list(family = "cauchy", location = 0, scale = 30)
       ),
       parameter_name = "Heterogeneity prior",
       parameter_label = "tau",
@@ -246,10 +245,9 @@ methods_dict <- list(
       range = list(
         list(family = "inverse_gamma", alpha = 1 / 3, beta = 1),
         list(family = "inverse_gamma", alpha = 1 / 7, beta = 1),
-        list(family = "inverse_gamma", alpha = 1 / 1000, beta = 1),
         list(family = "half_normal", std_dev = 1),
         list(family = "half_normal", std_dev = 5),
-        list(family = "cauchy", location = 0, scale = 10)
+        list(family = "cauchy", location = 0, scale = 30)
       ),
       parameter_name = "Heterogeneity prior",
       parameter_label = "tau",
