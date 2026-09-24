@@ -202,6 +202,14 @@ is_commensurate_method <- function(method) {
 #' @return The labels generated from the parameters.
 #' @keywords internal
 make_labels_from_parameters <- function(parameter, method) {
+  # The heterogeneity-prior labels read their values from here, before the
+  # rounding below: rounded to 2 decimal places, alpha = 1/1000 prints as 0.
+  unrounded <- parameter
+  colnames(unrounded) <- gsub("heterogeneity_prior\\.", "", colnames(unrounded))
+  prior_value <- function(name) {
+    format(signif(as.numeric(unrounded[[name]]), 2), scientific = FALSE, drop0trailing = TRUE)
+  }
+
   # Round floating point parameters to 2 decimal places
   parameter[sapply(parameter, is.numeric)] <- lapply(parameter[sapply(parameter, is.numeric)], round, 2)
 
@@ -219,15 +227,15 @@ make_labels_from_parameters <- function(parameter, method) {
         parameter$family = "cauchy"
       }
     }
+    # Each label names the quantity its prior is placed on, as the Stan
+    # model and the quadrature in R/vectorised_commensurate_prior.R do: the
+    # half-normal on tau, the inverse gamma on tau^2, the Cauchy on log(tau).
     if (parameter$family == "half_normal"){
-      parameters_list <- list(heterogeneity_prior_family = parameter$family, std_dev = parameter$std_dev)
-      label <- paste0("$\\tau \\sim HN(", round(as.numeric(parameters_list$std_dev),2), ")$")
+      label <- paste0("$\\tau \\sim HN(", prior_value("std_dev"), ")$")
     } else if (parameter$family == "inverse_gamma"){
-      parameters_list <- list(heterogeneity_prior_family = parameter$family, alpha = parameter$alpha, beta = parameter$beta)
-      label <- paste0("$\\tau \\sim IG(\\alpha = ",  round( as.numeric(parameters_list$alpha),2),", \\beta = ",  round( as.numeric(parameters_list$beta),2), ")$")
+      label <- paste0("$\\tau^2 \\sim IG(\\alpha = ", prior_value("alpha"), ", \\beta = ", prior_value("beta"), ")$")
     } else if (parameter$family == "cauchy"){
-      parameters_list <- list(heterogeneity_prior_family = parameter$family, location =  parameter$location, scale =  parameter$scale)
-      label <- paste0("$\\tau \\sim Cauchy(x_0 = ",  round(as.numeric(parameter$location),2),"\\gamma = ", round( as.numeric(parameter$scale),2), ")$")
+      label <- paste0("$\\log \\tau \\sim Cauchy(x_0 = ", prior_value("location"), ", \\gamma = ", prior_value("scale"), ")$")
     } else {
       stop("Heterogeneity prior family not implemented.")
     }
@@ -622,44 +630,6 @@ convert_CI_columns <- function(table_data_df) {
   cols_to_keep <- !grepl("^conf_int", colnames(table_data_df))
   table_data_df <- table_data_df[, cols_to_keep, drop = FALSE]
   return(table_data_df)
-}
-
-
-com_pp_params_filtering = function(key, parameter){ # TODO : remove ?
-  if (is.null(parameter$family)){
-    if ((!is.null(parameter$alpha) && !is.na(parameter$alpha))){
-      parameter$family = "inverse_gamma"
-    } else if (!is.null(parameter$std_dev) && !is.na(parameter$std_dev)){
-      parameter$family = "half_normal"
-    } else if (!is.null(parameter$location) && !is.na(parameter$location)){
-      parameter$family = "cauchy"
-    }
-
-    if ((!is.null(parameter$heterogeneity_prior.alpha) && !is.na(parameter$heterogeneity_prior.alpha))){
-      parameter$family = "inverse_gamma"
-    } else if (!is.null(parameter$heterogeneity_prior.std_dev) && !is.na(parameter$heterogeneity_prior.std_dev)){
-      parameter$family = "half_normal"
-    } else if (!is.null(parameter$heterogeneity_prior.location) && !is.na(parameter$heterogeneity_prior.location)){
-      parameter$family = "cauchy"
-    }
-  }
-
-  if (parameter$family == "half_normal"){
-    parameters_list <- list(heterogeneity_prior_family = parameter$family, std_dev = parameter$std_dev)
-    label <- paste0("$\\tau \\sim HN(", round(as.numeric(parameters_list$std_dev),2), ")$")
-  } else if (parameter$family == "inverse_gamma"){
-    parameters_list <- list(heterogeneity_prior_family = parameter$family, alpha = parameter$alpha, beta = parameter$beta)
-    label <- paste0("$\\tau \\sim IG(\\alpha = ",  round( as.numeric(parameters_list$alpha),2),", \\beta = ",  round( as.numeric(parameters_list$beta),2), ")$")
-  } else if (parameter$family == "cauchy"){
-    parameters_list <- list(heterogeneity_prior_family = parameter$family, location =  parameter$location, scale =  parameter$scale)
-    label <- paste0("$\\tau \\sim Cauchy(x_0 = ",  round(as.numeric(parameter$location),2),"\\gamma = ", round( as.numeric(parameter$scale),2), ")$")
-  } else {
-    stop("Heterogeneity prior family not implemented.")
-  }
-
-  methods_dict[[method]][[key]][["range"]]
-
-  return(filter)
 }
 
 
