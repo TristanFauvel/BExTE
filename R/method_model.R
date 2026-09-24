@@ -1015,6 +1015,19 @@ Model <- R6::R6Class(
       mcmc_ess_values <- mcmc_ess_values[successful]
       n_divergences_values <- n_divergences_values[successful]
 
+      # One row per replicate, like every vector above. A failed fit's
+      # borrowing parameters are no more trustworthy than its posterior mean.
+      if (!is.null(posterior_parameters)) {
+        if (nrow(posterior_parameters) != length(successful)) {
+          stop(
+            "posterior_parameters has ", nrow(posterior_parameters),
+            " rows but there are ", length(successful), " replicates, so ",
+            "failed fits cannot be excluded from its averages."
+          )
+        }
+        posterior_parameters <- posterior_parameters[successful, , drop = FALSE]
+      }
+
       # Determine whether the true value of the target treatment effect lies within the credible interval (to compute the coverage)
       estimate_in_CrI <- (
         credible_intervals[, 1] <= target_treatment_effect &
@@ -1044,7 +1057,9 @@ Model <- R6::R6Class(
         for (parameter in colnames(posterior_parameters)) {
           posterior_params[[parameter]] <- mean(posterior_parameters[[parameter]])
 
-          if (n_replicates >= 10000){
+          # Same sample-size rule as every other interval below, applied to
+          # the replicates actually averaged.
+          if (n_successful_replicates >= 1000){
             ci <- Hmisc::smean.cl.normal(posterior_parameters[[parameter]], conf.int = confidence_level)
           } else {
             ci <- Hmisc::smean.cl.boot(posterior_parameters[[parameter]], conf.int = confidence_level)
