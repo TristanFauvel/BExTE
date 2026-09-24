@@ -160,7 +160,11 @@ paper_manifest_figures_forest <- function() {
     manifest_forest("S21", "Coverage probability of the 95% credible interval for the three principal treatment-effect scenarios in the Belimumab case study, with 140 participants per arm.", "belimumab", 4, "coverage"),
     manifest_forest("S24", "MSE for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68).", "mepolizumab", 4, "mse"),
     manifest_forest("S25", "Empirical coverage probability for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68).", "mepolizumab", 4, "coverage"),
-    manifest_forest("S26", "Probability of study success for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 45).", "mepolizumab", 6, "success_proba"),
+    ## The manuscript's caption reads N_T/2 = 45, but its relative companion
+    ## S27, like every other Mepolizumab figure, is at 68, and each other case
+    ## study pairs its absolute and relative panels at one sample size. The
+    ## author confirmed 68.
+    manifest_forest("S26", "Probability of study success for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68).", "mepolizumab", 4, "success_proba"),
     manifest_forest("S27", "Probability of study success relative to a separate analysis for the three principal treatment-effect scenarios in the Mepolizumab case study (N_T/2 = 68).", "mepolizumab", 4, "success_proba", relative = TRUE),
     manifest_forest("S30", "MSE for the three principal treatment-effect scenarios in the Teriflunomide case study (N_T/2 = 185).", "teriflunomide", 4, "mse"),
     manifest_forest("S31", "Probability of study success for the three principal treatment-effect scenarios in the Teriflunomide case study (N_T/2 = 123).", "teriflunomide", 6, "success_proba"),
@@ -203,6 +207,17 @@ paper_manifest_figures_vs_tie <- function() {
     manifest_vs_tie("S42", "Interval score of the 95% credible interval versus type I error rate in the Botox case study, with 117 participants per arm, no treatment effect, and a target-to-source standard-deviation ratio of 1. Smaller is better.", "botox", 2, "interval_score", "no_effect"),
     manifest_vs_tie("S43", "Interval score of the 95% credible interval versus type I error rate in the Mepolizumab case study, with 68 participants per arm and no treatment effect. Smaller is better.", "mepolizumab", 4, "interval_score", "no_effect"),
     manifest_vs_tie("S44", "Interval score of the 95% credible interval versus type I error rate in the Teriflunomide case study, with 123 participants per arm and no treatment effect. Smaller is better.", "teriflunomide", 6, "interval_score", "no_effect")
+  )
+}
+
+## These PDFs are referenced by the manuscript but have no figure number in
+## the paper manifest. Keep separate ids so their outputs and failures are
+## visible during a replication run.
+paper_manifest_figures_unnumbered <- function() {
+  list(
+    manifest_vs_tie("X1", "Coverage versus type I error rate in the Botox case study, with 117 participants per arm and a partially consistent treatment effect.", "botox", 2, "coverage", "partially_consistent"),
+    manifest_vs_tie("X2", "Coverage versus type I error rate in the Mepolizumab case study, with 68 participants per arm and a partially consistent treatment effect.", "mepolizumab", 4, "coverage", "partially_consistent"),
+    manifest_forest("X3", "Coverage probability for the three principal treatment-effect scenarios in the Teriflunomide case study, with 123 participants per arm.", "teriflunomide", 6, "coverage")
   )
 }
 
@@ -344,11 +359,10 @@ paper_manifest_tables <- function() {
 
 #' The paper figure and table manifest
 #'
-#' @description Every figure and generated table in the paper, in publication
-#'   order, each paired with the generator call that produces it. Table ids are
-#'   prefixed `TS` so they never collide with a figure of the same number -
-#'   figure S8 and table S8 are different objects, and only the figure is in
-#'   scope.
+#' @description Every figure and generated table in the paper, plus unnumbered
+#'   figures referenced by the manuscript, each paired with its generator.
+#'   Table ids are prefixed `TS` so they never collide with a figure of the
+#'   same number; unnumbered manuscript figures use `X` ids.
 #'
 #' @return A list of manifest entries.
 #'
@@ -358,11 +372,15 @@ paper_manifest <- function() {
     paper_manifest_figures_forest(),
     paper_manifest_figures_vs_tie(),
     paper_manifest_figures_special(),
+    paper_manifest_figures_unnumbered(),
     paper_manifest_tables()
   )
   order_key <- function(entry) {
     if (entry$kind == "table") {
       return(1000 + as.numeric(sub("^TS", "", entry$id)))
+    }
+    if (startsWith(entry$id, "X")) {
+      return(500 + as.numeric(sub("^X", "", entry$id)))
     }
     if (startsWith(entry$id, "S")) {
       return(100 + as.numeric(sub("^S", "", entry$id)))

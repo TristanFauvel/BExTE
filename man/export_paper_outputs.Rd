@@ -28,9 +28,9 @@ the plot generators append their own \verb{<case_study>/} below it.}
 
 \item{progress}{Optional \verb{function(index, total, id)} progress callback.}
 
-\item{numbered_dir}{Optional directory to copy each produced output into
-under its paper number ("Figure 1.png", "Table S1.tex"). Figures are
-copied as PNG, tables as both \code{.tex} and \code{.pdf}. \code{NULL} skips it.}
+\item{numbered_dir}{Optional directory for numbered copies ("Figure 1.png",
+"Table S1.tex"). Numbered figures are copied as PNG, tables as both
+\code{.tex} and \code{.pdf}. Unnumbered \code{X} figures are omitted. \code{NULL} skips it.}
 }
 \value{
 A status data frame, invisibly.
