@@ -59,7 +59,7 @@ frequentist_ocs_scenario_simulation <- function(scenario,
 
   theta_0 <- case_study_config$theta_0
   critical_value <- simulation_config$critical_value
-  n_replicates <- scenarios_config$n_replicates
+  n_replicates <- case_study_n_replicates(scenarios_config, case_study)
 
   summary_measure_likelihood <- case_study_config$summary_measure_likelihood
   endpoint <- case_study_config$endpoint
@@ -240,6 +240,20 @@ case_study_factors <- function(scenarios_config, case_study) {
     return(scenarios_config$sample_size_factors)
   }
   per_case_study[[case_study]]
+}
+
+## The number of replicates to simulate a given case study with.
+##
+## scenarios_config$case_study_n_replicates, when present, maps a case study to
+## its own replicate count, so one whose analysis is expensive - a binomial
+## likelihood fitted by MCMC - can be run at fewer replicates than the rest. A
+## case study the map does not mention keeps the run-wide n_replicates.
+case_study_n_replicates <- function(scenarios_config, case_study) {
+  per_case_study <- scenarios_config$case_study_n_replicates
+  if (is.null(per_case_study) || is.null(per_case_study[[case_study]])) {
+    return(scenarios_config$n_replicates)
+  }
+  as.numeric(unlist(per_case_study[[case_study]]))
 }
 
 #' Run simulations based on the given environment
