@@ -433,11 +433,12 @@ test_that("each case study is requested only at the factors its own figures use"
   requirements <- paper_replication_requirements(paper_manifest_ids(), config_dir())
   per_case_study <- requirements$case_study_sample_size_factors
 
-  ## The paper plots every case study at two of the three factors. Taking the
+  ## The paper plots each case study at one or two of the three factors -
+  ## mepolizumab only at 68 per arm since figure S26 moved there. Taking the
   ## union of case studies and the union of factors and letting the run cross
-  ## them simulated 18 combinations where 12 are wanted - a third of the grid
-  ## computed and never plotted.
-  expect_equal(sum(lengths(per_case_study)), 12)
+  ## them simulated 18 combinations where 11 are wanted - most of a third of
+  ## the grid computed and never plotted.
+  expect_equal(sum(lengths(per_case_study)), 11)
   expect_lt(
     sum(lengths(per_case_study)),
     length(requirements$case_studies) * length(requirements$sample_size_factors)
