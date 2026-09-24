@@ -265,5 +265,52 @@ methods_dict <- list(
       type = "categorical",
       is_updated = FALSE
     )
+  ),
+  # The robust mixture prior's two components, with the weight chosen from each
+  # replicate's own target data instead of being prespecified. There is one
+  # parameter combination, not a sweep: the weight is not a tuning parameter here.
+  egidi_empirical_mixture = list(
+    alpha_pc = list(
+      range = list(0.05),
+      parameter_name = "Prior-predictive conflict level",
+      parameter_label = "alpha_PC",
+      parameter_notation = "$\\alpha_{PC}$",
+      type = "continuous",
+      is_updated = FALSE
+    ),
+    pvalue_method = list(
+      range = list("exact"),
+      parameter_name = "Conflict p-value method",
+      parameter_label = "pvalue_method",
+      parameter_notation = "$P_\\psi$",
+      type = "categorical",
+      is_updated = FALSE
+    ),
+    weight_grid_step = list(
+      range = list(0.001),
+      parameter_name = "Weight grid step",
+      parameter_label = "delta_psi",
+      parameter_notation = "$\\delta_\\psi$",
+      type = "continuous",
+      is_updated = FALSE
+    ),
+    initial_prior = list(
+      range = list("noninformative"),
+      parameter_name = "Initial prior",
+      parameter_label = "pi_0",
+      parameter_notation = "$\\pi_0$",
+      type = "categorical",
+      is_updated = FALSE
+    ),
+    # The weak component is the robust mixture prior's, which every shipped
+    # configuration derives from the observed replicate.
+    empirical_bayes = list(
+      range = list(TRUE),
+      parameter_name = "Empirical Bayes",
+      parameter_label = "EB",
+      parameter_notation = "EB",
+      type = "categorical",
+      is_updated = FALSE
+    )
   )
 )
