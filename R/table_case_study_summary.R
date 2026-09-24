@@ -74,8 +74,8 @@ table_case_study_summary <- function(case_studies, case_studies_config_dir, tabl
       ## whole table down, not just that row.
       `Endpoint` = escape_latex_underscores(config$endpoint),
       `Summary measure` = escape_latex_underscores(config$summary_measure_likelihood),
-      ## control + treatment, not the `total:` field, which is stale for
-      ## aprepitant - see R/simulation_scenarios.R.
+      ## control + treatment, not the `total:` field - see
+      ## paper_sample_size_per_arm().
       `Source N` = config$source$control + config$source$treatment,
       `Source effect` = round(config$source$treatment_effect, 4),
       `Source SE` = round(config$source$standard_error, 4),
