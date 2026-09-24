@@ -53,10 +53,11 @@ paper_replication_requirements <- function(ids, case_studies_config_dir) {
   })
   names(per_case_study) <- case_studies
 
-  list(
-    n_replicates = 10000,
+  requirements <- list(
+    n_replicates = PAPER_N_REPLICATES,
     ndrift = 30,
     parallelization = TRUE,
+    analysis_steps = PAPER_ANALYSIS_STEPS,
     denominator_change_factor = 1,
     sample_size_factors = sort(factors),
     case_study_sample_size_factors = per_case_study,
@@ -64,7 +65,40 @@ paper_replication_requirements <- function(ids, case_studies_config_dir) {
     case_studies = case_studies,
     methods = paper_required_methods(entries)
   )
+
+  ## A binomial likelihood is analysed exactly, which for the conditional power
+  ## prior means an MCMC fit per replicate; those case studies are run at a
+  ## tenth of the replicates. The same case study under the normal
+  ## approximation is as cheap as the others and keeps the full count.
+  binomial <- Filter(function(case_study) {
+    config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+    identical(config$summary_measure_likelihood, "binomial")
+  }, case_studies)
+  if (length(binomial) > 0) {
+    requirements$case_study_n_replicates <- stats::setNames(
+      as.list(rep(PAPER_BINOMIAL_N_REPLICATES, length(binomial))),
+      binomial
+    )
+  }
+
+  requirements
 }
+
+## Replicates per scenario: the paper's Monte Carlo precision, and the
+## reduced count for case studies whose binomial likelihood is fitted by MCMC.
+PAPER_N_REPLICATES <- 10000
+PAPER_BINOMIAL_N_REPLICATES <- 1000
+
+## The analysis steps the paper's outputs read.
+##
+## Every generator in the manifest reads results_frequentist.csv alone, and
+## the drift figures compare against the two power baselines these steps add
+## to it. Nothing reads the sweet spot or the Bayesian OCs; in the 17
+## September paper run those took longer than the simulations themselves.
+PAPER_ANALYSIS_STEPS <- c(
+  "frequentist_power_at_equivalent_tie",
+  "frequentist_power_at_nominal_tie"
+)
 
 ## The methods a set of manifest entries actually plots.
 ##
@@ -148,17 +182,41 @@ paper_config_shortfalls <- function(run_config, requirements) {
   ## the comparison is one-sided; a coarser drift grid is not, because
   ## forest_plot() picks the three principal scenarios by nearest grid point
   ## and a different grid quietly plots different drift values.
-  if (isTRUE(run_config$n_replicates < requirements$n_replicates)) {
-    shortfalls <- c(shortfalls, sprintf(
-      "%s replicates instead of %s",
-      format(run_config$n_replicates, scientific = FALSE),
-      format(requirements$n_replicates, scientific = FALSE)
-    ))
-  }
+  short_of <- Filter(Negate(is.null), lapply(
+    as.character(requirements$case_studies),
+    function(case_study) {
+      simulated <- case_study_n_replicates(run_config, case_study)
+      required <- case_study_n_replicates(requirements, case_study)
+      if (isTRUE(simulated < required)) {
+        sprintf(
+          "%s replicates instead of %s for %s",
+          format(simulated, scientific = FALSE),
+          format(required, scientific = FALSE),
+          case_study
+        )
+      }
+    }
+  ))
+  shortfalls <- c(shortfalls, unlist(short_of))
   if (!isTRUE(run_config$ndrift == requirements$ndrift)) {
     shortfalls <- c(shortfalls, sprintf(
       "%s drift points instead of %s", run_config$ndrift, requirements$ndrift
     ))
+  }
+
+  ## A config without analysis_steps ran every step. One that names a subset
+  ## has to include the power baselines, or the drift figures have nothing to
+  ## compare against.
+  if (!is.null(run_config$analysis_steps)) {
+    skipped <- setdiff(
+      requirements$analysis_steps,
+      as.character(unlist(run_config$analysis_steps))
+    )
+    if (length(skipped) > 0) {
+      shortfalls <- c(shortfalls, sprintf(
+        "the analysis skipped %s", paste(skipped, collapse = ", ")
+      ))
+    }
   }
 
   shortfalls

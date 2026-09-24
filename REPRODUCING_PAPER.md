@@ -47,13 +47,24 @@ Rscript inst/scripts/reproduce_paper.R 1 S10 TS5  # a chosen subset
 
 The script reads the manifest in `R/paper_figures_manifest.R` and works out
 the case studies, sample sizes and methods that the selection plots. It then
-simulates only those, at the paper's fidelity: 10,000 replicates and 30 drift
-points per scenario. Finally it exports the outputs.
+simulates only those, at the paper's fidelity, and exports the outputs:
 
-**Run time.** The full reproduction took about 17 hours on a 12-core, 32 GB
-workstation. A subset takes less, roughly in proportion to the case studies
-it involves. Run it inside `tmux`/`screen` or with `nohup`, so that closing
-the terminal does not kill it:
+- 30 drift points per scenario;
+- 10,000 replicates per scenario, except 1,000 for aprepitant. Aprepitant is
+  analysed with its exact binomial likelihood, so the conditional power prior
+  runs an MCMC fit for every replicate. A case study analysed under the normal
+  approximation keeps 10,000;
+- after the simulations, only the two analysis steps the figures read: the
+  power baselines at the equivalent and at the nominal type I error rate. The
+  sweet spot and the Bayesian operating characteristics are skipped.
+
+**Run time.** On a 12-core, 32 GB workstation, the simulations for the five
+normal-likelihood case studies (botox, belimumab, dapagliflozin, mepolizumab,
+teriflunomide) took about 9 hours, and the two analysis steps about 1 hour
+more. Aprepitant comes on top of that, at 1,000 replicates, and its run time
+has not been measured yet. A subset takes less, roughly in proportion to the
+case studies it involves. Run it inside `tmux`/`screen` or with `nohup`, so
+that closing the terminal does not kill it:
 
 ```sh
 nohup Rscript inst/scripts/reproduce_paper.R > reproduce.log 2>&1 &
