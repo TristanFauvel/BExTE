@@ -59,9 +59,13 @@ manifest_forest <- function(id, caption, case_study, factor, metric,
 ## Those figures plot one point per combination, and every combination the
 ## run simulated comes to about 45 of them - behind a legend taller than the
 ## panel it explains. The paper shows a curated subset instead: the parameter
-## grids thinned to their informative range, and test-then-pool (both
-## variants) and PDCCPP left out of these panels entirely. They remain in the
-## forest plots, which is where the paper compares every method.
+## grids thinned to their informative range, and PDCCPP left out of these
+## panels. It remains in the forest plots, which compare every method.
+##
+## Test-then-pool keeps every setting of both variants. The text reads its
+## conclusions about test-then-pool - less power, larger MSE and worse
+## coverage at a given type I error rate - off these very panels, so they
+## have to show it.
 ##
 ## A method mapped to an empty list keeps all of its rows (it has no
 ## parameters to choose between); a method absent from this list is dropped.
@@ -69,7 +73,7 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   pooling = list(),
   separate = list(),
   EB_PP = list(),
-  RMP = list(prior_weight = seq(0.1, 0.9, by = 0.1)),
+  RMP = list(prior_weight = c(0.1, 0.3, 0.5, 0.7, 0.9)),
   conditional_power_prior = list(power_parameter = c(0.25, 0.5, 0.75)),
   ## The three inverse-gamma heterogeneity priors; the half-normal ones are
   ## not shown. Selecting on the family alone picks exactly those three. The
@@ -84,7 +88,11 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   ## Both maximum-tolerable-discrepancy multipliers: the calibration is what
   ## distinguishes this method from the plain NPP, and the multiplier is the
   ## knob it turns, so thinning to one would hide the thing being shown.
-  NPP_KL = list()
+  NPP_KL = list(),
+  ## Four significance levels for the difference test, and two levels by
+  ## three equivalence margins for the equivalence test.
+  test_then_pool_difference = list(),
+  test_then_pool_equivalence = list()
 )
 
 ## Keep only the rows PAPER_VS_TIE_COMBINATIONS names.
