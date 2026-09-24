@@ -726,14 +726,11 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
   filename <- paste0(
     selected_case_study,
     "_",
+    if (relative_to_separate) "relative_" else "",
     x_metric,
     "_forest_plot_target_sample_size_per_arm_",
     selected_target_sample_size_per_arm
   )
-
-  if (relative_to_separate) {
-    filename <- paste0(filename, "_relative_to_separate")
-  }
 
   case_study <- unique(results_freq_df$case_study)
   target_to_source_std_ratio <- unique(results_freq_df$target_to_source_std_ratio)

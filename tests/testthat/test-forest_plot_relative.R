@@ -85,7 +85,10 @@ test_that("forest_plot writes a distinctly named file when relative_to_separate 
     forest_plot(df, "success_proba", relative_to_separate = TRUE)
 
     written <- list.files(getwd(), pattern = "\\.png$", recursive = TRUE)
-    expect_true(any(grepl("relative_to_separate", written)))
+    expect_equal(written, paste0(
+      "botox/botox_relative_success_proba_forest_plot_",
+      "target_sample_size_per_arm_234_target_to_source_std_ratio=1.png"
+    ))
   })
 })
 
@@ -98,6 +101,6 @@ test_that("forest_plot's default output is unchanged by the new argument", {
 
     written <- list.files(getwd(), pattern = "\\.png$", recursive = TRUE)
     expect_length(written, 1)
-    expect_false(grepl("relative_to_separate", written))
+    expect_false(grepl("_relative_success_proba_", written, fixed = TRUE))
   })
 })
