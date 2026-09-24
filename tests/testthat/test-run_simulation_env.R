@@ -37,6 +37,8 @@ test_that("run_simulation_env sets up log directories, skips both pipelines when
     config_dir = "./",
     case_studies_config_dir = "./",
     simulation_config = list(
+      critical_value = 0.975,
+      confidence_level = 0.95,
       compute_frequentist_ocs = FALSE,
       compute_bayesian_ocs_mc = FALSE
     ),
@@ -74,6 +76,8 @@ test_that("run_simulation_env dispatches to the frequentist pipeline when comput
       config_dir = "./",
       case_studies_config_dir = "./",
       simulation_config = list(
+        critical_value = 0.975,
+        confidence_level = 0.95,
         compute_frequentist_ocs = TRUE,
         compute_bayesian_ocs_mc = FALSE,
         delete_old_results = TRUE
@@ -125,6 +129,8 @@ test_that("run_simulation_env dispatches to the Bayesian pipeline when compute_b
       config_dir = "./",
       case_studies_config_dir = "./",
       simulation_config = list(
+        critical_value = 0.975,
+        confidence_level = 0.95,
         compute_frequentist_ocs = FALSE,
         compute_bayesian_ocs_mc = TRUE,
         delete_old_results = FALSE

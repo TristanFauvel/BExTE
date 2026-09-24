@@ -54,7 +54,7 @@ simulation_analysis <- function(env,
 
   results_dir <- paste0("./results/", env)
   outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
-  simulation_config <- read_config(system.file("conf/simulation_config.yml", package = "BExTE"), simulation_config_schema)
+  simulation_config <- read_simulation_config(system.file("conf/simulation_config.yml", package = "BExTE"))
 
   freq_filename <- paste0(results_dir,
                           "/",
