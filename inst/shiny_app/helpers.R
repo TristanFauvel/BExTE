@@ -27,7 +27,7 @@ BEXTE_METHOD_LABELS <- c(
   test_then_pool_equivalence = "Test then pool (equivalence)",
   commensurate_power_prior = "Commensurate power prior",
   commensurate_prior = "Commensurate prior",
-  egidi_empirical_mixture = "Empirical mixture prior (Egidi)"
+  egidi_empirical_mixture = "Empirical RMP (Egidi)"
 )
 
 ## Short descriptions shown as hover tooltips next to each method's checkbox
