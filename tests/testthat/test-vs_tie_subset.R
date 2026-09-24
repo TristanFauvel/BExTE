@@ -6,6 +6,16 @@
 ## root has to be reached explicitly rather than by a bare relative path -
 ## otherwise these skip silently and the subset is never checked against real
 ## data, which is the only place its combination count means anything.
+# Distinct inverse-gamma heterogeneity priors the commensurate power prior
+# ran with in a results slice.
+inverse_gamma_prior_count <- function(df) {
+  commensurate <- df[df$method == "commensurate_power_prior", ]
+  parameters <- get_parameters(commensurate[, "parameters"])
+  length(unique(parameters$heterogeneity_prior.alpha[
+    parameters$heterogeneity_prior.family == "inverse_gamma"
+  ]))
+}
+
 local_botox_slice <- function() {
   env_file <- "/tmp/bexte_current_env"
   skip_if_not(file.exists(env_file), "no completed run to read")
@@ -59,12 +69,14 @@ test_that("the subset selects 32 combinations from a real results slice", {
   combinations <- unique(kept[, c("method", "parameters")])
 
   ## 1 pooling + 1 separate + 1 EBPP + 5 RMP + 3 conditional PP
-  ## + 3 commensurate PP and 3 commensurate prior (the inverse-gamma priors
-  ## of each) + 1 p-PP + 1 NPP + 1 empirical mixture prior, whose weight is
-  ## selected rather than swept and so has a single combination, + 2 KL-
-  ## calibrated NPP, which keeps both of its discrepancy multipliers,
-  ## + 4 test-then-pool (difference) and 6 test-then-pool (equivalence).
-  expect_equal(nrow(combinations), 32)
+  ## + 1 p-PP + 1 NPP + 1 empirical mixture prior, whose weight is selected
+  ## rather than swept and so has a single combination, + 2 KL-calibrated
+  ## NPP, which keeps both of its discrepancy multipliers, + 4 test-then-pool
+  ## (difference) and 6 test-then-pool (equivalence): 26, plus the
+  ## inverse-gamma priors of each commensurate method. Those are counted from
+  ## the run, which has three or two depending on whether it predates the
+  ## removal of inverse_gamma(1/1000, 1).
+  expect_equal(nrow(combinations), 26 + 2 * inverse_gamma_prior_count(df))
   expect_lt(nrow(kept), nrow(df))
 })
 
@@ -88,8 +100,8 @@ test_that("only the inverse-gamma commensurate priors survive", {
     commensurate <- kept[kept$method == method, ]
     families <- get_parameters(commensurate[, "parameters"])$heterogeneity_prior.family
 
-    expect_equal(nrow(commensurate) / length(unique(commensurate$drift)), 3,
-                 info = method)
+    expect_equal(nrow(commensurate) / length(unique(commensurate$drift)),
+                 inverse_gamma_prior_count(df), info = method)
     expect_setequal(unique(families), "inverse_gamma")
   }
 })

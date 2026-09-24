@@ -45,3 +45,16 @@ test_that("the family is inferred when only the prior's parameters are given", {
     "$\\tau^2 \\sim IG(\\alpha = 0.33, \\beta = 1)$"
   )
 })
+
+test_that("the Cauchy is labelled as a prior on log tau without reusing gamma", {
+  # gamma is the power parameter in the paper, so the Cauchy scale cannot be
+  # written as gamma in the same figure.
+  expect_identical(
+    commensurate_label(
+      heterogeneity_prior.family = "cauchy",
+      heterogeneity_prior.location = 0,
+      heterogeneity_prior.scale = 30
+    ),
+    "$\\log \\tau \\sim Cauchy(0, 30)$"
+  )
+})

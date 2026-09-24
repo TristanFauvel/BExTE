@@ -93,14 +93,26 @@ test_that("commensurate mixture implements the collapsed Stan posterior", {
 
 
 test_that("commensurate posterior summaries are converged at default nodes", {
-  for (prior in commensurate_configured_priors()) {
-    model <- commensurate_fast_path_model(prior)
-
-    expect_equal(
-      commensurate_posterior_summary(model, 48L, 24L),
-      commensurate_posterior_summary(model, 192L, 48L),
-      tolerance = 5e-4
-    )
+  # Scanned over target estimates, because the error is not uniform in them: at
+  # 48 nodes the inverse_gamma(1/1000, 1) rule was 3e-3 out under moderate
+  # conflict (an estimate of 1.0) and 2e-5 out at 0.9, the one estimate this
+  # test used to check. That shape is no longer configured, but the rule that
+  # fixed it is still in place, so it stays in the scan.
+  scanned <- c(
+    commensurate_configured_priors(),
+    list(list(family = "inverse_gamma", alpha = 1 / 1000, beta = 1))
+  )
+  for (prior in scanned) {
+    for (model in list(commensurate_fast_path_model(prior),
+                       commensurate_prior_fast_path_model(prior))) {
+      for (estimate in seq(0, 2, by = 0.25)) {
+        default <- commensurate_posterior_summary(model, 48L, 24L,
+                                                  estimate = estimate)
+        reference <- commensurate_posterior_summary(model, 768L, 48L,
+                                                    estimate = estimate)
+        expect_lt(max(abs(default - reference)), 1e-4)
+      }
+    }
   }
 })
 
@@ -223,4 +235,48 @@ test_that("heterogeneity moments that diverge are reported as infinite", {
   finite <- parameters_for(list(family = "half_normal", std_dev = 1))
   expect_true(all(is.finite(finite$heterogeneity_parameter_mean)))
   expect_true(all(is.finite(finite$heterogeneity_parameter_std)))
+})
+
+
+test_that("the Stan path reports the same non-existent moments as infinite", {
+  # A sample mean of a moment that does not exist is finite and depends on the
+  # run, or Inf with an NaN standard deviation once a draw of tau overflows, as
+  # about 1.3% of a Cauchy(0, 30) posterior does.
+  fit_summary <- tibble::tibble(
+    variable = c("target_treatment_effect", "tau", "power_parameter"),
+    mean = c(0.4, 3, 0.8),
+    sd = c(0.1, 2, 0.05)
+  )
+  stan_parameters <- function(prior, model_for) {
+    model <- model_for(prior)
+    model$fit_summary <- fit_summary
+    model$compute_posterior_parameters()
+    model$posterior_parameters
+  }
+
+  cases <- list(
+    list(prior = list(family = "cauchy", location = 0, scale = 30),
+         mean = Inf, sd = Inf),
+    list(prior = list(family = "inverse_gamma", alpha = 1 / 3, beta = 1),
+         mean = Inf, sd = Inf),
+    # Between 1/2 and 1 the mean exists but the standard deviation does not.
+    list(prior = list(family = "inverse_gamma", alpha = 3 / 4, beta = 1),
+         mean = 3, sd = Inf),
+    list(prior = list(family = "inverse_gamma", alpha = 2, beta = 1),
+         mean = 3, sd = 2),
+    list(prior = list(family = "half_normal", std_dev = 1),
+         mean = 3, sd = 2)
+  )
+
+  for (case in cases) {
+    for (model_for in list(commensurate_fast_path_model,
+                           commensurate_prior_fast_path_model)) {
+      parameters <- stan_parameters(case$prior, model_for)
+      expect_identical(parameters$heterogeneity_parameter_mean, case$mean)
+      expect_identical(parameters$heterogeneity_parameter_std, case$sd)
+    }
+    power <- stan_parameters(case$prior, commensurate_fast_path_model)
+    expect_identical(power$power_parameter_mean, 0.8)
+    expect_identical(power$power_parameter_std, 0.05)
+  }
 })

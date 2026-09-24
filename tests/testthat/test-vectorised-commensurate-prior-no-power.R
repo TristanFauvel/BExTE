@@ -10,8 +10,16 @@ test_that("the quadrature collapses to one component per tau node", {
 
     # Without a power parameter there is nothing to integrate in the second
     # dimension, so n_gamma is ignored rather than multiplying the component
-    # count by 24.
-    expect_length(mixture$weights, 48L)
+    # count by 24. That is 48 components, except where the tau rule itself
+    # has more nodes: a log-Cauchy wider than a scale of 10, and an inverse
+    # gamma with a shape below 0.01.
+    n_tau_nodes <- length(commensurate_tau_quadrature(model, 48L)$tau)
+    expect_length(mixture$weights, n_tau_nodes)
+    steep <- (prior$family == "cauchy" && prior$scale > 10) ||
+      (prior$family == "inverse_gamma" && prior$alpha < 0.01)
+    if (!steep) {
+      expect_identical(n_tau_nodes, 48L)
+    }
     expect_null(mixture$power_parameter)
 
     expect_equal(sum(mixture$weights), 1, tolerance = 1e-12)
