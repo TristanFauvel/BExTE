@@ -54,7 +54,7 @@ simulation_analysis <- function(env,
 
   results_dir <- paste0("./results/", env)
   outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
-  simulation_config <- read_config(system.file("conf/simulation_config.yml", package = "BExTE"), simulation_config_schema)
+  simulation_config <- read_simulation_config(system.file("conf/simulation_config.yml", package = "BExTE"))
 
   freq_filename <- paste0(results_dir,
                           "/",
@@ -117,7 +117,7 @@ simulation_analysis <- function(env,
     readr::write_csv(results_freq_df, freq_filename)
   }
   if ("frequentist_power_at_nominal_tie" %in% to_compute){
-    new_results_power_df <- frequentist_power_at_nominal_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, n_replicates = n_replicates)
+    new_results_power_df <- frequentist_power_at_nominal_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = run_in_parallel, n_replicates = n_replicates)
 
     updated_results_df <- results_freq_df %>%
       dplyr::anti_join(new_results_power_df, by = matching_columns)

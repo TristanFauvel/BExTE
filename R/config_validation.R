@@ -149,6 +149,55 @@ simulation_config_schema <- list(
 )
 
 
+#' Check that the decision threshold matches the credible interval level
+#'
+#' @description Models sampled by MCMC reject the null when the central
+#'   credible interval at `confidence_level` excludes it, and stop on any
+#'   other threshold. The other models reject it when the posterior
+#'   probability of benefit exceeds `critical_value`, and report the interval
+#'   separately. The two rules agree only when `critical_value` is
+#'   `(1 + confidence_level) / 2`. Any other pair would make some methods
+#'   report intervals that contradict their decisions, and would stop the
+#'   MCMC methods partway through a run, so it is refused up front.
+#'
+#' @param config The simulation configuration.
+#' @param context The name of the configuration, used in the error.
+#'
+#' @return No return value, called for side effects.
+#'
+#' @keywords internal
+check_decision_threshold <- function(config, context) {
+  implied_critical_value <- (1 + config$confidence_level) / 2
+  if (!isTRUE(all.equal(config$critical_value, implied_critical_value))) {
+    stop(paste0(
+      context, " is not valid: critical_value should be ",
+      "(1 + confidence_level) / 2 = ", format(implied_critical_value),
+      " so that the test decision agrees with the credible interval, but is ",
+      format(config$critical_value)
+    ), call. = FALSE)
+  }
+
+  invisible(NULL)
+}
+
+
+#' Read `simulation_config.yml` and validate it
+#'
+#' @description Checks the configuration against [simulation_config_schema],
+#'   then with [check_decision_threshold()].
+#'
+#' @param path Path to the YAML file.
+#'
+#' @return The parsed configuration.
+#'
+#' @keywords internal
+read_simulation_config <- function(path) {
+  config <- read_config(path, simulation_config_schema)
+  check_decision_threshold(config, path)
+  config
+}
+
+
 #' Schema for `mcmc_config.yml`
 #'
 #' @keywords internal
@@ -187,6 +236,10 @@ scenarios_config_schema <- list(
   sensitivity_reference = "named_numeric_list?",
   case_studies = "character_vector",
   methods = "character_vector",
+  # Optional. The analysis steps to run after the simulation, out of
+  # ANALYSIS_STEPS. Absent means all of them, so a config written before
+  # this key keeps its behaviour - see run_simulation_env().
+  analysis_steps = "character_vector?",
   # Optional. Restricts the sample size factors simulated for a given
   # case study, so a run need not take the cross product of every case
   # study with every factor - see simulation_frequentist_ocs(). Case

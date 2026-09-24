@@ -27,18 +27,22 @@ test_that("the subset names exactly the methods the paper's vs-TIE panels show",
     names(PAPER_VS_TIE_COMBINATIONS),
     c("pooling", "separate", "EB_PP", "RMP", "conditional_power_prior",
       "commensurate_power_prior", "commensurate_prior", "p_value_based_PP",
-      "NPP", "NPP_KL", "egidi_empirical_mixture")
+      "NPP", "NPP_KL", "egidi_empirical_mixture",
+      "test_then_pool_difference", "test_then_pool_equivalence")
   )
-  ## Test-then-pool and PDCCPP are deliberately absent from these panels.
-  expect_false("test_then_pool_equivalence" %in% names(PAPER_VS_TIE_COMBINATIONS))
-  expect_false("test_then_pool_difference" %in% names(PAPER_VS_TIE_COMBINATIONS))
+  ## The text draws its test-then-pool conclusions from these panels, so
+  ## both variants must be on them, with every setting.
+  expect_length(PAPER_VS_TIE_COMBINATIONS$test_then_pool_difference, 0)
+  expect_length(PAPER_VS_TIE_COMBINATIONS$test_then_pool_equivalence, 0)
+  ## PDCCPP is deliberately absent from these panels.
   expect_false("PDCCPP" %in% names(PAPER_VS_TIE_COMBINATIONS))
 })
 
 test_that("the parameter grids are thinned to their informative range", {
   ## RMP keeps the interior weights: w = 0 is the separate analysis and w = 1
   ## is pooling, both of which the panel already shows under their own names.
-  expect_equal(PAPER_VS_TIE_COMBINATIONS$RMP$prior_weight, seq(0.1, 0.9, by = 0.1))
+  expect_equal(PAPER_VS_TIE_COMBINATIONS$RMP$prior_weight,
+               c(0.1, 0.3, 0.5, 0.7, 0.9))
   expect_false(0 %in% PAPER_VS_TIE_COMBINATIONS$RMP$prior_weight)
   expect_false(1 %in% PAPER_VS_TIE_COMBINATIONS$RMP$prior_weight)
 
@@ -48,18 +52,19 @@ test_that("the parameter grids are thinned to their informative range", {
   )
 })
 
-test_that("the subset selects 26 combinations from a real results slice", {
+test_that("the subset selects 32 combinations from a real results slice", {
   df <- local_botox_slice()
 
   kept <- paper_vs_tie_subset(df)
   combinations <- unique(kept[, c("method", "parameters")])
 
-  ## 1 pooling + 1 separate + 1 EBPP + 9 RMP + 3 conditional PP
+  ## 1 pooling + 1 separate + 1 EBPP + 5 RMP + 3 conditional PP
   ## + 3 commensurate PP and 3 commensurate prior (the inverse-gamma priors
   ## of each) + 1 p-PP + 1 NPP + 1 empirical mixture prior, whose weight is
   ## selected rather than swept and so has a single combination, + 2 KL-
-  ## calibrated NPP, which keeps both of its discrepancy multipliers.
-  expect_equal(nrow(combinations), 26)
+  ## calibrated NPP, which keeps both of its discrepancy multipliers,
+  ## + 4 test-then-pool (difference) and 6 test-then-pool (equivalence).
+  expect_equal(nrow(combinations), 32)
   expect_lt(nrow(kept), nrow(df))
 })
 
@@ -68,8 +73,7 @@ test_that("the subset drops the methods the panel does not show", {
 
   kept <- paper_vs_tie_subset(df)
 
-  expect_false(any(kept$method %in% c("test_then_pool_equivalence",
-                                      "test_then_pool_difference", "PDCCPP")))
+  expect_false(any(kept$method == "PDCCPP"))
   expect_setequal(unique(kept$method), names(PAPER_VS_TIE_COMBINATIONS))
 })
 

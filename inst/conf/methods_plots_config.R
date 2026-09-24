@@ -6,9 +6,9 @@ methods_labels <<- list(
     label = "RMP"
   ),
   egidi_empirical_mixture = list(
-    full_name = "Empirical Mixture Prior",
+    full_name = "Empirical RMP",
     short_name = "egidi_empirical_mixture",
-    label = "Emp. mixture"
+    label = "Empirical RMP"
   ),
   separate = list(
     full_name = "Separate analysis",
