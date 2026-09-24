@@ -1587,8 +1587,8 @@ Model <- R6::R6Class(
                          ...) {
       x_values <- seq(xmin, xmax, length.out = resolution)
 
-      prior_pdf <- model$prior_pdf(x_values)
-      posterior_pdf <- model$posterior_pdf(x_values)
+      prior_pdf <- self$prior_pdf(x_values)
+      posterior_pdf <- self$posterior_pdf(x_values)
 
       df <- data.frame(x = x_values,
                        prior_pdf = prior_pdf,
@@ -1623,7 +1623,7 @@ Model <- R6::R6Class(
                               resolution = 100) {
       x_values <- seq(xmin, xmax, length.out = resolution)
 
-      prior_pdf <- model$prior_pdf(x_values)
+      prior_pdf <- self$prior_pdf(x_values)
 
       df <- data.frame(x = x_values, prior_pdf = prior_pdf)
 
@@ -1660,7 +1660,7 @@ Model <- R6::R6Class(
                                   resolution = 100) {
       x_values <- seq(xmin, xmax, length.out = resolution)
 
-      posterior_pdf <- model$posterior_pdf(x_values)
+      posterior_pdf <- self$posterior_pdf(x_values)
 
       df <- data.frame(x = x_values, posterior_pdf = posterior_pdf)
 
