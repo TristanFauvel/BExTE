@@ -38,7 +38,7 @@ test_that("table_target_sample_sizes lists one row per case study, as the two-ar
   })
 })
 
-test_that("table_case_study_summary reports the source and target arms, not the stale total field", {
+test_that("table_case_study_summary reports the source and target sizes as the sums of their arms", {
   withr::with_tempdir({
     path <- table_case_study_summary(c("botox", "aprepitant"), config_dir(), getwd())
 
@@ -57,13 +57,10 @@ test_that("table_case_study_summary reports the source and target arms, not the 
     ## Botox source: 235 control + 233 treatment = 468. Target: 130 + 126 = 256.
     expect_match(contents, "Botox & Placebo & [^&]* & [^&]* & 468 & [^&]* & [^&]* & 256")
 
-    ## Aprepitant source: 293 control + 280 treatment = 573 - this must come
-    ## from control + treatment, NOT from the YAML's `source.total: 673`
-    ## field, which is stale for aprepitant. Botox's own total (468) happens
-    ## to agree with control + treatment, so it can't catch this on its own;
-    ## aprepitant is the case where the two disagree.
-    expect_match(contents, "Aprepitant & Ondansetron & [^&]* & [^&]* & 573 & [^&]* & [^&]* & 107")
-    expect_false(grepl("673", contents, fixed = TRUE))
+    ## Aprepitant source: 280 control + 293 treatment = 573, the arms of the
+    ## adult trial as Jin et al. (2021) report them. Target: 52 + 57 = 109, the
+    ## 125 mg arm of Salman et al. (2019), not the 55 Jin et al. print.
+    expect_match(contents, "Aprepitant & Ondansetron & [^&]* & [^&]* & 573 & [^&]* & [^&]* & 109")
   })
 })
 

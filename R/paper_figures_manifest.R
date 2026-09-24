@@ -17,7 +17,8 @@
 #'   (R/simulation_scenarios.R): the total target sample size is the source
 #'   study's arm sizes summed and divided by the factor, and the per-arm size
 #'   is half of that, floored. Note this uses `control + treatment` rather than
-#'   the `total:` field, which is stale for aprepitant.
+#'   the `total:` field, which duplicates them and has drifted out of step
+#'   before (aprepitant's once read 673).
 #'
 #' @param case_study Case study name.
 #' @param factor Sample size factor.

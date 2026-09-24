@@ -22,5 +22,6 @@ Mirrors the arithmetic the simulation itself uses
 (R/simulation_scenarios.R): the total target sample size is the source
 study's arm sizes summed and divided by the factor, and the per-arm size
 is half of that, floored. Note this uses \code{control + treatment} rather than
-the \verb{total:} field, which is stale for aprepitant.
+the \verb{total:} field, which duplicates them and has drifted out of step
+before (aprepitant's once read 673).
 }
