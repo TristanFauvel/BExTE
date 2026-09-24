@@ -225,6 +225,67 @@ test_that("a failed fit's ESS and convergence diagnostics are excluded from the 
 })
 
 
+test_that("a failed fit's posterior parameters are excluded from the aggregates", {
+  with_parameters <- four_replicates_one_failed
+  with_parameters$posterior_parameters <- data.frame(
+    power_parameter = c(0.2, 0.4, 0.6, 1000)
+  )
+
+  result <- run_ocs_with_canned_results(with_parameters)
+
+  expect_equal(
+    result$posterior_parameters$power_parameter,
+    mean(c(0.2, 0.4, 0.6))
+  )
+  expect_lt(result$posterior_parameters$conf_int_upper_power_parameter, 1)
+})
+
+
+test_that("posterior parameter intervals follow the same sample-size rule as the rest", {
+  # 1000 usable replicates of 1200: at or above the 1000 the other intervals
+  # switch to the normal approximation at, far below the 10000 the posterior
+  # parameters used to wait for.
+  n_replicates <- 1200
+  successful <- rep(c(TRUE, FALSE), c(1000, 200))
+  power_parameter <- seq(0, 1, length.out = n_replicates)
+
+  results <- list(
+    fit_success = ifelse(successful, "Success", "Large rhat values: 1.5"),
+    test_decisions = rep(1, n_replicates),
+    posterior_means = rep(1, n_replicates),
+    posterior_medians = rep(1, n_replicates),
+    credible_intervals = matrix(rep(c(0, 3), each = n_replicates), ncol = 2),
+    posterior_parameters = data.frame(power_parameter = power_parameter),
+    ess_moments = rep(10, n_replicates),
+    ess_precisions = rep(5, n_replicates),
+    ess_elir = rep(1, n_replicates),
+    rhat = rep(1, n_replicates),
+    mcmc_ess = rep(500, n_replicates),
+    n_divergences = rep(0, n_replicates)
+  )
+
+  result <- run_ocs_with_canned_results(results)
+  expected <- Hmisc::smean.cl.normal(power_parameter[successful], conf.int = 0.95)
+
+  expect_equal(
+    unname(result$posterior_parameters$conf_int_lower_power_parameter),
+    unname(expected["Lower"])
+  )
+  expect_equal(
+    unname(result$posterior_parameters$conf_int_upper_power_parameter),
+    unname(expected["Upper"])
+  )
+})
+
+
+test_that("posterior parameters that do not line up with the replicates are an error", {
+  misaligned <- four_replicates_one_failed
+  misaligned$posterior_parameters <- data.frame(power_parameter = c(0.2, 0.4))
+
+  expect_error(run_ocs_with_canned_results(misaligned), "2 rows")
+})
+
+
 test_that("the ELIR ESS is unaffected by target-fit failures, as it does not depend on them", {
   result <- run_ocs_with_canned_results(four_replicates_one_failed)
 

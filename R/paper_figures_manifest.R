@@ -75,8 +75,8 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   EB_PP = list(),
   RMP = list(prior_weight = c(0.1, 0.3, 0.5, 0.7, 0.9)),
   conditional_power_prior = list(power_parameter = c(0.25, 0.5, 0.75)),
-  ## The three inverse-gamma heterogeneity priors; the half-normal ones are
-  ## not shown. Selecting on the family alone picks exactly those three. The
+  ## The inverse-gamma heterogeneity priors; the half-normal and Cauchy ones
+  ## are not shown. Selecting on the family alone picks exactly those. The
   ## same holds for the plain commensurate prior, which runs the same grid.
   commensurate_power_prior = list(`heterogeneity_prior.family` = "inverse_gamma"),
   commensurate_prior = list(`heterogeneity_prior.family` = "inverse_gamma"),
