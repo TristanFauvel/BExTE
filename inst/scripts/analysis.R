@@ -94,5 +94,5 @@ for (env in envs) {
 # results_freq_df <- readr::read_csv(paste0(results_dir, "/results_frequentist.csv"))
 # analyze_power_gains(results_freq_df, output_path = results_dir)
 # analyze_power_loss(results_freq_df, output_path = results_dir)
-# analyze_power_loss_inflated_tie(results_freq_df, output_path = results_dir)
-# analyze_noninflated_tie(results_freq_df, output_path = results_dir)
+# analyze_power_loss_inflated_tie(results_freq_df, output_path = results_dir, nominal_tie = analysis_config$nominal_tie)
+# analyze_noninflated_tie(results_freq_df, output_path = results_dir, nominal_tie = analysis_config$nominal_tie)
