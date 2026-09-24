@@ -1021,9 +1021,43 @@ write_stan_file_if_changed <- function(path, stan_model_code) {
     }
   }
 
-  writeLines(stan_model_code, con = path)
+  # Written beside the target and renamed over it, so a worker reading the
+  # file never sees it half-written and mistakes it for different code.
+  write_file_atomically(path, function(temporary) {
+    writeLines(stan_model_code, con = temporary)
+  })
 
   return(invisible(TRUE))
+}
+
+#' Create a file under a temporary name, then rename it into place
+#'
+#' A rename within one directory replaces the target in a single step, so a
+#' process reading or running the file sees either the old one or the new one,
+#' never a mixture. Several processes may do this at once: each writes its own
+#' temporary file, and whichever renames last wins.
+#'
+#' @param path Final path of the file.
+#' @param write Function of one argument, the temporary path, that creates the
+#'   file there.
+#'
+#' @return `path`, invisibly.
+#' @noRd
+write_file_atomically <- function(path, write) {
+  temporary <- file.path(
+    dirname(path),
+    paste0(basename(path), ".", Sys.getpid(), ".",
+           paste(sample(c(letters, 0:9), 8, replace = TRUE), collapse = ""),
+           ".tmp")
+  )
+  on.exit(unlink(temporary), add = TRUE)
+
+  write(temporary)
+  if (!file.rename(temporary, path)) {
+    stop("Could not move ", temporary, " to ", path, call. = FALSE)
+  }
+
+  invisible(path)
 }
 
 #' Draw a seed for one Stan sampler run
@@ -1128,8 +1162,8 @@ clear_stan_model_cache <- function(directory = stan_model_directory()) {
   invisible(cached)
 }
 
-compile_stan_model <- function(model_name, stan_model_code) {
-  stan_directory <- stan_model_directory()
+compile_stan_model <- function(model_name, stan_model_code,
+                               stan_directory = stan_model_directory()) {
   stan_model_file_path <- file.path(stan_directory, paste0(model_name, ".stan"))
   stan_exe_file_path <- file.path(stan_directory, paste0(model_name, ".exe"))
 
@@ -1141,15 +1175,28 @@ compile_stan_model <- function(model_name, stan_model_code) {
   executable_is_stale <- !file.exists(stan_exe_file_path) ||
     file.mtime(stan_exe_file_path) < file.mtime(stan_model_file_path)
 
-  # Always hand cmdstanr the model file, so that an executable left over from an
-  # earlier version of the code is rebuilt rather than silently reused. None of
-  # the models use reduce_sum or map_rect, so within-chain threading cannot
+  # An executable left over from an earlier version of the code is rebuilt
+  # rather than silently reused. Parallel workers that need a model before it
+  # is cached all build it, so each builds into a file of its own and renames
+  # it into place: built straight into the cached path, their copies
+  # interleaved into an executable that segfaulted on every fit. None of the
+  # models use reduce_sum or map_rect, so within-chain threading cannot
   # engage: building with STAN_THREADS would only make the autodiff stack
   # thread-local, which costs speed for no parallelism in return.
+  if (stan_file_changed || executable_is_stale) {
+    write_file_atomically(stan_exe_file_path, function(temporary) {
+      cmdstanr::cmdstan_model(stan_model_file_path,
+                              exe_file = temporary,
+                              force_recompile = TRUE,
+                              quiet = TRUE)
+    })
+  }
+
+  # Loaded without compiling: cmdstanr's own timestamp check would otherwise
+  # rebuild straight into the cached path again.
   stan_model <- cmdstanr::cmdstan_model(stan_model_file_path,
                                         exe_file = stan_exe_file_path,
-                                        force_recompile = stan_file_changed ||
-                                          executable_is_stale)
+                                        compile = FALSE)
 
   return(stan_model)
 }
