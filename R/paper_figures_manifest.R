@@ -210,6 +210,17 @@ paper_manifest_figures_vs_tie <- function() {
   )
 }
 
+## These PDFs are referenced by the manuscript but have no figure number in
+## the paper manifest. Keep separate ids so their outputs and failures are
+## visible during a replication run.
+paper_manifest_figures_unnumbered <- function() {
+  list(
+    manifest_vs_tie("X1", "Coverage versus type I error rate in the Botox case study, with 117 participants per arm and a partially consistent treatment effect.", "botox", 2, "coverage", "partially_consistent"),
+    manifest_vs_tie("X2", "Coverage versus type I error rate in the Mepolizumab case study, with 68 participants per arm and a partially consistent treatment effect.", "mepolizumab", 4, "coverage", "partially_consistent"),
+    manifest_forest("X3", "Coverage probability for the three principal treatment-effect scenarios in the Teriflunomide case study, with 123 participants per arm.", "teriflunomide", 6, "coverage")
+  )
+}
+
 ## S3, S4, S5 and S20 each have their own generator rather than sharing one of
 ## the two shapes above.
 paper_manifest_figures_special <- function() {
@@ -348,11 +359,10 @@ paper_manifest_tables <- function() {
 
 #' The paper figure and table manifest
 #'
-#' @description Every figure and generated table in the paper, in publication
-#'   order, each paired with the generator call that produces it. Table ids are
-#'   prefixed `TS` so they never collide with a figure of the same number -
-#'   figure S8 and table S8 are different objects, and only the figure is in
-#'   scope.
+#' @description Every figure and generated table in the paper, plus unnumbered
+#'   figures referenced by the manuscript, each paired with its generator.
+#'   Table ids are prefixed `TS` so they never collide with a figure of the
+#'   same number; unnumbered manuscript figures use `X` ids.
 #'
 #' @return A list of manifest entries.
 #'
@@ -362,11 +372,15 @@ paper_manifest <- function() {
     paper_manifest_figures_forest(),
     paper_manifest_figures_vs_tie(),
     paper_manifest_figures_special(),
+    paper_manifest_figures_unnumbered(),
     paper_manifest_tables()
   )
   order_key <- function(entry) {
     if (entry$kind == "table") {
       return(1000 + as.numeric(sub("^TS", "", entry$id)))
+    }
+    if (startsWith(entry$id, "X")) {
+      return(500 + as.numeric(sub("^X", "", entry$id)))
     }
     if (startsWith(entry$id, "S")) {
       return(100 + as.numeric(sub("^S", "", entry$id)))

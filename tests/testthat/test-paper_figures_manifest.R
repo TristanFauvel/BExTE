@@ -6,8 +6,8 @@
 test_that("the manifest covers every paper item exactly once", {
   ids <- paper_manifest_ids()
 
-  expect_length(ids, 49)
-  expect_length(unique(ids), 49)
+  expect_length(ids, 52)
+  expect_length(unique(ids), 52)
   expect_true(all(c("1", "2", "3", "4") %in% ids))
   expect_true(all(paste0("S", 3:37) %in% ids))
   ## S38-S44 are the interval-score figures added in revision.
@@ -15,6 +15,7 @@ test_that("the manifest covers every paper item exactly once", {
   ## Tables S2 and S4 are hand-authored in the manuscript.
   expect_true(all(c("TS1", "TS3", "TS5") %in% ids))
   expect_false(any(c("TS2", "TS4", "TS7", "TS8") %in% ids))
+  expect_true(all(c("X1", "X2", "X3") %in% ids))
   expect_true("S8" %in% ids)
 })
 
@@ -107,9 +108,23 @@ test_that("the added ids sort after the manuscript's own supplement", {
   ## paper_manifest() orders by the numeric part of the id, so an id that is
   ## not S<number> would sort as NA and land at the end silently.
   ids <- paper_manifest_ids()
-  figures <- ids[!startsWith(ids, "TS")]
+  figures <- ids[startsWith(ids, "S")]
 
   expect_equal(tail(figures, 7), paste0("S", 38:44))
+})
+
+test_that("unnumbered manuscript figures use their requested scenarios", {
+  expected <- list(
+    X1 = list(case_study = "botox", sample_size_factor = 2, metric = "coverage"),
+    X2 = list(case_study = "mepolizumab", sample_size_factor = 4, metric = "coverage"),
+    X3 = list(case_study = "teriflunomide", sample_size_factor = 6, metric = "coverage")
+  )
+  for (id in names(expected)) {
+    entry <- paper_manifest_entry(id)
+    expect_equal(entry$case_study, expected[[id]]$case_study)
+    expect_equal(entry$sample_size_factor, expected[[id]]$sample_size_factor)
+    expect_equal(entry$metric, expected[[id]]$metric)
+  }
 })
 
 test_that("paper_manifest_entry rejects an unknown id", {

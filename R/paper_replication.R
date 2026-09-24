@@ -416,7 +416,7 @@ paper_numbered_label <- function(entry) {
   }
 }
 
-## Copy each produced output into `numbered_dir` under its paper number.
+## Copy numbered outputs into `numbered_dir` under their paper numbers.
 ##
 ## The generators name their files after the scenario they plot, which is
 ## what makes them findable in a results directory and useless for reading
@@ -424,7 +424,8 @@ paper_numbered_label <- function(entry) {
 ## which file is figure S33. Figures are copied as PNG, the format that drops
 ## straight into a document; tables keep both the .tex the manuscript
 ## includes and the .pdf you look at. An item that produced nothing is
-## skipped, so a numbered file never claims a figure that was not drawn.
+## skipped, so a numbered file never claims a figure that was not drawn. The
+## unnumbered X figures keep only their descriptive filenames.
 paper_write_numbered_copies <- function(status, entries, numbered_dir) {
   dir.create(numbered_dir, showWarnings = FALSE, recursive = TRUE)
   labels <- vapply(entries, paper_numbered_label, character(1))
@@ -432,7 +433,8 @@ paper_write_numbered_copies <- function(status, entries, numbered_dir) {
 
   for (index in seq_len(nrow(status))) {
     row <- status[index, ]
-    if (!identical(row$status, "ok") || !nzchar(row$outputs)) {
+    if (startsWith(row$id, "X") || !identical(row$status, "ok") ||
+        !nzchar(row$outputs)) {
       next
     }
     produced <- trimws(strsplit(row$outputs, ";", fixed = TRUE)[[1]])
@@ -480,9 +482,9 @@ paper_write_numbered_copies <- function(status, entries, numbered_dir) {
 #' @param ids Manifest ids to produce.
 #' @param case_studies_config_dir Directory holding the case study YAMLs.
 #' @param progress Optional `function(index, total, id)` progress callback.
-#' @param numbered_dir Optional directory to copy each produced output into
-#'   under its paper number ("Figure 1.png", "Table S1.tex"). Figures are
-#'   copied as PNG, tables as both `.tex` and `.pdf`. `NULL` skips it.
+#' @param numbered_dir Optional directory for numbered copies ("Figure 1.png",
+#'   "Table S1.tex"). Numbered figures are copied as PNG, tables as both
+#'   `.tex` and `.pdf`. Unnumbered `X` figures are omitted. `NULL` skips it.
 #'
 #' @return A status data frame, invisibly.
 #'
@@ -643,12 +645,13 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
       if (is.null(numbered_dir)) {
         "No numbered copies were requested for this export."
       } else {
-        paste0("A copy of each produced output, named by its paper number ",
-               "(\"Figure 1.png\", \"Table S1.tex\"), is in ", numbered_dir, ".")
+        paste0("Copies of numbered outputs (\"Figure 1.png\", ",
+               "\"Table S1.tex\") are in ", numbered_dir, ".")
       },
       "",
       "Not produced here: tables S2 (methods and parameters) and S4",
       "(simulation configuration) are hand-authored in the manuscript.",
+      "Unnumbered manuscript figures X1-X3 retain their descriptive filenames.",
       "",
       paste0(sum(status$status == "ok"), " of ", nrow(status),
              " items produced successfully.")
