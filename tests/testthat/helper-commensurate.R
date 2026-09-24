@@ -83,15 +83,17 @@ commensurate_prior_fast_path_model <- function(heterogeneity_prior) {
 }
 
 # The heterogeneity priors the shipped configurations run, as listed in
-# inst/conf/commensurate_pp_config/methods_config.R.
+# inst/conf/full/methods_config.R; the last is the Cauchy(0, 30) on log(tau) of
+# Hobbs et al. (2011). The Cauchy(0, 10) is kept as a second scale, because the
+# quadrature sizes its log-Cauchy rule by the scale.
 commensurate_configured_priors <- function() {
   list(
     list(family = "inverse_gamma", alpha = 1 / 3, beta = 1),
     list(family = "inverse_gamma", alpha = 1 / 7, beta = 1),
-    list(family = "inverse_gamma", alpha = 1 / 1000, beta = 1),
     list(family = "half_normal", std_dev = 1),
     list(family = "half_normal", std_dev = 5),
-    list(family = "cauchy", location = 0, scale = 10)
+    list(family = "cauchy", location = 0, scale = 10),
+    list(family = "cauchy", location = 0, scale = 30)
   )
 }
 

@@ -8,9 +8,10 @@ test_that("commensurate Stan model updates borrowing parameters with target data
   )
   expect_match(
     stan_code,
-    "target_sampling_variance / NT\\s*\\+ 1 / tau\\s*\\+ prior_variance / \\(power_parameter \\* NS\\)",
+    "target_sampling_variance / NT\\s*\\+ inverse_tau\\s*\\+ prior_variance / a;",
     perl = TRUE
   )
+  expect_match(stan_code, "real a = power_parameter * NS;", fixed = TRUE)
 })
 
 
@@ -31,10 +32,35 @@ test_that("the commensurate prior's Stan model has no power parameter", {
   # The gamma == 1 forms of the two terms the power parameter appears in.
   expect_match(
     stan_code,
-    "target_sampling_variance / NT\\s*\\+ 1 / tau\\s*\\+ prior_variance / NS",
+    "target_sampling_variance / NT\\s*\\+ inverse_tau\\s*\\+ prior_variance / NS",
     perl = TRUE
   )
-  expect_match(stan_code, "real u = NS \\+ tau \\* prior_variance;", perl = TRUE)
+  expect_match(
+    stan_code,
+    "real u_over_tau = NS * inverse_tau + prior_variance;",
+    fixed = TRUE
+  )
+})
+
+
+test_that("both commensurate programs sample log(tau) and never form tau^2", {
+  # tau^2 overflows at log(tau) of about 354, which the inverse_gamma(1/1000, 1)
+  # prior reaches, and tau itself at about 709, beyond which a Cauchy(0, 30)
+  # prior on log(tau) puts about 3% of its mass. The model block therefore
+  # works in 1 / tau, and tau is only formed for the output.
+  model_block <- function(code) {
+    block <- sub("(?s).*?(model \\{.*?)generated quantities.*", "\\1", code, perl = TRUE)
+    gsub("//[^\n]*", "", block, perl = TRUE)
+  }
+
+  for (with_power_parameter in c(TRUE, FALSE)) {
+    stan_code <- commensurate_stan_code(with_power_parameter)
+
+    expect_match(stan_code, "real log_tau;", fixed = TRUE)
+    expect_match(stan_code, "real tau = exp(log_tau);", fixed = TRUE)
+    expect_false(grepl("real<lower=0> tau", stan_code, fixed = TRUE))
+    expect_false(grepl("\\btau(\\^|2|\\s*\\*)", model_block(stan_code), perl = TRUE))
+  }
 })
 
 

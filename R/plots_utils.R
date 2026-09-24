@@ -235,7 +235,7 @@ make_labels_from_parameters <- function(parameter, method) {
     } else if (parameter$family == "inverse_gamma"){
       label <- paste0("$\\tau^2 \\sim IG(\\alpha = ", prior_value("alpha"), ", \\beta = ", prior_value("beta"), ")$")
     } else if (parameter$family == "cauchy"){
-      label <- paste0("$\\log \\tau \\sim Cauchy(x_0 = ", prior_value("location"), ", \\gamma = ", prior_value("scale"), ")$")
+      label <- paste0("$\\log \\tau \\sim Cauchy(", prior_value("location"), ", ", prior_value("scale"), ")$")
     } else {
       stop("Heterogeneity prior family not implemented.")
     }

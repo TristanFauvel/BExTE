@@ -135,7 +135,7 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
 })
 
 
-test_that("the fast path parts from Stan only where the moments diverge", {
+test_that("both paths report a tau moment that does not exist as infinite", {
   skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"
@@ -205,13 +205,13 @@ test_that("the fast path parts from Stan only where the moments diverge", {
 
   # E[tau] does not exist under an InvGamma(1/3, 1) prior on tau^2, and the
   # target marginal likelihood tends to a positive constant as tau grows, so
-  # the posterior does not restore it. The sampler still returns a number,
-  # because it only ever visits finitely many draws, but that number is a
-  # property of the run rather than of the posterior. The fast path says so.
+  # the posterior does not restore it. The sampler's draws would still give a
+  # finite mean, a property of the run rather than of the posterior, so both
+  # paths report the moment as infinite instead.
   expect_true(all(is.infinite(
     vectorised$posterior_parameters$heterogeneity_parameter_mean
   )))
-  expect_true(all(is.finite(
+  expect_true(all(is.infinite(
     scalar$posterior_parameters$heterogeneity_parameter_mean
   )))
 })
