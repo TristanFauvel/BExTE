@@ -113,7 +113,17 @@ plot_metric_vs_ess <- function(results_metrics_df,
   ess_label <- ess_method$label
 
 
-  plt <- ggplot(results_df, aes(x = !!ess_name)) +
+  plt <- ggplot(results_df, aes(x = !!ess_name))
+
+  if (metric$name == "mse" && ess_method$name == "ess_moment") {
+    plt <- plt + geom_vline(
+      xintercept = target_sample_size_per_arm,
+      color = "black",
+      linetype = "dashed"
+    )
+  }
+
+  plt <- plt +
     geom_point(aes(
       y = !!metric_name,
       color = as.factor(method),
@@ -127,15 +137,6 @@ plot_metric_vs_ess <- function(results_metrics_df,
       ),
       width = y_cap_size
     ) +
-    geom_errorbarh(
-      aes(
-        xmin = !!ess_uncertainty_lower,
-        xmax = !!ess_uncertainty_upper,
-        y = !!metric_name,
-        color = as.factor(method)
-      ),
-      height = x_cap_size
-    ) +
     ggplot2::labs(
       title = plot_title,
       x = ess_label,
@@ -145,6 +146,19 @@ plot_metric_vs_ess <- function(results_metrics_df,
       shape = "Methods" # Title for the shape legend
     )
 
+  # MSE-versus-ESS panels show uncertainty only in the MSE estimate.
+  if (metric$name != "mse") {
+    plt <- plt + geom_errorbarh(
+      aes(
+        xmin = !!ess_uncertainty_lower,
+        xmax = !!ess_uncertainty_upper,
+        y = !!metric_name,
+        color = as.factor(method)
+      ),
+      height = x_cap_size
+    )
+  }
+
   ## Keyed by method, not by position among the methods this figure happens to
   ## contain: viridis_d and the default shape scale both hand out their values
   ## in level order, so a case study missing a method recoloured every method
@@ -153,13 +167,34 @@ plot_metric_vs_ess <- function(results_metrics_df,
     scale_color_manual(values = method_hue_map(results_df$method), name = "Methods") +
     scale_shape_manual(values = method_shape_map(results_df$method), name = "Methods")
 
+  if (metric$name == "mse") {
+    plt <- plt +
+      guides(
+        color = guide_legend(ncol = 5, byrow = TRUE),
+        shape = guide_legend(ncol = 5, byrow = TRUE)
+      )
+  }
+
   # Save plot
   plot.size <- set_size(textwidth)
   fig_width_in <- plot.size[1]
   fig_height_in <- plot.size[2]
 
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
+  if (metric$name == "mse") {
+    fig_width_in <- fig_width_in * 1.35
+    fig_height_in <- fig_height_in + 1.7
+  }
+
+  legend_theme <- if (metric$name == "mse") {
+    theme(legend.position = "bottom", legend.title.position = "top")
+  } else {
+    NULL
+  }
+
+  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf",
+               theme_extra = legend_theme)
+  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png",
+               theme_extra = legend_theme)
 }
 
 
