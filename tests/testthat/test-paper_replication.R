@@ -565,3 +565,75 @@ test_that("export_paper_outputs publishes the free variables the drift plots rea
 
   expect_false(exists("case_studies_config_dir", envir = .GlobalEnv, inherits = FALSE))
 })
+
+test_that("a paper run computes only the analyses the figures read", {
+  requirements <- paper_replication_requirements(paper_manifest_ids(), config_dir())
+
+  ## The generators read results_frequentist.csv alone, with the two power
+  ## baselines the drift figures compare against. The sweet spot and the
+  ## Bayesian OCs are read by nothing in the manifest, and in the 17 September
+  ## paper run they took longer than the simulations.
+  expect_setequal(
+    requirements$analysis_steps,
+    c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie")
+  )
+  expect_true(all(requirements$analysis_steps %in% ANALYSIS_STEPS))
+})
+
+test_that("a run that skipped a power baseline is short of the paper", {
+  requirements <- paper_replication_requirements(paper_manifest_ids(), config_dir())
+
+  skipped <- requirements
+  skipped$analysis_steps <- "frequentist_power_at_nominal_tie"
+  shortfalls <- paper_config_shortfalls(skipped, requirements)
+  expect_true(any(grepl("frequentist_power_at_equivalent_tie", shortfalls)))
+
+  ## A config without the key ran every step, which includes both.
+  every_step <- requirements
+  every_step$analysis_steps <- NULL
+  expect_equal(paper_config_shortfalls(every_step, requirements), character(0))
+})
+
+test_that("a binomial-likelihood case study is simulated at 1000 replicates", {
+  requirements <- paper_replication_requirements(paper_manifest_ids(), config_dir())
+
+  ## Aprepitant's binomial likelihood is fitted by MCMC for the conditional
+  ## power prior, replicate by replicate; every other case study uses a normal
+  ## likelihood and keeps the paper's 10000.
+  expect_equal(case_study_n_replicates(requirements, "aprepitant"), 1000)
+  for (case_study in setdiff(requirements$case_studies, "aprepitant")) {
+    expect_equal(case_study_n_replicates(requirements, case_study), 10000,
+                 info = case_study)
+  }
+})
+
+test_that("a case study analysed under the normal approximation keeps 10000", {
+  withr::with_tempdir({
+    case_study <- yaml::read_yaml(file.path(config_dir(), "aprepitant.yml"))
+    case_study$summary_measure_likelihood <- "normal"
+    dir.create("case_studies")
+    for (file in list.files(config_dir(), pattern = "\\.yml$")) {
+      file.copy(file.path(config_dir(), file), file.path("case_studies", file))
+    }
+    yaml::write_yaml(case_study, file.path("case_studies", "aprepitant.yml"))
+
+    requirements <- paper_replication_requirements(
+      paper_manifest_ids(), "case_studies/"
+    )
+    expect_equal(case_study_n_replicates(requirements, "aprepitant"), 10000)
+  })
+})
+
+test_that("a run with too few replicates for one case study is short", {
+  requirements <- paper_replication_requirements(paper_manifest_ids(), config_dir())
+
+  short <- requirements
+  short$case_study_n_replicates <- list(aprepitant = 100)
+  shortfalls <- paper_config_shortfalls(short, requirements)
+  expect_true(any(grepl("aprepitant", shortfalls)))
+
+  ## More replicates than required is only a tighter Monte Carlo error.
+  generous <- requirements
+  generous$case_study_n_replicates <- NULL
+  expect_equal(paper_config_shortfalls(generous, requirements), character(0))
+})

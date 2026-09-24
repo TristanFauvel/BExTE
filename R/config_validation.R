@@ -244,7 +244,10 @@ scenarios_config_schema <- list(
   # case study, so a run need not take the cross product of every case
   # study with every factor - see simulation_frequentist_ocs(). Case
   # studies absent from it keep the full sample_size_factors.
-  case_study_sample_size_factors = "named_numeric_list?"
+  case_study_sample_size_factors = "named_numeric_list?",
+  # Optional. Overrides n_replicates for a given case study - see
+  # case_study_n_replicates(). Case studies absent from it keep n_replicates.
+  case_study_n_replicates = "named_numeric_list?"
 )
 
 
