@@ -58,12 +58,21 @@ simulates only those, at the paper's fidelity, and exports the outputs:
   power baselines at the equivalent and at the nominal type I error rate. The
   sweet spot and the Bayesian operating characteristics are skipped.
 
-**Run time.** On a 12-core, 32 GB workstation, the simulations for the five
-normal-likelihood case studies (botox, belimumab, dapagliflozin, mepolizumab,
-teriflunomide) took about 9 hours, and the two analysis steps about 1 hour
-more. Aprepitant comes on top of that, at 1,000 replicates, and its run time
-has not been measured yet. A subset takes less, roughly in proportion to the
-case studies it involves. Run it inside `tmux`/`screen` or with `nohup`, so
+**Run time.** Measured on a 12-core, 32 GB workstation:
+
+- The five normal-likelihood case studies (botox, belimumab, dapagliflozin,
+  mepolizumab, teriflunomide): about 9 hours of simulation at 10,000
+  replicates, then about 1 hour for the two analysis steps.
+- Aprepitant, by far the most expensive: about 9.5 hours at only 100
+  replicates. Most of it goes to the methods that fit the binomial likelihood
+  by MCMC: the RMP, the p-value-based power prior, the conditional power prior
+  and test-then-pool. At the paper's 1,000 replicates, allow for up to ten
+  times as long, several days on such a machine. It can be less, because a
+  replicate that happens to reproduce a dataset already analysed reuses that
+  analysis, and binary outcomes repeat often.
+
+To reproduce everything except aprepitant, leave out Figures S33–S37 and S41
+when listing the outputs. Run it inside `tmux`/`screen` or with `nohup`, so
 that closing the terminal does not kill it:
 
 ```sh
