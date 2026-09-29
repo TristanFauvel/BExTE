@@ -1,4 +1,14 @@
 # BExTE 0.0.2
+* The frequentist baselines (power of the separate and pooled analyses, at
+  the nominal and at the equivalent type I error) are now simulated for
+  Mepolizumab, as for every endpoint that is not continuous. They used to be
+  computed in closed form, although Mepolizumab's trials are generated patient
+  by patient from a negative binomial with the standard error re-estimated in
+  each one. The simulated baselines also leave out replicates whose summary
+  measure is not estimable (an arm with no event), as the Bayesian operating
+  characteristics already did; one such replicate used to make the whole
+  simulated power NA. Rerun the analysis steps to update Mepolizumab's
+  baselines.
 * New borrowing method `egidi_empirical_mixture`, the data-dependent mixture
   prior of Egidi, Pauli and Torelli. It reuses the robust mixture prior's two
   components unchanged and selects the mixture weight from each replicate's own

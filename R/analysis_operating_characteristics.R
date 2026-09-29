@@ -5,16 +5,43 @@
 #'   Sharing the predicate keeps the power computation and the propagation of
 #'   its uncertainty on the same branch.
 #'
+#'   Recurrent events are simulated too. Mepolizumab used to be priced in
+#'   closed form, but its trials are generated patient by patient from a
+#'   negative binomial and the standard error is re-estimated in each one, so
+#'   the closed form assumed a test the Bayesian methods were never compared
+#'   against.
+#'
 #' @param target_data Target data object.
-#' @param case_study Optional case-study name.
 #'
 #' @return `TRUE` when power has a closed form for this target data.
 #'
 #' @keywords internal
-uses_analytical_power <- function(target_data, case_study = NULL) {
+uses_analytical_power <- function(target_data) {
   target_data$endpoint == "normal" ||
-    target_data$endpoint == "continuous" ||
-    isTRUE(case_study == "mepolizumab")
+    target_data$endpoint == "continuous"
+}
+
+
+#' Drop the replicates whose summary measure is not estimable
+#'
+#' @description A trial whose summary measure is not estimable - a
+#'   recurrent-event arm with no event, or a Cox fit that does not exist - has
+#'   no p-value. The Bayesian operating characteristics leave such replicates
+#'   out of their denominator (see `Model`), and the simulated frequentist
+#'   baselines do the same, so that both are computed on the same trials.
+#'
+#' @param samples Replicates returned by the target data's `generate()`.
+#'
+#' @return The estimable rows of `samples`.
+#'
+#' @keywords internal
+estimable_replicates <- function(samples) {
+  estimable <- is.finite(samples$treatment_effect_estimate) &
+    is.finite(samples$standard_deviation)
+  if (!any(estimable)) {
+    stop("No simulated trial has an estimable summary measure.", call. = FALSE)
+  }
+  samples[estimable, , drop = FALSE]
 }
 
 
@@ -48,7 +75,7 @@ simulate_test_p_values <- function(target_data,
 
   # Estimate the frequentist OCs for the model in the scenario considered
   # Generate data for n_replicates clinical trials
-  target_data_samples <- target_data$generate(n_replicates)
+  target_data_samples <- estimable_replicates(target_data$generate(n_replicates))
 
   p_values <- numeric(nrow(target_data_samples))
   for (r in seq_len(nrow(target_data_samples))) {
@@ -197,7 +224,7 @@ compute_freq_power <- function(alpha,
   power <- NA # Default value in case of an unsupported distribution
 
   if (target_data$summary_measure_likelihood == "normal") {
-    if (uses_analytical_power(target_data, case_study)) {
+    if (uses_analytical_power(target_data)) {
       power <- analytical_power(alpha, target_data, frequentist_test, theta_0, alternative)
 
       conf_int_power <- c(power, power)
@@ -368,7 +395,7 @@ compute_freq_power_pooling <- function(alpha,
   power <- NA # Default value in case of an unsupported distribution
 
   if (target_data$summary_measure_likelihood == "normal") {
-    if (target_data$endpoint == "normal"  || target_data$endpoint == "continuous"  || case_study == "mepolizumab"){
+    if (uses_analytical_power(target_data)) {
       target_treatment_effect_standard_error <- target_data$standard_deviation / sqrt(target_data$sample_size_per_arm)
 
       pooled_treatment_effect <- (
@@ -421,9 +448,9 @@ compute_freq_power_pooling <- function(alpha,
 
       # Estimate the frequentist OCs for the model in the scenario considered
       # Generate data for n_replicates clinical trials
-      target_data_samples <- target_data$generate(n_replicates)
+      target_data_samples <- estimable_replicates(target_data$generate(n_replicates))
 
-      test_decisions <- numeric(n_replicates)
+      test_decisions <- numeric(nrow(target_data_samples))
       for (r in seq_len(nrow(target_data_samples))) {
         target_data$sample <- target_data_samples[r, , drop = FALSE]
 
@@ -590,7 +617,7 @@ compute_power_with_tie_ci <- function(alpha,
     return(missing_result)
   }
 
-  if (uses_analytical_power(target_data, case_study)) {
+  if (uses_analytical_power(target_data)) {
     # Once per result row rather than once per sampled alpha - see
     # assert_target_data_numbers().
     assert_target_data_numbers(target_data)
