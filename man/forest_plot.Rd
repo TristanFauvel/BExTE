@@ -9,7 +9,9 @@ forest_plot(
   x_metric,
   panels = TRUE,
   palette = NULL,
-  relative_to_separate = FALSE
+  relative_to_separate = FALSE,
+  filename_suffix = "",
+  subtitle = NULL
 )
 }
 \arguments{
@@ -24,6 +26,12 @@ dark mode, or NULL for the publication figure.}
 bounds by the separate analysis's value in the same scenario, label the
 axis accordingly, and draw a reference line at 1. Used by supplementary
 figures S9, S14, S17, S27, S32 and S37.}
+
+\item{filename_suffix}{Appended to the generated filename, to keep apart
+plots of the same slice under different time-to-event designs (figures
+S45-S47), which would otherwise share one file.}
+
+\item{subtitle}{Optional line drawn above the panels.}
 
 \item{selected_case_study}{The selected case study.}
 

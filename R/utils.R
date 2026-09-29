@@ -29,6 +29,7 @@ frequentist_col_types <- cols(
   target_to_source_std_ratio = col_double(),
   dropout_probability = col_double(),
   event_time_distribution = col_character(),
+  treatment_delay = col_double(),
   theta_0 = col_double(),
   null_space = col_character(),
   summary_measure_likelihood = col_character(),
@@ -148,6 +149,7 @@ sweet_spot_col_types <- cols(
   target_to_source_std_ratio = col_double(),
   dropout_probability = col_double(),
   event_time_distribution = col_character(),
+  treatment_delay = col_double(),
   theta_0 = col_double(),
   null_space = col_character(),
   summary_measure_likelihood = col_character(),
@@ -171,7 +173,8 @@ sweet_spot_col_types <- cols(
 # results had already been written, and a results file that predates them
 # describes a single design, so keys built from one leave them out - see the
 # intersect() calls in the analysis.
-time_to_event_design_columns <- c("dropout_probability", "event_time_distribution")
+time_to_event_design_columns <- c("dropout_probability", "event_time_distribution",
+                                  "treatment_delay")
 
 # The columns that, together with the drift, identify one simulated scenario.
 # They are the key the analysis joins a method's results to the separate
@@ -179,13 +182,14 @@ time_to_event_design_columns <- c("dropout_probability", "event_time_distributio
 scenario_columns <- c("target_sample_size_per_arm", "control_drift", "source_denominator", "source_denominator_change_factor",
                       "case_study", "sampling_approximation", "source_treatment_effect_estimate",
                       "target_to_source_std_ratio", "dropout_probability", "event_time_distribution",
-                      "theta_0", "null_space",
+                      "treatment_delay", "theta_0", "null_space",
                       "summary_measure_likelihood", "source_standard_error", "source_sample_size_control",
                       "source_sample_size_treatment", "equivalent_source_sample_size_per_arm", "endpoint",
                       "source_control_rate", "source_treatment_rate")
 
 unique_scenario_columns <- c("case_study", "target_sample_size_per_arm", "source_denominator_change_factor",
-                      "target_to_source_std_ratio", "dropout_probability", "event_time_distribution")
+                      "target_to_source_std_ratio", "dropout_probability", "event_time_distribution",
+                      "treatment_delay")
 
 
 results_columns <- c("success_proba", "mcse_success_proba", "conf_int_success_proba_lower",
@@ -228,6 +232,7 @@ expected_colnames_scenario <- c(
   "target_to_source_std_ratio",
   "dropout_probability",
   "event_time_distribution",
+  "treatment_delay",
   "theta_0",
   "null_space"
 )

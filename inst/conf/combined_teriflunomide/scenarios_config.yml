@@ -32,6 +32,14 @@ dropout_probability:
 event_time_distribution:
     - exponential
     - weibull
+# The whole grid is simulated under the primary design (no control-arm
+# heterogeneity, no loss to follow-up, exponential event times). The sensitivity
+# designs are simulated only at the trial size the paper's teriflunomide figures
+# use, so they still vary the drift over its full range without multiplying the
+# run by every sample size and source denominator as well.
+sensitivity_reference:
+    sample_size_factor: 6
+    denominator_change_factor: 1
 case_studies:
     - belimumab
     - botox

@@ -678,10 +678,15 @@ forest_combined_plot <- function(data,
 #'   bounds by the separate analysis's value in the same scenario, label the
 #'   axis accordingly, and draw a reference line at 1. Used by supplementary
 #'   figures S9, S14, S17, S27, S32 and S37.
+#' @param filename_suffix Appended to the generated filename, to keep apart
+#'   plots of the same slice under different time-to-event designs (figures
+#'   S45-S47), which would otherwise share one file.
+#' @param subtitle Optional line drawn above the panels.
 #'
 #' @return None
 forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL,
-                        relative_to_separate = FALSE) {
+                        relative_to_separate = FALSE, filename_suffix = "",
+                        subtitle = NULL) {
   close_device <- use_font_capable_device()
   on.exit(close_device(), add = TRUE)
 
@@ -729,7 +734,8 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
     if (relative_to_separate) "relative_" else "",
     x_metric,
     "_forest_plot_target_sample_size_per_arm_",
-    selected_target_sample_size_per_arm
+    selected_target_sample_size_per_arm,
+    filename_suffix
   )
 
   case_study <- unique(results_freq_df$case_study)
@@ -1060,6 +1066,25 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
     ## 1.0 they would start to touch.
     1.05 * label_height_in * nrow(no_effect_data) + 1.6
   )
+
+  if (!is.null(subtitle)) {
+    if (ggplot2::is.ggplot(plt)) {
+      plt <- plt + ggplot2::labs(subtitle = subtitle)
+    } else {
+      subtitle_grob <- grid::textGrob(
+        subtitle, x = grid::unit(0.5, "lines"), hjust = 0,
+        gp = grid::gpar(fontfamily = font, fontsize = small_text_size)
+      )
+      plt <- gridExtra::arrangeGrob(
+        subtitle_grob, plt, ncol = 1,
+        heights = grid::unit.c(
+          grid::grobHeight(subtitle_grob) + grid::unit(0.5, "lines"),
+          grid::unit(1, "null")
+        )
+      )
+      fig_height_in <- fig_height_in + 0.3
+    }
+  }
 
   if (is.null(palette)) {
     export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", forest_plot = TRUE)

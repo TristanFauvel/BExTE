@@ -14,6 +14,7 @@ upper_bound_proba_FP_MC(
   target_to_source_std_ratio,
   dropout_probability = 0,
   event_time_distribution = "exponential",
+  treatment_delay = 0,
   n_replicates,
   confidence_level,
   null_space,
@@ -43,6 +44,9 @@ time. Only used for the time-to-event endpoint.}
 
 \item{event_time_distribution}{Distribution of the event times, either "exponential" or
 "weibull". Only used for the time-to-event endpoint.}
+
+\item{treatment_delay}{Time before the treatment effect starts, in years.
+Only used for the time-to-event endpoint.}
 
 \item{n_replicates}{The number of replicates.}
 

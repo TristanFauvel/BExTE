@@ -25,13 +25,16 @@ methods_labels <<- list(
     short_name = "conditional_power_prior",
     label = "Conditional PP"
   ),
+  # Short in titles too, like the p-value based PP: the title also carries the
+  # heterogeneity prior, which runs long, and the spelt-out name pushed the
+  # sample size off the edge of the figure.
   commensurate_power_prior = list(
-    full_name = "Commensurate Power Prior",
+    full_name = "Com. PP",
     short_name = "commensurate_power_prior",
     label = "Com. PP"
   ),
   commensurate_prior = list(
-    full_name = "Commensurate Prior",
+    full_name = "Com. prior",
     short_name = "commensurate_prior",
     label = "Com. prior"
   ),

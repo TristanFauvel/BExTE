@@ -29,7 +29,8 @@ A factory class for creating different types of target data objects.
   summary_measure_likelihood,
   target_to_source_std_ratio = NULL,
   dropout_probability = 0,
-  event_time_distribution = "exponential"
+  event_time_distribution = "exponential",
+  treatment_delay = 0
 )}
     \if{html}{\out{</div>}}
   }
@@ -47,6 +48,8 @@ A factory class for creating different types of target data objects.
 maximum follow-up time. Only used for the time-to-event endpoint.}
       \item{\code{event_time_distribution}}{Distribution of the event times, either "exponential"
 or "weibull". Only used for the time-to-event endpoint.}
+      \item{\code{treatment_delay}}{Time before the treatment effect starts, in years.
+Only used for the time-to-event endpoint.}
     }
     \if{html}{\out{</div>}}
   }

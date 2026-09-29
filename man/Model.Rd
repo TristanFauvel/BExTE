@@ -686,6 +686,7 @@ computed via \code{posterior_to_RBesT()}/\code{prior_to_RBesT()}, which need
   target_to_source_std_ratio,
   dropout_probability = 0,
   event_time_distribution = "exponential",
+  treatment_delay = 0,
   simulation_config,
   case_study,
   method,
@@ -711,6 +712,8 @@ computed via \code{posterior_to_RBesT()}/\code{prior_to_RBesT()}, which need
 follow-up time. Only used for the time-to-event endpoint.}
       \item{\code{event_time_distribution}}{Distribution of the event times, either
 "exponential" or "weibull". Only used for the time-to-event endpoint.}
+      \item{\code{treatment_delay}}{Time before the treatment effect starts, in years.
+Only used for the time-to-event endpoint.}
       \item{\code{simulation_config}}{Simulation configuration}
       \item{\code{case_study}}{Case study name}
       \item{\code{method}}{Method name}

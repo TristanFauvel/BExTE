@@ -66,6 +66,13 @@ paper_replication_requirements <- function(ids, case_studies_config_dir) {
     methods = paper_required_methods(entries)
   )
 
+  ## The time-to-event sensitivity figures read designs the primary grid does
+  ## not simulate. They are asked for only when such a figure is selected,
+  ## and only at the sensitivity reference, one axis at a time.
+  if (any(vapply(entries, function(e) !is.null(e$design_axis), logical(1)))) {
+    requirements <- c(requirements, PAPER_TTE_SENSITIVITY)
+  }
+
   ## A binomial likelihood is analysed exactly, which for the conditional power
   ## prior means an MCMC fit per replicate; those case studies are run at a
   ## tenth of the replicates. The same case study under the normal
@@ -99,6 +106,39 @@ PAPER_ANALYSIS_STEPS <- c(
   "frequentist_power_at_equivalent_tie",
   "frequentist_power_at_nominal_tie"
 )
+
+## The time-to-event sensitivity designs the teriflunomide figures S45-S52
+## read, as scenarios_config keys. The levels mirror
+## inst/conf/combined/scenarios_config.yml. They are simulated only at
+## N_T/2 = 123 (sample size factor 6), the size the other teriflunomide
+## figures use, and one axis at a time: seven designs besides the primary
+## one, where crossing the axes would take fifty-three. The treatment delays
+## are 12 and 24 weeks, in years as every other time.
+PAPER_TTE_SENSITIVITY <- list(
+  control_drift_range = c(-0.405, 0, 0.405),
+  dropout_probability = c(0, 0.05, 0.10),
+  event_time_distribution = c("exponential", "weibull"),
+  treatment_delay = c(0, 0.230769, 0.461538),
+  sensitivity_reference = list(sample_size_factor = 6, denominator_change_factor = 1),
+  sensitivity_one_at_a_time = TRUE
+)
+
+## Which rows of a results frame are simulated under the primary
+## time-to-event design. A column the results do not carry, or NA in it, is
+## the primary value: results written before the axes existed, and every
+## other endpoint, only ever had that design.
+paper_primary_design_rows <- function(df) {
+  at_primary <- function(column, primary) {
+    if (!column %in% names(df)) {
+      return(rep(TRUE, nrow(df)))
+    }
+    is.na(df[[column]]) | df[[column]] == primary
+  }
+  at_primary("control_drift", 0) &
+    at_primary("dropout_probability", 0) &
+    at_primary("event_time_distribution", "exponential") &
+    at_primary("treatment_delay", 0)
+}
 
 ## The methods a set of manifest entries actually plots.
 ##
@@ -219,6 +259,23 @@ paper_config_shortfalls <- function(run_config, requirements) {
     }
   }
 
+  ## A config that set none of the sensitivity axes simulated the primary
+  ## design alone, so a figure that varies them would have nothing to plot.
+  if (!is.null(requirements$dropout_probability)) {
+    axes <- c("control_drift_range", "dropout_probability", "event_time_distribution",
+              "treatment_delay")
+    missing_axes <- Filter(function(axis) {
+      !all(as.character(requirements[[axis]]) %in%
+             as.character(unlist(run_config[[axis]])))
+    }, axes)
+    if (length(missing_axes) > 0) {
+      shortfalls <- c(shortfalls, sprintf(
+        "the time-to-event sensitivity designs were not simulated (%s)",
+        paste(missing_axes, collapse = ", ")
+      ))
+    }
+  }
+
   shortfalls
 }
 
@@ -288,6 +345,16 @@ paper_replication_coverage <- function(results_df, ids, case_studies_config_dir,
       return(data.frame(
         id = id, covered = FALSE,
         reason = paste0("no rows at ", per_arm, " per arm"),
+        stringsAsFactors = FALSE
+      ))
+    }
+
+    if (!is.null(entry$design_axis) &&
+          !any(slice[[entry$design_axis]] != TIME_TO_EVENT_AXES[[entry$design_axis]]$primary,
+               na.rm = TRUE)) {
+      return(data.frame(
+        id = id, covered = FALSE,
+        reason = paste0("no ", entry$design_axis, " sensitivity designs"),
         stringsAsFactors = FALSE
       ))
     }
@@ -449,6 +516,12 @@ paper_entry_context <- function(entry, results_df, results_dir, tables_dir,
     ,
     drop = FALSE
   ]
+  ## Every figure but the sensitivity ones is drawn under the primary
+  ## time-to-event design. None of the plot functions tells the designs
+  ## apart, so rows from the others would be pooled into its points.
+  if (is.null(entry$design_axis)) {
+    slice <- slice[paper_primary_design_rows(slice), , drop = FALSE]
+  }
   if (nrow(slice) == 0) {
     stop(
       "No rows for ", entry$case_study, " at ", per_arm,

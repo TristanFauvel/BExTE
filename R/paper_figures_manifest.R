@@ -327,6 +327,197 @@ paper_manifest_figures_special <- function() {
   )
 }
 
+## ---- Time-to-event sensitivity figures (S45-S52) ---------------------
+##
+## Added in revision, like S38-S44, with captions written here. S45-S50 show
+## how the number of events - moved by loss to follow-up, by Weibull rather
+## than exponential event times, and by control-arm heterogeneity - changes the
+## operating characteristics of each prior in the Teriflunomide case study.
+## S51-S52 depart from proportional hazards: the treatment effect starts only
+## after a delay, which the Cox analysis does not model. The scenario's
+## treatment effect is then the Cox model's large-sample limit, so drift and
+## the null hypothesis keep their meaning (see time_to_event_delayed_log_hr()).
+## Each varies one axis with the other two at their primary value; the run
+## simulates them at N_T/2 = 123 only (see PAPER_TTE_SENSITIVITY).
+
+## The metrics the sensitivity forest plots (S45-S47) and drift curves
+## (S48-S50) draw.
+PAPER_TTE_FOREST_METRICS <- c("success_proba", "mse", "coverage")
+PAPER_TTE_DRIFT_METRICS <- c("success_proba", "mse")
+
+## One setting per method for the drift curves, which draw a single line per
+## level of the axis and so cannot show a parameter grid as well. These are
+## the methods configs' important values. A method mapped to an empty list has
+## a single combination; a method absent from this list is not drawn.
+PAPER_TTE_SENSITIVITY_COMBINATIONS <- list(
+  separate = list(),
+  pooling = list(),
+  EB_PP = list(),
+  PDCCPP = list(),
+  egidi_empirical_mixture = list(),
+  RMP = list(prior_weight = 0.5),
+  conditional_power_prior = list(power_parameter = 0.5),
+  p_value_based_PP = list(shape_parameter = 1, equivalence_margin = 0.5),
+  NPP = list(power_parameter_mean = 0.5, power_parameter_std = 0.2),
+  commensurate_power_prior = list(
+    `heterogeneity_prior.family` = "inverse_gamma", `heterogeneity_prior.alpha` = 1 / 7
+  ),
+  commensurate_prior = list(
+    `heterogeneity_prior.family` = "inverse_gamma", `heterogeneity_prior.alpha` = 1 / 7
+  ),
+  test_then_pool_difference = list(significance_level = 0.1),
+  test_then_pool_equivalence = list(significance_level = 0.5, equivalence_margin = 0.5)
+)
+
+## The parameter combination PAPER_TTE_SENSITIVITY_COMBINATIONS picks for one
+## method out of the rows of a results frame, as a one-row data frame, or NULL
+## when the method is not drawn or the run did not simulate that setting.
+## Numbers are compared with a tolerance: the results' JSON keeps four
+## decimals, so 1/7 comes back as 0.1429.
+paper_tte_parameters <- function(df, method) {
+  spec <- PAPER_TTE_SENSITIVITY_COMBINATIONS[[method]]
+  if (is.null(spec)) {
+    return(NULL)
+  }
+  params <- unique(get_parameters(df[df$method == method, "parameters", drop = FALSE]))
+  keep <- rep(TRUE, nrow(params))
+  for (column in names(spec)) {
+    if (!column %in% names(params)) {
+      return(NULL)
+    }
+    value <- spec[[column]]
+    keep <- keep & if (is.numeric(value)) {
+      abs(suppressWarnings(as.numeric(params[[column]])) - value) < 1e-4
+    } else {
+      params[[column]] == value
+    }
+  }
+  keep[is.na(keep)] <- FALSE
+  if (!any(keep)) {
+    return(NULL)
+  }
+  params[which(keep)[1], , drop = FALSE]
+}
+
+## How one level of a sensitivity axis is named in filenames and subtitles.
+paper_tte_level_suffix <- function(axis, level) {
+  switch(axis,
+    dropout_probability = paste0("_dropout=", level),
+    event_time_distribution = paste0("_", level),
+    control_drift = paste0("_control_drift=", level),
+    treatment_delay = paste0("_delay=", round(52 * level), "w")
+  )
+}
+
+paper_tte_level_label <- function(axis, level) {
+  switch(axis,
+    dropout_probability = sprintf("Loss to follow-up %g%%", 100 * level),
+    event_time_distribution = paste(tools::toTitleCase(level), "event times"),
+    control_drift = sprintf("Control-arm heterogeneity %+g", level),
+    treatment_delay = if (level == 0) {
+      "Proportional hazards"
+    } else {
+      sprintf("Treatment effect delayed by %d weeks", round(52 * level))
+    }
+  )
+}
+
+manifest_tte_forest <- function(id, caption, axis) {
+  list(
+    id = id, kind = "figure", caption = caption,
+    case_study = "teriflunomide", sample_size_factor = 6,
+    metric = "success_proba", design_axis = axis,
+    needs = "frequentist",
+    ## Every method is drawn on this plot, so a selection cannot narrow it.
+    methods = "all",
+    generator = function(ctx) {
+      df <- ctx$df[time_to_event_varies_only(ctx$df, axis), , drop = FALSE]
+      levels <- sort(unique(df[[axis]]))
+      if (length(levels) < 2) {
+        stop("No ", axis, " sensitivity designs at ",
+             ctx$target_sample_size_per_arm, " per arm.")
+      }
+      case_config <- yaml::read_yaml(
+        file.path(ctx$case_studies_config_dir, "teriflunomide.yml")
+      )
+      for (level in levels) {
+        design <- list(control_drift = 0, dropout_probability = 0,
+                       event_time_distribution = "exponential",
+                       treatment_delay = 0)
+        design[[axis]] <- level
+        events <- time_to_event_expected_events(
+          case_config, ctx$target_sample_size_per_arm,
+          control_drift = design$control_drift,
+          dropout_probability = design$dropout_probability,
+          event_time_distribution = design$event_time_distribution,
+          treatment_delay = design$treatment_delay
+        )
+        subtitle <- sprintf(
+          "%s: about %.0f control and %.0f treatment events expected (consistent effect)",
+          paper_tte_level_label(axis, level), events[["control"]], events[["treatment"]]
+        )
+        for (metric in PAPER_TTE_FOREST_METRICS) {
+          forest_plot(
+            df[df[[axis]] == level, , drop = FALSE], metric,
+            filename_suffix = paper_tte_level_suffix(axis, level),
+            subtitle = subtitle
+          )
+        }
+      }
+    }
+  )
+}
+
+manifest_tte_drift <- function(id, caption, axis) {
+  list(
+    id = id, kind = "figure", caption = caption,
+    case_study = "teriflunomide", sample_size_factor = 6,
+    metric = "success_proba", design_axis = axis,
+    needs = "frequentist",
+    methods = "all",
+    generator = function(ctx) {
+      for (method in intersect(names(PAPER_TTE_SENSITIVITY_COMBINATIONS),
+                               unique(ctx$df$method))) {
+        parameters <- paper_tte_parameters(ctx$df, method)
+        if (is.null(parameters)) {
+          next
+        }
+        for (metric in PAPER_TTE_DRIFT_METRICS) {
+          plot_metric_vs_drift(
+            metric = metric,
+            results_metrics_df = ctx$df,
+            theta_0 = ctx$theta_0,
+            case_study = "teriflunomide",
+            method = method,
+            category = axis,
+            control_drift = FALSE,
+            target_sample_size_per_arm = ctx$target_sample_size_per_arm,
+            parameters_combinations = parameters,
+            xvars = xvars,
+            join_points = TRUE,
+            target_to_source_std_ratio = 1,
+            source_denominator_change_factor = 1,
+            analysis_config = ctx$analysis_config
+          )
+        }
+      }
+    }
+  )
+}
+
+paper_manifest_figures_tte_sensitivity <- function() {
+  list(
+    manifest_tte_forest("S45", "Probability of study success, MSE and coverage of the 95% credible interval for the three principal treatment-effect scenarios in the Teriflunomide case study (N_T/2 = 123), with 0%, 5% and 10% of patients lost to follow-up. One figure per level; the subtitle gives the expected number of events.", "dropout_probability"),
+    manifest_tte_forest("S46", "Probability of study success, MSE and coverage of the 95% credible interval for the three principal treatment-effect scenarios in the Teriflunomide case study (N_T/2 = 123), with exponential and Weibull event times. One figure per distribution; the subtitle gives the expected number of events.", "event_time_distribution"),
+    manifest_tte_forest("S47", "Probability of study success, MSE and coverage of the 95% credible interval for the three principal treatment-effect scenarios in the Teriflunomide case study (N_T/2 = 123), with a target placebo relapse rate two thirds of, equal to, and half again the source one. One figure per level; the subtitle gives the expected number of events.", "control_drift"),
+    manifest_tte_drift("S48", "Probability of study success and MSE versus treatment-effect drift for each method in the Teriflunomide case study (N_T/2 = 123), with 0%, 5% and 10% of patients lost to follow-up.", "dropout_probability"),
+    manifest_tte_drift("S49", "Probability of study success and MSE versus treatment-effect drift for each method in the Teriflunomide case study (N_T/2 = 123), with exponential and Weibull event times.", "event_time_distribution"),
+    manifest_tte_drift("S50", "Probability of study success and MSE versus treatment-effect drift for each method in the Teriflunomide case study (N_T/2 = 123), under control-arm heterogeneity of -0.405, 0 and 0.405 on the log hazard scale.", "control_drift"),
+    manifest_tte_forest("S51", "Probability of study success, MSE and coverage of the 95% credible interval for the three principal treatment-effect scenarios in the Teriflunomide case study (N_T/2 = 123), when the treatment effect starts 0, 12 or 24 weeks after randomisation. Under a delay, hazards are not proportional; the treatment effect is the large-sample limit of the Cox estimate. One figure per delay; the subtitle gives the expected number of events.", "treatment_delay"),
+    manifest_tte_drift("S52", "Probability of study success and MSE versus treatment-effect drift for each method in the Teriflunomide case study (N_T/2 = 123), when the treatment effect starts 0, 12 or 24 weeks after randomisation. Under a delay, hazards are not proportional; the treatment effect is the large-sample limit of the Cox estimate.", "treatment_delay")
+  )
+}
+
 ## Table numbers follow the revised supplement, in which the drift ranges and
 ## the target sample sizes were merged into table S1. Tables S2 (methods and
 ## parameters) and S4 (simulation configuration) are written by hand in the
@@ -381,6 +572,7 @@ paper_manifest <- function() {
     paper_manifest_figures_vs_tie(),
     paper_manifest_figures_special(),
     paper_manifest_figures_unnumbered(),
+    paper_manifest_figures_tte_sensitivity(),
     paper_manifest_tables()
   )
   order_key <- function(entry) {
