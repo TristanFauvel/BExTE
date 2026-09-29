@@ -231,6 +231,8 @@ reference:
   - simulation_frequentist_ocs
   - simulation_scenarios
   - run_simulation_env
+  - time_to_event_expected_events
+  - time_to_event_delayed_log_hr
 
 - title: Tables
 - contents:

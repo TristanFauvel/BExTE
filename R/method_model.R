@@ -1251,6 +1251,8 @@ Model <- R6::R6Class(
     #'   follow-up time. Only used for the time-to-event endpoint.
     #' @param event_time_distribution Distribution of the event times, either
     #'   "exponential" or "weibull". Only used for the time-to-event endpoint.
+    #' @param treatment_delay Time before the treatment effect starts, in years.
+    #'   Only used for the time-to-event endpoint.
     #' @param simulation_config Simulation configuration
     #' @param case_study Case study name
     #' @param method Method name
@@ -1269,6 +1271,7 @@ Model <- R6::R6Class(
                                                            target_to_source_std_ratio,
                                                            dropout_probability = 0,
                                                            event_time_distribution = "exponential",
+                                                           treatment_delay = 0,
                                                            simulation_config,
                                                            case_study,
                                                            method,
@@ -1297,7 +1300,8 @@ Model <- R6::R6Class(
           summary_measure_likelihood = case_study_config$summary_measure_likelihood,
           target_to_source_std_ratio = target_to_source_std_ratio,
           dropout_probability = dropout_probability,
-          event_time_distribution = event_time_distribution
+          event_time_distribution = event_time_distribution,
+          treatment_delay = treatment_delay
         )
 
 
@@ -1356,6 +1360,7 @@ Model <- R6::R6Class(
         target_to_source_std_ratio = target_to_source_std_ratio,
         dropout_probability = dropout_probability,
         event_time_distribution = event_time_distribution,
+        treatment_delay = treatment_delay,
         n_replicates = n_replicates,
         confidence_level = confidence_level,
         null_space = null_space,

@@ -180,7 +180,11 @@ plot_element_metric_vs_xvar <- function(plt,
 #' @param theta_0 The true treatment effect
 #' @param case_study The case study name
 #' @param method The method name
-#' @param category The category to group the results by (either "parameters" or "target_sample_size_per_arm")
+#' @param category The category to group the results by: "parameters",
+#'   "target_sample_size_per_arm", "source_denominator_change_factor",
+#'   "target_to_source_std_ratio", or one of the time-to-event design axes
+#'   "control_drift", "dropout_probability" and "event_time_distribution",
+#'   which hold the other two axes at their primary value.
 #' @param control_drift Logical indicating whether to filter results by control drift (TRUE) or treatment drift (FALSE)
 #' @param target_sample_size_per_arm The target sample size per arm
 #' @param parameters_combinations The combinations of parameters to filter the results by
@@ -219,8 +223,10 @@ plot_metric_vs_drift <- function(metric,
     results_metrics_df <- results_metrics_df %>% dplyr::filter(treatment_drift == 0)
     xvar <- xvars$control_drift
   } else {
-    # Remove non-zero control drift
-    results_metrics_df <- results_metrics_df %>% dplyr::filter(control_drift == 0)
+    # Remove non-zero control drift, unless it is the category being compared
+    if (category != "control_drift") {
+      results_metrics_df <- results_metrics_df %>% dplyr::filter(control_drift == 0)
+    }
     xvar <- xvars$drift
   }
 
@@ -291,6 +297,19 @@ plot_metric_vs_drift <- function(metric,
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor)
       )
+  } else if (category %in% names(TIME_TO_EVENT_AXES)) {
+    if (!category %in% colnames(results_df)) {
+      return()
+    }
+    results_df <- results_df %>%
+      dplyr::filter(
+        target_sample_size_per_arm == !!target_sample_size_per_arm,
+        source_denominator_change_factor == !!source_denominator_change_factor |
+          is.na(source_denominator_change_factor),
+        target_to_source_std_ratio == !!target_to_source_std_ratio |
+          is.na(target_to_source_std_ratio)
+      )
+    results_df <- results_df[time_to_event_varies_only(results_df, category), ]
   } else {
     stop("Category is not supported")
   }
@@ -315,6 +334,14 @@ plot_metric_vs_drift <- function(metric,
   } else if (category == "target_to_source_std_ratio") {
     results_df$label <- results_df$target_to_source_std_ratio
     labels_title <- latex2exp::TeX("$\\sigma_T/\\sigma_S$") # Ratio between target and source standard deviation
+  } else if (category %in% names(TIME_TO_EVENT_AXES)) {
+    format_level <- TIME_TO_EVENT_AXES[[category]]$format
+    results_df$label <- if (is.null(format_level)) {
+      results_df[[category]]
+    } else {
+      format_level(results_df[[category]])
+    }
+    labels_title <- TIME_TO_EVENT_AXES[[category]]$title
   } else {
     stop("Not implemented for this category")
   }
@@ -416,7 +443,11 @@ plot_metric_vs_drift <- function(metric,
   } else {
     case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
     source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
-    mandatory_drift_values <- sort(important_drift_values(source_treatment_effect_estimate, case_study_config))
+    # Not sorted: important_drift_values() returns the no-effect, partially
+    # consistent and consistent drifts in that order, which is the order of the
+    # labels below. Sorting reversed them for a negative source effect
+    # (teriflunomide, mepolizumab), putting "No effect" on the consistent drift.
+    mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
 
     mandatory_drift_values <- data.frame(
       drift_value = mandatory_drift_values,
@@ -594,6 +625,29 @@ plot_metric_vs_drift <- function(metric,
     )
 
     target_to_source_std_ratio <- NA
+  } else if (category %in% names(TIME_TO_EVENT_AXES)) {
+    title <- sprintf(
+        "%s, %s%s, $N_T/2 = $%s",
+        str_to_title(case_study),
+        methods_labels[[method]]$full_name,
+        parameters_label_title,
+        target_sample_size_per_arm
+      )
+
+    figure_name <- paste0(
+      case_study,
+      "_",
+      method,
+      "_",
+      selected_metric_name,
+      "_vs_",
+      xvar_name,
+      "_cat_",
+      category,
+      "_target_sample_size_per_arm=",
+      target_sample_size_per_arm,
+      parameters_str
+    )
   } else {
     stop("Not implemented for this category")
   }

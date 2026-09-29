@@ -441,3 +441,210 @@ test_that("a sensitivity reference outside the sample size factors is refused", 
     "never be simulated"
   )
 })
+
+
+test_that("one axis at a time keeps the primary design and five sensitivity designs", {
+  config_dir <- paste0(system.file("conf/combined_teriflunomide", package = "BExTE"), "/")
+  case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+  skip_if(!nzchar(config_dir) || !file.exists(paste0(config_dir, "scenarios_config.yml")))
+
+  scenarios_config <- read_config(
+    paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema
+  )
+  scenarios_config$case_studies <- "teriflunomide"
+  scenarios_config$methods <- "separate"
+
+  designs <- function(config) {
+    grid <- unwrap_scalar_list_columns(simulation_scenarios(
+      config_dir = config_dir,
+      scenarios_config = config,
+      case_studies_config_dir = case_studies_config_dir
+    ))
+    unique(grid[, c("control_drift", "dropout_probability", "event_time_distribution")])
+  }
+
+  # Crossed, every combination of the three axes: 3 x 3 x 2.
+  expect_equal(nrow(designs(scenarios_config)), 18)
+
+  scenarios_config$sensitivity_one_at_a_time <- TRUE
+  one_at_a_time <- designs(scenarios_config)
+  expect_equal(nrow(one_at_a_time), 6)
+  expect_true(all(time_to_event_axes_off_primary(
+    one_at_a_time$control_drift,
+    one_at_a_time$dropout_probability,
+    one_at_a_time$event_time_distribution
+  ) <= 1))
+})
+
+
+test_that("the expected number of events falls with loss to follow-up", {
+  config <- yaml::read_yaml(
+    system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
+  )
+  events <- vapply(c(0, 0.05, 0.10), function(dropout) {
+    sum(time_to_event_expected_events(config, 123, dropout_probability = dropout))
+  }, numeric(1))
+
+  expect_true(all(diff(events) < 0))
+  expect_true(all(events < 2 * 123))
+  # A higher control relapse rate gives more events.
+  expect_gt(
+    sum(time_to_event_expected_events(config, 123, control_drift = 0.405)),
+    events[1]
+  )
+})
+
+
+teriflunomide_design <- function() {
+  config <- yaml::read_yaml(
+    system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
+  )
+  config$target
+}
+
+
+test_that("under proportional hazards the Cox limit is the hazard ratio", {
+  target <- teriflunomide_design()
+  # Exponential and Weibull, with and without loss to follow-up: the limit
+  # does not depend on the censoring when hazards are proportional.
+  expect_equal(time_to_event_cox_limit(
+    0.534, "exponential", NULL, 0, -0.393,
+    target$accrual_period, target$final_follow_up, target$max_follow_up_time, 0
+  ), -0.393, tolerance = 1e-6)
+  scale <- weibull_control_scale(target$max_follow_up_time, target$weibull_shape,
+                                 target$weibull_relapse_free_probability)
+  expect_equal(time_to_event_cox_limit(
+    scale, "weibull", target$weibull_shape, 0, 0.3,
+    target$accrual_period, target$final_follow_up, target$max_follow_up_time, 0.1
+  ), 0.3, tolerance = 1e-6)
+})
+
+
+test_that("the post-delay hazard ratio reproduces the Cox estimand", {
+  target <- teriflunomide_design()
+  solve <- function(log_hr, delay) {
+    time_to_event_delayed_log_hr(
+      log_hr, 0.534, "exponential", NULL, delay,
+      target$accrual_period, target$final_follow_up, target$max_follow_up_time, 0
+    )
+  }
+
+  # No delay, or no effect: nothing to dilute.
+  expect_equal(solve(-0.393, 0), -0.393)
+  expect_equal(solve(0, 0.461538), 0)
+
+  for (delay in c(0.230769, 0.461538)) {
+    for (log_hr in c(-0.393, 0.2)) {
+      late <- solve(log_hr, delay)
+      # The delay dilutes the effect, so the late one is stronger.
+      expect_gt(abs(late), abs(log_hr))
+      expect_equal(sign(late), sign(log_hr))
+      expect_equal(time_to_event_cox_limit(
+        0.534, "exponential", NULL, delay, late,
+        target$accrual_period, target$final_follow_up, target$max_follow_up_time, 0
+      ), log_hr, tolerance = 1e-6)
+    }
+  }
+  # A longer delay needs a stronger late effect.
+  expect_lt(solve(-0.393, 0.461538), solve(-0.393, 0.230769))
+
+  expect_error(solve(-0.393, target$max_follow_up_time), "no follow-up")
+})
+
+
+test_that("a delayed arm keeps the control hazard until the delay", {
+  set.seed(3)
+  arm <- sample_time_to_event_arm(
+    n_subjects = 20000, n_replicates = 1, parameter = 0.5,
+    event_time_distribution = "exponential", weibull_shape = NULL,
+    accrual_period = 1, final_follow_up = 100, max_follow_up_time = 100,
+    dropout_rate = 0, delay = 1, late_log_hr = log(0.5)
+  )
+  time <- as.vector(arm$time)
+  # Before the delay the hazard is 0.5, so P(T < 1) = 1 - exp(-0.5); after it
+  # the hazard halves, so P(T > 3 | T > 1) = exp(-0.25 * 2).
+  expect_equal(mean(time < 1), 1 - exp(-0.5), tolerance = 0.02)
+  expect_equal(mean(time > 3) / mean(time > 1), exp(-0.5), tolerance = 0.02)
+})
+
+
+test_that("the delayed trial's Cox estimate is centred on the treatment effect", {
+  cfg <- yaml::read_yaml(
+    system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
+  )
+  source <- SourceData$new(case_study_config = cfg, source_denominator = cfg$source$control_rate)
+  set.seed(11)
+  target <- TargetDataFactory$new()$create(
+    source_data = source, case_study_config = cfg, target_sample_size_per_arm = 123,
+    treatment_drift = 0, control_drift = 0, summary_measure_likelihood = "normal",
+    treatment_delay = 0.461538
+  )
+  expect_lt(target$late_log_hr, target$treatment_effect)
+
+  estimates <- target$generate(1500)$treatment_effect_estimate
+  expect_lt(abs(mean(estimates) - target$treatment_effect),
+            4 * stats::sd(estimates) / sqrt(length(estimates)))
+})
+
+
+test_that("a delay is refused under the sampling approximation", {
+  cfg <- yaml::read_yaml(
+    system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
+  )
+  cfg$sampling_approximation <- TRUE
+  source <- SourceData$new(case_study_config = cfg, source_denominator = cfg$source$control_rate)
+  target <- TargetDataFactory$new()$create(
+    source_data = source, case_study_config = cfg, target_sample_size_per_arm = 123,
+    treatment_drift = 0, control_drift = 0, summary_measure_likelihood = "normal",
+    treatment_delay = 0.230769
+  )
+  expect_error(target$generate(10), "patient by patient")
+})
+
+
+test_that("the delay is a sensitivity axis, simulated one at a time", {
+  expect_false(is_primary_time_to_event_design(0, 0, "exponential", 0.230769))
+  expect_equal(time_to_event_axes_off_primary(0, 0, "exponential", 0.230769), 1L)
+
+  config_dir <- paste0(system.file("conf/combined", package = "BExTE"), "/")
+  case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+  scenarios_config <- read_config(
+    paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema
+  )
+  scenarios_config$case_studies <- c("teriflunomide", "botox")
+  scenarios_config$methods <- "separate"
+  grid <- unwrap_scalar_list_columns(simulation_scenarios(
+    config_dir = config_dir,
+    scenarios_config = scenarios_config,
+    case_studies_config_dir = case_studies_config_dir
+  ))
+
+  delayed <- grid[grid$treatment_delay > 0, ]
+  expect_setequal(unique(delayed$treatment_delay), c(0.230769, 0.461538))
+  expect_equal(unique(delayed$case_study), "teriflunomide")
+  expect_equal(unique(delayed$target_sample_size_per_arm), 123)
+  # Nothing else moves off the primary design alongside the delay.
+  expect_true(all(delayed$control_drift == 0 & delayed$dropout_probability == 0 &
+                    delayed$event_time_distribution == "exponential"))
+  # Seven sensitivity designs besides the primary one.
+  teriflunomide <- grid[grid$case_study == "teriflunomide" &
+                          grid$target_sample_size_per_arm == 123 &
+                          grid$source_denominator_change_factor == 1, ]
+  expect_equal(nrow(unique(teriflunomide[, c("control_drift", "dropout_probability",
+                                             "event_time_distribution", "treatment_delay")])), 8)
+})
+
+
+test_that("the expected number of treatment events falls with the delay", {
+  config <- yaml::read_yaml(
+    system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
+  )
+  events <- vapply(c(0, 0.230769, 0.461538), function(delay) {
+    time_to_event_expected_events(config, 123, treatment_delay = delay)[["treatment"]]
+  }, numeric(1))
+  # Matching the same Cox estimand needs a stronger effect after a longer
+  # delay, which removes more treatment-arm events than the delay adds.
+  expect_true(all(diff(events) < 0))
+  expect_equal(time_to_event_expected_events(config, 123, treatment_delay = 0.461538)[["control"]],
+               time_to_event_expected_events(config, 123)[["control"]])
+})

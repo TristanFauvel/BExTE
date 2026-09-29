@@ -6,12 +6,14 @@
 test_that("the manifest covers every paper item exactly once", {
   ids <- paper_manifest_ids()
 
-  expect_length(ids, 52)
-  expect_length(unique(ids), 52)
+  expect_length(ids, 60)
+  expect_length(unique(ids), 60)
   expect_true(all(c("1", "2", "3", "4") %in% ids))
   expect_true(all(paste0("S", 3:37) %in% ids))
   ## S38-S44 are the interval-score figures added in revision.
   expect_true(all(paste0("S", 38:44) %in% ids))
+  ## S45-S52 are the teriflunomide time-to-event sensitivity figures.
+  expect_true(all(paste0("S", 45:52) %in% ids))
   ## Tables S2 and S4 are hand-authored in the manuscript.
   expect_true(all(c("TS1", "TS3", "TS5") %in% ids))
   expect_false(any(c("TS2", "TS4", "TS7", "TS8") %in% ids))
@@ -110,7 +112,7 @@ test_that("the added ids sort after the manuscript's own supplement", {
   ids <- paper_manifest_ids()
   figures <- ids[startsWith(ids, "S")]
 
-  expect_equal(tail(figures, 7), paste0("S", 38:44))
+  expect_equal(tail(figures, 15), paste0("S", 38:52))
 })
 
 test_that("unnumbered manuscript figures use their requested scenarios", {
@@ -129,4 +131,49 @@ test_that("unnumbered manuscript figures use their requested scenarios", {
 
 test_that("paper_manifest_entry rejects an unknown id", {
   expect_error(paper_manifest_entry("S99"), "S99")
+})
+
+test_that("the sensitivity figures each vary one time-to-event axis at N_T/2 = 123", {
+  ids <- paper_manifest_ids()
+  expect_true(all(match(paste0("S", 45:52), ids) > match("S44", ids)))
+
+  axes <- vapply(paste0("S", 45:52), function(id) {
+    entry <- paper_manifest_entry(id)
+    expect_equal(entry$case_study, "teriflunomide")
+    expect_equal(entry$sample_size_factor, 6)
+    entry$design_axis
+  }, character(1))
+  expect_setequal(axes[1:3], c("dropout_probability", "event_time_distribution", "control_drift"))
+  expect_equal(unname(axes[4:6]), unname(axes[1:3]))
+  ## The delayed treatment effect: a forest plot and the drift curves.
+  expect_equal(unname(axes[7:8]), c("treatment_delay", "treatment_delay"))
+
+  ## No other entry reads the sensitivity designs.
+  others <- Filter(function(e) !e$id %in% paste0("S", 45:52), paper_manifest())
+  expect_true(all(vapply(others, function(e) is.null(e$design_axis), logical(1))))
+})
+
+test_that("each method's drift curve picks exactly the setting it names", {
+  json <- function(x) gsub("\"", "'", as.character(jsonlite::toJSON(list(list(x)), auto_unbox = FALSE)))
+  df <- data.frame(
+    method = c("RMP", "RMP", "commensurate_prior", "commensurate_prior", "separate"),
+    parameters = c(
+      json(list(prior_weight = 0.3, initial_prior = "noninformative")),
+      json(list(prior_weight = 0.5, initial_prior = "noninformative")),
+      json(list(heterogeneity_prior = list(family = "inverse_gamma", alpha = 1 / 3, beta = 1))),
+      json(list(heterogeneity_prior = list(family = "inverse_gamma", alpha = 1 / 7, beta = 1))),
+      json(list(initial_prior = "noninformative"))
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  expect_equal(as.numeric(paper_tte_parameters(df, "RMP")$prior_weight), 0.5)
+  expect_equal(
+    as.numeric(paper_tte_parameters(df, "commensurate_prior")$`heterogeneity_prior.alpha`),
+    1 / 7, tolerance = 1e-3
+  )
+  expect_equal(nrow(paper_tte_parameters(df, "separate")), 1)
+  ## A method with no chosen setting, or whose setting was not simulated.
+  expect_null(paper_tte_parameters(df, "NPP_KL"))
+  expect_null(paper_tte_parameters(df[df$method != "RMP" | grepl("0.3", df$parameters), ], "RMP"))
 })

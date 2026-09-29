@@ -2,7 +2,7 @@
 
 These steps rerun only the simulations that the paper's figures and tables
 need, not the full simulation study, and then produce those outputs under
-the numbers the manuscript uses (Figure 1–4, Figure S3–S44, Table S1, S3,
+the numbers the manuscript uses (Figure 1–4, Figure S3–S52, Table S1, S3,
 S5, and the extra figures X1–X3).
 
 ## 1. Install
@@ -70,6 +70,15 @@ simulates only those, at the paper's fidelity, and exports the outputs:
   times as long, several days on such a machine. It can be less, because a
   replicate that happens to reproduce a dataset already analysed reuses that
   analysis, and binary outcomes repeat often.
+
+- Figures S45–S52, the Teriflunomide time-to-event sensitivity analysis,
+  need seven extra designs at 123 participants per arm: 5% and 10% loss to
+  follow-up, Weibull event times, control-arm heterogeneity of ±0.405, and a
+  treatment effect delayed by 12 or 24 weeks (non-proportional hazards). Each
+  moves one axis away from the primary design. On a 12-core workstation, the
+  eight designs took about 15 minutes at 100 replicates, so expect up to a day
+  at the paper's 10,000. Leave S45–S52 out of the list to skip them. Selected
+  on their own, they need only this teriflunomide block.
 
 To reproduce everything except aprepitant, leave out Figures S33–S37 and S41
 when listing the outputs. Run it inside `tmux`/`screen` or with `nohup`, so

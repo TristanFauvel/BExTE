@@ -951,7 +951,7 @@ NOMINAL_TIE_DESIGN_COLUMNS <- c(
   "source_treatment_rate", "source_control_rate",
   "equivalent_source_sample_size_per_arm",
   "summary_measure_likelihood", "endpoint", "sampling_approximation",
-  "dropout_probability", "event_time_distribution"
+  "dropout_probability", "event_time_distribution", "treatment_delay"
 )
 
 

@@ -230,10 +230,15 @@ scenarios_config_schema <- list(
   control_drift_range = "numeric_vector?",
   dropout_probability = "numeric_vector?",
   event_time_distribution = "character_vector?",
+  treatment_delay = "numeric_vector?",
   # Optional. Restricts the sensitivity designs above to one sample size factor
   # and one source denominator change factor, instead of crossing them with the
   # whole grid - see time_to_event_sensitivity_reference().
   sensitivity_reference = "named_numeric_list?",
+  # Optional. When TRUE, a sensitivity design moves one of the axes above off
+  # its primary value at a time, rather than every combination of them - see
+  # time_to_event_axes_off_primary().
+  sensitivity_one_at_a_time = "flag?",
   case_studies = "character_vector",
   methods = "character_vector",
   # Optional. The analysis steps to run after the simulation, out of

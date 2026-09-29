@@ -174,6 +174,8 @@ average_power <- function(prepost_proba_TP,
 #'   time. Only used for the time-to-event endpoint.
 #' @param event_time_distribution Distribution of the event times, either "exponential" or
 #'   "weibull". Only used for the time-to-event endpoint.
+#' @param treatment_delay Time before the treatment effect starts, in years.
+#'   Only used for the time-to-event endpoint.
 #' @param n_replicates The number of replicates.
 #' @param confidence_level The confidence level.
 #' @param null_space The null space (either "left" or "right").
@@ -196,6 +198,7 @@ upper_bound_proba_FP_MC <- function(model,
                                     target_to_source_std_ratio,
                                     dropout_probability = 0,
                                     event_time_distribution = "exponential",
+                                    treatment_delay = 0,
                                     n_replicates,
                                     confidence_level,
                                     null_space,
@@ -216,7 +219,8 @@ upper_bound_proba_FP_MC <- function(model,
     summary_measure_likelihood = source_data$summary_measure_likelihood,
     target_to_source_std_ratio = target_to_source_std_ratio,
     dropout_probability = dropout_probability,
-    event_time_distribution = event_time_distribution
+    event_time_distribution = event_time_distribution,
+    treatment_delay = treatment_delay
   )
 
   results <- model$simulation_for_given_treatment_effect(
@@ -653,7 +657,8 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
                   target_to_source_std_ratio = target_to_source_std_ratio,
                   dropout_probability = column_or("dropout_probability", 0),
                   event_time_distribution =
-                    column_or("event_time_distribution", "exponential")
+                    column_or("event_time_distribution", "exponential"),
+                  treatment_delay = column_or("treatment_delay", 0)
                 )
               )
 

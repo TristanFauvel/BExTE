@@ -14,8 +14,9 @@ hellinger_distance <- function(mu1, sigma1, mu2, sigma2) {
 
 #' The design a time-to-event case study is primarily simulated under
 #'
-#' @description No control-arm heterogeneity, no loss to follow-up and
-#'   exponential event times. It is the design a configuration that does not
+#' @description No control-arm heterogeneity, no loss to follow-up,
+#'   exponential event times and proportional hazards (no delay before the
+#'   treatment effect). It is the design a configuration that does not
 #'   mention the sensitivity axes produces, and the one the whole scenario grid
 #'   is simulated at.
 #'
@@ -23,14 +24,82 @@ hellinger_distance <- function(mu1, sigma1, mu2, sigma2) {
 #' @param dropout_probability Probability of loss to follow-up over the maximum
 #'   follow-up time.
 #' @param event_time_distribution Either "exponential" or "weibull".
+#' @param treatment_delay Time before the treatment effect starts, in years.
 #'
-#' @return TRUE when the three describe the primary design.
+#' @return TRUE when the four describe the primary design.
 is_primary_time_to_event_design <- function(control_drift,
                                             dropout_probability,
-                                            event_time_distribution) {
+                                            event_time_distribution,
+                                            treatment_delay = 0) {
   control_drift == 0 &&
     dropout_probability == 0 &&
-    identical(as.character(event_time_distribution), "exponential")
+    identical(as.character(event_time_distribution), "exponential") &&
+    treatment_delay == 0
+}
+
+#' The time-to-event design axes
+#'
+#' @description Each axis's value under the primary design, and how a figure
+#'   that varies it titles its legend. The names are the results columns.
+#'
+#' @noRd
+TIME_TO_EVENT_AXES <- list(
+  control_drift = list(
+    primary = 0,
+    title = "Control-arm heterogeneity (log HR)"
+  ),
+  dropout_probability = list(
+    primary = 0,
+    title = "Probability of loss to follow-up"
+  ),
+  event_time_distribution = list(
+    primary = "exponential",
+    title = "Event time distribution"
+  ),
+  # Simulated in years like every other time; figures show it in weeks.
+  treatment_delay = list(
+    primary = 0,
+    title = "Delay before the treatment effect (weeks)",
+    format = function(x) round(52 * x)
+  )
+)
+
+#' Rows at which every time-to-event axis but one is at its primary value
+#'
+#' @param df A results frame carrying the three design columns.
+#' @param axis The axis left free, one of `names(TIME_TO_EVENT_AXES)`.
+#'
+#' @return A logical vector, one entry per row.
+#'
+#' @noRd
+time_to_event_varies_only <- function(df, axis) {
+  others <- setdiff(names(TIME_TO_EVENT_AXES), axis)
+  Reduce(`&`, lapply(others, function(other) {
+    # A column the results do not carry was only ever at its primary value.
+    if (!other %in% names(df)) {
+      return(rep(TRUE, nrow(df)))
+    }
+    df[[other]] == TIME_TO_EVENT_AXES[[other]]$primary
+  }))
+}
+
+#' How many time-to-event design axes are off their primary value
+#'
+#' @description A sensitivity analysis that varies one axis at a time only
+#'   needs the designs for which this is at most one; crossing the axes
+#'   simulates every combination of them as well.
+#'
+#' @inheritParams is_primary_time_to_event_design
+#'
+#' @return An integer vector, 0 for the primary design.
+time_to_event_axes_off_primary <- function(control_drift,
+                                           dropout_probability,
+                                           event_time_distribution,
+                                           treatment_delay = 0) {
+  as.integer(control_drift != 0) +
+    as.integer(dropout_probability != 0) +
+    as.integer(as.character(event_time_distribution) != "exponential") +
+    as.integer(treatment_delay != 0)
 }
 
 #' The point at which the time-to-event sensitivity designs are simulated
@@ -170,22 +239,26 @@ compute_control_drift_range <- function(source_treatment_effect,
 
 #' Compute the ranges of the time-to-event design axes.
 #'
-#' @description The probability of loss to follow-up and the distribution of the
-#'   event times only change how a time-to-event trial is simulated, so every other
+#' @description The probability of loss to follow-up, the distribution of the
+#'   event times and the delay before the treatment effect only change how a
+#'   time-to-event trial is simulated, so every other
 #'   case study keeps a single scenario at the primary design rather than paying for
 #'   a cross product that would generate identical data.
 #'
 #' @param scenarios_config Configuration for the simulation.
 #' @param case_study_config Configuration for the case study.
 #'
-#' @return A list with the `dropout_probability` and `event_time_distribution` ranges.
+#' @return A list with the `dropout_probability`, `event_time_distribution` and
+#'   `treatment_delay` ranges.
 compute_time_to_event_ranges <- function(scenarios_config, case_study_config) {
   if (!identical(case_study_config$endpoint, "time_to_event")) {
-    return(list(dropout_probability = 0, event_time_distribution = "exponential"))
+    return(list(dropout_probability = 0, event_time_distribution = "exponential",
+                treatment_delay = 0))
   }
 
   dropout_probability <- unlist(scenarios_config$dropout_probability)
   event_time_distribution <- unlist(scenarios_config$event_time_distribution)
+  treatment_delay <- unlist(scenarios_config$treatment_delay)
 
   list(
     dropout_probability = if (is.null(dropout_probability)) {
@@ -197,7 +270,9 @@ compute_time_to_event_ranges <- function(scenarios_config, case_study_config) {
       "exponential"
     } else {
       unique(event_time_distribution)
-    }
+    },
+    # Zero is always simulated: it is the proportional-hazards reference.
+    treatment_delay = sort(unique(c(0, treatment_delay)))
   )
 }
 
@@ -343,6 +418,7 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
       target_to_source_std_ratio = target_to_source_std_ratio_range,
       dropout_probability = time_to_event_ranges$dropout_probability,
       event_time_distribution = time_to_event_ranges$event_time_distribution,
+      treatment_delay = time_to_event_ranges$treatment_delay,
       stringsAsFactors = FALSE
     )
 
@@ -353,6 +429,18 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
                                 drift_combinations_repeated)
 
     drift_combinations <- unique(drift_combinations)
+
+    # Each sensitivity design moves one axis at a time, when asked to, so the
+    # figures that vary one axis do not pay for every combination of them.
+    if (isTRUE(scenarios_config$sensitivity_one_at_a_time)) {
+      off_primary <- time_to_event_axes_off_primary(
+        drift_combinations$control_drift,
+        drift_combinations$dropout_probability,
+        drift_combinations$event_time_distribution,
+        drift_combinations$treatment_delay
+      )
+      drift_combinations <- drift_combinations[off_primary <= 1, , drop = FALSE]
+    }
 
     # Exclude combinations that would result in rates that are outside [0,1]
     if (case_study_config$summary_measure_likelihood == "binomial") {
@@ -396,11 +484,12 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
       source_denominator_change_factor <- drift_combinations[i, "source_denominator_change_factor"]
       dropout_probability <- drift_combinations[i, "dropout_probability"]
       event_time_distribution <- drift_combinations[i, "event_time_distribution"]
+      treatment_delay <- drift_combinations[i, "treatment_delay"]
       treatment_drift <- drift + control_drift
       target_treatment_effect <- source_treatment_effect_estimate + drift
 
       primary_design <- is_primary_time_to_event_design(
-        control_drift, dropout_probability, event_time_distribution
+        control_drift, dropout_probability, event_time_distribution, treatment_delay
       )
 
       for (factor_index in seq_along(total_target_sample_sizes)) {
@@ -434,6 +523,7 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
           target_to_source_std_ratio = drift_combinations[i, "target_to_source_std_ratio"],
           dropout_probability = dropout_probability,
           event_time_distribution = event_time_distribution,
+          treatment_delay = treatment_delay,
           theta_0 = theta_0,
           null_space = null_space
         )

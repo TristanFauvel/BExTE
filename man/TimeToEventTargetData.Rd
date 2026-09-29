@@ -36,6 +36,11 @@ Cox fit.
     \item{\code{weibull_shape}}{Common Weibull shape parameter, q}
 
     \item{\code{weibull_scale}}{Control-arm Weibull scale, calibrated to the reported relapse-free probability}
+
+    \item{\code{treatment_delay}}{Time before the treatment effect starts, in years; 0 for proportional hazards}
+
+    \item{\code{late_log_hr}}{Log hazard ratio once the effect has started, chosen so that
+the Cox model's large-sample limit equals the treatment effect}
   }
   \if{html}{\out{</div>}}
 }
@@ -75,7 +80,8 @@ Cox fit.
   weibull_shape = NULL,
   weibull_relapse_free_probability = NULL,
   dropout_probability = 0,
-  event_time_distribution = "exponential"
+  event_time_distribution = "exponential",
+  treatment_delay = 0
 )}
     \if{html}{\out{</div>}}
   }
@@ -97,6 +103,8 @@ the maximum follow-up time, used to calibrate the Weibull scale.}
       \item{\code{dropout_probability}}{The probability of loss to follow-up over the maximum
 follow-up time.}
       \item{\code{event_time_distribution}}{Either "exponential" or "weibull".}
+      \item{\code{treatment_delay}}{Time before the treatment effect starts, in years.
+Zero, the default, is the proportional-hazards design.}
     }
     \if{html}{\out{</div>}}
   }
