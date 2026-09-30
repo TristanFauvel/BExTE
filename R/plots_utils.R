@@ -174,6 +174,24 @@ convert_params_to_str <- function(method, parameters) {
   return(labels)
 }
 
+#' Append a parameter string to a figure or table filename
+#'
+#' @description Joins the two with an underscore, so that a value ending the
+#'   stem ("sample_size=123") stays separate from the first parameter
+#'   ("gamma=0.5"). A method without a varied parameter has an empty string,
+#'   and gets no trailing underscore.
+#'
+#' @param stem The filename so far.
+#' @param parameters_str The output of [convert_params_to_str()].
+#' @return The filename with the parameters appended.
+#' @keywords internal
+append_parameters_str <- function(stem, parameters_str) {
+  if (length(parameters_str) == 0 || !nzchar(parameters_str)) {
+    return(stem)
+  }
+  paste0(stem, "_", parameters_str)
+}
+
 #' The methods whose parameters nest under a heterogeneity prior
 #'
 #' @description The commensurate power prior and the plain commensurate prior

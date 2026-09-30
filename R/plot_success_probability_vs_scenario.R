@@ -217,7 +217,7 @@ plot_success_proba_vs_drift <- function(metric,
 
   parameters_str <- convert_params_to_str(methods_dict[[method]], parameters_combinations)
 
-  figure_name <- paste0(
+  figure_name <- paste0(append_parameters_str(paste0(
     case_study,
     "_",
     method,
@@ -226,9 +226,8 @@ plot_success_proba_vs_drift <- function(metric,
     "_vs_",
     xvar_name,
     "_target_sample_size_per_arm=",
-    target_sample_size_per_arm,
-    "_",
-    parameters_str, "_comparisons")
+    target_sample_size_per_arm
+  ), parameters_str), "_comparisons")
 
   figure_name <- format_filename(filename = figure_name, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 

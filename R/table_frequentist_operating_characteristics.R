@@ -192,7 +192,7 @@ table_metric_vs_drift <- function(metric,
       parameters_label_title
     )
 
-    filename <- paste0(
+    filename <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -200,9 +200,8 @@ table_metric_vs_drift <- function(metric,
       selected_metric_name,
       "_vs_",
       xvar_name,
-      "_cat_target_sample_size_parameters_",
-      parameters_str
-    )
+      "_cat_target_sample_size_parameters"
+    ), parameters_str)
   } else if (category == "source_denominator") {
     title <- sprintf(
       "%s, %s, %s %s, %s %s",
@@ -213,7 +212,7 @@ table_metric_vs_drift <- function(metric,
       "$N_T/2 = $",
       target_sample_size_per_arm
     )
-    filename <- paste0(
+    filename <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -222,9 +221,8 @@ table_metric_vs_drift <- function(metric,
       "_vs_",
       xvar_name,
       "_cat_source_denominator_sample_size=",
-      target_sample_size_per_arm,
-      parameters_str
-    )
+      target_sample_size_per_arm
+    ), parameters_str)
 
     source_denominator_change_factor <- NA
 
@@ -257,7 +255,7 @@ table_metric_vs_drift <- function(metric,
       "$N_T/2 = $",
       target_sample_size_per_arm
     )
-    filename <- paste0(
+    filename <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -267,9 +265,8 @@ table_metric_vs_drift <- function(metric,
       xvar_name,
       "_cat_target_to_source_std_ratio",
       "_target_sample_size_per_arm=",
-      target_sample_size_per_arm,
-      parameters_str
-    )
+      target_sample_size_per_arm
+    ), parameters_str)
 
     target_to_source_std_ratio <- NA
   } else {
@@ -873,7 +870,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       parameters_label_title
     )
 
-    filename <- paste0(
+    filename <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -881,9 +878,8 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       selected_metric_name,
       "_vs_",
       xvar_name,
-      "_cat_target_sample_size_parameters_",
-      parameters_str
-    )
+      "_cat_target_sample_size_parameters"
+    ), parameters_str)
   } else if (category == "source_denominator") {
     title <- sprintf(
       "%s, %s, %s %s, %s %s",
@@ -894,7 +890,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       "$N_T/2 = $",
       target_sample_size_per_arm
     )
-    filename <- paste0(
+    filename <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -903,9 +899,8 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       "_vs_",
       xvar_name,
       "_cat_source_denominator_sample_size=",
-      target_sample_size_per_arm,
-      parameters_str
-    )
+      target_sample_size_per_arm
+    ), parameters_str)
 
     source_denominator_change_factor <- NA
 
@@ -938,7 +933,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       "$N_T/2 = $",
       target_sample_size_per_arm
     )
-    filename <- paste0(
+    filename <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -948,9 +943,8 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       xvar_name,
       "_cat_target_to_source_std_ratio",
       "_target_sample_size_per_arm=",
-      target_sample_size_per_arm,
-      parameters_str
-    )
+      target_sample_size_per_arm
+    ), parameters_str)
 
     target_to_source_std_ratio <- NA
   } else {

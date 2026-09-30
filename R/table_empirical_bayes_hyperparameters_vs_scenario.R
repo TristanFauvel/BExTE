@@ -143,7 +143,7 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
                  recursive = TRUE)
     }
 
-    filename <- paste0(
+    filename <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -151,9 +151,8 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       empirical_bayes_hyperparameters[[method]][[key]]$parameter_label,
       "_vs_",
       xvar$name,
-      "_cat_target_sample_size_per_arm",
-      parameters_str
-    )
+      "_cat_target_sample_size_per_arm"
+    ), parameters_str)
 
 
     filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)

@@ -304,6 +304,7 @@ reference:
 - contents:
   - check_colnames
   - combine_parameters
+  - append_parameters_str
   - convert_params_to_str
   - hellinger_distance
   - important_drift_values
