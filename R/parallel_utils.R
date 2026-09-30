@@ -1,14 +1,29 @@
 #' Determine a safe number of parallel workers
 #'
+#' Every worker holds its own copy of a scenario's replicates, so memory grows
+#' with the worker count. The `BEXTE_MAX_WORKERS` environment variable caps it
+#' for a whole run, for instance to leave room for other work on the machine.
+#'
 #' @param max_workers Maximum number of workers to use.
 #' @param detected_cores Number of detected logical CPU cores.
+#' @param env_max_workers Value of `BEXTE_MAX_WORKERS`; empty means no cap.
 #'
 #' @return A positive integer worker count.
 #' @noRd
 get_parallel_worker_count <- function(
   max_workers = Inf,
-  detected_cores = parallel::detectCores()
+  detected_cores = parallel::detectCores(),
+  env_max_workers = Sys.getenv("BEXTE_MAX_WORKERS")
 ) {
+  if (nzchar(env_max_workers)) {
+    env_cap <- suppressWarnings(as.integer(env_max_workers))
+    if (is.na(env_cap) || env_cap < 1L) {
+      stop("BEXTE_MAX_WORKERS must be a positive integer, but it is \"",
+           env_max_workers, "\".", call. = FALSE)
+    }
+    max_workers <- min(max_workers, env_cap)
+  }
+
   if (length(detected_cores) != 1L ||
       is.na(detected_cores) ||
       detected_cores < 2L) {

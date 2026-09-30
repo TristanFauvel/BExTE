@@ -548,7 +548,7 @@ plot_metric_vs_drift <- function(metric,
         parameters_label_title
       )
 
-    figure_name <- paste0(
+    figure_name <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -556,9 +556,8 @@ plot_metric_vs_drift <- function(metric,
       selected_metric_name,
       "_vs_",
       xvar_name,
-      "_cat_target_sample_size_parameters_",
-      parameters_str
-    )
+      "_cat_target_sample_size_parameters"
+    ), parameters_str)
   } else if (category == "source_denominator_change_factor") {
     title <- sprintf(
         "%s, %s %s, %s %s",
@@ -568,7 +567,7 @@ plot_metric_vs_drift <- function(metric,
         "$N_T/2 = $",
         target_sample_size_per_arm
       )
-    figure_name <- paste0(
+    figure_name <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -577,9 +576,8 @@ plot_metric_vs_drift <- function(metric,
       "_vs_",
       xvar_name,
       "_cat_source_denominator_sample_size=",
-      target_sample_size_per_arm,
-      parameters_str
-    )
+      target_sample_size_per_arm
+    ), parameters_str)
 
     source_denominator_change_factor <- NA
   } else if (category == "parameters") {
@@ -610,7 +608,7 @@ plot_metric_vs_drift <- function(metric,
         target_sample_size_per_arm
       )
 
-    figure_name <- paste0(
+    figure_name <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -620,9 +618,8 @@ plot_metric_vs_drift <- function(metric,
       xvar_name,
       "_cat_target_to_source_std_ratio",
       "_target_sample_size_per_arm=",
-      target_sample_size_per_arm,
-      parameters_str
-    )
+      target_sample_size_per_arm
+    ), parameters_str)
 
     target_to_source_std_ratio <- NA
   } else if (category %in% names(TIME_TO_EVENT_AXES)) {
@@ -634,7 +631,7 @@ plot_metric_vs_drift <- function(metric,
         target_sample_size_per_arm
       )
 
-    figure_name <- paste0(
+    figure_name <- append_parameters_str(paste0(
       case_study,
       "_",
       method,
@@ -645,9 +642,8 @@ plot_metric_vs_drift <- function(metric,
       "_cat_",
       category,
       "_target_sample_size_per_arm=",
-      target_sample_size_per_arm,
-      parameters_str
-    )
+      target_sample_size_per_arm
+    ), parameters_str)
   } else {
     stop("Not implemented for this category")
   }
