@@ -64,9 +64,11 @@ simulates only those, at the paper's fidelity, and exports the outputs:
   mepolizumab, teriflunomide): about 9 hours of simulation at 10,000
   replicates, then about 1 hour for the two analysis steps.
 - Aprepitant, by far the most expensive: about 9.5 hours at only 100
-  replicates. Most of it goes to the methods that fit the binomial likelihood
-  by MCMC: the RMP, the p-value-based power prior, the conditional power prior
-  and test-then-pool. At the paper's 1,000 replicates, allow for up to ten
+  replicates. Most of it goes to the four methods that fit the binomial
+  likelihood by MCMC: the conditional power prior, the p-value-based power
+  prior, the RMP and the Egidi RMP (`egidi_empirical_mixture`). The separate
+  and pooled analyses, and so test-then-pool, which switches between them, are
+  computed by quadrature instead. At the paper's 1,000 replicates, allow for up to ten
   times as long, several days on such a machine. It can be less, because a
   replicate that happens to reproduce a dataset already analysed reuses that
   analysis, and binary outcomes repeat often.
