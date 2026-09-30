@@ -4,7 +4,15 @@
 \alias{egidi_first_crossing}
 \title{First candidate weight at which the conflict criterion is met}
 \usage{
-egidi_first_crossing(lower, upper, steps, evaluate, alpha_pc)
+egidi_first_crossing(
+  lower,
+  upper,
+  steps,
+  evaluate,
+  alpha_pc,
+  lower_value = rep(NA_real_, length(lower)),
+  upper_value = rep(NA_real_, length(lower))
+)
 }
 \arguments{
 \item{lower, upper}{Per-replicate ends of the interval to scan.}
@@ -15,9 +23,14 @@ egidi_first_crossing(lower, upper, steps, evaluate, alpha_pc)
 to, returning the conflict p-value.}
 
 \item{alpha_pc}{Conflict threshold.}
+
+\item{lower_value, upper_value}{The conflict p-value at \code{lower} and \code{upper},
+which are carried to the ends of the bracket so that refining it needs no
+further evaluation there. \code{NA} when unknown.}
 }
 \value{
-A list with the bracketing \code{lower} and \code{upper} weights.
+A list with the bracketing \code{lower} and \code{upper} weights, and the
+conflict p-values there as \code{lower_value} and \code{upper_value}.
 }
 \description{
 Scans a grid upwards and returns, for each replicate, the

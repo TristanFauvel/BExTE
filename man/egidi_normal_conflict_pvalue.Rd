@@ -11,8 +11,7 @@ egidi_normal_conflict_pvalue(
   sigma_p,
   mu_q,
   sigma_q,
-  turning_point_nodes = 65L,
-  bisection_iterations = 60L
+  root_tolerance = 1e-13
 )
 }
 \arguments{
@@ -30,12 +29,8 @@ egidi_normal_conflict_pvalue(
 \item{sigma_q}{Standard deviation of the weak component's predictive,
 \eqn{\sqrt{s_T^2 + \tau_q^2}}.}
 
-\item{turning_point_nodes}{Minimum number of grid nodes placed between the two
-component means to bracket the turning points. The grid is refined beyond
-this when the means are far apart relative to the narrower component.}
-
-\item{bisection_iterations}{Number of bisection steps used to refine each
-bracketed turning point and each root.}
+\item{root_tolerance}{Relative width at which each bracketed turning point
+and each root is considered found.}
 }
 \value{
 The conflict p-value, one per replicate.
@@ -63,9 +58,10 @@ component means every term of \eqn{m_\psi'} is positive and the density is
 strictly increasing; above both means it is strictly decreasing. All turning
 points therefore lie between the two means, where \eqn{m_\psi'} is scanned on a
 grid fine enough to resolve the narrower component and its sign changes are
-refined by bisection. There are at most three of them, giving at most four
-monotone pieces, each of which holds at most one root and yields it exactly by
-bisection.
+refined by root-finding. There are at most three of them, giving at most four
+monotone pieces, each of which holds at most one root. Both refinements run
+\code{\link[=vectorised_bracketed_root]{vectorised_bracketed_root()}} on a bracket found beforehand, so neither can
+lose its root.
 
 Scanning for the level crossings directly would not be robust: when the
 observed statistic sits near a turning point the region above the level can be
