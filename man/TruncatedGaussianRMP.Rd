@@ -36,6 +36,10 @@ This class represents a Bayesian borrowing model with a truncated Gaussian prior
     \item{\code{wpost}}{The posterior weight parameter for the mixture prior}
 
     \item{\code{method}}{Method name}
+
+    \item{\code{empirical_bayes_from_sample}}{Whether the empirical Bayes quantities
+are a function of the replicate's sample alone, so that a deterministic
+model may still share an analysis between replicates with equal samples.}
   }
   \if{html}{\out{</div>}}
 }
@@ -46,6 +50,7 @@ This class represents a Bayesian borrowing model with a truncated Gaussian prior
     \item \href{#method-TruncatedGaussianRMP-empirical_bayes_update}{\code{TruncatedGaussianRMP$empirical_bayes_update()}}
     \item \href{#method-TruncatedGaussianRMP-prior_elir_ess}{\code{TruncatedGaussianRMP$prior_elir_ess()}}
     \item \href{#method-TruncatedGaussianRMP-prepare_data}{\code{TruncatedGaussianRMP$prepare_data()}}
+    \item \href{#method-TruncatedGaussianRMP-quadrature_posterior}{\code{TruncatedGaussianRMP$quadrature_posterior()}}
     \item \href{#method-TruncatedGaussianRMP-sample_prior}{\code{TruncatedGaussianRMP$sample_prior()}}
     \item \href{#method-TruncatedGaussianRMP-inference}{\code{TruncatedGaussianRMP$inference()}}
     \item \href{#method-TruncatedGaussianRMP-print_model_summary}{\code{TruncatedGaussianRMP$print_model_summary()}}
@@ -84,7 +89,9 @@ This class represents a Bayesian borrowing model with a truncated Gaussian prior
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>MCMCModel$posterior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_cdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_cdf'><code>MCMCModel$prior_cdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_pdf'><code>MCMCModel$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_prior'><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -178,6 +185,33 @@ same way.}
   }
   \subsection{Returns}{
     A list of data prepared for Stan
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-TruncatedGaussianRMP-quadrature_posterior"></a>}}
+\if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-quadrature_posterior}{}}}
+\subsection{\code{TruncatedGaussianRMP$quadrature_posterior()}}{
+  The posterior on a grid, under the quadrature engine
+
+The same model as the Stan program: a uniform control rate and the
+mixture prior truncated to (-control_rate, 1 - control_rate). The
+informative component comes first, so the first component weight is the
+posterior probability of the informative component.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$quadrature_posterior(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target data object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \code{\link[=grid_posterior]{grid_posterior()}} list with \code{component_weights}.
   }
 }
 

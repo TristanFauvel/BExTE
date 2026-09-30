@@ -38,9 +38,7 @@ mention \eqn{\gamma} are overridden here.
   \itemize{
     \item \href{#method-GaussianCommensuratePrior-initialize}{\code{GaussianCommensuratePrior$new()}}
     \item \href{#method-GaussianCommensuratePrior-compute_posterior_parameters}{\code{GaussianCommensuratePrior$compute_posterior_parameters()}}
-    \item \href{#method-GaussianCommensuratePrior-sample_prior}{\code{GaussianCommensuratePrior$sample_prior()}}
     \item \href{#method-GaussianCommensuratePrior-joint_prior_pdf}{\code{GaussianCommensuratePrior$joint_prior_pdf()}}
-    \item \href{#method-GaussianCommensuratePrior-unnormalized_prior_pdf}{\code{GaussianCommensuratePrior$unnormalized_prior_pdf()}}
     \item \href{#method-GaussianCommensuratePrior-clone}{\code{GaussianCommensuratePrior$clone()}}
   }
 }
@@ -75,10 +73,15 @@ mention \eqn{\gamma} are overridden here.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_ess"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_ess'><code>MCMCModel$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_median"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_median'><code>MCMCModel$posterior_median()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>MCMCModel$posterior_pdf()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_cdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_cdf'><code>MCMCModel$prior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_posterior'><code>MCMCModel$quadrature_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_prior'><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="prepare_data"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-prepare_data'><code>GaussianCommensuratePowerPrior$prepare_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="prior_cdf"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-prior_cdf'><code>GaussianCommensuratePowerPrior$prior_cdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="prior_pdf"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-prior_pdf'><code>GaussianCommensuratePowerPrior$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="sample_prior"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-sample_prior'><code>GaussianCommensuratePowerPrior$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="tau_posterior_moments"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-tau_posterior_moments'><code>GaussianCommensuratePowerPrior$tau_posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-vectorised_replicate_inference'><code>GaussianCommensuratePowerPrior$vectorised_replicate_inference()</code></a></span></li>
 </ul>
 </details>}}
@@ -115,26 +118,6 @@ mention \eqn{\gamma} are overridden here.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianCommensuratePrior-sample_prior"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianCommensuratePrior-sample_prior}{}}}
-\subsection{\code{GaussianCommensuratePrior$sample_prior()}}{
-  Draw samples from the prior distribution. Equation 8 in
-Hobbs et al (2011) at a power parameter of one.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianCommensuratePrior$sample_prior(n_samples)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{n_samples}}{Number of samples}
-    }
-    \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GaussianCommensuratePrior-joint_prior_pdf"></a>}}
 \if{latex}{\out{\hypertarget{method-GaussianCommensuratePrior-joint_prior_pdf}{}}}
 \subsection{\code{GaussianCommensuratePrior$joint_prior_pdf()}}{
@@ -152,27 +135,6 @@ takes one fewer argument than the power prior's version.
     \describe{
       \item{\code{treatment_effect}}{Treatment effect}
       \item{\code{tau}}{Heterogeneity parameter}
-    }
-    \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianCommensuratePrior-unnormalized_prior_pdf"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianCommensuratePrior-unnormalized_prior_pdf}{}}}
-\subsection{\code{GaussianCommensuratePrior$unnormalized_prior_pdf()}}{
-  Integrate out tau to get the marginal PDF for
-treatment_effect. One dimensional, where the power prior's version is
-a double integral over the power parameter as well.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianCommensuratePrior$unnormalized_prior_pdf(treatment_effect)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{treatment_effect}}{Treatment effect}
     }
     \if{html}{\out{</div>}}
   }

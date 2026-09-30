@@ -50,10 +50,10 @@ the case studies, sample sizes and methods that the selection plots. It then
 simulates only those, at the paper's fidelity, and exports the outputs:
 
 - 30 drift points per scenario;
-- 10,000 replicates per scenario, except 1,000 for aprepitant. Aprepitant is
-  analysed with its exact binomial likelihood, so the conditional power prior
-  runs an MCMC fit for every replicate. A case study analysed under the normal
-  approximation keeps 10,000;
+- 10,000 replicates per scenario, for every case study. Aprepitant is analysed
+  with its exact binomial likelihood; its posteriors are computed by
+  quadrature rather than MCMC (see below), which makes the full count
+  affordable;
 - after the simulations, only the two analysis steps the figures read: the
   power baselines at the equivalent and at the nominal type I error rate. The
   sweet spot and the Bayesian operating characteristics are skipped.
@@ -63,15 +63,22 @@ simulates only those, at the paper's fidelity, and exports the outputs:
 - The five normal-likelihood case studies (botox, belimumab, dapagliflozin,
   mepolizumab, teriflunomide): about 9 hours of simulation at 10,000
   replicates, then about 1 hour for the two analysis steps.
-- Aprepitant, by far the most expensive: about 9.5 hours at only 100
-  replicates. Most of it goes to the four methods that fit the binomial
-  likelihood by MCMC: the conditional power prior, the p-value-based power
-  prior, the RMP and the Egidi RMP (`egidi_empirical_mixture`). The separate
-  and pooled analyses, and so test-then-pool, which switches between them, are
-  computed by quadrature instead. At the paper's 1,000 replicates, allow for up to ten
-  times as long, several days on such a machine. It can be less, because a
-  replicate that happens to reproduce a dataset already analysed reuses that
-  analysis, and binary outcomes repeat often.
+- Aprepitant: an estimated 2.5 hours on 11 workers for the four methods that
+  used to be the bottleneck, at 10,000 replicates. This is an estimate from
+  measured costs per analysis, not an end-to-end timing: the conditional power
+  prior, the p-value-based power prior, the RMP and the Egidi RMP
+  (`egidi_empirical_mixture`) take 0.04 to 0.8 CPU seconds per analysis by
+  quadrature, against about 1 to 2 seconds by MCMC. Replicates that land on
+  the same counts share one analysis, which at 10,000 replicates removes 13
+  to 22 times the work. The separate and pooled analyses, and so
+  test-then-pool, were already computed by quadrature. By MCMC, the same four
+  methods took about 9.5 hours at only 100 replicates and would take about
+  three weeks at 10,000.
+
+  The MCMC path is still available for comparison: set `engine: stan` in the
+  run's `mcmc_config.yml`. The two engines agree to within the Monte Carlo
+  error of the sampler; test decisions differ only for datasets whose
+  posterior probability of benefit lies within about 0.001 of 0.975.
 
 - Figures S45–S52, the Teriflunomide time-to-event sensitivity analysis,
   need seven extra designs at 123 participants per arm: 5% and 10% loss to
@@ -83,12 +90,24 @@ simulates only those, at the paper's fidelity, and exports the outputs:
   on their own, they need only this teriflunomide block.
 
 To reproduce everything except aprepitant, leave out Figures S33–S37 and S41
-when listing the outputs. Run it inside `tmux`/`screen` or with `nohup`, so
-that closing the terminal does not kill it:
+when listing the outputs.
+
+Run it detached from your session, so that neither closing the terminal nor
+a crash of the application it runs in can kill it. On Linux, a user systemd
+service does both and also caps the run's memory; `BEXTE_MAX_WORKERS` lowers
+the number of parallel workers, which is what memory grows with:
 
 ```sh
-nohup Rscript inst/scripts/reproduce_paper.R > reproduce.log 2>&1 &
+systemd-run --user --unit=bexte-paper-run -p MemoryHigh=12G -p Nice=10 \
+  --working-directory="$PWD" -E BEXTE_MAX_WORKERS=6 \
+  -p StandardOutput=append:"$PWD/reproduce.log" \
+  -p StandardError=append:"$PWD/reproduce.log" \
+  Rscript inst/scripts/reproduce_paper.R
 ```
+
+`nohup` or `tmux` also survive closing the terminal, but not a crash of the
+editor or terminal application that started them: systemd stops the whole
+application, and with it everything launched from its terminals.
 
 ## 4. Where the outputs are
 

@@ -210,7 +210,10 @@ mcmc_config_schema <- list(
   max_chain_length = "count?",
   target_ess = "count",
   rhat_threshold = "number",
-  max_divergence_rate = "probability"
+  max_divergence_rate = "probability",
+  # Optional. "quadrature", the default, or "stan": how the models that can do
+  # either compute their posterior - see MCMCModel.
+  engine = "string?"
 )
 
 

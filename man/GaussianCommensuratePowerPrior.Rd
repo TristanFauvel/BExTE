@@ -31,10 +31,11 @@ This class represents a Gaussian Commensurate Power Prior model.
     \item \href{#method-GaussianCommensuratePowerPrior-prepare_data}{\code{GaussianCommensuratePowerPrior$prepare_data()}}
     \item \href{#method-GaussianCommensuratePowerPrior-vectorised_replicate_inference}{\code{GaussianCommensuratePowerPrior$vectorised_replicate_inference()}}
     \item \href{#method-GaussianCommensuratePowerPrior-compute_posterior_parameters}{\code{GaussianCommensuratePowerPrior$compute_posterior_parameters()}}
+    \item \href{#method-GaussianCommensuratePowerPrior-tau_posterior_moments}{\code{GaussianCommensuratePowerPrior$tau_posterior_moments()}}
     \item \href{#method-GaussianCommensuratePowerPrior-sample_prior}{\code{GaussianCommensuratePowerPrior$sample_prior()}}
     \item \href{#method-GaussianCommensuratePowerPrior-joint_prior_pdf}{\code{GaussianCommensuratePowerPrior$joint_prior_pdf()}}
-    \item \href{#method-GaussianCommensuratePowerPrior-unnormalized_prior_pdf}{\code{GaussianCommensuratePowerPrior$unnormalized_prior_pdf()}}
     \item \href{#method-GaussianCommensuratePowerPrior-prior_pdf}{\code{GaussianCommensuratePowerPrior$prior_pdf()}}
+    \item \href{#method-GaussianCommensuratePowerPrior-prior_cdf}{\code{GaussianCommensuratePowerPrior$prior_cdf()}}
     \item \href{#method-GaussianCommensuratePowerPrior-clone}{\code{GaussianCommensuratePowerPrior$clone()}}
   }
 }
@@ -69,8 +70,10 @@ This class represents a Gaussian Commensurate Power Prior model.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_ess"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_ess'><code>MCMCModel$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_median"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_median'><code>MCMCModel$posterior_median()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>MCMCModel$posterior_pdf()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_cdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_cdf'><code>MCMCModel$prior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_posterior'><code>MCMCModel$quadrature_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_prior'><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -161,10 +164,27 @@ analyses.
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-GaussianCommensuratePowerPrior-tau_posterior_moments"></a>}}
+\if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-tau_posterior_moments}{}}}
+\subsection{\code{GaussianCommensuratePowerPrior$tau_posterior_moments()}}{
+  Posterior mean and standard deviation of tau from the Stan
+draws, reported as \code{Inf} where the moment does not exist, exactly as
+the quadrature path reports them. A sample mean of such a moment would
+be finite and run-dependent, or \code{Inf} and \code{NaN} once a draw overflows.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{GaussianCommensuratePowerPrior$tau_posterior_moments()}
+    \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GaussianCommensuratePowerPrior-sample_prior"></a>}}
 \if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-sample_prior}{}}}
 \subsection{\code{GaussianCommensuratePowerPrior$sample_prior()}}{
-  Draw samples from the prior distribution. Based on equation 8 in Hobbs et al (2011).
+  Draw samples from the prior distribution. Based on
+equation (8) in Hobbs et al (2011); the plain commensurate prior shares
+it, with the power parameter at one.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{GaussianCommensuratePowerPrior$sample_prior(n_samples)}
@@ -201,13 +221,17 @@ analyses.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianCommensuratePowerPrior-unnormalized_prior_pdf"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-unnormalized_prior_pdf}{}}}
-\subsection{\code{GaussianCommensuratePowerPrior$unnormalized_prior_pdf()}}{
-  Integrate out gamma and tau to get the marginal PDF for treatment_effect
+\if{html}{\out{<a id="method-GaussianCommensuratePowerPrior-prior_pdf"></a>}}
+\if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-prior_pdf}{}}}
+\subsection{\code{GaussianCommensuratePowerPrior$prior_pdf()}}{
+  Prior p.d.f. of the treatment effect: the quadrature
+mixture the simulations use, which covers the whole prior. Integrating
+tau numerically over a finite window instead would drop most of the
+heavy-tailed priors: \link{0.001, 100} keeps 0.9\% of inverse_gamma(1/1000, 1)
+and 12\% of a Cauchy(0, 30) on log(tau).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianCommensuratePowerPrior$unnormalized_prior_pdf(treatment_effect)}
+    \preformatted{GaussianCommensuratePowerPrior$prior_pdf(treatment_effect)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -220,19 +244,23 @@ analyses.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianCommensuratePowerPrior-prior_pdf"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-prior_pdf}{}}}
-\subsection{\code{GaussianCommensuratePowerPrior$prior_pdf()}}{
-  Prior p.d.f. of the treatment effect
+\if{html}{\out{<a id="method-GaussianCommensuratePowerPrior-prior_cdf"></a>}}
+\if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-prior_cdf}{}}}
+\subsection{\code{GaussianCommensuratePowerPrior$prior_cdf()}}{
+  Prior c.d.f. of the treatment effect, from the same mixture
+as \code{\link[=prior_pdf]{prior_pdf()}}. Without it the MCMC parent would take the empirical
+c.d.f. of prior draws.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianCommensuratePowerPrior$prior_pdf(treatment_effect)}
+    \preformatted{GaussianCommensuratePowerPrior$prior_cdf(treatment_effect, ...)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{treatment_effect}}{Treatment effect}
+      \item{\code{...}}{Unused; accepted for compatibility with the parent's
+sample-size argument.}
     }
     \if{html}{\out{</div>}}
   }

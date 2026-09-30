@@ -963,6 +963,10 @@ TruncatedGaussianRMP <- R6::R6Class(
     info_posterior_variance = NULL,
     wpost = NULL,
     method = "RMP",
+    quadrature_available = TRUE,
+    # The empirical Bayes vague component is set from the replicate's standard
+    # error and sample size, so equal samples give equal priors.
+    empirical_bayes_from_sample = TRUE,
 
     #' @description Initialize the TruncatedGaussianRMP object
     #'
@@ -1026,14 +1030,12 @@ TruncatedGaussianRMP <- R6::R6Class(
 
       model_name <- "truncated_gaussian_rmp"
       self$stan_model_code <- stan_model_code
-      self$stan_model <- compile_stan_model(model_name, stan_model_code)
+      if (!self$uses_quadrature()) {
+        self$stan_model <- compile_stan_model(model_name, stan_model_code)
+      }
 
       self$w <- unlist(prior$method_parameters$prior_weight)
       self$vague_prior_mean <- prior$vague_mean
-
-      self$mcmc <- TRUE
-
-      self$mcmc_config <- mcmc_config
 
       if (prior$method_parameters$empirical_bayes[[1]]) {
         self$empirical_bayes <- TRUE
@@ -1134,6 +1136,31 @@ TruncatedGaussianRMP <- R6::R6Class(
       )
       return(data_list)
     },
+    #' @description The posterior on a grid, under the quadrature engine
+    #'
+    #' The same model as the Stan program: a uniform control rate and the
+    #' mixture prior truncated to (-control_rate, 1 - control_rate). The
+    #' informative component comes first, so the first component weight is the
+    #' posterior probability of the informative component.
+    #'
+    #' @param target_data Target data object
+    #' @return A [grid_posterior()] list with `component_weights`.
+    quadrature_posterior = function(target_data) {
+      data_list <- self$prepare_data(target_data)
+      self$check_data(data_list)
+      truncated_normal_mixture_binomial_posterior(
+        weights = c(self$w, 1 - self$w),
+        means = c(self$info_prior_mean, self$vague_prior_mean),
+        sds = c(
+          sqrt(self$info_prior_variance),
+          sqrt(self$vague_prior_variance)
+        ),
+        n_control = data_list$n_control,
+        n_successes_control = data_list$n_successes_control,
+        n_treatment = data_list$n_treatment,
+        n_successes_treatment = data_list$n_successes_treatment
+      )
+    },
     #' @description Sample from the prior distribution
     #'
     #' @param n_samples Number of samples to generate
@@ -1185,6 +1212,13 @@ TruncatedGaussianRMP <- R6::R6Class(
     #' @return Indicator whether inference succeeded or not
     inference = function(target_data) {
       fit_success <- super$inference(target_data)
+
+      # Under quadrature the component probabilities come out of the same grid
+      # as the posterior itself.
+      if (self$uses_quadrature()) {
+        self$posterior_parameters$prior_weight <- self$grid_posterior$component_weights[[1]]
+        return(fit_success)
+      }
 
       data_list <- self$prepare_data(target_data)
 

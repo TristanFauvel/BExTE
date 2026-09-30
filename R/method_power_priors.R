@@ -12,6 +12,7 @@ BinomialCPP <- R6::R6Class(
   public = list(
     power_parameter = NULL,
     method = "CPP",
+    quadrature_available = TRUE,
     stan_prior = NULL,
     stan_prior_code = "
         data {
@@ -104,7 +105,9 @@ BinomialCPP <- R6::R6Class(
         "
 
       model_name <- "binomial_cpp"
-      self$stan_model <- compile_stan_model(model_name, self$stan_model_code)
+      if (!self$uses_quadrature()) {
+        self$stan_model <- compile_stan_model(model_name, self$stan_model_code)
+      }
 
       self$power_parameter <- prior$method_parameters$power_parameter[[1]]
     },
@@ -134,6 +137,46 @@ BinomialCPP <- R6::R6Class(
         )
       )
       return(data_list)
+    },
+
+    #' @description The posterior on a grid, under the quadrature engine
+    #'
+    #' The same model as the Stan program, with the current power parameter.
+    #'
+    #' @param target_data The target study data
+    #' @return A [grid_posterior()] list.
+    quadrature_posterior = function(target_data) {
+      data_list <- self$prepare_data(target_data)
+      self$check_data(data_list)
+      binomial_power_prior_posterior(
+        power_parameter = self$power_parameter,
+        n_control_source = data_list$n_control_source,
+        n_successes_control_source = data_list$successes_control_source,
+        n_treatment_source = data_list$n_treatment_source,
+        n_successes_treatment_source = data_list$successes_treatment_source,
+        n_control = data_list$n_control_target,
+        n_successes_control = data_list$successes_control_target,
+        n_treatment = data_list$n_treatment_target,
+        n_successes_treatment = data_list$successes_treatment_target
+      )
+    },
+
+    #' @description The prior on a grid, under the quadrature engine: the same
+    #' model without target patients, as in the Stan prior program.
+    #' @return A [grid_posterior()] list.
+    quadrature_prior = function() {
+      source <- self$prior$source
+      binomial_power_prior_posterior(
+        power_parameter = self$power_parameter,
+        n_control_source = as.integer(source$sample_size_control),
+        n_successes_control_source = as.integer(source$sample_size_control * source$control_rate),
+        n_treatment_source = as.integer(source$sample_size_treatment),
+        n_successes_treatment_source = as.integer(source$sample_size_treatment * source$treatment_rate),
+        n_control = 0L,
+        n_successes_control = 0L,
+        n_treatment = 0L,
+        n_successes_treatment = 0L
+      )
     },
 
     #' @description Sample from the prior using Stan

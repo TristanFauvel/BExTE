@@ -1,4 +1,16 @@
 # BExTE 0.0.2
+* The binomial borrowing models of the Aprepitant case study - the robust
+  mixture prior, its Egidi variant, the conditional power prior and the
+  p-value-based power prior - now compute their posterior exactly, by
+  deterministic quadrature over the control rates and the treatment effect,
+  instead of sampling it with Stan. The posterior has two or three parameters,
+  so the grid is exact to about 1e-5, far below the Monte Carlo error of the
+  sampler, and a replicate takes tens of milliseconds instead of seconds. The
+  new `engine` key of `mcmc_config.yml` chooses between `quadrature`, the
+  default, and `stan`, which keeps the sampling path for comparison. Since the
+  analysis no longer carries sampling error, replicates with the same counts
+  now share one analysis through the inference cache, including for the
+  empirical Bayes models, whose prior is a function of the replicate's sample.
 * The frequentist baselines (power of the separate and pooled analyses, at
   the nominal and at the equivalent type I error) are now simulated for
   Mepolizumab, as for every endpoint that is not continuous. They used to be

@@ -32,6 +32,10 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
     \item{\code{prior_var}}{Prior variance}
 
     \item{\code{mcmc_config}}{MCMC configuration}
+
+    \item{\code{empirical_bayes_from_sample}}{Whether the empirical Bayes quantities
+are a function of the replicate's sample alone, so that a deterministic
+model may still share an analysis between replicates with equal samples.}
   }
   \if{html}{\out{</div>}}
 }
@@ -82,8 +86,11 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_cdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_cdf'><code>MCMCModel$prior_cdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_prior'><code>MCMCModel$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="draw_mcmc_prior"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-draw_mcmc_prior'><code>BinomialCPP$draw_mcmc_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="prepare_data"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-prepare_data'><code>BinomialCPP$prepare_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="quadrature_posterior"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-quadrature_posterior'><code>BinomialCPP$quadrature_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="quadrature_prior"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-quadrature_prior'><code>BinomialCPP$quadrature_prior()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
