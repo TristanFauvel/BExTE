@@ -9,3 +9,14 @@ test_that("deterministic Bayesian OC analysis handles an empty result set", {
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 0)
 })
+
+test_that("the Bayesian OCs run on a cluster when the analysis does", {
+  expect_true("parallelization" %in% names(formals(compute_bayesian_ocs)))
+
+  # deparse() wraps long lines, so whitespace is squeezed before matching.
+  body_text <- gsub("\\s+", " ", paste(deparse(body(compute_bayesian_ocs)), collapse = " "))
+  expect_match(body_text, "analysis_uses_cluster(parallelization, length(jobs))", fixed = TRUE)
+  # A foreach body is evaluated outside the package namespace, so the job
+  # function travels as a variable rather than being called by name.
+  expect_match(body_text, "run_job <- bayesian_ocs_for_combination", fixed = TRUE)
+})

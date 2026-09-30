@@ -398,21 +398,24 @@ get_parameters <- function(parameters_df) {
   results_list <- list()
 
   if (nrow(parameters_df) > 0) {
-    # Loop through each row in the dataframe
-    for (i in 1:nrow(parameters_df)) {
-      json_parameters_df <- data.frame(jsonlite::fromJSON(parameters_df$parameters[i], simplifyDataFrame = TRUE))
+    # A results frame repeats each parameter string across every scenario it
+    # was run on (hundreds of rows each), so each distinct string is parsed
+    # once and its values shared by the rows that carry it.
+    distinct_parameters <- unique(parameters_df$parameters)
+    parsed <- lapply(distinct_parameters, function(parameters) {
+      json_parameters_df <- data.frame(jsonlite::fromJSON(parameters, simplifyDataFrame = TRUE))
 
       if (is.null(names(json_parameters_df))) {
-        parameter_values <- NA
+        NA
       } else if (length(names(json_parameters_df)) == 1 &&
                  names(json_parameters_df) == "parameters") {
-        parameter_values <- unlist(unlist(json_parameters_df$parameters))
+        unlist(unlist(json_parameters_df$parameters))
       } else {
-        parameter_values <- unlist(json_parameters_df)
+        unlist(json_parameters_df)
       }
+    })
 
-      results_list[[i]] <- parameter_values
-    }
+    results_list <- parsed[match(parameters_df$parameters, distinct_parameters)]
   }
 
   # Combine the list of data frames into a single data frame, removing any NULL entries

@@ -77,20 +77,43 @@ simulate_test_p_values <- function(target_data,
   # Generate data for n_replicates clinical trials
   target_data_samples <- estimable_replicates(target_data$generate(n_replicates))
 
-  p_values <- numeric(nrow(target_data_samples))
-  for (r in seq_len(nrow(target_data_samples))) {
-    target_data$sample <- target_data_samples[r, , drop = FALSE]
-    test <- BSDA::tsum.test(
-      mean.x = target_data$sample$treatment_effect_estimate,
-      mu = theta_0,
-      alternative = alternative,
-      s.x = target_data$sample$standard_deviation,
-      n.x = target_data$sample$sample_size_per_arm
-    )
-    p_values[r] <- test$p.value
-  }
+  one_sample_t_test_p_values(
+    estimate = target_data_samples$treatment_effect_estimate,
+    mu = theta_0,
+    standard_deviation = target_data_samples$standard_deviation,
+    n = target_data_samples$sample_size_per_arm,
+    alternative = alternative
+  )
+}
 
-  p_values
+#' P-values of a one-sample t-test from summary statistics, for many trials
+#'
+#' @description The p-value `BSDA::tsum.test()` returns for a one-sample test,
+#'   computed for every replicate at once. Calling `tsum.test()` once per
+#'   replicate cost ~50us each in argument checking and the warning it raises
+#'   about `var.equal`, which on 10,000 replicates was most of the test. The
+#'   statistic is built with the same operations as `tsum.test()`, so the
+#'   p-values agree with it to the last bit.
+#'
+#' @param estimate Sample means, one per replicate.
+#' @param mu Value of the mean under the null hypothesis.
+#' @param standard_deviation Sample standard deviations.
+#' @param n Sample sizes.
+#' @param alternative "greater", "less" or "two.sided".
+#'
+#' @return A numeric vector of p-values, one per replicate.
+#' @noRd
+one_sample_t_test_p_values <- function(estimate, mu, standard_deviation, n, alternative) {
+  statistic <- (estimate - mu) / sqrt(standard_deviation^2 / n)
+  degrees_of_freedom <- n - 1
+
+  switch(
+    alternative,
+    greater = 1 - stats::pt(statistic, degrees_of_freedom),
+    less = stats::pt(statistic, degrees_of_freedom),
+    two.sided = 2 * stats::pt(-abs(statistic), degrees_of_freedom),
+    stop("alternative must be one of \"greater\", \"less\" or \"two.sided\".")
+  )
 }
 #' Direction of the alternative hypothesis implied by the null space
 #'
@@ -200,6 +223,9 @@ assert_target_data_numbers <- function(target_data) {
 #' @param simulation_config Simulation configuration.
 #' @param case_study Optional case-study name.
 #' @param n_replicates Number of Monte Carlo replicates for non-analytical power calculations.
+#' @param p_values Optional p-values already simulated for this design by
+#'   [simulate_test_p_values()], with the same seed and `n_replicates`. `NULL`
+#'   simulates them. Ignored when the power has a closed form.
 #'
 #' @return A list containing the power and its confidence interval.
 #'
@@ -211,7 +237,8 @@ compute_freq_power <- function(alpha,
                                null_space,
                                simulation_config,
                                case_study = NULL,
-                               n_replicates = 1000) {
+                               n_replicates = 1000,
+                               p_values = NULL) {
   alternative <- alternative_from_null_space(null_space)
 
   if (is.na(alpha)){
@@ -230,14 +257,16 @@ compute_freq_power <- function(alpha,
       conf_int_power <- c(power, power)
     } else {
       # In this case, we cannot use an analytical computation of power
-      p_values <- simulate_test_p_values(
-        target_data = target_data,
-        frequentist_test = frequentist_test,
-        theta_0 = theta_0,
-        alternative = alternative,
-        simulation_config = simulation_config,
-        n_replicates = n_replicates
-      )
+      if (is.null(p_values)) {
+        p_values <- simulate_test_p_values(
+          target_data = target_data,
+          frequentist_test = frequentist_test,
+          theta_0 = theta_0,
+          alternative = alternative,
+          simulation_config = simulation_config,
+          n_replicates = n_replicates
+        )
+      }
 
       test_decisions <- p_values < alpha
       power <- mean(test_decisions)
@@ -450,51 +479,41 @@ compute_freq_power_pooling <- function(alpha,
       # Generate data for n_replicates clinical trials
       target_data_samples <- estimable_replicates(target_data$generate(n_replicates))
 
-      test_decisions <- numeric(nrow(target_data_samples))
-      for (r in seq_len(nrow(target_data_samples))) {
-        target_data$sample <- target_data_samples[r, , drop = FALSE]
-
-        target_treatment_effect_standard_error <- target_data$sample$standard_deviation / sqrt(target_data$sample$sample_size_per_arm)
-
-        pooled_treatment_effect <- (
-          source_data$treatment_effect_estimate / (
-            source_data$standard_error ^ 2 / target_treatment_effect_standard_error ^
-              2 + 1
-          )
-        ) + (
-          target_data$sample$treatment_effect_estimate / (
-            1 + target_treatment_effect_standard_error ^ 2 / source_data$standard_error ^
-              2
-          )
-        )
-
-
-        pooled_standard_error_2 <- 1 / (1 / source_data$standard_error ^ 2 + 1 / target_treatment_effect_standard_error ^
-                                          2)
-
-        pooled_sample_size <- target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
-
-        pooled_variance <- pooled_standard_error_2 * pooled_sample_size
-
-        if (frequentist_test == 't-test'){
-          if (null_space == "left"){
-            alternative = "greater"
-          } else if (null_space == "right"){
-            alternative = "less"
-          }
-
-          test <- BSDA::tsum.test(
-            mean.x = pooled_treatment_effect,
-            mu = theta_0,
-            alternative = alternative,
-            s.x = sqrt(pooled_variance),
-            n.x = pooled_sample_size
-          )
-        } else {
-          stop("Only implemented for a t-test.")
-        }
-        test_decisions[r] <- test$p.value < alpha
+      if (frequentist_test != "t-test") {
+        stop("Only implemented for a t-test.")
       }
+
+      # Every replicate at once: the arithmetic is elementwise, so each entry
+      # is exactly what the former per-replicate loop computed.
+      target_treatment_effect_standard_error <- target_data_samples$standard_deviation / sqrt(target_data_samples$sample_size_per_arm)
+
+      pooled_treatment_effect <- (
+        source_data$treatment_effect_estimate / (
+          source_data$standard_error ^ 2 / target_treatment_effect_standard_error ^
+            2 + 1
+        )
+      ) + (
+        target_data_samples$treatment_effect_estimate / (
+          1 + target_treatment_effect_standard_error ^ 2 / source_data$standard_error ^
+            2
+        )
+      )
+
+      pooled_standard_error_2 <- 1 / (1 / source_data$standard_error ^ 2 + 1 / target_treatment_effect_standard_error ^
+                                        2)
+
+      pooled_sample_size <- target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
+
+      pooled_variance <- pooled_standard_error_2 * pooled_sample_size
+
+      p_values <- one_sample_t_test_p_values(
+        estimate = pooled_treatment_effect,
+        mu = theta_0,
+        standard_deviation = sqrt(pooled_variance),
+        n = pooled_sample_size,
+        alternative = alternative
+      )
+      test_decisions <- as.numeric(p_values < alpha)
 
       power <- mean(test_decisions)
       conf_int_power <- binom.test(sum(test_decisions), length(test_decisions), conf.level = 0.95)$conf.int
@@ -586,6 +605,11 @@ sample_equivalent_tie <- function(alpha, n_samples) {
 #' @param case_study Optional case-study name.
 #' @param n_replicates Number of Monte Carlo replicates for non-analytical power.
 #' @param n_samples Number of draws of the type I error.
+#' @param p_values Optional p-values of the separate analysis, already
+#'   simulated for this design by [simulate_test_p_values()]. They depend on the
+#'   design alone, not on the borrowing method, so a caller pricing many rows of
+#'   one design simulates them once and passes them here. `NULL` simulates them.
+#'   Ignored when the power has a closed form.
 #'
 #' @return A list with the power, its interval, and the number of draws used.
 #'
@@ -598,7 +622,8 @@ compute_power_with_tie_ci <- function(alpha,
                                       simulation_config,
                                       case_study = NULL,
                                       n_replicates = 1000,
-                                      n_samples = 1000) {
+                                      n_samples = 1000,
+                                      p_values = NULL) {
   missing_result <- list(
     power = NA_real_,
     conf_int_power = rep(NA_real_, 2),
@@ -635,18 +660,25 @@ compute_power_with_tie_ci <- function(alpha,
     # each count through its own posterior. The reported interval therefore
     # carries both the type I error uncertainty and the replicate noise, which
     # re-simulating under a fixed seed used to suppress entirely.
-    alternative <- if (null_space == "left") "greater" else "less"
-    p_values <- simulate_test_p_values(
-      target_data = target_data,
-      frequentist_test = frequentist_test,
-      theta_0 = theta_0,
-      alternative = alternative,
-      simulation_config = simulation_config,
-      n_replicates = n_replicates
+    if (is.null(p_values)) {
+      alternative <- if (null_space == "left") "greater" else "less"
+      p_values <- simulate_test_p_values(
+        target_data = target_data,
+        frequentist_test = frequentist_test,
+        theta_0 = theta_0,
+        alternative = alternative,
+        simulation_config = simulation_config,
+        n_replicates = n_replicates
+      )
+    }
+    # The number of p-values strictly below each sampled alpha, read off the
+    # sorted p-values by binary search rather than one full pass per alpha.
+    if (is.unsorted(p_values)) {
+      p_values <- sort(p_values)
+    }
+    rejections <- as.numeric(
+      findInterval(alpha_samples, p_values, left.open = TRUE)
     )
-    rejections <- vapply(alpha_samples, function(sampled_alpha) {
-      sum(p_values < sampled_alpha)
-    }, numeric(1))
     power_samples <- stats::rbeta(
       n_samples,
       shape1 = rejections + 0.5,
@@ -664,6 +696,137 @@ compute_power_with_tie_ci <- function(alpha,
 }
 
 
+#' Key under which one design's simulated p-values are cached
+#'
+#' The p-values follow from the design, the test, the seed and the number of
+#' replicates, so a key naming all four identifies them.
+#'
+#' @param design_key Keys from [nominal_tie_design_key()].
+#' @param frequentist_test The test the p-values are computed for.
+#' @param simulation_config The simulation configuration, for its seed.
+#' @param n_replicates Number of trials simulated.
+#'
+#' @return A character vector, one key per design key.
+#' @noRd
+p_value_cache_key <- function(design_key, frequentist_test, simulation_config, n_replicates) {
+  seed <- simulation_config$seed
+  paste(design_key, frequentist_test,
+        if (is.null(seed)) "no seed" else format(seed),
+        n_replicates, sep = "\003")
+}
+
+
+#' Simulate the separate analysis's p-values for one design
+#'
+#' @param row A results row describing the design.
+#' @param frequentist_test The test the p-values are computed for.
+#' @param simulation_config The simulation configuration.
+#' @param n_replicates Number of trials to simulate.
+#'
+#' @return The p-values, sorted.
+#' @noRd
+design_test_p_values <- function(row, frequentist_test, simulation_config, n_replicates) {
+  target_data <- load_data(row, type = "target", reload_data_objects = TRUE)
+
+  sort(simulate_test_p_values(
+    target_data = target_data,
+    frequentist_test = frequentist_test,
+    theta_0 = row$theta_0,
+    alternative = alternative_from_null_space(row$null_space),
+    simulation_config = simulation_config,
+    n_replicates = n_replicates
+  ))
+}
+
+
+#' The separate analysis's p-values for every design that needs them
+#'
+#' @description Designs whose power has a closed form get `NULL`. The others
+#'   are read from `p_value_cache` when it holds them, and simulated otherwise,
+#'   on a cluster when there are enough of them to pay for one.
+#'
+#' @param design_rows One results row per design.
+#' @param design_keys Their keys from [nominal_tie_design_key()].
+#' @param design_target_data Their target data, as `load_data()` returns it.
+#' @param frequentist_test The test the p-values are computed for.
+#' @param simulation_config The simulation configuration.
+#' @param n_replicates Number of trials simulated per design.
+#' @param parallelization Whether the caller asked for parallelism.
+#' @param p_value_cache An environment to read from and add to, or `NULL`.
+#'
+#' @return A list with one entry per design: its sorted p-values, or `NULL`.
+#' @noRd
+equivalent_tie_design_p_values <- function(design_rows,
+                                           design_keys,
+                                           design_target_data,
+                                           frequentist_test,
+                                           simulation_config,
+                                           n_replicates,
+                                           parallelization,
+                                           p_value_cache = NULL) {
+  p_values <- vector("list", nrow(design_rows))
+
+  # which() drops an undetermined answer along with the closed-form designs.
+  needs_simulation <- which(!vapply(design_target_data, uses_analytical_power, logical(1)))
+  if (length(needs_simulation) == 0) {
+    return(p_values)
+  }
+
+  cache_keys <- p_value_cache_key(
+    design_keys[needs_simulation], frequentist_test, simulation_config, n_replicates
+  )
+  cached <- if (is.null(p_value_cache)) {
+    rep(FALSE, length(cache_keys))
+  } else {
+    vapply(cache_keys, exists, logical(1), envir = p_value_cache, inherits = FALSE)
+  }
+  for (j in which(cached)) {
+    p_values[[needs_simulation[j]]] <- get(cache_keys[j], envir = p_value_cache)
+  }
+
+  to_simulate <- needs_simulation[!cached]
+  if (length(to_simulate) == 0) {
+    return(p_values)
+  }
+
+  # Only the rows being simulated are sent to the workers.
+  rows_to_simulate <- lapply(to_simulate, function(d) design_rows[d, , drop = FALSE])
+
+  if (analysis_uses_cluster(parallelization, length(to_simulate) * n_replicates,
+                            min_rows = ANALYSIS_PARALLEL_MIN_TRIALS)) {
+    n_cores <- get_parallel_worker_count()
+    cl <- parallel::makeCluster(n_cores)
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    doParallel::registerDoParallel(cl)
+
+    # See load_bexte_in_workers() for why a bare library(BExTE) is not enough.
+    load_bexte_in_workers(cl, packages = c("dplyr", "yaml"))
+
+    # The foreach body is evaluated outside the package namespace, where an
+    # internal function is not visible; bound here, it travels to the workers
+    # as an exported variable, with the namespace as its environment.
+    simulate_design <- design_test_p_values
+    simulated <- foreach(row = rows_to_simulate, .packages = c("dplyr", "yaml")) %dopar% {
+      simulate_design(row, frequentist_test, simulation_config, n_replicates)
+    }
+  } else {
+    simulated <- lapply(rows_to_simulate, design_test_p_values,
+                        frequentist_test = frequentist_test,
+                        simulation_config = simulation_config,
+                        n_replicates = n_replicates)
+  }
+
+  p_values[to_simulate] <- simulated
+  if (!is.null(p_value_cache)) {
+    for (j in seq_along(to_simulate)) {
+      assign(cache_keys[!cached][j], simulated[[j]], envir = p_value_cache)
+    }
+  }
+
+  p_values
+}
+
+
 #' Compute the frequentist power at equivalent tie
 #'
 #' @description This function computes the frequentist power at equivalent tie for a given set of results and analysis configuration.
@@ -673,11 +836,15 @@ compute_power_with_tie_ci <- function(alpha,
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
+#' @param p_value_cache Optional environment holding the simulated p-values of
+#'   the separate analysis by design, filled here and read back by
+#'   `frequentist_power_at_nominal_tie()`, which simulates the same trials.
+#'   `NULL` keeps them for this call only.
 #'
 #' @return The final results data frame with power and frequentist test columns added.
 #'
 #' @export
-frequentist_power_at_equivalent_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000) {
+frequentist_power_at_equivalent_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000, p_value_cache = NULL) {
   if (nrow(results) == 0) {
     stop("The results dataframe is empty.")
   }
@@ -759,108 +926,87 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 
   frequentist_test <- analysis_config[["frequentist_test"]]
 
-  if (analysis_uses_cluster(parallelization, nrow(results))) {
-    # Set up parallel backend
-    n_cores <- get_parallel_worker_count()
-    cl <- parallel::makeCluster(n_cores)
-    on.exit(parallel::stopCluster(cl), add = TRUE)
-    doParallel::registerDoParallel(cl)
-
-    # BExTE is often loaded from source rather than installed (main.R and
-    # the Shiny app both devtools::load_all() it), which a bare
-    # library(BExTE) in the workers cannot cope with - see
-    # load_bexte_in_workers().
-    load_bexte_in_workers(cl, packages = c("pwr", "dplyr", "yaml", "BSDA"))
-
-    # Use foreach for parallel computation
-    results_list <- foreach(i = seq_len(nrow(results)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
-      if (is.na(results$tie[i])) {
-        warning("TIE is NA")
-        return(list(
-          frequentist_power_at_equivalent_tie = NA_real_,
-          frequentist_power_at_equivalent_tie_lower = NA_real_,
-          frequentist_power_at_equivalent_tie_upper = NA_real_,
-          frequentist_test = NA_character_
-        ))
-      }
-
-      target_data <- load_data(results[i, ], type = "target", reload_data_objects = TRUE)
-
-      alpha <- list(
-        mean = results$tie[i],
-        conf_int_lower = results$conf_int_tie_lower[i],
-        conf_int_upper = results$conf_int_tie_upper[i],
-        mcse = results$mcse_tie[i]
-      )
-
-      power_estimation <- compute_power_with_tie_ci(
-        alpha = alpha,
-        target_data = target_data,
-        frequentist_test = frequentist_test,
-        theta_0 = results$theta_0[i],
-        null_space = results$null_space[i],
-        case_study = results[i, ]$case_study,
-        simulation_config = simulation_config,
-        n_replicates = n_replicates
-      )
-
-      list(
-        frequentist_power_at_equivalent_tie = power_estimation$power,
-        frequentist_power_at_equivalent_tie_lower = power_estimation$conf_int_power[1],
-        frequentist_power_at_equivalent_tie_upper = power_estimation$conf_int_power[2],
-        frequentist_test = frequentist_test
-      )
-    }
-
-    # Combine results into the dataframe
-    results <- cbind(results, dplyr::bind_rows(results_list))
-  } else {
-    # Progress bar function in R
-    progress_bar <- function(n) {
-      pb <- txtProgressBar(min = 0,
-                           max = n,
-                           style = 3)
-      return(function(i) {
-        setTxtProgressBar(pb, i)
-      })
-    }
-
-    frequentist_test <- analysis_config[["frequentist_test"]]
-    # Iterate through rows and compute power at equivalent TIE.
-    for (i in seq_len(nrow(results))) {
-      target_data <- load_data(results[i, ],
-                               type = "target",
-                               reload_data_objects = TRUE)
-
-
-      if (is.na(results$tie[i])){
-        warning("TIE is NA")
-        next
-      }
-
-      alpha = list(mean = results$tie[i], conf_int_lower = results$conf_int_tie_lower[i], conf_int_upper = results$conf_int_tie_upper[i], mcse = results$mcse_tie[i])
-
-      power_estimation <- compute_power_with_tie_ci(
-        alpha = alpha,
-        target_data = target_data,
-        frequentist_test = frequentist_test,
-        theta_0 = results$theta_0[i],
-        null_space = results$null_space[i],
-        case_study =  results[i, ]$case_study,
-        simulation_config = simulation_config,
-        n_replicates = n_replicates
-      )
-
-      results$frequentist_power_at_equivalent_tie[i] <- power_estimation$power
-      results$frequentist_power_at_equivalent_tie_lower[i] <- power_estimation$conf_int_power[1]
-      results$frequentist_power_at_equivalent_tie_upper[i] <- power_estimation$conf_int_power[2]
-
-    results$frequentist_test[i] <- frequentist_test
-
-    # Update progress bar
-    pb <- progress_bar(nrow(results))(i)
-    }
+  has_tie <- !is.na(results$tie)
+  if (!all(has_tie)) {
+    warning(sprintf(
+      "TIE is NA for %d of %d rows, so their power at equivalent TIE is left missing.",
+      sum(!has_tie), nrow(results)
+    ))
   }
+
+  # The trials the separate analysis is read off depend on the design alone,
+  # while the results hold one row per design *and* method-parameter
+  # combination (56 rows a design in the paper's environment). The target data
+  # and the simulated p-values are therefore built once per design, and only
+  # the part that depends on the row's own type I error runs per row. The
+  # p-values are exactly the ones a per-row simulation would give, because
+  # simulate_test_p_values() reseeds from simulation_config$seed every time.
+  design_key <- nominal_tie_design_key(
+    results[intersect(NOMINAL_TIE_DESIGN_COLUMNS, names(results))]
+  )
+  design_keys <- unique(design_key[has_tie])
+  design_rows <- results[match(design_keys, design_key), , drop = FALSE]
+  row_design <- match(design_key, design_keys)
+
+  design_target_data <- lapply(seq_len(nrow(design_rows)), function(d) {
+    load_data(design_rows[d, , drop = FALSE],
+              type = "target",
+              reload_data_objects = TRUE)
+  })
+
+  design_p_values <- equivalent_tie_design_p_values(
+    design_rows = design_rows,
+    design_keys = design_keys,
+    design_target_data = design_target_data,
+    frequentist_test = frequentist_test,
+    simulation_config = simulation_config,
+    n_replicates = n_replicates,
+    parallelization = parallelization,
+    p_value_cache = p_value_cache
+  )
+
+  # The type I error draws and the posterior of each rejection count are the
+  # only random part left. Seeding them once makes the columns reproducible,
+  # whatever the cache held and however the p-values were computed.
+  set.seed(simulation_config$seed)
+
+  power <- rep(NA_real_, nrow(results))
+  power_lower <- rep(NA_real_, nrow(results))
+  power_upper <- rep(NA_real_, nrow(results))
+  test_column <- rep(NA_character_, nrow(results))
+
+  for (i in which(has_tie)) {
+    d <- row_design[i]
+
+    alpha <- list(
+      mean = results$tie[i],
+      conf_int_lower = results$conf_int_tie_lower[i],
+      conf_int_upper = results$conf_int_tie_upper[i],
+      mcse = results$mcse_tie[i]
+    )
+
+    power_estimation <- compute_power_with_tie_ci(
+      alpha = alpha,
+      target_data = design_target_data[[d]],
+      frequentist_test = frequentist_test,
+      theta_0 = results$theta_0[i],
+      null_space = results$null_space[i],
+      case_study = results$case_study[i],
+      simulation_config = simulation_config,
+      n_replicates = n_replicates,
+      p_values = design_p_values[[d]]
+    )
+
+    power[i] <- power_estimation$power
+    power_lower[i] <- power_estimation$conf_int_power[1]
+    power_upper[i] <- power_estimation$conf_int_power[2]
+    test_column[i] <- frequentist_test
+  }
+
+  results$frequentist_power_at_equivalent_tie <- power
+  results$frequentist_power_at_equivalent_tie_lower <- power_lower
+  results$frequentist_power_at_equivalent_tie_upper <- power_upper
+  results$frequentist_test <- test_column
 
   return(results)
 }
@@ -880,6 +1026,8 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
+#' @param p_values Optional p-values of the separate analysis for this design,
+#'   already simulated. `NULL` simulates them.
 #'
 #' @return A named list holding the six power columns for that row.
 #' @noRd
@@ -887,7 +1035,8 @@ nominal_tie_power_row <- function(row,
                                   nominal_tie,
                                   frequentist_test,
                                   simulation_config,
-                                  n_replicates) {
+                                  n_replicates,
+                                  p_values = NULL) {
   target_data <- load_data(row, type = "target", reload_data_objects = TRUE)
   source_data <- load_data(row, type = "source", reload_data_objects = TRUE)
 
@@ -901,7 +1050,8 @@ nominal_tie_power_row <- function(row,
     null_space = row$null_space,
     case_study = row$case_study,
     simulation_config = simulation_config,
-    n_replicates = n_replicates
+    n_replicates = n_replicates,
+    p_values = p_values
   )
 
   pooling <- compute_freq_power_pooling(
@@ -1002,9 +1152,12 @@ nominal_tie_design_key <- function(design) {
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
+#' @param p_value_cache Optional environment of simulated p-values left by
+#'   [frequentist_power_at_equivalent_tie()]. The separate baseline reads the
+#'   same trials, so a design found there is not simulated again.
 #'
 #' @return The results data frame with the six baseline power columns added.
-frequentist_power_at_nominal_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000) {
+frequentist_power_at_nominal_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000, p_value_cache = NULL) {
   if (nrow(results) == 0) {
     stop("The results dataframe is empty.")
   }
@@ -1032,6 +1185,20 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   design_rows <- results[representatives, , drop = FALSE]
   design_index <- match(design_key, design_key[representatives])
 
+  # The separate baseline's trials, where the equivalent-TIE step already
+  # simulated them. A design missing from the cache gets NULL and simulates
+  # its own.
+  cached_p_values <- vector("list", nrow(design_rows))
+  if (!is.null(p_value_cache)) {
+    cache_keys <- p_value_cache_key(
+      design_key[representatives], frequentist_test, simulation_config, n_replicates
+    )
+    for (i in which(vapply(cache_keys, exists, logical(1),
+                           envir = p_value_cache, inherits = FALSE))) {
+      cached_p_values[[i]] <- get(cache_keys[i], envir = p_value_cache)
+    }
+  }
+
   # Only the distinct designs are handed to the workers, rather than the whole
   # results frame: on the paper's environment that is 330 rows to serialise
   # instead of 18,480, each carrying its parameters as JSON.
@@ -1041,7 +1208,8 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
       nominal_tie = nominal_tie,
       frequentist_test = frequentist_test,
       simulation_config = simulation_config,
-      n_replicates = n_replicates
+      n_replicates = n_replicates,
+      p_values = cached_p_values[[i]]
     )
   }
 

@@ -1,4 +1,32 @@
 # BExTE 0.0.2
+* The frequentist power baselines of the time-to-event sensitivity designs
+  were computed on the primary design's trials. `load_data()` rebuilt a
+  scenario's target data without its dropout probability, event time
+  distribution and treatment delay, so the power at the equivalent type I
+  error and the separate and pooled powers at the nominal one were the same
+  for every such design. It now reads them from the results row, and falls
+  back to the primary design for results written before those columns
+  existed. The sensitivity figures' power baselines change; rerun the
+  analysis step for time-to-event results.
+* The deterministic Bayesian operating characteristics run on a cluster when
+  the analysis is parallelised: 26 s instead of 65 s for the 448 method and
+  design combinations of a Teriflunomide run, most of it cluster start-up.
+  Each combination is now an independent job, seeded on its own, and the
+  results are identical to the sequential ones and to before.
+* The frequentist power at the equivalent type I error is about a hundred
+  times faster on the case studies where it is simulated (time-to-event,
+  recurrent-event and binary): 1 s instead of 129 s for 336 Teriflunomide
+  rows. It used to simulate the separate analysis's trials once per result
+  row, although they depend only on the design, so every method and parameter
+  combination of a design drew the same trials again. They are now simulated
+  once per design, on a cluster when there are enough designs, and the
+  nominal-TIE step reuses them rather than simulating them a third time. The
+  t-test is computed on all replicates at once instead of calling
+  `BSDA::tsum.test()` per replicate, with bit-identical p-values; the same
+  applies to the pooled analysis's simulated power. The type I error draws
+  behind the power's interval are now seeded, so its three columns are
+  reproducible between runs; they move within Monte Carlo error of their
+  previous values.
 * The operating characteristics of the binary case studies, Aprepitant and
   Belimumab, can now be computed exactly instead of simulated. A trial there
   reaches the analysis only through the responder counts of its two arms, so
