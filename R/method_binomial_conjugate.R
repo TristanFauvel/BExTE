@@ -26,6 +26,7 @@
 #' @field treatment_shape2 Second shape parameter of the treatment rate posterior.
 #' @field n_quadrature_nodes Number of nodes used to integrate over the control rate.
 #' @field quadrature_control_rates Quadrature nodes on the control rate posterior.
+#' @field interval_memo Credible intervals of the current posterior, by level.
 #' @export
 BinomialConjugate <- R6::R6Class(
   "BinomialConjugate",
@@ -37,6 +38,7 @@ BinomialConjugate <- R6::R6Class(
     treatment_shape2 = NULL,
     n_quadrature_nodes = 1024L,
     quadrature_control_rates = NULL,
+    interval_memo = list(),
 
     # The posterior shape parameters are the observed counts incremented by one,
     # and everything reported follows from them by quadrature. Nothing here is
@@ -98,6 +100,7 @@ BinomialConjugate <- R6::R6Class(
         self$control_shape2
       )
 
+      self$interval_memo <- list()
       self$post_median <- self$posterior_quantile(0.5)
 
       invisible(NULL)
@@ -149,8 +152,14 @@ BinomialConjugate <- R6::R6Class(
     #' @description Credible interval on the treatment effect
     #' @param level Level of the credible interval
     credible_interval = function(level = 0.95) {
-      alpha <- (1 - level) / 2
-      return(self$posterior_quantile(c(alpha, 1 - alpha)))
+      # The replicate loop asks for the interval, and then the effective sample
+      # sizes ask for it again from the same posterior; it is computed once.
+      key <- format(level, digits = 17)
+      if (is.null(self$interval_memo[[key]])) {
+        alpha <- (1 - level) / 2
+        self$interval_memo[[key]] <- self$posterior_quantile(c(alpha, 1 - alpha))
+      }
+      return(self$interval_memo[[key]])
     },
 
     #' @description Effective sample sizes of the current posterior

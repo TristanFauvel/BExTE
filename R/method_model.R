@@ -796,7 +796,7 @@ Model <- R6::R6Class(
               fit_success[r] <- inference_status
             }
 
-            assertions::assert_number(self$post_mean)
+            assert_single_number(self$post_mean)
 
             if (requested("posterior_mean")) {
               posterior_means[r] <- self$post_mean
@@ -1406,7 +1406,7 @@ Model <- R6::R6Class(
 
         target_data <- TargetDataFactory$new()
 
-        assertions::assert_number(treatment_drift)
+        assert_single_number(treatment_drift)
 
         target_data <- target_data$create(
           source_data = source_data,
@@ -1843,8 +1843,8 @@ ConjugateGaussian <- R6::R6Class(
       self$prior_mean <- prior$source$treatment_effect_estimate
       self$prior_var <- prior$source$standard_error ^ 2
 
-      assertions::assert_number(self$prior_mean)
-      assertions::assert_number(self$prior_var)
+      assert_single_number(self$prior_mean)
+      assert_single_number(self$prior_var)
     },
     #' @description Sample from the prior
     #' @param n_samples Number of samples from the prior
@@ -1912,7 +1912,7 @@ ConjugateGaussian <- R6::R6Class(
         )
       )
 
-      assertions::assert_number(post_mean)
+      assert_single_number(post_mean)
       return(post_mean)
     },
     #' @description Posterior variance
@@ -2423,8 +2423,8 @@ PoolGaussian_RBesT <- R6::R6Class(
       self$prior_var <- prior$source$standard_error ^
         2
 
-      assertions::assert_number(self$prior_mean)
-      assertions::assert_number(self$prior_var)
+      assert_single_number(self$prior_mean)
+      assert_single_number(self$prior_var)
 
       self$RBesT_prior <- RBesT::mixnorm(c(1, self$prior_mean, sqrt(self$prior_var)))
       self$empirical_bayes <- FALSE
@@ -2589,14 +2589,14 @@ MCMCModel <- R6::R6Class(
       assertions::assert_whole_number(mcmc_config$num_chains)
       assertions::assert_whole_number(mcmc_config$parallel_chains)
       assertions::assert_whole_number(mcmc_config$tune)
-      assertions::assert_number(mcmc_config$target_accept)
+      assert_single_number(mcmc_config$target_accept)
       if (mcmc_config$target_accept <= 0 || mcmc_config$target_accept >= 1) {
         stop("target_accept must lie strictly between 0 and 1.", call. = FALSE)
       }
       assertions::assert_whole_number(mcmc_config$chain_length)
       assertions::assert_whole_number(mcmc_config$target_ess)
-      assertions::assert_number(mcmc_config$rhat_threshold)
-      assertions::assert_number(mcmc_config$max_divergence_rate)
+      assert_single_number(mcmc_config$rhat_threshold)
+      assert_single_number(mcmc_config$max_divergence_rate)
       if (mcmc_config$max_divergence_rate < 0 ||
           mcmc_config$max_divergence_rate > 1) {
         stop("max_divergence_rate must lie between 0 and 1.", call. = FALSE)

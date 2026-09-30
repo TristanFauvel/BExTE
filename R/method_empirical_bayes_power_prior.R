@@ -241,7 +241,7 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
     hypothesis_space_transformation = function(target_data) {
       # To handle the cases where null_space == "right", we apply the following transformations to put ourselves back in a situation equivalent to null_space == "left":
 
-      assertions::assert_number(self$parameters$theta_0)
+      assert_single_number(self$parameters$theta_0)
 
       if (self$null_space == "right") {
         source_treatment_effect_estimate <- -self$prior$source$treatment_effect_estimate
@@ -511,7 +511,7 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
         ) ^ 2 - target_data_sampling_variance / target_data$sample_size_per_arm
         )
         ), 1)
-      assertions::assert_number(power_parameter)
+      assert_single_number(power_parameter)
       return(power_parameter)
     },
 
@@ -922,7 +922,7 @@ p_value_based_PP_Gaussian <- R6::R6Class(
       p_value <- pmax(left$p.value, right$p.value)
 
 
-      assertions::assert_number(p_value)
+      assert_single_number(p_value)
       return(p_value)
     },
 
@@ -1048,7 +1048,7 @@ p_value_based_PP_Binomial <- R6::R6Class(
     hypothesis_space_transformation = function(target_data) {
       # To handle the cases where null_space == "right", we apply the following transformations to put ourselves back in a situation equivalent to null_space == "left":
 
-      assertions::assert_number(self$parameters$theta_0)
+      assert_single_number(self$parameters$theta_0)
 
       if (self$null_space == "right") {
         source_treatment_effect_estimate <- -self$prior$source$treatment_effect_estimate
@@ -1191,7 +1191,7 @@ p_value_based_PP_Binomial <- R6::R6Class(
       p_value <- pmax(left$p.value, right$p.value)
 
 
-      assertions::assert_number(p_value)
+      assert_single_number(p_value)
       return(p_value)
     },
 

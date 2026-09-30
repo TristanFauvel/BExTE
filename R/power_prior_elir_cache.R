@@ -126,7 +126,7 @@ binomial_power_prior_unit_elir <- function(model, power_parameter, n_samples,
       "prior for the mixture approximation, but it was not provided."
     )
   }
-  assertions::assert_number(power_parameter)
+  assert_single_number(power_parameter)
   if (power_parameter < 0 || power_parameter > 1) {
     stop("The power parameter must lie in [0, 1].", call. = FALSE)
   }

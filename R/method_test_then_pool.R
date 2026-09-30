@@ -151,7 +151,7 @@ TestThenPool <- R6::R6Class(
     #' @param target_data The data from the target study.
     inference = function(target_data) {
       self$test(target_data) # This will set the value of self$pool, and determine whether we should use pooling or separate
-      assertions::assert_logical(self$pool)
+      if (!is.logical(self$pool)) stop("The pooling decision is not logical.", call. = FALSE)
       if (length(self$pool) == 0) {
         stop("Test result is invalid.")
       }
@@ -468,9 +468,9 @@ TestThenPoolEquivalence <- R6::R6Class(
     #' @param target_data The data from the target study.
     #' @param test_type Test type
     test_pvalue = function(target_data, test_type = "t-test") {
-      assertions::assert_number(target_data$sample$treatment_effect_estimate)
-      assertions::assert_number(target_data$sample$treatment_effect_standard_error)
-      assertions::assert_number(target_data$sample_size_per_arm)
+      assert_single_number(target_data$sample$treatment_effect_estimate)
+      assert_single_number(target_data$sample$treatment_effect_standard_error)
+      assert_single_number(target_data$sample_size_per_arm)
 
       if (!(
         self$summary_measure_likelihood == "normal" ||
@@ -573,7 +573,7 @@ TestThenPoolEquivalence <- R6::R6Class(
 
       self$posterior_parameters$pool <- self$pool
 
-      assertions::assert_logical(self$pool)
+      if (!is.logical(self$pool)) stop("The pooling decision is not logical.", call. = FALSE)
       if (length(self$pool) == 0) {
         stop("Test result is invalid.")
       }
@@ -649,9 +649,9 @@ TestThenPoolDifference <- R6::R6Class(
     #' @param target_data Target study data
     #' @param test_type Frequentist test
     test_pvalue = function(target_data, test_type = "t-test") {
-      assertions::assert_number(target_data$sample$treatment_effect_estimate)
-      assertions::assert_number(target_data$sample$treatment_effect_standard_error)
-      assertions::assert_number(target_data$sample_size_per_arm)
+      assert_single_number(target_data$sample$treatment_effect_estimate)
+      assert_single_number(target_data$sample$treatment_effect_standard_error)
+      assert_single_number(target_data$sample_size_per_arm)
 
       if (!(
         self$summary_measure_likelihood == "normal" ||
@@ -706,7 +706,7 @@ TestThenPoolDifference <- R6::R6Class(
 
       self$posterior_parameters$pool <- self$pool
 
-      assertions::assert_logical(self$pool)
+      if (!is.logical(self$pool)) stop("The pooling decision is not logical.", call. = FALSE)
       if (length(self$pool) == 0) {
         stop("Test result is invalid.")
       }

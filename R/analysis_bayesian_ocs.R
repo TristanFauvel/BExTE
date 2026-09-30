@@ -56,7 +56,7 @@ preposterior_proba_FP_MC <- function(conditional_proba_success,
 
   p <- sapply(p, check_probability_value)
 
-  assertions::assert_number(p)
+  assert_single_number(p)
   return(p)
 }
 
@@ -95,7 +95,7 @@ preposterior_proba_TP_MC <- function(conditional_proba_success,
 
   p <- sapply(p, check_probability_value)
 
-  assertions::assert_number(p)
+  assert_single_number(p)
   return(p)
 }
 
@@ -118,13 +118,13 @@ average_tie <- function(prepost_proba_FP,
     return(NA)
   }
 
-  assertions::assert_number(prepost_proba_FP)
-  assertions::assert_number(prior_proba_no_benefit)
+  assert_single_number(prepost_proba_FP)
+  assert_single_number(prior_proba_no_benefit)
 
   p <- prepost_proba_FP / prior_proba_no_benefit
   p <- sapply(p, check_probability_value)
 
-  assertions::assert_number(p)
+  assert_single_number(p)
   return(p)
 }
 
@@ -147,13 +147,13 @@ average_power <- function(prepost_proba_TP,
     return(NA)
   }
 
-  assertions::assert_number(prepost_proba_TP)
-  assertions::assert_number(prior_proba_no_benefit)
+  assert_single_number(prepost_proba_TP)
+  assert_single_number(prior_proba_no_benefit)
 
   p <- prepost_proba_TP / (1 - prior_proba_no_benefit)
   p <- sapply(p, check_probability_value)
 
-  assertions::assert_number(p)
+  assert_single_number(p)
   return(p)
 }
 
@@ -272,7 +272,7 @@ upper_bound_proba_FP_MC <- function(model,
   p <- prior_proba_no_benefit * analysed_success_probability(results)
 
   p <- sapply(p, check_probability_value)
-  assertions::assert_number(p)
+  assert_single_number(p)
   return(p)
 }
 
@@ -287,7 +287,7 @@ upper_bound_proba_FP <- function(prior_proba_no_benefit,
     return(NA)
   }
 
-  assertions::assert_number(prior_proba_no_benefit)
+  assert_single_number(prior_proba_no_benefit)
 
   p <- prior_proba_no_benefit * conditional_proba_success[treatment_effect_values == theta_0]
 
@@ -306,7 +306,7 @@ upper_bound_proba_FP <- function(prior_proba_no_benefit,
     #stop("p is NA.")
   }
 
-  assertions::assert_number(p)
+  assert_single_number(p)
   return(p)
 }
 
@@ -421,7 +421,7 @@ preposterior_proba_FP <- function(conditional_proba_success,
     )
 
     p <- sapply(p, check_probability_value)
-    assertions::assert_number(p)
+    assert_single_number(p)
   }
   return(p)
 }
@@ -479,7 +479,7 @@ preposterior_proba_TP <- function(conditional_proba_success,
     )
 
     p <- sapply(p, check_probability_value)
-    assertions::assert_number(p)
+    assert_single_number(p)
   }
   return(p)
 }
@@ -530,7 +530,7 @@ prior_proba_success <- function(conditional_proba_success,
   )
 
   p <- sapply(p, check_probability_value)
-  assertions::assert_number(p)
+  assert_single_number(p)
   return(p)
 }
 

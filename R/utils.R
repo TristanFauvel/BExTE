@@ -1570,7 +1570,7 @@ summarise_posterior_draws <- function(draws) {
 
 #' Check that a value is a single number
 #'
-#' A like-for-like replacement for assertions::assert_number() in code that
+#' A like-for-like replacement for assert_single_number() in code that
 #' builds an object per scenario or per result row. It accepts exactly what
 #' assert_number() accepts - one numeric value, NA and Inf included - but
 #' costs about 0.4us against 190us, because it does not inspect its own call
