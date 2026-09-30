@@ -1,4 +1,15 @@
 # BExTE 0.0.2
+* The analysis step is faster again: 162 s instead of 273 s for the three
+  power and Bayesian steps on a full Teriflunomide frame, with identical
+  results. The steps share one worker cluster, started the first time one of
+  them needs it, instead of standing up and stopping one each at 15-30 s a
+  time. And every simulated power of a design - the separate analysis's at
+  the equivalent and at the nominal type I error, and the pooled analysis's -
+  now reads one set of trials: the nominal step takes them from the
+  equivalent step instead of generating them twice more. The
+  `p_value_cache` argument of `frequentist_power_at_equivalent_tie()` is
+  now `trial_cache`, and `compute_freq_power_pooling()` takes the trials to
+  reuse.
 * `export_paper_outputs()` can produce the paper's items in parallel, each in
   a forked process, through the new `workers` argument. `reproduce_paper.R`
   uses as many workers as the simulation (capped by `BEXTE_MAX_WORKERS`;
