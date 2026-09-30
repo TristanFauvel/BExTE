@@ -17,6 +17,39 @@ test_that("get_parallel_worker_count always returns a valid cluster size", {
   )
 })
 
+test_that("BEXTE_MAX_WORKERS caps the worker count", {
+  expect_identical(
+    get_parallel_worker_count(detected_cores = 12L, env_max_workers = "6"),
+    6L
+  )
+  # The tighter of the two caps wins.
+  expect_identical(
+    get_parallel_worker_count(max_workers = 4L, detected_cores = 12L,
+                              env_max_workers = "6"),
+    4L
+  )
+  # A cap above the machine's size changes nothing.
+  expect_identical(
+    get_parallel_worker_count(detected_cores = 12L, env_max_workers = "64"),
+    11L
+  )
+  expect_identical(
+    get_parallel_worker_count(detected_cores = 12L, env_max_workers = ""),
+    11L
+  )
+})
+
+test_that("an invalid BEXTE_MAX_WORKERS is an error, not a silent default", {
+  expect_error(
+    get_parallel_worker_count(detected_cores = 12L, env_max_workers = "six"),
+    "BEXTE_MAX_WORKERS"
+  )
+  expect_error(
+    get_parallel_worker_count(detected_cores = 12L, env_max_workers = "0"),
+    "BEXTE_MAX_WORKERS"
+  )
+})
+
 test_that("limit_mcmc_chain_parallelism runs chains sequentially when scenarios are parallel", {
   mcmc_config <- list(num_chains = 4L, parallel_chains = 4L, chain_length = 5000L)
 
