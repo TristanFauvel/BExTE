@@ -92,6 +92,8 @@ frequentist_col_types <- cols(
   conf_int_n_divergences_lower = col_double(),
   conf_int_n_divergences_upper = col_double(),
   warning = col_logical(),
+  exact_ocs = col_logical(),
+  enumeration_omitted_mass = col_double(),
   tie = col_double(),
   mcse_tie = col_double(),
   conf_int_tie_lower = col_double(),
@@ -207,7 +209,8 @@ results_columns <- c("success_proba", "mcse_success_proba", "conf_int_success_pr
                      "conf_int_ess_elir_lower", "conf_int_ess_elir_upper", "rhat", "conf_int_rhat_lower",
                      "conf_int_rhat_upper", "mcmc_ess", "conf_int_mcmc_ess_lower", "conf_int_mcmc_ess_upper",
                      "n_divergences", "conf_int_n_divergences_lower", "conf_int_n_divergences_upper",
-                     "warning", "tie", "mcse_tie", "conf_int_tie_lower", "conf_int_tie_upper",
+                     "warning", "exact_ocs", "enumeration_omitted_mass",
+                     "tie", "mcse_tie", "conf_int_tie_lower", "conf_int_tie_upper",
                      "frequentist_power_at_equivalent_tie", "frequentist_power_at_equivalent_tie_lower",
                      "frequentist_power_at_equivalent_tie_upper", "frequentist_test",
                      "nominal_frequentist_power_separate", "nominal_frequentist_power_separate_lower",
@@ -284,7 +287,9 @@ expected_colnames_results <- c(
   "n_divergences",
   "conf_int_n_divergences_lower",
   "conf_int_n_divergences_upper",
-  "warning"
+  "warning",
+  "exact_ocs",
+  "enumeration_omitted_mass"
 )
 
 expected_colnames_source <- c(
@@ -353,6 +358,8 @@ expected_coltypes <- c(
   rhat = "numeric",
   mcmc_ess = "numeric",
   n_divergences = "numeric",
+  exact_ocs = "logical",
+  enumeration_omitted_mass = "numeric",
   # Derived by the analysis layer
   tie = "numeric",
   conf_int_tie_lower = "numeric",
@@ -659,6 +666,16 @@ concatenate_files <- function(file_name, folders, output_path) {
     }
   }))
 
+
+  # Results written before exact enumeration existed were all simulated.
+  if (identical(file_name, "results_frequentist.csv") && nrow(combined_data) > 0) {
+    if (!"exact_ocs" %in% colnames(combined_data)) {
+      combined_data$exact_ocs <- FALSE
+    }
+    if (!"enumeration_omitted_mass" %in% colnames(combined_data)) {
+      combined_data$enumeration_omitted_mass <- NA_real_
+    }
+  }
 
   if (!(setequal(colnames(combined_data), names(col_types$cols)))){
     warning("Invalid column names in the concatenated results. Concatenated results file not created.")

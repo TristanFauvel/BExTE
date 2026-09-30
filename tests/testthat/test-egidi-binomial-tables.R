@@ -207,10 +207,10 @@ test_that("the weak component's table is cached across replicates", {
   exact <- egidi_binomial_model()
   exact$table_scale_tolerance <- 0
 
-  for (rate in c(0.875, 0.8750001)) {
-    model$empirical_bayes_update(egidi_binomial_target_data(sample_treatment_rate = rate))
-    exact$empirical_bayes_update(egidi_binomial_target_data(sample_treatment_rate = rate))
+  for (standard_error in c(0.0777, 0.0777001)) {
+    model$empirical_bayes_update(egidi_binomial_target_data(standard_error = standard_error))
+    exact$empirical_bayes_update(egidi_binomial_target_data(standard_error = standard_error))
     expect_equal(model$selection$psi_weak, exact$selection$psi_weak,
-                 tolerance = 1e-12, info = format(rate))
+                 tolerance = 1e-12, info = format(standard_error))
   }
 })

@@ -62,6 +62,10 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   theta_0 <- case_study_config$theta_0
   critical_value <- simulation_config$critical_value
   n_replicates <- case_study_n_replicates(scenarios_config, case_study)
+  exact_enumeration <- case_study_exact_enumeration(scenarios_config, case_study)
+  if (exact_enumeration) {
+    check_exact_enumeration_supported(case_study_config, case_study)
+  }
 
   summary_measure_likelihood <- case_study_config$summary_measure_likelihood
   endpoint <- case_study_config$endpoint
@@ -109,7 +113,8 @@ frequentist_ocs_scenario_simulation <- function(scenario,
     n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation,
     case_study = case_study,
     method = method,
-    simulation_config = simulation_config
+    simulation_config = simulation_config,
+    exact_enumeration = exact_enumeration
   )
 
   end_time <- Sys.time()

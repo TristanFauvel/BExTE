@@ -15,6 +15,32 @@
 # theta given v, relative to the uniform one on (-v, 1 - v).
 
 
+#' Event counts from observed response rates
+#'
+#' @description Recovers the whole number of responders behind a rate that was
+#'   computed as `count / n`. `(count / n) * n` often lands just below `count`
+#'   in floating point (7 / 71 * 71 is 6.9999...), so truncating it with
+#'   `as.integer()` silently loses an event; the product is rounded instead.
+#'   A rate that is not a count divided by `n` is an error rather than a
+#'   silently rounded surrogate.
+#'
+#' @param rate Numeric vector of response rates.
+#' @param n Numeric vector of sample sizes, recycled against `rate`.
+#' @return An integer vector of event counts.
+#' @keywords internal
+counts_from_rate <- function(rate, n) {
+  counts <- rate * n
+  rounded <- round(counts)
+  if (any(!is.finite(counts)) || any(abs(counts - rounded) > 1e-8 * pmax(1, n))) {
+    stop(
+      "Response rate ", paste(format(rate[abs(counts - rounded) > 1e-8 * pmax(1, n)], digits = 15), collapse = ", "),
+      " is not a whole number of events out of ", paste(unique(n), collapse = ", "), "."
+    )
+  }
+  as.integer(rounded)
+}
+
+
 #' Quantile midpoints of a Beta distribution
 #'
 #' @description Averaging a function over these nodes integrates it against the

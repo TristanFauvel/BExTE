@@ -61,3 +61,8 @@ methods:
     - commensurate_power_prior
     - commensurate_prior
     - egidi_empirical_mixture
+# Case studies whose operating characteristics are computed exactly, by
+# enumerating the responder counts, instead of by simulating n_replicates trials.
+exact_enumeration:
+    - aprepitant
+    - belimumab

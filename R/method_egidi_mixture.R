@@ -327,8 +327,8 @@ TruncatedEgidiMixture <- R6::R6Class(
 
       n_control <- as.integer(target_data$sample_size_control)
       n_treatment <- as.integer(target_data$sample_size_treatment)
-      y_control <- as.integer(n_control * target_data$sample$sample_control_rate)
-      y_treatment <- as.integer(n_treatment * target_data$sample$sample_treatment_rate)
+      y_control <- counts_from_rate(target_data$sample$sample_control_rate, n_control)
+      y_treatment <- counts_from_rate(target_data$sample$sample_treatment_rate, n_treatment)
 
       informative_sd <- sqrt(self$info_prior_variance)
       weak_sd <- sqrt(weak_variance)

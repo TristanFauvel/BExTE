@@ -424,3 +424,17 @@ test_that("the Stan engine keeps empirical Bayes models out of the cache", {
 
   expect_null(scope)
 })
+
+
+test_that("counts_from_rate recovers every count at the Aprepitant arm sizes", {
+  for (n in c(47, 71, 143, 286)) {
+    k <- 0:n
+    expect_identical(counts_from_rate(k / n, n), as.integer(k))
+  }
+})
+
+
+test_that("counts_from_rate rejects a rate that is not a whole number of events", {
+  expect_error(counts_from_rate(0.3, 71), "not a whole number of events")
+  expect_error(counts_from_rate(NA_real_, 71), "not a whole number of events")
+})

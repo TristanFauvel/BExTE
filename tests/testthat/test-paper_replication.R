@@ -608,15 +608,34 @@ test_that("every case study, the binomial one included, is simulated at 10000 re
 test_that("a run with too few replicates for one case study is short", {
   requirements <- paper_replication_requirements(paper_manifest_ids(), config_dir())
 
+  simulated <- setdiff(requirements$case_studies, PAPER_EXACT_ENUMERATION)[1]
   short <- requirements
-  short$case_study_n_replicates <- list(aprepitant = 100)
+  short$case_study_n_replicates <- stats::setNames(list(100), simulated)
   shortfalls <- paper_config_shortfalls(short, requirements)
-  expect_true(any(grepl("aprepitant", shortfalls)))
+  expect_true(any(grepl(simulated, shortfalls)))
+
+  ## The replicate count does not apply to an enumerated case study.
+  enumerated <- requirements
+  enumerated$case_study_n_replicates <- list(aprepitant = 100)
+  expect_equal(paper_config_shortfalls(enumerated, requirements), character(0))
 
   ## More replicates than required is only a tighter Monte Carlo error.
   generous <- requirements
   generous$case_study_n_replicates <- NULL
   expect_equal(paper_config_shortfalls(generous, requirements), character(0))
+})
+
+test_that("the binary case studies are enumerated exactly, and simulating them is short", {
+  requirements <- paper_replication_requirements(paper_manifest_ids(), config_dir())
+  expect_setequal(
+    requirements$exact_enumeration,
+    intersect(c("aprepitant", "belimumab"), requirements$case_studies)
+  )
+
+  simulated <- requirements
+  simulated$exact_enumeration <- NULL
+  shortfalls <- paper_config_shortfalls(simulated, requirements)
+  expect_true(any(grepl("simulated rather than enumerated", shortfalls)))
 })
 
 ## ---- Time-to-event sensitivity figures (S45-S50) ----------------------
