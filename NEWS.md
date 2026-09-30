@@ -1,4 +1,12 @@
 # BExTE 0.0.2
+* On a binary endpoint the parallel simulation hands the drift scenarios of
+  one design and method to the same worker, whose inference cache then serves
+  all of them. They used to go one at a time to whichever worker was free, so
+  every worker analysed every design's trial outcomes afresh - under exact
+  enumeration nearly all of the cost. Aprepitant's RMP at the smallest design
+  took 109 s instead of 321 s, with identical results in the same order. A
+  method with fewer designs than workers has each design cut into as many
+  pieces as keep the workers busy.
 * The binomial test-then-pool methods, the binomial p-value based power prior
   and the Egidi mixture are much faster under exact enumeration. At
   Aprepitant's n = 71, test-then-pool took 83 s instead of 1770 s and the

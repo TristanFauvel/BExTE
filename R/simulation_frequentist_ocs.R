@@ -486,39 +486,67 @@ simulation_frequentist_ocs <- function(env,
           }
         })
 
+        # On a binary endpoint the drifts of one design go to the same worker,
+        # whose inference cache then serves all of them - see scenario_tasks().
+        # Each task carries its own rows, so the workers need not be sent the
+        # whole scenario table.
+        case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+        task_rows <- scenario_tasks(
+          cases,
+          shares_across_drifts = analyses_shared_across_drifts(case_study_config),
+          n_workers = ncores
+        )
+        tasks <- lapply(task_rows, function(rows) {
+          list(rows = rows, cases = cases[rows, , drop = FALSE])
+        })
+
+        # doSNOW reports how many tasks have finished, so the scenarios done are
+        # counted in proportion; they reach the block's total with the last task.
+        task_progress <- function(n) {
+          done <- if (n >= length(tasks)) nrow(cases) else floor(n * nrow(cases) / length(tasks))
+          pb$update(done / nrow(cases))
+          run_progress$tick(done)
+        }
+
         # Parallel computation over cases
-        results <- foreach::foreach(
-          i = seq_len(nrow(cases)),
-          .combine = "rbind",
-          .options.snow = opts
+        results_by_task <- foreach::foreach(
+          task = tasks,
+          .options.snow = list(progress = task_progress)
         ) %dopar% {
           worker_id <- Sys.getpid()  # Get the process ID of the worker
 
-          scenario <- cases[i, ]
+          lapply(seq_along(task$rows), function(j) {
+            i <- task$rows[j]
+            scenario <- task$cases[j, ]
 
-          tryCatch({
-            result <- frequentist_ocs_scenario_simulation(
-              scenario = scenario,
-              simulation_config = simulation_config,
-              scenarios_config = scenarios_config,
-              freq_filename = freq_filename,
-              config_dir = config_dir,
-              case_studies_config_dir = case_studies_config_dir,
-              frequentist_metrics = frequentist_metrics,
-              inference_metrics = inference_metrics
-            )
-            ParallelLogger::logInfo(paste("Iteration", i, " completed by worker", worker_id))
-            result  # Return the result (assuming it’s a data frame)
-          }, error = function(e) {
-            ParallelLogger::logError(paste("Error at iteration", i, "by worker", worker_id, ":", e$message))
-            ParallelLogger::logError("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n"))
+            tryCatch({
+              result <- frequentist_ocs_scenario_simulation(
+                scenario = scenario,
+                simulation_config = simulation_config,
+                scenarios_config = scenarios_config,
+                freq_filename = freq_filename,
+                config_dir = config_dir,
+                case_studies_config_dir = case_studies_config_dir,
+                frequentist_metrics = frequentist_metrics,
+                inference_metrics = inference_metrics
+              )
+              ParallelLogger::logInfo(paste("Iteration", i, " completed by worker", worker_id))
+              result  # Return the result (assuming it’s a data frame)
+            }, error = function(e) {
+              ParallelLogger::logError(paste("Error at iteration", i, "by worker", worker_id, ":", e$message))
+              ParallelLogger::logError("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n"))
 
-            # Save state even if there's an error
-            save_state(iteration = i, scenario = scenario, worker_id = worker_id, env = env)
+              # Save state even if there's an error
+              save_state(iteration = i, scenario = scenario, worker_id = worker_id, env = env)
 
-            stop(e)
+              stop(e)
+            })
           })
         }
+        # Back into scenario order, as the one-scenario-per-task loop combined
+        # them, so the results file does not depend on how tasks were formed.
+        per_scenario <- unlist(results_by_task, recursive = FALSE)
+        results <- do.call(rbind, per_scenario[order(unlist(task_rows))])
         write_csv(results, freq_filename)
         parallel::stopCluster(cl)
       }
