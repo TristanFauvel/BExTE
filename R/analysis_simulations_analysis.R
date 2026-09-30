@@ -147,7 +147,7 @@ simulation_analysis <- function(env,
   }
   if ("bayesian_ocs" %in% to_compute){
     # Compute Bayesian OCs (in a deterministic manner) based on the results
-    results_bayesian_ocs <- compute_bayesian_ocs(results_freq_subset, env, config_dir = config_dir, case_studies_config_dir = case_studies_config_dir)
+    results_bayesian_ocs <- compute_bayesian_ocs(results_freq_subset, env, config_dir = config_dir, case_studies_config_dir = case_studies_config_dir, parallelization = run_in_parallel)
     bayes_filename <- paste0(results_dir,
                              "/",
                              outputs_config$bayesian_ocs_deterministic_results_filename)
