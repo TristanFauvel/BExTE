@@ -242,3 +242,23 @@ test_that("an empirical Bayes model is refused a cache scope", {
 
   expect_null(scope)
 })
+
+
+test_that("a call requesting more outputs is not served entries stored for fewer", {
+  samples <- cache_samples(
+    successes_control    = c(10, 14, 10),
+    successes_treatment  = c(25, 22, 25)
+  )
+
+  inference_cache_reset()
+  set.seed(20260930)
+  expected <- cache_simulation(cache_model(), cache_target_data(samples))
+
+  # The same data, first analysed for the decisions alone.
+  inference_cache_reset()
+  cache_simulation(cache_model(), cache_target_data(samples), to_return = c("test_decision", "fit_success"))
+  set.seed(20260930)
+  fuller <- cache_simulation(cache_model(), cache_target_data(samples))
+
+  expect_equal(fuller, expected)
+})

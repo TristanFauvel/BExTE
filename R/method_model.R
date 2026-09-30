@@ -735,6 +735,12 @@ Model <- R6::R6Class(
         n_samples_quantiles_estimation = n_samples_quantiles_estimation,
         simulation_config = simulation_config
       )
+      # A cached analysis holds only the outputs its call requested, so a call
+      # requesting more would restore fields that are not there. Calls with
+      # different requests therefore keep separate entries.
+      if (!is.null(cache_scope)) {
+        cache_scope <- rlang::hash(list(scope = cache_scope, requested = sort(unique(to_return))))
+      }
 
       # The two mirror each other: whatever the loop wrote for one replicate is
       # what a later replicate with the same data reads back.
