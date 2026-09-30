@@ -1325,26 +1325,53 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
 
       prior_mixture <- commensurate_prior_mixture(self)
 
-      # The posterior has one column per mixture component, hundreds of them,
-      # so the replicates are analysed in chunks to bound the memory it takes.
-      analyse_in_replicate_chunks(samples, function(chunk) {
+      # Hundreds of components are needed to discretise the prior, but a few
+      # dozen represent it just as accurately once it is seen as a
+      # distribution over the component variance - see
+      # compress_commensurate_mixture(), which checks that against the full
+      # mixture and returns NULL when it cannot be done.
+      compressed <- compress_commensurate_mixture(
+        mixture = prior_mixture,
+        samples = samples,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        heterogeneity_prior_family = self$heterogeneity_prior_family,
+        heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior
+      )
+      posterior_mixture <- if (is.null(compressed)) prior_mixture else compressed
+
+      # The posterior has one column per mixture component, hundreds of them
+      # uncompressed, so the replicates are then analysed in chunks to bound
+      # the memory it takes.
+      chunk_size <- if (is.null(compressed)) 1000L else 10000L
+      analyse_in_replicate_chunks(samples, chunk_size = chunk_size, function(chunk) {
         posterior <- normal_mixture_posterior(
-          weights = prior_mixture$weights,
-          means = prior_mixture$means,
-          sds = prior_mixture$sds,
+          weights = posterior_mixture$weights,
+          means = posterior_mixture$means,
+          sds = posterior_mixture$sds,
           estimate = chunk$treatment_effect_estimate,
           standard_error = chunk$treatment_effect_standard_error
         )
 
-        posterior_parameters <- commensurate_parameter_summary(
-          posterior_weights = posterior$weights,
-          mixture = prior_mixture,
-          heterogeneity_prior_family = self$heterogeneity_prior_family,
-          heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior,
-          borrows_power_parameter = self$borrows_power_parameter
-        )
+        posterior_parameters <- if (is.null(compressed)) {
+          commensurate_parameter_summary(
+            posterior_weights = posterior$weights,
+            mixture = prior_mixture,
+            heterogeneity_prior_family = self$heterogeneity_prior_family,
+            heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior,
+            borrows_power_parameter = self$borrows_power_parameter
+          )
+        } else {
+          compressed_commensurate_parameter_summary(
+            compressed,
+            chunk$treatment_effect_estimate,
+            chunk$treatment_effect_standard_error
+          )
+        }
 
-        vectorised_normal_mixture_simulation(
+        # The full prior is passed on for the ELIR, which is evaluated once on
+        # the shared prior and so costs nothing to keep exact.
+        results <- vectorised_normal_mixture_simulation(
           weights = prior_mixture$weights,
           means = prior_mixture$means,
           sds = prior_mixture$sds,
@@ -1361,6 +1388,20 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
           # diagnostics would read as a perfectly converged, never-diverging run.
           mcmc = self$mcmc
         )
+
+        if (!is.null(compressed) && !is.null(results$test_decisions)) {
+          results$test_decisions <- recheck_borderline_decisions(
+            test_decisions = results$test_decisions,
+            posterior = posterior,
+            mixture = prior_mixture,
+            estimate = chunk$treatment_effect_estimate,
+            standard_error = chunk$treatment_effect_standard_error,
+            critical_value = critical_value,
+            theta_0 = theta_0,
+            null_space = null_space
+          )
+        }
+        results
       })
     },
     #' @description Compute posterior parameters
