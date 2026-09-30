@@ -1,4 +1,33 @@
 # BExTE 0.0.2
+* The analysis step is faster again: 162 s instead of 273 s for the three
+  power and Bayesian steps on a full Teriflunomide frame, with identical
+  results. The steps share one worker cluster, started the first time one of
+  them needs it, instead of standing up and stopping one each at 15-30 s a
+  time. And every simulated power of a design - the separate analysis's at
+  the equivalent and at the nominal type I error, and the pooled analysis's -
+  now reads one set of trials: the nominal step takes them from the
+  equivalent step instead of generating them twice more. The
+  `p_value_cache` argument of `frequentist_power_at_equivalent_tie()` is
+  now `trial_cache`, and `compute_freq_power_pooling()` takes the trials to
+  reuse.
+* `export_paper_outputs()` can produce the paper's items in parallel, each in
+  a forked process, through the new `workers` argument. `reproduce_paper.R`
+  uses as many workers as the simulation (capped by `BEXTE_MAX_WORKERS`;
+  `BEXTE_PARALLEL=false` keeps one). The full export took 99 s on 8 workers
+  instead of 386 s, on a loaded machine. Each item writes into its own
+  staging directories and the files are copied into place in manifest order,
+  so the files, the PNG bytes, the manifest and the status of every item are
+  those of a sequential run. The default stays sequential, which the Shiny
+  app keeps: its progress bar cannot be driven from a forked process.
+* `sweet_spot()` failed on time-to-event results with "arguments imply
+  differing number of rows". It pooled every design of a case study -
+  dropout, event time distribution, treatment delay - into one curve per
+  method, then bound one results row per design to sweet spots found on the
+  mixture. Each design is now its own curve with its own sweet spot. A curve
+  with several `power_larger_than_nominal` or
+  `success_proba_smaller_than_nominal_TIE` sweet spots now gets one row with
+  list columns, as the other metrics already did, instead of one row per
+  sweet spot.
 * The frequentist power baselines of the time-to-event sensitivity designs
   were computed on the primary design's trials. `load_data()` rebuilt a
   scenario's target data without its dropout probability, event time

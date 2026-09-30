@@ -15,7 +15,7 @@
 ##   BEXTE_N_REPLICATES  replicates per scenario, for every case study (paper:
 ##                       10000, and 1000 for a binomial-likelihood case study)
 ##   BEXTE_NDRIFT        drift points per scenario (paper: 30)
-##   BEXTE_PARALLEL      "false" to run in a single process
+##   BEXTE_PARALLEL      "false" to run in a single process, the export too
 ##   BEXTE_RESULTS_DIR   export from this existing results directory instead
 ##                       of simulating (e.g. results/paper_replication_...)
 
@@ -137,7 +137,14 @@ local({
     ids = ids,
     case_studies_config_dir = case_studies_config_dir,
     numbered_dir = file.path("figures", "publication_figures", run_name,
-                             "paper_outputs")
+                             "paper_outputs"),
+    ## Items are drawn in parallel, as many at once as the simulation's
+    ## workers; BEXTE_MAX_WORKERS caps both.
+    workers = if (tolower(Sys.getenv("BEXTE_PARALLEL")) == "false") {
+      1L
+    } else {
+      BExTE:::get_parallel_worker_count()
+    }
   )
 
   print(status)
