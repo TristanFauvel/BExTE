@@ -1,4 +1,18 @@
 # BExTE 0.0.2
+* The separate and pooled binomial analyses, and so test-then-pool, are 2.5
+  to 2.9 times faster under exact enumeration and more accurate. The
+  distribution function of the difference of the two Beta posteriors is
+  integrated by Gauss-Legendre, split where the treatment rate would leave
+  [0, 1], instead of by 1,024 midpoints, whose error reached 8e-5 at outcomes
+  with 0 or n responders. Interval ends move by at most 5e-5 and the reported
+  operating characteristics by at most 1.5e-4; 3 of 66,816 decisions flip, at
+  the 0.975 threshold.
+* The slow `assertions::assert_number()` and `assert_logical()` checks on the
+  per-outcome path are replaced by equivalent base-R ones, and the conjugate
+  models compute each credible interval once: test-then-pool's first drift at
+  Aprepitant's n = 71 took 44 s instead of 69 s, with identical results.
+* Cached analyses are keyed on the outputs requested, so a call asking for
+  more outputs than an earlier one on the same data no longer fails.
 * Under a binomial likelihood the design priors of the Bayesian operating
   characteristics are taken given the control rate the trials are simulated
   at. The treatment effect is then a difference in response rates confined to
