@@ -1,9 +1,10 @@
 # Reproducing the paper's figures and tables
 
 These steps rerun only the simulations that the paper's figures and tables
-need, not the full simulation study, and then produce those outputs under
-the numbers the manuscript uses (Figure 1–4, Figure S3–S52, Table S1, S3,
-S5, and the extra figures X1–X3).
+need, not the full simulation study, and then produce those outputs: the
+items the manuscript numbers Figure 1–4, Figure S3–S56, Table S1, S3 and S5,
+and the extra figures X1–X3. Each file keeps its descriptive name, and
+`manifest.csv` maps it to its number in the paper.
 
 ## 1. Install
 
@@ -128,8 +129,8 @@ For a run named `paper_replication_<date>_<time>`:
 
 | What | Where |
 |---|---|
-| Outputs named as in the paper (`Figure 1.png`, `Table S5.tex`, ...) | `figures/publication_figures/<run>/paper_outputs/` |
-| The same figures under their generated filenames | `figures/publication_figures/<run>/` |
+| Every paper output in one folder, under its generated filename (figures as PNG, tables as `.tex` and `.pdf`) | `figures/publication_figures/<run>/paper_outputs/` |
+| The same figures, PDF and PNG, in case-study folders | `figures/publication_figures/<run>/` |
 | Tables, plus `manifest.csv` mapping each file to its paper number | `tables/publication_tables/<run>/` |
 | Simulation results | `results/<run>/results_frequentist.csv` |
 

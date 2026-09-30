@@ -752,3 +752,57 @@ test_that("a delayed treatment effect is not pooled into the primary figures", {
   ## Results written before the axis existed describe proportional hazards.
   expect_true(all(paper_primary_design_rows(df[, setdiff(names(df), "treatment_delay")])))
 })
+
+test_that("a parallel export produces what a sequential one does", {
+  skip_on_os("windows")
+  df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
+  df$target_sample_size_per_arm <- 58
+  ## "1" draws a figure, "TS1" writes a table, "S16" has no belimumab rows to
+  ## draw from, and "2" draws a second figure.
+  ids <- c("1", "TS1", "S16", "2")
+
+  withr::with_tempdir({
+    results_dir <- file.path(getwd(), "results")
+    dir.create(results_dir)
+    readr::write_csv(df, file.path(results_dir, "results_frequentist.csv"))
+
+    export <- function(label, workers) {
+      progressed <- character()
+      status <- suppressWarnings(export_paper_outputs(
+        results_dir = results_dir,
+        figures_dir = file.path(getwd(), label, "figures", ""),
+        tables_dir = file.path(getwd(), label, "tables"),
+        ids = ids, case_studies_config_dir = config_dir(),
+        numbered_dir = file.path(getwd(), label, "numbered"),
+        progress = function(index, total, id) progressed <<- c(progressed, id),
+        workers = workers
+      ))
+      status$outputs <- gsub(file.path(getwd(), label), "<out>", status$outputs, fixed = TRUE)
+      list(status = status, progressed = progressed)
+    }
+    files <- function(label) {
+      sort(list.files(file.path(getwd(), label), recursive = TRUE))
+    }
+
+    sequential <- export("sequential", workers = 1)
+    parallel <- export("parallel", workers = 2)
+
+    ## Each item is credited with the same files, in the same order, under
+    ## the same status - including the item that fails.
+    expect_identical(parallel$status, sequential$status)
+    expect_equal(sequential$status$status[sequential$status$id == "S16"], "failed")
+    expect_identical(files("parallel"), files("sequential"))
+    expect_setequal(parallel$progressed, ids)
+
+    ## PNGs are deterministic; PDFs are not even between two sequential runs,
+    ## because cairo names its font subsets at random.
+    pngs <- grep("\\.png$", files("sequential"), value = TRUE)
+    expect_gt(length(pngs), 0)
+    for (png in pngs) {
+      expect_identical(
+        unname(tools::md5sum(file.path("parallel", png))),
+        unname(tools::md5sum(file.path("sequential", png)))
+      )
+    }
+  })
+})

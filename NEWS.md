@@ -1,4 +1,13 @@
 # BExTE 0.0.2
+* `export_paper_outputs()` can produce the paper's items in parallel, each in
+  a forked process, through the new `workers` argument. `reproduce_paper.R`
+  uses as many workers as the simulation (capped by `BEXTE_MAX_WORKERS`;
+  `BEXTE_PARALLEL=false` keeps one). The full export took 99 s on 8 workers
+  instead of 386 s, on a loaded machine. Each item writes into its own
+  staging directories and the files are copied into place in manifest order,
+  so the files, the PNG bytes, the manifest and the status of every item are
+  those of a sequential run. The default stays sequential, which the Shiny
+  app keeps: its progress bar cannot be driven from a forked process.
 * `sweet_spot()` failed on time-to-event results with "arguments imply
   differing number of rows". It pooled every design of a case study -
   dropout, event time distribution, treatment delay - into one curve per

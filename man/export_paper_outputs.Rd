@@ -11,7 +11,8 @@ export_paper_outputs(
   ids,
   case_studies_config_dir,
   progress = NULL,
-  numbered_dir = NULL
+  numbered_dir = NULL,
+  workers = 1L
 )
 }
 \arguments{
@@ -31,6 +32,13 @@ the plot generators append their own \verb{<case_study>/} below it.}
 \item{numbered_dir}{Optional directory for numbered copies ("Figure 1.png",
 "Table S1.tex"). Numbered figures are copied as PNG, tables as both
 \code{.tex} and \code{.pdf}. Unnumbered \code{X} figures are omitted. \code{NULL} skips it.}
+
+\item{workers}{Number of items to produce at once, each in a forked
+process. The default, 1, produces them one after the other in this
+process. Forking is unavailable on Windows, which always uses one. The
+files written and the status returned are the same either way; with more
+than one worker, \code{progress} is called as each item finishes rather than
+as it starts.}
 }
 \value{
 A status data frame, invisibly.
