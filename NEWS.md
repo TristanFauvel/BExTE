@@ -1,4 +1,16 @@
 # BExTE 0.0.2
+* The binomial test-then-pool methods, the binomial p-value based power prior
+  and the Egidi mixture are much faster under exact enumeration. At
+  Aprepitant's n = 71, test-then-pool took 83 s instead of 1770 s and the
+  p-value power prior 326 s instead of 1702 s, with identical results apart
+  from the ELIR effective sample size. Test-then-pool reports the ELIR of the
+  component its test selected, fitted once, instead of refitting a mixture
+  for every replicate, and shares analyses across drifts through the
+  inference cache. The p-value power prior interpolates its ELIR from nodes
+  on a grid of power parameters, each averaged over ten fits. The Egidi
+  prior-predictive tables are built once per worker, and its mixture-weight
+  scan reads all candidate weights off one sort. The commensurate models
+  compile their Stan program only if they are asked to sample.
 * The Shiny app moved to its own repository,
   [BExTE-app](https://github.com/TristanFauvel/BExTE-app), which imports
   BExTE. `run_bexte_app()` and `create_bexte_shortcut()` are now
@@ -114,6 +126,14 @@
   deviation; and the replicates are analysed in chunks of 1000, which bounds
   each worker's memory. The quantile change also speeds up every other
   mixture-based method, the NPP among them.
+* The PDCCPP, the second most expensive method, now computes every replicate
+  at once instead of one at a time: 10 to 40 times faster per scenario. Its
+  calibration depends on a replicate only through the target sampling
+  variance, so it is searched at 200 variances across the replicates' range
+  and interpolated, instead of searched for each replicate. These few searches
+  run to a tolerance of 1e-9, so the power parameter is closer to the exactly
+  calibrated one than a per-replicate search at the configured tolerance was.
+  Test decisions are unchanged.
 * The binomial borrowing models of the Aprepitant case study - the robust
   mixture prior, its Egidi variant, the conditional power prior and the
   p-value-based power prior - now compute their posterior exactly, by
