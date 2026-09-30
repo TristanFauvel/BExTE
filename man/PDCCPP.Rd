@@ -26,6 +26,9 @@ This class inherits from Gaussian_empirical_Bayes_PP and implements the PDCCPP m
   \itemize{
     \item \href{#method-PDCCPP-initialize}{\code{PDCCPP$new()}}
     \item \href{#method-PDCCPP-power_parameter_estimation}{\code{PDCCPP$power_parameter_estimation()}}
+    \item \href{#method-PDCCPP-vectorised_power_parameter}{\code{PDCCPP$vectorised_power_parameter()}}
+    \item \href{#method-PDCCPP-calibration_parameter}{\code{PDCCPP$calibration_parameter()}}
+    \item \href{#method-PDCCPP-power_parameter_from_calibration}{\code{PDCCPP$power_parameter_from_calibration()}}
     \item \href{#method-PDCCPP-clone}{\code{PDCCPP$clone()}}
   }
 }
@@ -68,7 +71,6 @@ This class inherits from Gaussian_empirical_Bayes_PP and implements the PDCCPP m
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="prior_pdf"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-prior_pdf'><code>Gaussian_empirical_Bayes_PP$prior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="vectorised_hypothesis_space_transformation"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-vectorised_hypothesis_space_transformation'><code>Gaussian_empirical_Bayes_PP$vectorised_hypothesis_space_transformation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-vectorised_posterior_parameters'><code>Gaussian_empirical_Bayes_PP$vectorised_posterior_parameters()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="vectorised_power_parameter"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-vectorised_power_parameter'><code>Gaussian_empirical_Bayes_PP$vectorised_power_parameter()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="vectorised_prior_variance"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-vectorised_prior_variance'><code>Gaussian_empirical_Bayes_PP$vectorised_prior_variance()</code></a></span></li>
 </ul>
 </details>}}
@@ -117,6 +119,111 @@ Estimate the power parameter using the PDCCPP method.
   }
   \subsection{Returns}{
     The estimated power parameter.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PDCCPP-vectorised_power_parameter"></a>}}
+\if{latex}{\out{\hypertarget{method-PDCCPP-vectorised_power_parameter}{}}}
+\subsection{\code{PDCCPP$vectorised_power_parameter()}}{
+  The power parameter for every replicate at once
+
+The calibration depends on a replicate only through its target sampling
+variance, and it is a smooth function of it. Rather than search for it
+once per replicate, it is computed at 200 variances spaced evenly on the
+log scale across the replicates' range and interpolated linearly. Near
+the borrowing cut-off the power parameter is very sensitive to the
+calibration, so these few searches are run to a tolerance of 1e-9
+rather than the configured one: the interpolated calibration is then
+closer to the exact one than a per-replicate search at the configured
+tolerance would be. Equation (9) is evaluated for every replicate,
+exactly as \code{power_parameter_estimation()} does.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PDCCPP$vectorised_power_parameter(target_data, samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{samples}}{Data frame of generated replicates.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A vector of power parameters, one per replicate.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PDCCPP-calibration_parameter"></a>}}
+\if{latex}{\out{\hypertarget{method-PDCCPP-calibration_parameter}{}}}
+\subsection{\code{PDCCPP$calibration_parameter()}}{
+  The calibration parameter z_{1-c/2} for one target
+sampling variance
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PDCCPP$calibration_parameter(
+  target_data_sampling_variance,
+  target_sample_size_per_arm,
+  source_treatment_effect_estimate,
+  tolerance = self$parameters$tolerance
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data_sampling_variance}}{Target sampling variance, per
+patient.}
+      \item{\code{target_sample_size_per_arm}}{Target sample size per arm.}
+      \item{\code{source_treatment_effect_estimate}}{Source estimate, after
+\code{hypothesis_space_transformation()}.}
+      \item{\code{tolerance}}{Tolerance of the search; the configured one by default.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The calibration parameter, a positive number.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PDCCPP-power_parameter_from_calibration"></a>}}
+\if{latex}{\out{\hypertarget{method-PDCCPP-power_parameter_from_calibration}{}}}
+\subsection{\code{PDCCPP$power_parameter_from_calibration()}}{
+  The power parameter given the calibration, equation (9)
+of Nikolakopoulos et al (2018)
+
+Vectorised over its arguments, so it serves one replicate or all of them.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PDCCPP$power_parameter_from_calibration(
+  target_treatment_effect_estimate,
+  source_treatment_effect_estimate,
+  target_data_sampling_variance,
+  target_sample_size_per_arm,
+  calibration_parameter
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect_estimate}}{Target estimates, after
+\code{hypothesis_space_transformation()}.}
+      \item{\code{source_treatment_effect_estimate}}{Source estimate, after the same
+transformation.}
+      \item{\code{target_data_sampling_variance}}{Target sampling variances, per
+patient.}
+      \item{\code{target_sample_size_per_arm}}{Target sample size per arm.}
+      \item{\code{calibration_parameter}}{Calibration parameters z_{1-c/2}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The power parameters.
   }
 }
 
