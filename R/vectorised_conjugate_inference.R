@@ -642,3 +642,105 @@ recycle_prior_component <- function(x, n_replicates) {
   }
   matrix(x, nrow = n_replicates, ncol = length(x), byrow = TRUE)
 }
+
+#' Gauss quadrature rule for a discrete measure
+#'
+#' @description The `n_nodes`-point Gauss rule of the measure
+#' \eqn{\sum_k w_k \delta_{x_k}}: the rule that integrates every polynomial of
+#' degree below `2 * n_nodes` exactly against it. It is built by the Lanczos
+#' process on `diag(nodes)` started from `sqrt(weights)`, which yields the
+#' measure's Jacobi matrix; the eigenvalues of that matrix are the rule's nodes
+#' and the squared first components of its eigenvectors the weights (Golub and
+#' Welsch, 1969). Every Lanczos vector is orthogonalised twice against all the
+#' previous ones, which keeps the recurrence stable where the plain three-term
+#' one loses orthogonality within a few dozen steps.
+#'
+#' @param nodes Atoms of the measure.
+#' @param weights Positive masses of the atoms.
+#' @param n_nodes Number of nodes wanted. A measure with fewer distinct atoms
+#'   gets a rule with as many nodes as it has atoms, which is then exact.
+#' @return A list with the rule's `nodes` and `weights`; the weights sum to
+#'   `sum(weights)`.
+#' @keywords internal
+gauss_rule_for_discrete_measure <- function(nodes, weights, n_nodes) {
+  total <- sum(weights)
+  n_nodes <- min(n_nodes, length(nodes))
+  basis <- matrix(0, length(nodes), n_nodes)
+  diagonal <- numeric(n_nodes)
+  off_diagonal <- numeric(n_nodes)
+  basis[, 1] <- sqrt(weights / total)
+  scale <- max(abs(nodes))
+
+  for (j in seq_len(n_nodes)) {
+    residual <- nodes * basis[, j]
+    diagonal[j] <- sum(basis[, j] * residual)
+    previous <- basis[, seq_len(j), drop = FALSE]
+    for (pass in 1:2) {
+      residual <- residual - previous %*% crossprod(previous, residual)
+    }
+    if (j == n_nodes) {
+      break
+    }
+    off_diagonal[j] <- sqrt(sum(residual^2))
+    # The Krylov space is exhausted: the measure has only j distinct atoms,
+    # and the rule on them is already exact.
+    if (off_diagonal[j] <= 1e-13 * scale) {
+      n_nodes <- j
+      break
+    }
+    basis[, j + 1] <- residual / off_diagonal[j]
+  }
+
+  jacobi <- diag(diagonal[seq_len(n_nodes)], n_nodes)
+  if (n_nodes > 1) {
+    band <- off_diagonal[seq_len(n_nodes - 1)]
+    jacobi[cbind(seq_len(n_nodes - 1), 2:n_nodes)] <- band
+    jacobi[cbind(2:n_nodes, seq_len(n_nodes - 1))] <- band
+  }
+  decomposition <- eigen(jacobi, symmetric = TRUE)
+
+  list(
+    nodes = decomposition$values,
+    weights = total * decomposition$vectors[1, ]^2
+  )
+}
+
+#' Compress a normal scale mixture into a few components
+#'
+#' @description A normal mixture whose components all share one mean is a
+#' distribution over the component variance `v`, and the conjugate update of
+#' [normal_mixture_posterior()] depends on each component through `v` alone.
+#' Every posterior summary is then an integral against that distribution, and
+#' a Gauss rule for it with a few dozen nodes computes them as accurately as
+#' the hundreds of components it replaces.
+#'
+#' The rule is built in \eqn{r = \sqrt{c / (v + c)}}, where `c` is a typical
+#' squared standard error of the observations. In that variable the marginal
+#' likelihood, the shrinkage factor and the posterior variance are all analytic
+#' over the whole range of `v`, including the near-flat components whose
+#' variance runs to 1e150, so the Gauss rule converges geometrically: 24 nodes
+#' reproduce the 1728-component commensurate power prior to rounding error.
+#' Rules built in `log(v)`, or with the likelihood's square-root factor folded
+#' into the weights, converge far more slowly or stall around 1e-9.
+#'
+#' @param weights Component weights.
+#' @param variances Component variances.
+#' @param reference_variance The constant `c` above.
+#' @param n_nodes Number of components wanted.
+#' @return A list with the compressed `weights` and `variances`, or the input
+#'   unchanged when it has no more than `n_nodes` components.
+#' @keywords internal
+compress_normal_scale_mixture <- function(weights, variances,
+                                          reference_variance, n_nodes) {
+  if (length(weights) <= n_nodes) {
+    return(list(weights = weights, variances = variances))
+  }
+  scale <- sqrt(reference_variance / (variances + reference_variance))
+  rule <- gauss_rule_for_discrete_measure(scale, weights, n_nodes)
+  # Gauss nodes lie inside the atoms' range; clamping only undoes rounding.
+  node <- pmin(pmax(rule$nodes, min(scale)), max(scale))
+  list(
+    weights = rule$weights,
+    variances = reference_variance * (1 - node^2) / node^2
+  )
+}

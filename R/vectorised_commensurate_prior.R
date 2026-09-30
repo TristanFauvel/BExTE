@@ -278,3 +278,286 @@ commensurate_parameter_summary <- function(posterior_weights, mixture,
 
   summary
 }
+
+
+#' Compress the commensurate quadrature mixture, checking it against the full one
+#'
+#' @description Every component of [commensurate_prior_mixture()] is centred on
+#' the source estimate, so the mixture is a distribution over the component
+#' variance and [compress_normal_scale_mixture()] can replace its hundreds of
+#' components with a few dozen. The posterior moments of `tau` and of the power
+#' parameter are not functions of the variance alone; each is the ratio of an
+#' integral against the variance distribution weighted by that parameter to the
+#' marginal likelihood, and gets its own compressed rule.
+#'
+#' The compression is accepted only once it reproduces the full mixture on a
+#' probe of the replicates at the extremes and quartiles of the estimate and of
+#' its standard error: every posterior summary, the posterior probability at
+#' `theta_0` and the borrowing-parameter summaries, to within `tolerance`
+#' (relative, for the parameter summaries). The node count is doubled until it
+#' does, and the full mixture is kept if no compression smaller than it passes,
+#' or if it has fewer than four times `n_nodes` components to begin with.
+#'
+#' @param mixture Output from [commensurate_prior_mixture()].
+#' @param samples Data frame of generated replicates.
+#' @param theta_0 Null hypothesis value.
+#' @param confidence_level Credible interval level.
+#' @param heterogeneity_prior_family Name of the prior family.
+#' @param heterogeneity_prior Prior parameters.
+#' @param n_nodes Number of components the search starts from.
+#' @param tolerance Largest discrepancy accepted on the probe.
+#' @return A list with the compressed `weights`, `means` and `sds`, the rules
+#'   [compressed_commensurate_parameter_summary()] reads, and the node count;
+#'   or `NULL` when the full mixture should be used.
+#' @keywords internal
+compress_commensurate_mixture <- function(mixture, samples, theta_0,
+                                          confidence_level,
+                                          heterogeneity_prior_family,
+                                          heterogeneity_prior,
+                                          n_nodes = 32L,
+                                          tolerance = 1e-10) {
+  source_mean <- mixture$means[1]
+  if (any(mixture$means != source_mean)) {
+    return(NULL)
+  }
+  # Checking a compression costs about as much as analysing a few hundred
+  # replicates on the full mixture, which a mixture this small does not repay.
+  if (length(mixture$weights) < 4L * n_nodes) {
+    return(NULL)
+  }
+
+  estimate <- samples$treatment_effect_estimate
+  standard_error <- samples$treatment_effect_standard_error
+  reference_variance <- stats::median(standard_error^2)
+  variances <- mixture$sds^2
+
+  tau_exists <- commensurate_tau_moments_exist(
+    heterogeneity_prior_family,
+    heterogeneity_prior
+  )
+  moment_values <- list()
+  if (tau_exists[["mean"]]) moment_values$tau_1 <- mixture$tau
+  if (tau_exists[["sd"]]) moment_values$tau_2 <- mixture$tau^2
+  if (!is.null(mixture$power_parameter)) {
+    moment_values$power_parameter_1 <- mixture$power_parameter
+    moment_values$power_parameter_2 <- mixture$power_parameter^2
+  }
+  if (!all(vapply(moment_values, function(v) all(is.finite(v)), logical(1)))) {
+    return(NULL)
+  }
+
+  probe <- summary_probe_rows(estimate, standard_error)
+  alpha <- (1 - confidence_level) / 2
+  probe_summary <- function(weights, means, sds, parameters) {
+    posterior <- normal_mixture_posterior(
+      weights, means, sds, estimate[probe], standard_error[probe]
+    )
+    summary <- normal_mixture_summary(
+      posterior$weights, posterior$means, posterior$sds,
+      probs = c(alpha, 0.5, 1 - alpha)
+    )
+    cdf <- rowSums(
+      posterior$weights * stats::pnorm(theta_0, posterior$means, posterior$sds)
+    )
+    list(
+      posterior = cbind(summary$quantiles, summary$mean, cdf),
+      parameters = as.matrix(parameters(posterior))
+    )
+  }
+
+  exact <- probe_summary(
+    mixture$weights, mixture$means, mixture$sds,
+    function(posterior) {
+      commensurate_parameter_summary(
+        posterior_weights = posterior$weights,
+        mixture = mixture,
+        heterogeneity_prior_family = heterogeneity_prior_family,
+        heterogeneity_prior = heterogeneity_prior,
+        borrows_power_parameter = !is.null(mixture$power_parameter)
+      )
+    }
+  )
+
+  while (n_nodes < length(mixture$weights)) {
+    main <- compress_normal_scale_mixture(
+      mixture$weights, variances, reference_variance, n_nodes
+    )
+    moment_rules <- lapply(moment_values, function(values) {
+      scale <- max(values)
+      rule <- compress_normal_scale_mixture(
+        mixture$weights * values / scale, variances, reference_variance, n_nodes
+      )
+      rule$scale <- scale
+      rule
+    })
+    compressed <- list(
+      weights = main$weights,
+      means = rep(source_mean, length(main$weights)),
+      sds = sqrt(main$variances),
+      variances = main$variances,
+      source_mean = source_mean,
+      moment_rules = moment_rules,
+      tau_exists = tau_exists,
+      borrows_power_parameter = !is.null(mixture$power_parameter),
+      n_nodes = n_nodes
+    )
+
+    candidate <- probe_summary(
+      compressed$weights, compressed$means, compressed$sds,
+      function(posterior) {
+        compressed_commensurate_parameter_summary(
+          compressed, estimate[probe], standard_error[probe]
+        )
+      }
+    )
+
+    posterior_error <- max(abs(candidate$posterior - exact$posterior))
+    finite <- is.finite(exact$parameters)
+    parameter_error <- max(
+      0,
+      abs(candidate$parameters[finite] - exact$parameters[finite]) /
+        pmax(1, abs(exact$parameters[finite]))
+    )
+    same_infinite <- identical(
+      is.finite(candidate$parameters), finite
+    )
+    if (is.finite(posterior_error) && posterior_error <= tolerance &&
+        parameter_error <= tolerance && same_infinite) {
+      return(compressed)
+    }
+    n_nodes <- 2L * n_nodes
+  }
+
+  NULL
+}
+
+
+#' Replicates that span the range of the observations
+#'
+#' @param estimate Treatment effect estimates.
+#' @param standard_error Their standard errors.
+#' @return Row indices of the replicates at the extremes, deciles and
+#'   quartiles of each.
+#' @keywords internal
+summary_probe_rows <- function(estimate, standard_error) {
+  probs <- c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1)
+  at_quantiles <- function(x) {
+    ordered <- order(x)
+    ordered[unique(1L + round(probs * (length(x) - 1L)))]
+  }
+  unique(c(at_quantiles(estimate), at_quantiles(standard_error)))
+}
+
+
+#' Borrowing-parameter summaries from a compressed commensurate mixture
+#'
+#' @description The compressed counterpart of [commensurate_parameter_summary()]:
+#' each posterior moment is the integral of the marginal likelihood against
+#' its own compressed rule, divided by the same integral against the main one.
+#'
+#' @param compressed Output from [compress_commensurate_mixture()].
+#' @param estimate Treatment effect estimates.
+#' @param standard_error Their standard errors.
+#' @return A data frame shaped like the output of
+#'   [commensurate_parameter_summary()].
+#' @keywords internal
+compressed_commensurate_parameter_summary <- function(compressed, estimate,
+                                                      standard_error) {
+  n_replicates <- length(estimate)
+  squared_deviation <- (estimate - compressed$source_mean)^2
+
+  # Log marginal likelihood of each observation under a component of each
+  # variance, up to a constant that cancels in the ratios below.
+  log_likelihood <- function(variances) {
+    total <- outer(standard_error^2, variances, "+")
+    -0.5 * (log(total) + squared_deviation / total)
+  }
+
+  log_normaliser <- log_likelihood(compressed$variances) +
+    rep(log(compressed$weights), each = n_replicates)
+  shift <- apply(log_normaliser, 1, max)
+  normaliser <- rowSums(exp(log_normaliser - shift))
+
+  moment <- function(name) {
+    rule <- compressed$moment_rules[[name]]
+    rule$scale * drop(exp(log_likelihood(rule$variances) - shift) %*% rule$weights) /
+      normaliser
+  }
+  summarise <- function(name, mean_exists = TRUE, sd_exists = TRUE) {
+    first <- if (mean_exists) moment(paste0(name, "_1")) else rep(Inf, n_replicates)
+    sd <- if (sd_exists) {
+      sqrt(pmax(moment(paste0(name, "_2")) - first^2, 0))
+    } else {
+      rep(Inf, n_replicates)
+    }
+    list(mean = first, sd = sd)
+  }
+
+  tau <- summarise(
+    "tau",
+    compressed$tau_exists[["mean"]],
+    compressed$tau_exists[["sd"]]
+  )
+  summary <- data.frame(
+    heterogeneity_parameter_mean = tau$mean,
+    heterogeneity_parameter_std = tau$sd
+  )
+
+  if (!compressed$borrows_power_parameter) {
+    return(summary)
+  }
+
+  power <- summarise("power_parameter")
+  summary$power_parameter_mean <- power$mean
+  summary$power_parameter_std <- power$sd
+
+  summary
+}
+
+
+#' Recompute, on the full mixture, test decisions too close to call
+#'
+#' @description The compressed mixture reproduces the posterior probability of
+#' the alternative to within its tolerance, so a replicate whose probability
+#' lies within `margin` of the critical value could in principle be decided
+#' differently. Those few are decided again on the full mixture, so that the
+#' compression cannot change a decision.
+#'
+#' @param test_decisions Decisions taken on the compressed mixture.
+#' @param posterior Compressed posterior, from [normal_mixture_posterior()].
+#' @param mixture Full prior mixture.
+#' @param estimate Treatment effect estimates.
+#' @param standard_error Their standard errors.
+#' @param critical_value Critical posterior probability.
+#' @param theta_0 Null hypothesis value.
+#' @param null_space Either `"left"` or `"right"`.
+#' @param margin Distance from the critical value within which a decision is
+#'   recomputed.
+#' @return The decisions, with the borderline ones taken on the full mixture.
+#' @keywords internal
+recheck_borderline_decisions <- function(test_decisions, posterior, mixture,
+                                         estimate, standard_error,
+                                         critical_value, theta_0, null_space,
+                                         margin = 1e-8) {
+  cdf <- rowSums(
+    posterior$weights * stats::pnorm(theta_0, posterior$means, posterior$sds)
+  )
+  probability <- if (null_space == "left") 1 - cdf else cdf
+  borderline <- which(abs(probability - critical_value) < margin)
+  if (length(borderline) == 0) {
+    return(test_decisions)
+  }
+  exact <- normal_mixture_posterior(
+    mixture$weights, mixture$means, mixture$sds,
+    estimate[borderline], standard_error[borderline]
+  )
+  test_decisions[borderline] <- as.numeric(vectorised_test_decision(
+    posterior_weights = exact$weights,
+    posterior_means = exact$means,
+    posterior_sds = exact$sds,
+    critical_value = critical_value,
+    theta_0 = theta_0,
+    null_space = null_space
+  ))
+  test_decisions
+}
