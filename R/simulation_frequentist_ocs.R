@@ -300,8 +300,8 @@ simulation_frequentist_ocs <- function(env,
   scenarios_table_ranges(cases, paste0("./results/", env))
 
   # The loops below narrow `cases` to one case study and method at a time;
-  # the tracker keeps a run-wide total across them, which is what the Shiny
-  # app's Run tab reads to draw its progress bar. The total is summed per
+  # the tracker keeps a run-wide total across them, which is what
+  # BExTE-app's Run tab reads to draw its progress bar. The total is summed per
   # case study rather than taken from the frame above, because a run that
   # restricts a case study's factors simulates fewer scenarios than the
   # full cross product - counting those would leave the bar short of its
@@ -455,7 +455,7 @@ simulation_frequentist_ocs <- function(env,
 
         # Export the library paths to each worker
         paths <- .libPaths()
-        # BExTE may not be an installed package at all (e.g. the Shiny app's
+        # BExTE may not be an installed package at all (e.g. BExTE-app's
         # dev-mode background process only ever `devtools::load_all()`s it),
         # so each worker needs the same source path to fall back to.
         pkg_root <- find.package("BExTE")

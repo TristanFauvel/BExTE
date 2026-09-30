@@ -27,7 +27,7 @@ forest_subplot_no_uncertainty(
 
 \item{x_metric_label}{Label of the metric on the x-axis}
 
-\item{palette}{A colour scheme from bexte_palette() for the Shiny app's
+\item{palette}{A colour scheme from bexte_palette() for BExTE-app's
 dark mode, or NULL for the publication figure.}
 
 \item{x_metric_uncertainty_lower}{Lower limit of the metric on the x-axis}

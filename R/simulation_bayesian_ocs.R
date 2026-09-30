@@ -411,7 +411,7 @@ simulation_bayesian_ocs <- function(env,
 
         # Export the library paths to each worker
         paths <- .libPaths()
-        # BExTE may not be an installed package at all (e.g. the Shiny app's
+        # BExTE may not be an installed package at all (e.g. BExTE-app's
         # dev-mode background process only ever `devtools::load_all()`s it),
         # so each worker needs the same source path to fall back to.
         pkg_root <- find.package("BExTE")

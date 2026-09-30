@@ -1,7 +1,7 @@
 ## Progress reporting for a simulation run.
 ##
-## A run launched from the Shiny app happens in a background process, so the
-## filesystem is the only channel back to the Run tab. Result rows are too
+## A run launched from BExTE-app happens in a background process, so the
+## filesystem is the only channel back to the app's Run tab. Result rows are too
 ## coarse a signal on their own: a method that runs in parallel collects its
 ## scenarios in the master and writes them in one go once the method is over,
 ## which makes a row-counting readout jump a whole method at a time. The
@@ -77,8 +77,7 @@ write_run_progress <- function(path,
 #' @param total Number of scenarios the run covers.
 #'
 #' @return A list with `path`, `starting(case_study, method)` and `tick(n)`.
-#'
-#' @noRd
+#' @export
 run_progress_tracker <- function(env, total) {
   path <- run_progress_path(env)
 

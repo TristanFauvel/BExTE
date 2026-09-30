@@ -11,7 +11,7 @@ forest_plot_bayesian(results_bayes_df, x_metric, palette = NULL)
 
 \item{x_metric}{Metric on the x-axis}
 
-\item{palette}{A colour scheme from bexte_palette() for the Shiny app's
+\item{palette}{A colour scheme from bexte_palette() for BExTE-app's
 dark mode, or NULL for the publication figure.}
 
 \item{selected_case_study}{The selected case study.}

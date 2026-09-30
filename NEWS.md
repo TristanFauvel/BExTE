@@ -1,4 +1,11 @@
 # BExTE 0.0.2
+* The Shiny app moved to its own repository,
+  [BExTE-app](https://github.com/TristanFauvel/BExTE-app), which imports
+  BExTE. `run_bexte_app()` and `create_bexte_shortcut()` are now
+  `BExTEapp::run_bexte_app()` and `BExTEapp::create_bexte_shortcut()`, and
+  BExTE no longer depends on shiny, bslib, plotly or DT. `forest_plot()`,
+  `forest_plot_bayesian()`, `get_parameters()`, `simulation_scenarios()` and
+  `run_progress_tracker()` are now exported, for the app.
 * The analysis step is faster again: 162 s instead of 273 s for the three
   power and Bayesian steps on a full Teriflunomide frame, with identical
   results. The steps share one worker cluster, started the first time one of

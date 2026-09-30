@@ -170,7 +170,7 @@ analysis_uses_cluster <- function(parallelization, n_rows,
 #' Make BExTE (and any other packages) available in every worker of a cluster
 #'
 #' BExTE is not necessarily an installed package: both `inst/scripts/main.R`
-#' and the Shiny app's background process `devtools::load_all()` it from
+#' and BExTE-app's background process `devtools::load_all()` it from
 #' source, and a worker that only calls `library(BExTE)` fails outright there.
 #' Each worker therefore falls back to loading the same source tree.
 #'
@@ -211,8 +211,8 @@ load_bexte_in_workers <- function(cl, packages = character()) {
 #' progress callback as `.options.snow$progress`, and only doSNOW calls it as
 #' each result comes back. doParallel reads `preschedule` and
 #' `attachExportEnv` out of those options and warns that it is ignoring the
-#' rest, which leaves the console progress bar and the progress file the
-#' Shiny app reads frozen until a whole case study/method block is finished.
+#' rest, which leaves the console progress bar and the progress file
+#' BExTE-app reads frozen until a whole case study/method block is finished.
 #'
 #' @param cl A cluster from `parallel::makeCluster()`.
 #'

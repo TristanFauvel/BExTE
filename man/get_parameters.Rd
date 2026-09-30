@@ -15,4 +15,3 @@ An R dataframe with parsed parameters.
 \description{
 This function returns, for a dataframe containing parameters (in json strings) for a given method, an R dataframe.
 }
-\keyword{internal}
