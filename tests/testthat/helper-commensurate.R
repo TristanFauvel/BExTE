@@ -1,7 +1,8 @@
-# Shared fixtures for the commensurate power prior. Constructing one of these
-# models compiles a Stan program, so every test that needs a model has to stub
-# the compiler; keeping that in one place stops the stub and the configuration
-# from drifting between the Stan-program tests and the fast-path tests.
+# Shared fixtures for the commensurate power prior. These models compile their
+# Stan program only when they first sample, but the compiler is still stubbed
+# here so that no test can reach cmdstan by accident; keeping that in one place
+# stops the stub and the configuration from drifting between the Stan-program
+# tests and the fast-path tests.
 
 commensurate_mcmc_config <- function() {
   list(

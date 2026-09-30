@@ -163,11 +163,13 @@ BinomialCPP <- R6::R6Class(
 
     #' @description The prior on a grid, under the quadrature engine: the same
     #' model without target patients, as in the Stan prior program.
+    #' @param power_parameter The power parameter of the prior, by default the
+    #'   model's own.
     #' @return A [grid_posterior()] list.
-    quadrature_prior = function() {
+    quadrature_prior = function(power_parameter = self$power_parameter) {
       source <- self$prior$source
       binomial_power_prior_posterior(
-        power_parameter = self$power_parameter,
+        power_parameter = power_parameter,
         n_control_source = as.integer(source$sample_size_control),
         n_successes_control_source = counts_from_rate(source$control_rate, source$sample_size_control),
         n_treatment_source = as.integer(source$sample_size_treatment),
@@ -1237,10 +1239,12 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
 
       self$heterogeneity_prior_family <- prior$method_parameters$heterogeneity_prior$family
 
-      model_name <- paste0(
+      # Named rather than compiled: simulations run every replicate through the
+      # quadrature mixture and never sample, so the program is only compiled if
+      # inference() is asked for a Stan fit - see MCMCModel$stan_sampler().
+      self$stan_model_name <- paste0(
         self$stan_model_prefix, "_", self$heterogeneity_prior_family
       )
-      self$stan_model <- compile_stan_model(model_name, self$stan_model_code)
 
       self$posterior_parameters <- list(
         heterogeneity_parameter_mean = NA,
