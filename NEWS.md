@@ -1,4 +1,22 @@
 # BExTE 0.0.2
+* `sweet_spot()` failed on time-to-event results with "arguments imply
+  differing number of rows". It pooled every design of a case study -
+  dropout, event time distribution, treatment delay - into one curve per
+  method, then bound one results row per design to sweet spots found on the
+  mixture. Each design is now its own curve with its own sweet spot. A curve
+  with several `power_larger_than_nominal` or
+  `success_proba_smaller_than_nominal_TIE` sweet spots now gets one row with
+  list columns, as the other metrics already did, instead of one row per
+  sweet spot.
+* The frequentist power baselines of the time-to-event sensitivity designs
+  were computed on the primary design's trials. `load_data()` rebuilt a
+  scenario's target data without its dropout probability, event time
+  distribution and treatment delay, so the power at the equivalent type I
+  error and the separate and pooled powers at the nominal one were the same
+  for every such design. It now reads them from the results row, and falls
+  back to the primary design for results written before those columns
+  existed. The sensitivity figures' power baselines change; rerun the
+  analysis step for time-to-event results.
 * The deterministic Bayesian operating characteristics run on a cluster when
   the analysis is parallelised: 26 s instead of 65 s for the 448 method and
   design combinations of a Teriflunomide run, most of it cluster start-up.

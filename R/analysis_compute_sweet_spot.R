@@ -117,6 +117,31 @@ compare_metrics <- function(merged_df, metric, based_on_CI = based_on_CI, suffix
 }
 
 
+#' One results row per curve, whatever the number of sweet spots
+#'
+#' @description A curve crossing the reference more than once has several
+#'   sweet spots, and [sweet_spot_determination()] returns one row for each.
+#'   They are gathered into list columns, so each curve contributes exactly one
+#'   row to the results.
+#'
+#' @param sweet_spot The data frame [sweet_spot_determination()] returns.
+#'
+#' @return A one-row data frame.
+#' @noRd
+collapse_sweet_spots <- function(sweet_spot) {
+  if (nrow(sweet_spot) <= 1) {
+    return(sweet_spot)
+  }
+
+  data.frame(
+    start = I(list(sweet_spot$start)),
+    end = I(list(sweet_spot$end)),
+    width = I(list(sweet_spot$width)),
+    total_width = I(list(sweet_spot$total_width))
+  )
+}
+
+
 #' Calculate Sweet Spots for Multiple Metrics
 #'
 #' @description This function calculates the sweet spots for various metrics over multiple case studies and methods.
@@ -224,15 +249,30 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
               merged_df <- merged_df %>%
                 dplyr::arrange(drift)
 
+              # Each time-to-event design - dropout, event time distribution,
+              # treatment delay - is a different trial with its own curve over
+              # the drift. Pooling them put several points at every drift and
+              # gave a method one results row per design but sweet spots found
+              # on the mixture, which no longer lined up.
+              merged_df$design_key <- nominal_tie_design_key(
+                merged_df[intersect(time_to_event_design_columns, names(merged_df))]
+              )
+
               for (metric in metrics) {
                 # Depending on whether the sweet spot is determined based on the mean or on the bounds of the CI, compute the difference based on which it will be computed.
                 merged_df$metric_diff <- compare_metrics(merged_df, metric, based_on_CI = based_on_CI, suffix = "_separate")
 
                 # Determine the sweet spot location and width
                 for (method in unique(merged_df$method)){
-                  parameters_combinations <- unique(merged_df[merged_df$method == method,]$parameters)
-                  for (parameters in parameters_combinations){
-                    method_df <- merged_df[merged_df$parameters == parameters & merged_df$method == method,]
+                  curves <- unique(
+                    merged_df[merged_df$method == method, c("parameters", "design_key")]
+                  )
+                  for (k in seq_len(nrow(curves))){
+                    method_df <- merged_df[
+                      merged_df$parameters == curves$parameters[k] &
+                        merged_df$design_key == curves$design_key[k] &
+                        merged_df$method == method,
+                    ]
 
                     # Drop the rows where metric_diff is NA.
                     method_df <- method_df[!is.na(method_df$metric_diff), ]
@@ -245,14 +285,7 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
                       next
                     }
 
-                    if (nrow(sweet_spot) > 1){
-                      sweet_spot <- data.frame(
-                        start = I(list(sweet_spot$start)),
-                        end = I(list(sweet_spot$end)),
-                        width = I(list(sweet_spot$width)),
-                        total_width = I(list(sweet_spot$total_width))
-                      )
-                    }
+                    sweet_spot <- collapse_sweet_spots(sweet_spot)
                     drift_range <- range(method_df$drift)
 
 
@@ -280,6 +313,7 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
                       sweet_spot <- sweet_spot_determination(method_df$drift,
                                                              method_df$metric_diff,
                                                              larger_is_better = FALSE)
+                      sweet_spot <- collapse_sweet_spots(sweet_spot)
 
                       df_to_add <- cbind(unique(method_df[, intersect(c("method", "parameters", scenario_columns), names(method_df))]), data.frame(
                         sweet_spot_lower = sweet_spot$start,
@@ -304,6 +338,7 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
                       sweet_spot <- sweet_spot_determination(method_df$drift,
                                                              method_df$metric_diff,
                                                              larger_is_better =  TRUE)
+                      sweet_spot <- collapse_sweet_spots(sweet_spot)
 
 
                       df_to_add <- cbind(unique(method_df[, intersect(c("method", "parameters", scenario_columns), names(method_df))]), data.frame(
