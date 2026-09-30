@@ -1,4 +1,26 @@
 # BExTE 0.0.2
+* Under a binomial likelihood the design priors of the Bayesian operating
+  characteristics are taken given the control rate the trials are simulated
+  at. The treatment effect is then a difference in response rates confined to
+  `(-p_c, 1 - p_c)`, but the analysis prior of the separate analysis, for
+  instance, spread over (-1, 1) and put a quarter of its mass on effects an
+  Aprepitant trial cannot have, which the tail extrapolation then counted as
+  certain success or failure. The separate, pooled and conditional power prior
+  analysis priors and the source posterior are conditioned exactly; the
+  unit-information prior, defined on the effect alone, is truncated and
+  renormalised. The pooled analysis's prior given the control rate is the
+  source posterior, as for a continuous endpoint, rather than the uniform prior
+  it updates. Aprepitant's Bayesian operating characteristics change.
+* The analytic power of the pooled analysis (`nominal_frequentist_power_pooling`)
+  holds the source data fixed, as the simulation does, instead of treating the
+  pooled estimate as if both studies were resampled: with equal standard
+  errors and null effects a one-sided 5% z-test rejects 1% of the time, not
+  5%. The binomial branch sums over the target responder counts exactly. The
+  column feeds no figure or table.
+* The Monte Carlo Bayesian operating characteristics (`compute_bayesian_ocs_mc`,
+  off by default) average the decisions of the replicates actually analysed.
+  Replicates dropped for a non-estimable summary measure used to count as
+  failures, or to stop the run.
 * The binomial test-then-pool methods, the binomial p-value based power prior
   and the Egidi mixture are much faster under exact enumeration. At
   Aprepitant's n = 71, test-then-pool took 83 s instead of 1770 s and the

@@ -17,7 +17,7 @@ test_that("Monte Carlo false-positive bound forwards simulation context", {
     simulation_for_given_treatment_effect = function(target_data, ...) {
       captured$target_data <- target_data
       captured$arguments <- list(...)
-      list(test_decisions = c(TRUE, FALSE))
+      list(test_decisions = c(TRUE, FALSE), fit_success = c("Success", "Success"))
     }
   )
 

@@ -486,33 +486,37 @@ compute_freq_power_pooling <- function(alpha,
       pooled_standard_error_2 <- 1 / (1 / source_data$standard_error ^ 2 + 1 / target_treatment_effect_standard_error ^
                                         2)
 
-      pooled_variance <- pooled_standard_error_2 * (
-        target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
-      )
+      # The source estimate is the one observed, fixed across the simulated
+      # trials, and only the target estimate varies: the pooled estimate is
+      # w_S theta_S + w_T theta_T_hat, with theta_T_hat ~ N(theta_T, SE_T^2).
+      # Its spread across trials is therefore w_T SE_T, not the pooled
+      # standard error, which also counts the source estimate's sampling
+      # variability. The test compares (pooled - theta_0) / SE_pooled with the
+      # critical value of the test the simulated branch below applies, so the
+      # power is the probability that theta_T_hat clears the matching bound.
+      target_weight <- source_data$standard_error ^ 2 /
+        (source_data$standard_error ^ 2 + target_treatment_effect_standard_error ^ 2)
+      source_part <- pooled_treatment_effect - target_weight * target_data$treatment_effect
+      pooled_sample_size <- target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
 
-      effect_size <- (pooled_treatment_effect - theta_0) / sqrt(pooled_variance)
-
-
-      if (frequentist_test == "t-test") {
-        # Use pwr::pwr.t.test for a t-test power calculation
-        power <- pwr::pwr.t.test(
-          d = effect_size,
-          n = target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm,
-          sig.level = alpha,
-          type = "one.sample",
-          alternative = alternative
-        )$power
+      critical <- if (frequentist_test == "t-test") {
+        stats::qt(1 - alpha, df = pooled_sample_size - 1)
       } else if (frequentist_test == "z-test") {
-        # Calculate the power of the z-test
-        power <- pwr::pwr.norm.test(
-          d = effect_size,
-          n = target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm,
-          sig.level = alpha,
-          alternative = alternative
-        )$power
+        stats::qnorm(1 - alpha)
       } else {
         stop("Only implemented for a t-test or z-test.")
       }
+
+      bound <- if (alternative == "greater") {
+        theta_0 + critical * sqrt(pooled_standard_error_2)
+      } else {
+        theta_0 - critical * sqrt(pooled_standard_error_2)
+      }
+      target_bound <- (bound - source_part) / target_weight
+      power <- stats::pnorm(
+        (target_bound - target_data$treatment_effect) / target_treatment_effect_standard_error,
+        lower.tail = alternative == "less"
+      )
       conf_int_power <- c(power, power)
     } else {
       # In this case, we cannot use an analytical computation of power. These
@@ -563,26 +567,12 @@ compute_freq_power_pooling <- function(alpha,
       conf_int_power <- binom.test(sum(test_decisions), length(test_decisions), conf.level = 0.95)$conf.int
     }
   } else if (target_data$summary_measure_likelihood == "binomial") {
-    pooled_sample_size_treatment <- target_data$sample_size_per_arm + source_data$sample_size_treatment
-    treatment_rate_pooled <- (
-      target_data$treatment_rate * target_data$sample_size_per_arm + source_data$treatment_rate * source_data$sample_size_treatment
-    ) / (pooled_sample_size_treatment)
-
-    pooled_sample_size_control <- target_data$sample_size_per_arm + source_data$sample_size_control
-    control_rate_pooled <- (
-      target_data$control_rate * target_data$sample_size_per_arm + source_data$control_rate * source_data$sample_size_control
-    ) / (pooled_sample_size_control)
-
-    # Compute Cohen's h
-    h <- pwr::ES.h(treatment_rate_pooled, control_rate_pooled)
-    power <- pwr::pwr.2p2n.test(
-      h = h,
-      n1 = pooled_sample_size_treatment,
-      n2 = pooled_sample_size_control,
-      sig.level = alpha,
+    power <- pooled_binomial_power(
+      alpha = alpha,
+      target_data = target_data,
+      source_data = source_data,
       alternative = alternative
-    )$power
-
+    )
     conf_int_power <- c(power, power)
   } else {
     stop("This likelihood is not supported.")
@@ -1338,4 +1328,48 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   }
 
   return(results)
+}
+
+
+#' Power of the pooled two-proportion test, the source counts held fixed
+#'
+#' @description The pooled analysis adds the source study's responders to the
+#'   target's and tests the pooled response rates with the arcsine two-sample
+#'   test that [pwr::pwr.2p2n.test()] describes. The source counts are the ones
+#'   observed, fixed across the simulated trials, so the rejection rate is
+#'   summed over the target responder counts alone, weighted by their binomial
+#'   probabilities. [pwr::pwr.2p2n.test()] itself would treat the pooled counts
+#'   as a fresh sample of the pooled size, and so overstate how much the pooled
+#'   rates vary from one trial to the next.
+#'
+#'   The test is of equal response rates, i.e. a null boundary of zero.
+#'
+#' @param alpha One-sided significance level.
+#' @param target_data Target data, with its true response rates.
+#' @param source_data Source data.
+#' @param alternative "greater" or "less".
+#' @return The power.
+#' @keywords internal
+pooled_binomial_power <- function(alpha, target_data, source_data, alternative) {
+  n <- as.integer(target_data$sample_size_per_arm)
+  source_treatment <- counts_from_rate(source_data$treatment_rate, source_data$sample_size_treatment)
+  source_control <- counts_from_rate(source_data$control_rate, source_data$sample_size_control)
+  pooled_treatment_size <- n + source_data$sample_size_treatment
+  pooled_control_size <- n + source_data$sample_size_control
+
+  target_counts <- 0:n
+  rate_treatment <- (source_treatment + target_counts) / pooled_treatment_size
+  rate_control <- (source_control + target_counts) / pooled_control_size
+
+  # Rows are the treatment responders, columns the control responders.
+  statistic <- outer(2 * asin(sqrt(rate_treatment)), 2 * asin(sqrt(rate_control)), "-") /
+    sqrt(1 / pooled_treatment_size + 1 / pooled_control_size)
+  critical <- stats::qnorm(1 - alpha)
+  reject <- if (alternative == "greater") statistic > critical else statistic < -critical
+
+  probability <- outer(
+    stats::dbinom(target_counts, n, target_data$treatment_rate),
+    stats::dbinom(target_counts, n, target_data$control_rate)
+  )
+  sum(probability[reject])
 }

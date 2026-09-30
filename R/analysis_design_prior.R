@@ -17,6 +17,12 @@ DesignPrior <- R6::R6Class(
     #' @param simulation_config Simulation configuration
     #' @param mcmc_config MCMC configuration
     #' @param case_study Case study name
+    #' @param target_control_rate The control response rate of the simulated
+    #'   trials, or `NULL`. Under a binomial likelihood the treatment effect is a
+    #'   difference in response rates, and the simulated trials, whose control
+    #'   rate is fixed, can only have an effect in
+    #'   `(-target_control_rate, 1 - target_control_rate)`; the design prior is
+    #'   then taken given that control rate - see `given_control_rate()`.
     #' @return A new instance of DesignPrior.
     create = function(design_prior_type,
                       model,
@@ -24,7 +30,8 @@ DesignPrior <- R6::R6Class(
                       case_study_config,
                       simulation_config,
                       mcmc_config,
-                      case_study) {
+                      case_study,
+                      target_control_rate = NULL) {
       if (design_prior_type == "ui_design_prior") {
         design_prior <- UnitInformationDesignPrior$new(
           source_data = source_data,
@@ -54,7 +61,27 @@ DesignPrior <- R6::R6Class(
       } else {
         stop("Not implemented for other types of design prior.")
       }
+
+      if (!is.null(target_control_rate) &&
+          identical(case_study_config$summary_measure_likelihood, "binomial")) {
+        design_prior <- design_prior$given_control_rate(target_control_rate)
+      }
       return(design_prior)
+    },
+
+    #' @description The design prior given the target control rate
+    #'
+    #' A difference in response rates is confined to
+    #' `(-control_rate, 1 - control_rate)` once the control rate is known. A
+    #' design prior defined on the treatment effect alone has no joint
+    #' distribution with the control rate to condition, so it is truncated to
+    #' that range and renormalised. Subclasses that can condition exactly
+    #' override this.
+    #'
+    #' @param control_rate The target control rate.
+    #' @return A [FunctionalDesignPrior].
+    given_control_rate = function(control_rate) {
+      truncated_design_prior(self, lower = -control_rate, upper = 1 - control_rate)
     },
 
     #' @description Samples from the design prior.
@@ -76,6 +103,81 @@ DesignPrior <- R6::R6Class(
     }
   )
 )
+
+
+#' @title FunctionalDesignPrior class
+#' @description A design prior given by its distribution functions, as the
+#'   design priors conditioned on the target control rate are.
+#' @field cdf_function Distribution function of the treatment effect.
+#' @field pdf_function Density of the treatment effect.
+#' @field sample_function Function of the number of draws returning draws.
+#' @keywords internal
+FunctionalDesignPrior <- R6::R6Class(
+  "FunctionalDesignPrior",
+  inherit = DesignPrior,
+  public = list(
+    cdf_function = NULL,
+    pdf_function = NULL,
+    sample_function = NULL,
+
+    #' @description Creates a design prior from its distribution functions.
+    #' @param cdf,pdf,sample The distribution function, density and sampler.
+    #' @param design_prior_type The type of design prior it stands for.
+    initialize = function(cdf, pdf, sample, design_prior_type) {
+      self$cdf_function <- cdf
+      self$pdf_function <- pdf
+      self$sample_function <- sample
+      self$design_prior_type <- design_prior_type
+    },
+
+    #' @description Samples from the design prior.
+    #' @param n_samples The number of samples to generate.
+    sample = function(n_samples) self$sample_function(n_samples),
+
+    #' @description The distribution function of the design prior.
+    #' @param x The value at which to evaluate it.
+    cdf = function(x) self$cdf_function(x),
+
+    #' @description The density of the design prior.
+    #' @param x The value at which to evaluate it.
+    pdf = function(x) self$pdf_function(x)
+  )
+)
+
+
+#' A design prior truncated to an interval and renormalised
+#'
+#' @param design_prior The design prior to truncate.
+#' @param lower,upper The interval.
+#' @return A [FunctionalDesignPrior].
+#' @keywords internal
+truncated_design_prior <- function(design_prior, lower, upper) {
+  mass_below <- design_prior$cdf(lower)
+  mass <- design_prior$cdf(upper) - mass_below
+  if (!is.finite(mass) || mass <= 0) {
+    stop("The design prior has no mass between ", lower, " and ", upper, ".", call. = FALSE)
+  }
+
+  FunctionalDesignPrior$new(
+    cdf = function(x) {
+      (design_prior$cdf(pmin(pmax(x, lower), upper)) - mass_below) / mass
+    },
+    pdf = function(x) {
+      ifelse(x > lower & x < upper, design_prior$pdf(x) / mass, 0)
+    },
+    sample = function(n_samples) {
+      # Rejection from the untruncated prior, drawing enough each round for the
+      # mass kept.
+      kept <- numeric(0)
+      while (length(kept) < n_samples) {
+        draws <- design_prior$sample(ceiling(1.2 * (n_samples - length(kept)) / mass) + 10)
+        kept <- c(kept, draws[draws > lower & draws < upper])
+      }
+      kept[seq_len(n_samples)]
+    },
+    design_prior_type = design_prior$design_prior_type
+  )
+}
 
 
 binomial_product_integral <- function(x,
@@ -377,6 +479,30 @@ SourcePosteriorDesignPrior <- R6::R6Class(
       }
     },
 
+    #' @description The source posterior given the target control rate
+    #'
+    #' Under a binomial likelihood the source posterior is independent Beta
+    #' posteriors on the two arms' response rates, so given the control rate
+    #' the effect is the treatment rate, from its source posterior, less that
+    #' rate. Otherwise the inherited truncation applies.
+    #'
+    #' @param control_rate The target control rate.
+    #' @return A [FunctionalDesignPrior].
+    given_control_rate = function(control_rate) {
+      if (self$summary_measure_likelihood != "binomial") {
+        return(super$given_control_rate(control_rate))
+      }
+      force(control_rate)
+      shape1 <- 1 + self$n_successes_treatment
+      shape2 <- 1 + self$n_treatment - self$n_successes_treatment
+      FunctionalDesignPrior$new(
+        cdf = function(x) stats::pbeta(x + control_rate, shape1, shape2),
+        pdf = function(x) stats::dbeta(x + control_rate, shape1, shape2),
+        sample = function(n_samples) stats::rbeta(n_samples, shape1, shape2) - control_rate,
+        design_prior_type = self$design_prior_type
+      )
+    },
+
     #' @description Computes the cumulative distribution function (PDF) of the source posterior design prior.
     #' @param x The value at which to evaluate the PDF.
     pdf = function(x) {
@@ -434,6 +560,27 @@ AnalysisPriorDesignPrior <- R6::R6Class(
     #' @param n_samples The number of samples to generate.
     sample = function(n_samples) {
       return(self$model$sample_prior(n_samples))
+    },
+
+    #' @description The analysis prior given the target control rate
+    #'
+    #' The model's own prior given the control rate when it defines one, as
+    #' the binomial models do; otherwise the analysis prior is truncated to the
+    #' range the control rate leaves the effect.
+    #'
+    #' @param control_rate The target control rate.
+    #' @return A [FunctionalDesignPrior].
+    given_control_rate = function(control_rate) {
+      if (!is.function(self$model$prior_given_control_rate)) {
+        return(super$given_control_rate(control_rate))
+      }
+      conditional <- self$model$prior_given_control_rate(control_rate)
+      FunctionalDesignPrior$new(
+        cdf = conditional$cdf,
+        pdf = conditional$pdf,
+        sample = conditional$sample,
+        design_prior_type = self$design_prior_type
+      )
     },
 
     #' @description Computes the cumulative distribution function (CDF) of the analysis prior design prior.
