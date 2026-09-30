@@ -4,7 +4,7 @@
 \alias{commensurate_prior_mixture}
 \title{Discretise the commensurate power prior as a normal mixture}
 \usage{
-commensurate_prior_mixture(model, n_tau = 48L, n_gamma = 24L)
+commensurate_prior_mixture(model, n_tau = 48L, n_gamma = 12L)
 }
 \arguments{
 \item{model}{A \link{GaussianCommensuratePowerPrior} or
@@ -13,12 +13,19 @@ at one, which collapses the second quadrature dimension: the mixture is
 then one normal component per \code{tau} node rather than \code{n_gamma} of them.}
 
 \item{n_tau}{Number of quadrature nodes for the commensurability parameter.
-At the default every configured prior family agrees with a 1536-node rule
-to four significant figures, including the \code{inverse_gamma(0.001, 1)} prior,
-whose quantile function is the steepest of them.}
+Two families multiply it, because their quantile functions are too steep
+for the default: an inverse gamma with a shape below 0.01 by four, and a
+log-Cauchy by \code{ceiling(scale / 10)}. With those, every configured prior's
+posterior summaries agree with a 3072-node rule to within 5e-5 over target
+estimates from 0 to 2.}
 
 \item{n_gamma}{Number of conditional power-parameter nodes per \code{tau} node.
-Ignored when the model does not borrow a power parameter.}
+Ignored when the model does not borrow a power parameter. Against a rule
+twice as fine in both dimensions, 12 nodes keep every configured prior's
+posterior quantiles within 0.2\% of a posterior standard deviation on the
+Botox, Belimumab, Mepolizumab and Teriflunomide designs, the same order as
+the error left by the \code{tau} rule; 24 nodes halve that difference at twice
+the cost of every replicate.}
 }
 \value{
 A list containing normal-mixture \code{weights}, \code{means} and \code{sds}, plus
@@ -35,8 +42,8 @@ for each replicate.
 
 All three families are integrated the same way, through their quantile
 representation on a Gauss-Legendre rule over the probability scale. For the
-inverse-gamma family this remains stable for the configured shapes as small
-as 0.001, for which direct density quadrature is dominated by an endpoint
+inverse-gamma family this remains stable for shapes as small as 0.001,
+for which direct density quadrature is dominated by an endpoint
 singularity.
 }
 \keyword{internal}

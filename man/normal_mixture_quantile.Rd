@@ -11,7 +11,8 @@ normal_mixture_quantile(
   p,
   mixture_mean,
   mixture_sd,
-  tolerance = 1e-12
+  tolerance = 1e-12,
+  max_iterations = 200L
 )
 }
 \arguments{
@@ -24,19 +25,28 @@ deviations.}
 
 \item{p}{Single probability at which to evaluate the quantile function.}
 
-\item{mixture_mean}{Vector of mixture means, used to seed the bracket.}
+\item{mixture_mean}{Vector of mixture means, used for the starting point.}
 
-\item{mixture_sd}{Vector of mixture standard deviations, used to seed the
-bracket.}
+\item{mixture_sd}{Vector of mixture standard deviations, used for the
+starting point.}
 
-\item{tolerance}{Absolute width at which bisection stops.}
+\item{tolerance}{Absolute step, or bracket width, at which the iteration
+stops.}
+
+\item{max_iterations}{Iteration cap, far above what convergence needs.}
 }
 \value{
 Vector of quantiles, one per replicate.
 }
 \description{
-Bisection on the mixture CDF, which is strictly increasing. The
-bracket starts at the mixture mean plus or minus a multiple of its standard
-deviation, widened until it straddles the root, then halved to convergence.
+Safeguarded Newton iteration on the mixture CDF, which is
+strictly increasing, with the mixture density as its derivative. Every
+quantile of a mixture lies between the smallest and the largest quantile of
+its components, since the mixture CDF is a weighted average of theirs, so
+that interval brackets the root without evaluating the CDF. Each Newton step
+that would leave the bracket is replaced by a bisection step, and the bracket
+shrinks at every iteration, so the iteration converges; from the normal
+approximation it typically takes six Newton steps, where bisection took
+about forty. Only the replicates that have not converged are updated.
 }
 \keyword{internal}

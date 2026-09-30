@@ -1,3 +1,59 @@
+#' Run a vectorised analysis of the replicates in chunks
+#'
+#' @description A vectorised analysis holds several `n_replicates x
+#' n_components` matrices at once, which for a mixture of hundreds of
+#' components and ten thousand replicates reaches gigabytes per worker, and
+#' limits how many workers a machine can run. Every replicate is analysed on
+#' its own, so the analysis can run on consecutive chunks of replicates and the
+#' results be concatenated, with the same result and a peak memory bounded by
+#' the chunk.
+#'
+#' @param samples Data frame of generated replicates, one row each.
+#' @param analyse Function of a chunk of `samples` returning the list that
+#'   [vectorised_normal_mixture_simulation()] returns.
+#' @param chunk_size Number of replicates per chunk.
+#' @return The list `analyse` returns, over every replicate.
+#' @keywords internal
+analyse_in_replicate_chunks <- function(samples, analyse, chunk_size = 1000L) {
+  n_replicates <- nrow(samples)
+  if (n_replicates <= chunk_size) {
+    return(analyse(samples))
+  }
+  starts <- seq.int(1L, n_replicates, by = chunk_size)
+  pieces <- lapply(starts, function(start) {
+    rows <- start:min(start + chunk_size - 1L, n_replicates)
+    analyse(samples[rows, , drop = FALSE])
+  })
+  combine_replicate_results(pieces)
+}
+
+
+#' Concatenate the results of consecutive chunks of replicates
+#'
+#' @param pieces List of results, as [vectorised_normal_mixture_simulation()]
+#'   returns them, for consecutive chunks of replicates.
+#' @return One such list over every replicate: vectors are concatenated, and
+#'   matrices and data frames bound by rows. Outputs that were not requested
+#'   stay `NULL`.
+#' @keywords internal
+combine_replicate_results <- function(pieces) {
+  fields <- names(pieces[[1]])
+  combined <- lapply(fields, function(field) {
+    parts <- lapply(pieces, `[[`, field)
+    if (all(vapply(parts, is.null, logical(1)))) {
+      return(NULL)
+    }
+    if (is.matrix(parts[[1]]) || is.data.frame(parts[[1]])) {
+      do.call(rbind, parts)
+    } else {
+      do.call(c, parts)
+    }
+  })
+  names(combined) <- fields
+  combined
+}
+
+
 #' Run a whole normal-mixture simulation without looping over replicates
 #'
 #' @description Shared implementation behind the vectorised fast path. Given the
@@ -300,54 +356,78 @@ normal_mixture_summary <- function(weights, means, sds, probs = c(0.025, 0.5, 0.
 
 #' Invert a normal mixture CDF for every replicate at once
 #'
-#' @description Bisection on the mixture CDF, which is strictly increasing. The
-#' bracket starts at the mixture mean plus or minus a multiple of its standard
-#' deviation, widened until it straddles the root, then halved to convergence.
+#' @description Safeguarded Newton iteration on the mixture CDF, which is
+#' strictly increasing, with the mixture density as its derivative. Every
+#' quantile of a mixture lies between the smallest and the largest quantile of
+#' its components, since the mixture CDF is a weighted average of theirs, so
+#' that interval brackets the root without evaluating the CDF. Each Newton step
+#' that would leave the bracket is replaced by a bisection step, and the bracket
+#' shrinks at every iteration, so the iteration converges; from the normal
+#' approximation it typically takes six Newton steps, where bisection took
+#' about forty. Only the replicates that have not converged are updated.
 #'
 #' @param weights `n_replicates x n_components` matrix of mixture weights.
 #' @param means `n_replicates x n_components` matrix of component means.
 #' @param sds `n_replicates x n_components` matrix of component standard
 #'   deviations.
 #' @param p Single probability at which to evaluate the quantile function.
-#' @param mixture_mean Vector of mixture means, used to seed the bracket.
-#' @param mixture_sd Vector of mixture standard deviations, used to seed the
-#'   bracket.
-#' @param tolerance Absolute width at which bisection stops.
+#' @param mixture_mean Vector of mixture means, used for the starting point.
+#' @param mixture_sd Vector of mixture standard deviations, used for the
+#'   starting point.
+#' @param tolerance Absolute step, or bracket width, at which the iteration
+#'   stops.
+#' @param max_iterations Iteration cap, far above what convergence needs.
 #' @return Vector of quantiles, one per replicate.
 #' @keywords internal
 normal_mixture_quantile <- function(weights, means, sds, p,
                                     mixture_mean, mixture_sd,
-                                    tolerance = 1e-12) {
-  cdf <- function(x) rowSums(weights * stats::pnorm(x, means, sds))
+                                    tolerance = 1e-12,
+                                    max_iterations = 200L) {
+  weights <- as.matrix(weights)
+  means <- as.matrix(means)
+  sds <- as.matrix(sds)
 
-  # A normal mixture is bounded by its most extreme component, so widening the
-  # bracket geometrically is guaranteed to bracket the root in a few steps.
-  half_width <- 10 * mixture_sd
-  lower <- mixture_mean - half_width
-  upper <- mixture_mean + half_width
-  for (i in seq_len(50)) {
-    too_high <- cdf(lower) > p
-    too_low <- cdf(upper) < p
-    if (!any(too_high) && !any(too_low)) {
+  # The bracket: the extreme component quantiles, among the components that
+  # carry any weight.
+  component_quantiles <- means + stats::qnorm(p) * sds
+  component_quantiles[weights <= 0] <- NA
+  lower <- apply(component_quantiles, 1, min, na.rm = TRUE)
+  upper <- apply(component_quantiles, 1, max, na.rm = TRUE)
+
+  x <- pmin(pmax(mixture_mean + stats::qnorm(p) * mixture_sd, lower), upper)
+  active <- which(upper - lower > tolerance)
+  settled <- setdiff(seq_along(x), active)
+  x[settled] <- (lower[settled] + upper[settled]) / 2
+
+  for (i in seq_len(max_iterations)) {
+    if (length(active) == 0) {
       break
     }
-    half_width <- half_width * 2
-    lower <- ifelse(too_high, mixture_mean - half_width, lower)
-    upper <- ifelse(too_low, mixture_mean + half_width, upper)
+    w <- weights[active, , drop = FALSE]
+    z <- (x[active] - means[active, , drop = FALSE]) / sds[active, , drop = FALSE]
+    excess <- rowSums(w * stats::pnorm(z)) - p
+    density <- rowSums(w * stats::dnorm(z) / sds[active, , drop = FALSE])
+
+    # The root is above x where the CDF falls short of p, below it otherwise.
+    below <- excess < 0
+    lower[active] <- ifelse(below, x[active], lower[active])
+    upper[active] <- ifelse(below, upper[active], x[active])
+
+    newton <- x[active] - excess / density
+    # A Newton step below the tolerance means convergence, even where rounding
+    # puts it on the bracket's edge: bisecting there would move away from the
+    # root.
+    converged <- is.finite(newton) & abs(newton - x[active]) < tolerance
+    inside <- is.finite(newton) & newton >= lower[active] & newton <= upper[active]
+    candidate <- ifelse(converged | inside, newton, (lower[active] + upper[active]) / 2)
+
+    step <- abs(candidate - x[active])
+    x[active] <- candidate
+    converged <- converged | step < tolerance | upper[active] - lower[active] < tolerance
+    active <- active[!converged]
   }
 
-  # log2(20 * sd / tolerance) steps suffice; 200 covers any realistic scale.
-  for (i in seq_len(200)) {
-    middle <- (lower + upper) / 2
-    below <- cdf(middle) < p
-    lower <- ifelse(below, middle, lower)
-    upper <- ifelse(below, upper, middle)
-    if (max(upper - lower) < tolerance) {
-      break
-    }
-  }
-
-  (lower + upper) / 2
+  x
 }
 
 #' ELIR effective sample size of a normal mixture, per replicate
@@ -561,4 +641,106 @@ recycle_prior_component <- function(x, n_replicates) {
     return(x)
   }
   matrix(x, nrow = n_replicates, ncol = length(x), byrow = TRUE)
+}
+
+#' Gauss quadrature rule for a discrete measure
+#'
+#' @description The `n_nodes`-point Gauss rule of the measure
+#' \eqn{\sum_k w_k \delta_{x_k}}: the rule that integrates every polynomial of
+#' degree below `2 * n_nodes` exactly against it. It is built by the Lanczos
+#' process on `diag(nodes)` started from `sqrt(weights)`, which yields the
+#' measure's Jacobi matrix; the eigenvalues of that matrix are the rule's nodes
+#' and the squared first components of its eigenvectors the weights (Golub and
+#' Welsch, 1969). Every Lanczos vector is orthogonalised twice against all the
+#' previous ones, which keeps the recurrence stable where the plain three-term
+#' one loses orthogonality within a few dozen steps.
+#'
+#' @param nodes Atoms of the measure.
+#' @param weights Positive masses of the atoms.
+#' @param n_nodes Number of nodes wanted. A measure with fewer distinct atoms
+#'   gets a rule with as many nodes as it has atoms, which is then exact.
+#' @return A list with the rule's `nodes` and `weights`; the weights sum to
+#'   `sum(weights)`.
+#' @keywords internal
+gauss_rule_for_discrete_measure <- function(nodes, weights, n_nodes) {
+  total <- sum(weights)
+  n_nodes <- min(n_nodes, length(nodes))
+  basis <- matrix(0, length(nodes), n_nodes)
+  diagonal <- numeric(n_nodes)
+  off_diagonal <- numeric(n_nodes)
+  basis[, 1] <- sqrt(weights / total)
+  scale <- max(abs(nodes))
+
+  for (j in seq_len(n_nodes)) {
+    residual <- nodes * basis[, j]
+    diagonal[j] <- sum(basis[, j] * residual)
+    previous <- basis[, seq_len(j), drop = FALSE]
+    for (pass in 1:2) {
+      residual <- residual - previous %*% crossprod(previous, residual)
+    }
+    if (j == n_nodes) {
+      break
+    }
+    off_diagonal[j] <- sqrt(sum(residual^2))
+    # The Krylov space is exhausted: the measure has only j distinct atoms,
+    # and the rule on them is already exact.
+    if (off_diagonal[j] <= 1e-13 * scale) {
+      n_nodes <- j
+      break
+    }
+    basis[, j + 1] <- residual / off_diagonal[j]
+  }
+
+  jacobi <- diag(diagonal[seq_len(n_nodes)], n_nodes)
+  if (n_nodes > 1) {
+    band <- off_diagonal[seq_len(n_nodes - 1)]
+    jacobi[cbind(seq_len(n_nodes - 1), 2:n_nodes)] <- band
+    jacobi[cbind(2:n_nodes, seq_len(n_nodes - 1))] <- band
+  }
+  decomposition <- eigen(jacobi, symmetric = TRUE)
+
+  list(
+    nodes = decomposition$values,
+    weights = total * decomposition$vectors[1, ]^2
+  )
+}
+
+#' Compress a normal scale mixture into a few components
+#'
+#' @description A normal mixture whose components all share one mean is a
+#' distribution over the component variance `v`, and the conjugate update of
+#' [normal_mixture_posterior()] depends on each component through `v` alone.
+#' Every posterior summary is then an integral against that distribution, and
+#' a Gauss rule for it with a few dozen nodes computes them as accurately as
+#' the hundreds of components it replaces.
+#'
+#' The rule is built in \eqn{r = \sqrt{c / (v + c)}}, where `c` is a typical
+#' squared standard error of the observations. In that variable the marginal
+#' likelihood, the shrinkage factor and the posterior variance are all analytic
+#' over the whole range of `v`, including the near-flat components whose
+#' variance runs to 1e150, so the Gauss rule converges geometrically: 24 nodes
+#' reproduce the 1728-component commensurate power prior to rounding error.
+#' Rules built in `log(v)`, or with the likelihood's square-root factor folded
+#' into the weights, converge far more slowly or stall around 1e-9.
+#'
+#' @param weights Component weights.
+#' @param variances Component variances.
+#' @param reference_variance The constant `c` above.
+#' @param n_nodes Number of components wanted.
+#' @return A list with the compressed `weights` and `variances`, or the input
+#'   unchanged when it has no more than `n_nodes` components.
+#' @keywords internal
+compress_normal_scale_mixture <- function(weights, variances,
+                                          reference_variance, n_nodes) {
+  if (length(weights) <= n_nodes) {
+    return(list(weights = weights, variances = variances))
+  }
+  scale <- sqrt(reference_variance / (variances + reference_variance))
+  rule <- gauss_rule_for_discrete_measure(scale, weights, n_nodes)
+  # Gauss nodes lie inside the atoms' range; clamping only undoes rounding.
+  node <- pmin(pmax(rule$nodes, min(scale)), max(scale))
+  list(
+    weights = rule$weights,
+    variances = reference_variance * (1 - node^2) / node^2
+  )
 }

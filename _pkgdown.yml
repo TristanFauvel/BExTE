@@ -139,6 +139,8 @@ reference:
     replicates of a scenario at once
 - contents:
   - normal_mixture_posterior
+  - analyse_in_replicate_chunks
+  - combine_replicate_results
   - fit_egidi_mixture
   - normal_mixture_summary
   - normal_mixture_elir_ess

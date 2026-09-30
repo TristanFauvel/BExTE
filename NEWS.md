@@ -1,4 +1,13 @@
 # BExTE 0.0.2
+* The commensurate power prior, which took more than half the simulation
+  time, is about ten times faster: 9 s instead of 97 s for a scenario of
+  10000 replicates. Posterior quantiles of normal mixtures are found by a
+  safeguarded Newton iteration instead of bisection, with identical results to
+  1e-12; the conditional power-parameter rule uses 12 nodes instead of 24,
+  which moves posterior quantiles by less than 0.2% of a posterior standard
+  deviation; and the replicates are analysed in chunks of 1000, which bounds
+  each worker's memory. The quantile change also speeds up every other
+  mixture-based method, the NPP among them.
 * The binomial borrowing models of the Aprepitant case study - the robust
   mixture prior, its Egidi variant, the conditional power prior and the
   p-value-based power prior - now compute their posterior exactly, by

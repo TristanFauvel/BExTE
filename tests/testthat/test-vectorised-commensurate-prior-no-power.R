@@ -118,7 +118,7 @@ test_that("posterior summaries are converged at the default node count", {
     model <- commensurate_prior_fast_path_model(prior)
 
     expect_equal(
-      commensurate_posterior_summary(model, 48L, 24L),
+      commensurate_posterior_summary(model, 48L, 12L),
       commensurate_posterior_summary(model, 192L, 48L),
       tolerance = 5e-4
     )
