@@ -121,19 +121,19 @@ BinomialCPP <- R6::R6Class(
         power_parameter = self$power_parameter,
         n_treatment_source = as.integer(self$prior$source$sample_size_treatment),
         n_control_source = as.integer(self$prior$source$sample_size_control),
-        successes_treatment_source = as.integer(
-          self$prior$source$sample_size_treatment * self$prior$source$treatment_rate
+        successes_treatment_source = counts_from_rate(
+          self$prior$source$treatment_rate, self$prior$source$sample_size_treatment
         ),
-        successes_control_source = as.integer(
-          self$prior$source$sample_size_control * self$prior$source$control_rate
+        successes_control_source = counts_from_rate(
+          self$prior$source$control_rate, self$prior$source$sample_size_control
         ),
         n_treatment_target = as.integer(target_data$sample_size_treatment),
         n_control_target = as.integer(target_data$sample_size_control),
-        successes_treatment_target = as.integer(
-          target_data$sample_size_treatment * target_data$sample$sample_treatment_rate
+        successes_treatment_target = counts_from_rate(
+          target_data$sample$sample_treatment_rate, target_data$sample_size_treatment
         ),
-        successes_control_target = as.integer(
-          target_data$sample_size_control * target_data$sample$sample_control_rate
+        successes_control_target = counts_from_rate(
+          target_data$sample$sample_control_rate, target_data$sample_size_control
         )
       )
       return(data_list)
@@ -169,9 +169,9 @@ BinomialCPP <- R6::R6Class(
       binomial_power_prior_posterior(
         power_parameter = self$power_parameter,
         n_control_source = as.integer(source$sample_size_control),
-        n_successes_control_source = as.integer(source$sample_size_control * source$control_rate),
+        n_successes_control_source = counts_from_rate(source$control_rate, source$sample_size_control),
         n_treatment_source = as.integer(source$sample_size_treatment),
-        n_successes_treatment_source = as.integer(source$sample_size_treatment * source$treatment_rate),
+        n_successes_treatment_source = counts_from_rate(source$treatment_rate, source$sample_size_treatment),
         n_control = 0L,
         n_successes_control = 0L,
         n_treatment = 0L,
@@ -187,11 +187,11 @@ BinomialCPP <- R6::R6Class(
         power_parameter = self$power_parameter,
         n_treatment_source = as.integer(self$prior$source$sample_size_treatment),
         n_control_source = as.integer(self$prior$source$sample_size_control),
-        successes_treatment_source = as.integer(
-          self$prior$source$sample_size_treatment * self$prior$source$treatment_rate
+        successes_treatment_source = counts_from_rate(
+          self$prior$source$treatment_rate, self$prior$source$sample_size_treatment
         ),
-        successes_control_source = as.integer(
-          self$prior$source$sample_size_control * self$prior$source$control_rate
+        successes_control_source = counts_from_rate(
+          self$prior$source$control_rate, self$prior$source$sample_size_control
         )
       )
 

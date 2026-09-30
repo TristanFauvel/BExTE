@@ -2769,11 +2769,11 @@ BinomialSeparate <- R6::R6Class(
       data_list <- list(
         n_treatment = as.integer(target_data$sample_size_treatment),
         n_control = as.integer(target_data$sample_size_control),
-        n_successes_treatment = as.integer(
-          target_data$sample_size_treatment * target_data$sample$sample_treatment_rate
+        n_successes_treatment = counts_from_rate(
+          target_data$sample$sample_treatment_rate, target_data$sample_size_treatment
         ),
-        n_successes_control = as.integer(
-          target_data$sample_size_control * target_data$sample$sample_control_rate
+        n_successes_control = counts_from_rate(
+          target_data$sample$sample_control_rate, target_data$sample_size_control
         )
       )
       return(data_list)
@@ -2806,13 +2806,10 @@ BinomialPooling <- R6::R6Class(
         n_control = as.integer(
           target_data$sample_size_control + self$prior$source$sample_size_control
         ),
-        n_successes_treatment = as.integer(
-          target_data$sample_size_treatment * target_data$sample$sample_treatment_rate + self$prior$source$sample_size_treatment *
-            self$prior$source$treatment_rate
-        ),
-        n_successes_control = as.integer(
-          target_data$sample_size_control * target_data$sample$sample_control_rate + self$prior$source$sample_size_control * self$prior$source$control_rate
-        )
+        n_successes_treatment = counts_from_rate(target_data$sample$sample_treatment_rate, target_data$sample_size_treatment) +
+          counts_from_rate(self$prior$source$treatment_rate, self$prior$source$sample_size_treatment),
+        n_successes_control = counts_from_rate(target_data$sample$sample_control_rate, target_data$sample_size_control) +
+          counts_from_rate(self$prior$source$control_rate, self$prior$source$sample_size_control)
       )
       return(data_list)
     }

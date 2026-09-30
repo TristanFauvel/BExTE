@@ -62,8 +62,6 @@ noninformative_prior <- function() {
   )
 }
 
-# Rates chosen so that sample_size * rate is exact in binary arithmetic, which
-# keeps the as.integer() truncation in prepare_data out of these tests.
 target_data_fixture <- function() {
   list(
     sample_size_control = 40,
@@ -169,6 +167,49 @@ test_that("BinomialPooling pools the source counts into the target counts", {
 
   expect_equal(model$post_mean, reference$mean, tolerance = 1e-5)
   expect_equal(model$post_var, reference$var, tolerance = 1e-4)
+})
+
+
+test_that("BinomialSeparate conditions on every event when count / n is inexact", {
+  # 7 / 71 * 71 is 6.9999... in floating point: truncating it used to drop
+  # an event and fit 6/71 instead of 7/71.
+  model <- BinomialSeparate$new(
+    prior = noninformative_prior(),
+    mcmc_config = mcmc_config_fixture()
+  )
+  target_data <- list(
+    sample_size_control = 71,
+    sample_size_treatment = 71,
+    sample = list(
+      sample_control_rate = 7 / 71,
+      sample_treatment_rate = 14 / 71,
+      standard_deviation = 0.5
+    )
+  )
+
+  data_list <- model$prepare_data(target_data)
+  expect_identical(data_list$n_successes_control, 7L)
+  expect_identical(data_list$n_successes_treatment, 14L)
+
+  model$inference(target_data = target_data)
+  # Under the uniform priors the arms are independent Beta(s + 1, n - s + 1)
+  expect_equal(model$post_mean, 15 / 73 - 8 / 73, tolerance = 1e-8)
+})
+
+
+test_that("BinomialPooling conditions on every event when count / n is inexact", {
+  model <- BinomialPooling$new(
+    prior = noninformative_prior(),
+    mcmc_config = mcmc_config_fixture()
+  )
+  data_list <- model$prepare_data(list(
+    sample_size_control = 71,
+    sample_size_treatment = 47,
+    sample = list(sample_control_rate = 28 / 71, sample_treatment_rate = 3 / 47)
+  ))
+  # source: 15/60 control, 40/80 treatment
+  expect_identical(data_list$n_successes_control, 28L + 15L)
+  expect_identical(data_list$n_successes_treatment, 3L + 40L)
 })
 
 
