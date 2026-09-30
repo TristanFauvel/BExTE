@@ -157,6 +157,39 @@ average_power <- function(prepost_proba_TP,
   return(p)
 }
 
+#' Probability of study success over the replicates actually analysed
+#'
+#' @description `simulation_for_given_treatment_effect()` drops replicates
+#'   whose summary measure is not estimable before analysing them, and marks
+#'   those whose fit failed. Its vectorised path then returns one decision per
+#'   analysed replicate, and its replicate loop returns one per simulated
+#'   replicate with the unanalysed slots left at zero. Averaging the decisions
+#'   as returned therefore either fails to fit a row sized for every replicate
+#'   or counts the unanalysed ones as failures. Only the successful fits are
+#'   averaged here, as the frequentist operating characteristics do.
+#'
+#' @param results The list returned by `simulation_for_given_treatment_effect()`
+#'   with `test_decision` and `fit_success` requested.
+#' @return The proportion of successful fits that led to study success, or
+#'   `NA` when none succeeded.
+#' @keywords internal
+analysed_success_probability <- function(results) {
+  decisions <- results$test_decisions
+  fit_success <- results$fit_success
+  if (is.null(fit_success)) {
+    stop("fit_success must be requested to tell analysed replicates apart.", call. = FALSE)
+  }
+  if (length(decisions) != length(fit_success)) {
+    stop(length(decisions), " decisions for ", length(fit_success), " fit statuses.", call. = FALSE)
+  }
+  analysed <- fit_success == "Success"
+  if (!any(analysed)) {
+    return(NA_real_)
+  }
+  mean(decisions[analysed])
+}
+
+
 #' Calculate the upper bound probability of false positive
 #'
 #' @description This function calculates the upper bound probability of false positive based on the model, prior probability of no benefit,
@@ -233,10 +266,10 @@ upper_bound_proba_FP_MC <- function(model,
     case_study = case_study,
     method = method,
     n_samples_quantiles_estimation = n_samples_quantiles_estimation,
-    to_return = c("test_decision")
+    to_return = c("test_decision", "fit_success")
   )
 
-  p <- prior_proba_no_benefit * mean(results$test_decisions)
+  p <- prior_proba_no_benefit * analysed_success_probability(results)
 
   p <- sapply(p, check_probability_value)
   assertions::assert_number(p)
@@ -585,22 +618,21 @@ bayesian_ocs_for_combination <- function(job,
       fallback
     }
   }
-  model$calibrate_for_design(
-    TargetDataFactory$new()$create(
-      source_data = source_data,
-      case_study_config = case_study_config,
-      target_sample_size_per_arm = target_sample_size_per_arm,
-      control_drift = column_or("control_drift", 0),
-      treatment_drift = 0,
-      summary_measure_likelihood =
-        case_study_config$summary_measure_likelihood,
-      target_to_source_std_ratio = target_to_source_std_ratio,
-      dropout_probability = column_or("dropout_probability", 0),
-      event_time_distribution =
-        column_or("event_time_distribution", "exponential"),
-      treatment_delay = column_or("treatment_delay", 0)
-    )
+  nominal_target_data <- TargetDataFactory$new()$create(
+    source_data = source_data,
+    case_study_config = case_study_config,
+    target_sample_size_per_arm = target_sample_size_per_arm,
+    control_drift = column_or("control_drift", 0),
+    treatment_drift = 0,
+    summary_measure_likelihood =
+      case_study_config$summary_measure_likelihood,
+    target_to_source_std_ratio = target_to_source_std_ratio,
+    dropout_probability = column_or("dropout_probability", 0),
+    event_time_distribution =
+      column_or("event_time_distribution", "exponential"),
+    treatment_delay = column_or("treatment_delay", 0)
   )
+  model$calibrate_for_design(nominal_target_data)
 
   for (design_prior_type in design_prior_types) {
     if (design_prior_type == "analysis_prior" &&
@@ -632,7 +664,11 @@ bayesian_ocs_for_combination <- function(job,
         case_study_config = case_study_config,
         simulation_config = simulation_config,
         mcmc_config = mcmc_config,
-        case_study = case_study
+        case_study = case_study,
+        # The curve is simulated at this control rate, whatever the treatment
+        # effect, so under a binomial likelihood the design prior is taken
+        # given it - see DesignPrior$create().
+        target_control_rate = nominal_target_data$control_rate
       )
 
       design_prior_pdf <- design_prior$pdf(treatment_effect_values)

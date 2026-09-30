@@ -1391,12 +1391,14 @@ Model <- R6::R6Class(
                                                            case_study,
                                                            method,
                                                            n_samples_quantiles_estimation) {
-      test_decisions <- matrix(rep(0, n_samples_design_prior * n_replicates), nrow = n_samples_design_prior)
+      # Pr(Study success | theta_T) for each design prior draw, over the
+      # replicates actually analysed - see analysed_success_probability().
+      conditional_proba_success <- numeric(n_samples_design_prior)
 
       control_drift <- 0
       design_prior_samples <- design_prior$sample(n_samples_design_prior)
 
-      to_return <- c("test_decision")
+      to_return <- c("test_decision", "fit_success")
 
       for (i in seq_along(design_prior_samples)) {
         drift <- design_prior_samples[i] - source_data$treatment_effect_estimate # This implies that target_data$treatment_effect <- design_prior_samples[i]
@@ -1434,11 +1436,12 @@ Model <- R6::R6Class(
           simulation_config = simulation_config
         )
 
-        test_decisions[i, ] <- results$test_decisions
+        conditional_proba_success[i] <- analysed_success_probability(results)
       }
 
-      prior_proba_success_estimate <- mean(test_decisions)
-      conditional_proba_success <- rowMeans(test_decisions) # Contains Pr(Study success | theta_T)
+      # Every draw weighs the same, as it did when all its replicates were
+      # averaged together.
+      prior_proba_success_estimate <- mean(conditional_proba_success)
 
       if (null_space == "left") {
         prior_proba_no_benefit_estimate <- design_prior$cdf(theta_0)
@@ -2934,6 +2937,33 @@ BinomialPooling <- R6::R6Class(
           counts_from_rate(self$prior$source$control_rate, self$prior$source$sample_size_control)
       )
       return(data_list)
+    },
+
+    #' @description The prior of the treatment effect given the target control
+    #' rate
+    #'
+    #' Pooling treats the source study's patients as the target's, so before
+    #' any target patient is seen the response rates follow the source
+    #' posterior under uniform priors, the two arms independently. Given the
+    #' control rate, the treatment effect is the treatment rate less that rate,
+    #' the treatment rate following its source posterior. The inherited marginal
+    #' prior, a uniform prior on each arm, is the one pooling updates rather than
+    #' the one its analysis assumes about the target.
+    #'
+    #' @param control_rate The target control rate.
+    #' @return A list of three functions of the treatment effect: `cdf`, `pdf`,
+    #'   and `sample`, which takes the number of draws.
+    prior_given_control_rate = function(control_rate) {
+      force(control_rate)
+      source <- self$prior$source
+      successes <- counts_from_rate(source$treatment_rate, source$sample_size_treatment)
+      shape1 <- successes + 1
+      shape2 <- source$sample_size_treatment - successes + 1
+      list(
+        cdf = function(x) stats::pbeta(x + control_rate, shape1, shape2),
+        pdf = function(x) stats::dbeta(x + control_rate, shape1, shape2),
+        sample = function(n_samples) stats::rbeta(n_samples, shape1, shape2) - control_rate
+      )
     }
   )
 )

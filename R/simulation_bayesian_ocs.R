@@ -238,7 +238,12 @@ estimate_bayesian_ocs <- function(scenario,
       case_study_config = case_study_config,
       simulation_config = simulation_config,
       mcmc_config = mcmc_config,
-      case_study = scenario$case_study[[1]]
+      case_study = scenario$case_study[[1]],
+      # estimate_bayesian_operating_characteristics() simulates every trial with
+      # no control drift, so at the source control rate; under a binomial
+      # likelihood the design prior is taken given it, and its draws are
+      # effects such a trial can have.
+      target_control_rate = source_data$control_rate
     )
     start_time <- Sys.time()
 

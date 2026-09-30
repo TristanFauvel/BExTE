@@ -11,7 +11,7 @@ test_that("Monte Carlo Bayesian operating characteristics use explicit inputs", 
         } else {
           rep(TRUE, n_replicates)
         }
-        list(test_decisions = decisions)
+        list(test_decisions = decisions, fit_success = rep("Success", n_replicates))
       }
     )
   )
