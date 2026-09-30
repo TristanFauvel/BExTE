@@ -255,7 +255,11 @@ scenarios_config_schema <- list(
   case_study_sample_size_factors = "named_numeric_list?",
   # Optional. Overrides n_replicates for a given case study - see
   # case_study_n_replicates(). Case studies absent from it keep n_replicates.
-  case_study_n_replicates = "named_numeric_list?"
+  case_study_n_replicates = "named_numeric_list?",
+  # Optional. The case studies whose operating characteristics are computed
+  # exactly, by enumerating the trial outcomes, instead of by simulating
+  # n_replicates trials - see case_study_exact_enumeration().
+  exact_enumeration = "character_vector?"
 )
 
 

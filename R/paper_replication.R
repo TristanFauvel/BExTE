@@ -77,8 +77,21 @@ paper_replication_requirements <- function(ids, case_studies_config_dir) {
   ## likelihood, runs at the paper's replicate count: the binomial models
   ## compute their posterior by quadrature and share the analyses of repeated
   ## counts, so they no longer need the reduced count MCMC imposed.
+  ##
+  ## The binary case studies are not simulated at all: their operating
+  ## characteristics are summed exactly over every trial outcome, so the
+  ## replicate count does not apply to them.
+  enumerated <- intersect(PAPER_EXACT_ENUMERATION, case_studies)
+  if (length(enumerated) > 0) {
+    requirements$exact_enumeration <- enumerated
+  }
   requirements
 }
+
+## The case studies whose operating characteristics the paper computes exactly,
+## by enumerating the responder counts of each arm - see
+## case_study_exact_enumeration().
+PAPER_EXACT_ENUMERATION <- c("aprepitant", "belimumab")
 
 ## Replicates per scenario: the paper's Monte Carlo precision.
 PAPER_N_REPLICATES <- 10000
@@ -212,6 +225,9 @@ paper_config_shortfalls <- function(run_config, requirements) {
   short_of <- Filter(Negate(is.null), lapply(
     as.character(requirements$case_studies),
     function(case_study) {
+      if (case_study_exact_enumeration(run_config, case_study)) {
+        return(NULL)
+      }
       simulated <- case_study_n_replicates(run_config, case_study)
       required <- case_study_n_replicates(requirements, case_study)
       if (isTRUE(simulated < required)) {
@@ -225,6 +241,18 @@ paper_config_shortfalls <- function(run_config, requirements) {
     }
   ))
   shortfalls <- c(shortfalls, unlist(short_of))
+
+  ## Simulated instead of enumerated, the figures carry Monte Carlo error the
+  ## paper's do not.
+  not_enumerated <- Filter(function(case_study) {
+    !case_study_exact_enumeration(run_config, case_study)
+  }, as.character(unlist(requirements$exact_enumeration)))
+  if (length(not_enumerated) > 0) {
+    shortfalls <- c(shortfalls, sprintf(
+      "%s was simulated rather than enumerated exactly",
+      paste(not_enumerated, collapse = ", ")
+    ))
+  }
   if (!isTRUE(run_config$ndrift == requirements$ndrift)) {
     shortfalls <- c(shortfalls, sprintf(
       "%s drift points instead of %s", run_config$ndrift, requirements$ndrift

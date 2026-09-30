@@ -42,6 +42,9 @@ Model <- R6::R6Class(
     #' @field n_nonestimable_replicates Replicates dropped by the last
     #'   simulation because their target summary measure was undefined.
     n_nonestimable_replicates = 0,
+    #' @field estimable_replicates Which rows of the last simulation's
+    #'   replicates were kept for analysis, in the order they were generated.
+    estimable_replicates = NULL,
     prior_elir_unit_information = NULL,
     analytic_ocs = NULL,
     posterior_parameters = NULL,
@@ -550,6 +553,10 @@ Model <- R6::R6Class(
     #'   and the method has no vectorised fast path, since those outputs are
     #'   computed via `posterior_to_RBesT()`/`prior_to_RBesT()`, which need
     #'   `simulation_config$n_samples_mixture_approx`.
+    #' @param samples Optional replicate rows to analyse instead of generating
+    #'   `n_replicates` of them, such as the trials of
+    #'   `BinaryTargetData$enumerate_support()`. `n_replicates` must then be
+    #'   their number.
     #' @return A list of simulation results including test decisions, posterior means, medians, credible intervals, and posterior parameters
     simulation_for_given_treatment_effect = function(target_data,
                                                      n_replicates,
@@ -573,8 +580,12 @@ Model <- R6::R6Class(
                                                      ),
                                                      verbose = 0,
                                                      n_samples_quantiles_estimation,
-                                                     simulation_config = NULL) {
+                                                     simulation_config = NULL,
+                                                     samples = NULL) {
       assert_whole_number(n_replicates)
+      if (!is.null(samples) && nrow(samples) != n_replicates) {
+        stop("n_replicates is ", n_replicates, " but ", nrow(samples), " samples were given.")
+      }
 
       requested <- function(output) output %in% to_return
 
@@ -651,8 +662,8 @@ Model <- R6::R6Class(
       # threshold this run decides at, rather than assuming one.
       self$analysis_critical_value <- critical_value
 
-      # Generate data for n_replicates clinical trials
-      target_data_samples <- target_data$generate(n_replicates)
+      # Generate data for n_replicates clinical trials, unless they were given
+      target_data_samples <- if (is.null(samples)) target_data$generate(n_replicates) else samples
 
       # A replicate whose target summary measure is not estimable carries no
       # information about the treatment effect and cannot be analysed: a
@@ -669,6 +680,7 @@ Model <- R6::R6Class(
       estimable <- is.finite(target_data_samples$treatment_effect_estimate) &
         is.finite(target_data_samples$treatment_effect_standard_error)
       self$n_nonestimable_replicates <- sum(!estimable)
+      self$estimable_replicates <- estimable
       if (self$n_nonestimable_replicates > 0) {
         if (!any(estimable)) {
           stop(
@@ -949,6 +961,13 @@ Model <- R6::R6Class(
     #' @param simulation_config Simulation configuration, needed by
     #'   `simulation_for_given_treatment_effect()` for `ess_moment`,
     #'   `ess_precision` and `ess_elir` on methods without a vectorised fast path.
+    #' @param exact_enumeration Whether to compute the operating
+    #'   characteristics exactly, as sums over every trial outcome weighted by
+    #'   its probability (see `BinaryTargetData$enumerate_support()`), instead
+    #'   of averages over `n_replicates` simulated trials. The intervals then
+    #'   collapse onto the point estimates, since there is no Monte Carlo error.
+    #' @param enumeration_tail_mass Upper bound on the probability of the trial
+    #'   outcomes the enumeration leaves out.
     #' @return A list of estimated frequentist operating characteristics including coverage, MSE, bias, posterior mean, median, precision, credible intervals, and success probability
     estimate_frequentist_operating_characteristics = function(theta_0,
                                                               target_data,
@@ -960,8 +979,16 @@ Model <- R6::R6Class(
                                                               case_study,
                                                               method,
                                                               verbose = 0,
-                                                              simulation_config = NULL) {
+                                                              simulation_config = NULL,
+                                                              exact_enumeration = FALSE,
+                                                              enumeration_tail_mass = 1e-10) {
       target_treatment_effect <- target_data$treatment_effect
+
+      support <- NULL
+      if (exact_enumeration) {
+        support <- target_data$enumerate_support(tail_mass = enumeration_tail_mass)
+        n_replicates <- nrow(support$samples)
+      }
 
 
       to_return <- c(
@@ -989,7 +1016,8 @@ Model <- R6::R6Class(
         to_return = to_return,
         verbose = verbose,
         n_samples_quantiles_estimation = n_samples_quantiles_estimation,
-        simulation_config = simulation_config
+        simulation_config = simulation_config,
+        samples = support$samples
       )
 
       test_decisions <- results$test_decisions
@@ -1018,6 +1046,38 @@ Model <- R6::R6Class(
       n_nonestimable <- self$n_nonestimable_replicates
       n_total_replicates <- length(fit_success) + n_nonestimable
       n_failed_replicates <- n_diagnostic_failures + n_nonestimable
+
+      # Under exact enumeration each replicate is a distinct trial outcome and
+      # every average below is a sum weighted by its probability. Outcomes
+      # that cannot be analysed leave the sums the way failed replicates leave
+      # the averages - by renormalising over the rest - and their probability
+      # is reported rather than their number.
+      weights <- NULL
+      if (exact_enumeration) {
+        # The replicate loop leaves the slots of non-estimable rows unfilled
+        # at the end of its vectors, which then fail as unsuccessful fits; the
+        # vectorised path returns only the estimable rows.
+        analysed_weights <- support$weights[self$estimable_replicates]
+        row_weights <- c(
+          analysed_weights,
+          rep(0, length(fit_success) - length(analysed_weights))
+        )
+        nonestimable_mass <- sum(support$weights[!self$estimable_replicates])
+        failed_mass <- sum(row_weights[!successful])
+        weights <- row_weights[successful] / sum(row_weights[successful])
+        enumeration_omitted_mass <- support$omitted_mass +
+          (1 - support$omitted_mass) * (nonestimable_mass + failed_mass)
+      }
+      # An output the method does not return averages to NA either way.
+      average <- function(x) {
+        if (is.null(weights) || length(x) == 0) {
+          return(mean(x))
+        }
+        if (length(x) != length(weights)) {
+          stop(length(x), " values to average over ", length(weights), " trial outcomes.")
+        }
+        sum(weights * x)
+      }
 
       test_decisions <- test_decisions[successful]
       posterior_means <- posterior_means[successful]
@@ -1048,7 +1108,7 @@ Model <- R6::R6Class(
           target_treatment_effect <= credible_intervals[, 2]
       )
 
-      coverage <- mean(estimate_in_CrI)
+      coverage <- average(estimate_in_CrI)
 
       conf_int_coverage <- if (n_successful_replicates > 0) {
         binom.test(sum(estimate_in_CrI), length(estimate_in_CrI), conf.level = confidence_level)$conf.int
@@ -1058,18 +1118,18 @@ Model <- R6::R6Class(
 
       errors <- (posterior_means - target_treatment_effect)
       squared_errors <- errors ^ 2
-      mse <- mean(squared_errors)
+      mse <- average(squared_errors)
 
-      bias <- mean(errors)
+      bias <- average(errors)
 
-      post_mean <- mean(posterior_means)
+      post_mean <- average(posterior_means)
 
-      post_median <- mean(posterior_medians)
+      post_median <- average(posterior_medians)
 
       posterior_params <- list()
       if (!is.null(posterior_parameters)) {
         for (parameter in colnames(posterior_parameters)) {
-          posterior_params[[parameter]] <- mean(posterior_parameters[[parameter]])
+          posterior_params[[parameter]] <- average(posterior_parameters[[parameter]])
 
           # Same sample-size rule as every other interval below, applied to
           # the replicates actually averaged.
@@ -1087,11 +1147,12 @@ Model <- R6::R6Class(
         # No other method names any, and their output is unchanged.
         for (parameter in intersect(self$quantile_summary_columns,
                                     colnames(posterior_parameters))) {
-          quantiles <- stats::quantile(
-            posterior_parameters[[parameter]],
-            probs = c(0.025, 0.25, 0.5, 0.75, 0.975),
-            na.rm = TRUE
-          )
+          probs <- c(0.025, 0.25, 0.5, 0.75, 0.975)
+          quantiles <- if (is.null(weights)) {
+            stats::quantile(posterior_parameters[[parameter]], probs = probs, na.rm = TRUE)
+          } else {
+            weighted_quantile(posterior_parameters[[parameter]], weights, probs)
+          }
           labels <- c("q025_", "q25_", "median_", "q75_", "q975_")
           for (position in seq_along(labels)) {
             posterior_params[[paste0(labels[position], parameter)]] <-
@@ -1101,7 +1162,7 @@ Model <- R6::R6Class(
       }
 
       half_widths <- (credible_intervals[, 2] - credible_intervals[, 1]) / 2
-      precision <- mean(half_widths)
+      precision <- average(half_widths)
 
       # The half width says how tight the interval is and the coverage says
       # whether it is in the right place; read apart, a method that buys a
@@ -1113,11 +1174,14 @@ Model <- R6::R6Class(
         target_treatment_effect,
         confidence_level
       )
-      mean_interval_score <- mean(interval_scores)
+      mean_interval_score <- average(interval_scores)
 
-      credible_interval <- colMeans(credible_intervals)
+      credible_interval <- c(
+        average(credible_intervals[, 1]),
+        average(credible_intervals[, 2])
+      )
 
-      proba_success <- mean(test_decisions)
+      proba_success <- average(test_decisions)
       conf_int_proba_success <- if (n_successful_replicates > 0) {
         binom.test(sum(test_decisions), length(test_decisions), conf.level = confidence_level)$conf.int
       } else {
@@ -1125,14 +1189,30 @@ Model <- R6::R6Class(
       }
       mcse_proba_success <- sqrt(proba_success * (1 - proba_success) / n_successful_replicates)
 
-      ess_moment <- mean(ess_moments)
+      ess_moment <- average(ess_moments)
 
-      ess_precision <- mean(ess_precisions)
+      ess_precision <- average(ess_precisions)
 
       # The ELIR reads a mixture fitted to prior draws, not the target fit, so
       # it is unaffected by whether the target fit's diagnostics passed.
+      if (!is.null(weights) && length(results$ess_elir) > 1) {
+        # One value per analysed row, failed fits included, so weighted by
+        # every row's probability rather than the successful rows' only. A
+        # method whose prior is shared by every replicate returns one value.
+        if (length(results$ess_elir) != length(row_weights)) {
+          stop(
+            "ess_elir has ", length(results$ess_elir), " values but ",
+            length(row_weights), " trial outcomes were analysed."
+          )
+        }
+        elir_kept <- !is.na(results$ess_elir)
+        ess_elir <- sum(row_weights[elir_kept] * results$ess_elir[elir_kept]) /
+          sum(row_weights[elir_kept])
+      }
       results$ess_elir <- na.omit(results$ess_elir)
-      ess_elir  <- mean(results$ess_elir)
+      if (is.null(weights) || length(results$ess_elir) <= 1) {
+        ess_elir <- mean(results$ess_elir)
+      }
 
 
       # The two ways a replicate can leave the reported averages are
@@ -1158,15 +1238,21 @@ Model <- R6::R6Class(
           "operating characteristics"
         ))
       }
+      if (exact_enumeration && length(warning_parts) > 0) {
+        warning_parts <- c(warning_parts, paste0(
+          "the trials excluded had probability ",
+          signif(nonestimable_mass + failed_mass, 3)
+        ))
+      }
       warning <- if (length(warning_parts) == 0) {
         NA
       } else {
         paste(warning_parts, collapse = "; ")
       }
 
-      rhat <- mean(rhat_values)
-      mcmc_ess <- mean(mcmc_ess_values)
-      n_divergences <- mean(n_divergences_values)
+      rhat <- average(rhat_values)
+      mcmc_ess <- average(mcmc_ess_values)
+      n_divergences <- average(n_divergences_values)
 
       if (n_successful_replicates >= 1000){
         conf_int_precision <-  Hmisc::smean.cl.normal(half_widths, conf.int = confidence_level)[2:3]
@@ -1243,8 +1329,14 @@ Model <- R6::R6Class(
         n_divergences = n_divergences,
         conf_int_n_divergences_lower = conf_int_n_divergences[1],
         conf_int_n_divergences_upper = conf_int_n_divergences[2],
-        warning = warning
+        warning = warning,
+        exact_ocs = exact_enumeration,
+        enumeration_omitted_mass = if (exact_enumeration) enumeration_omitted_mass else NA_real_
       )
+
+      if (exact_enumeration) {
+        result <- collapse_monte_carlo_intervals(result)
+      }
 
       return(result)
     },
