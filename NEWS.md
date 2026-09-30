@@ -8,6 +8,14 @@
   deviation; and the replicates are analysed in chunks of 1000, which bounds
   each worker's memory. The quantile change also speeds up every other
   mixture-based method, the NPP among them.
+* The PDCCPP, the second most expensive method, now computes every replicate
+  at once instead of one at a time: 10 to 40 times faster per scenario. Its
+  calibration depends on a replicate only through the target sampling
+  variance, so it is searched at 200 variances across the replicates' range
+  and interpolated, instead of searched for each replicate. These few searches
+  run to a tolerance of 1e-9, so the power parameter is closer to the exactly
+  calibrated one than a per-replicate search at the configured tolerance was.
+  Test decisions are unchanged.
 * The binomial borrowing models of the Aprepitant case study - the robust
   mixture prior, its Egidi variant, the conditional power prior and the
   p-value-based power prior - now compute their posterior exactly, by
