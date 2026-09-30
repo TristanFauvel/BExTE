@@ -1,4 +1,13 @@
 # BExTE 0.0.2
+* The frequentist power baselines of the time-to-event sensitivity designs
+  were computed on the primary design's trials. `load_data()` rebuilt a
+  scenario's target data without its dropout probability, event time
+  distribution and treatment delay, so the power at the equivalent type I
+  error and the separate and pooled powers at the nominal one were the same
+  for every such design. It now reads them from the results row, and falls
+  back to the primary design for results written before those columns
+  existed. The sensitivity figures' power baselines change; rerun the
+  analysis step for time-to-event results.
 * The deterministic Bayesian operating characteristics run on a cluster when
   the analysis is parallelised: 26 s instead of 65 s for the 448 method and
   design combinations of a Teriflunomide run, most of it cluster start-up.

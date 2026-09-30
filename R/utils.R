@@ -1239,6 +1239,17 @@ load_data <- function(results_row, type, reload_data_objects = FALSE, case_studi
       source_denominator = results_row$source_denominator
     )
     if (type == "target") {
+      # The time-to-event design axes each describe a different trial, so they
+      # are read back like the drift. Results written before those axes existed
+      # do not carry them, and such a run only ever had the default design.
+      design_value <- function(name, default) {
+        if (name %in% names(results_row) && !is.na(results_row[[name]][1])) {
+          results_row[[name]][1]
+        } else {
+          default
+        }
+      }
+
       data <- TargetDataFactory$new()
       data <- data$create(
         source_data = source_data,
@@ -1247,7 +1258,10 @@ load_data <- function(results_row, type, reload_data_objects = FALSE, case_studi
         treatment_drift = results_row$treatment_drift,
         control_drift = results_row$control_drift,
         summary_measure_likelihood = source_data$summary_measure_likelihood,
-        target_to_source_std_ratio = results_row$target_to_source_std_ratio
+        target_to_source_std_ratio = results_row$target_to_source_std_ratio,
+        dropout_probability = design_value("dropout_probability", 0),
+        event_time_distribution = design_value("event_time_distribution", "exponential"),
+        treatment_delay = design_value("treatment_delay", 0)
       )
     } else if (type == "source") {
       data <- source_data
