@@ -1,4 +1,36 @@
 # BExTE 0.0.2
+* The operating characteristics of the binary case studies, Aprepitant and
+  Belimumab, can now be computed exactly instead of simulated. A trial there
+  reaches the analysis only through the responder counts of its two arms, so
+  each operating characteristic - probability of success, coverage, MSE, bias,
+  precision, interval score, the effective sample sizes - is summed over every
+  pair of counts, weighted by its binomial probability, instead of averaged
+  over random replicates. The pairs left out have probability below 1e-10,
+  reported in the new `enumeration_omitted_mass` column. There is no Monte
+  Carlo error, so the intervals collapse onto the estimates, `mcse_success_proba`
+  is 0, the new `exact_ocs` column is `TRUE`, and the curves across drift are
+  smooth. The type I error is exact too, so the separate analysis's power at
+  the equivalent type I error is evaluated at an exact level; that power is
+  itself still simulated, so it keeps its own Monte Carlo interval. The new
+  `exact_enumeration` key of `scenarios_config.yml` lists the case studies
+  to enumerate. It is set for Aprepitant and Belimumab in `full`, `combined`
+  and the `combined_*` environments, and in the paper replication; the other
+  environments still simulate them.
+* The binomial models of the Aprepitant case study - the separate and pooled
+  analyses, the conditional and p-value-based power priors, the robust mixture
+  prior and its Egidi variant - could condition on one responder too few.
+  They rebuilt each arm's responder count from its rate as
+  `as.integer(n * rate)`, and `(k / n) * n` often falls just below `k` in
+  floating point (7 of 71, 14 of 71, 3 of 47, ...), which truncation turned
+  into `k - 1`. The count is now rounded, and a rate that is not a whole
+  number of responders is an error. Aprepitant results for these methods shift
+  slightly; rerun them.
+* A binary scenario at the edge of the drift range, where an arm's response
+  rate is 0 or 1, could make the analysis steps fail with "No simulated trial
+  has an estimable summary measure": rebuilt from the drift read back from the
+  results file, the rate came out at -1e-16, and every simulated trial was NA.
+  The rates are now clamped to [0, 1] once checked to lie within rounding of
+  it.
 * The commensurate power prior, which took more than half the simulation
   time, is about ten times faster: 9 s instead of 97 s for a scenario of
   10000 replicates. Posterior quantiles of normal mixtures are found by a

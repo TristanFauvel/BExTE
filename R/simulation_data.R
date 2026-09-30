@@ -888,6 +888,12 @@ BinaryTargetData <- R6::R6Class(
       # Ensuring rates are within valid range ([0,1])
       stopifnot(all.equal(self$control_rate, min(max(self$control_rate, 0), 1)))
       stopifnot(all.equal(self$treatment_rate, min(max(self$treatment_rate, 0), 1)))
+      # Within rounding of [0, 1] is accepted above, but the rate itself has
+      # to be in it: a scenario at the edge of the drift range, rebuilt from a
+      # drift read back from a results file, lands at -1e-16, where rbinom()
+      # and dbinom() return NA.
+      self$control_rate <- min(max(self$control_rate, 0), 1)
+      self$treatment_rate <- min(max(self$treatment_rate, 0), 1)
 
       if (summary_measure_likelihood == "binomial") {
         # compute the standard deviation
@@ -932,14 +938,32 @@ BinaryTargetData <- R6::R6Class(
           n_replicates = n_replicates,
           n_samples_per_arm = self$sample_size_per_arm
         )
-      } else if (self$summary_measure_likelihood == "binomial") {
-        sample_treatment_rate <- sample_aggregate_binary_data(self$treatment_rate,
-                                                              self$sample_size_per_arm,
-                                                              n_replicates)
+      } else if (self$summary_measure_likelihood %in% c("binomial", "normal")) {
+        # The treatment arm is drawn first, as it always has been, so that a
+        # given seed keeps producing the same trials.
+        n_treatment_responders <- stats::rbinom(n_replicates, self$sample_size_treatment, self$treatment_rate)
+        n_control_responders <- stats::rbinom(n_replicates, self$sample_size_control, self$control_rate)
+        samples <- self$samples_from_counts(n_control_responders, n_treatment_responders)
+      } else {
+        stop("Not implemented for other distributions")
+      }
 
-        sample_control_rate <- sample_aggregate_binary_data(self$control_rate,
-                                                            self$sample_size_per_arm,
-                                                            n_replicates)
+
+      return(samples)
+    },
+
+    #' @description The replicate rows a trial with the given responder counts
+    #'   is analysed from. [generate()] draws the counts and
+    #'   [enumerate_support()] lists them, and both build their rows here, so
+    #'   the two cannot disagree on what a trial looks like to the analysis.
+    #' @param n_control_responders Integer vector of control-arm responders.
+    #' @param n_treatment_responders Integer vector of treatment-arm
+    #'   responders, the same length.
+    #' @return A data frame with one row per pair of counts.
+    samples_from_counts = function(n_control_responders, n_treatment_responders) {
+      if (self$summary_measure_likelihood == "binomial") {
+        sample_treatment_rate <- n_treatment_responders / self$sample_size_treatment
+        sample_control_rate <- n_control_responders / self$sample_size_control
 
         treatment_effect_standard_error <- sqrt(
           sample_treatment_rate * (1 - sample_treatment_rate) / self$sample_size_treatment + sample_control_rate * (1 - sample_control_rate) / self$sample_size_control
@@ -950,7 +974,7 @@ BinaryTargetData <- R6::R6Class(
         )
 
         # Compute the treatment effect estimate
-        samples <- data.frame(
+        data.frame(
           sample_control_rate = sample_control_rate,
           sample_treatment_rate = sample_treatment_rate,
           sample_size_per_arm = self$sample_size_per_arm,
@@ -960,26 +984,64 @@ BinaryTargetData <- R6::R6Class(
         )
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
-        log_OR_samples <- sample_log_odds_ratios(
+        log_OR_samples <- compute_ORs(
           self$sample_size_control,
           self$sample_size_treatment,
-          self$treatment_rate,
-          self$control_rate,
-          n_replicates
+          n_control_responders,
+          n_treatment_responders
         )
 
-        samples <- data.frame(
+        data.frame(
           treatment_effect_estimate = log_OR_samples$log_odds_ratio,
           treatment_effect_standard_error = log_OR_samples$std_err_log_odds_ratio,
           sample_size_per_arm = self$sample_size_per_arm,
           standard_deviation = log_OR_samples$std_err_log_odds_ratio*sqrt(self$sample_size_per_arm)
         )
       } else {
-        stop("Not implemented for other distributions")
+        stop(
+          "Trials are only built from responder counts under a binomial ",
+          "likelihood, or a normal one without the sampling approximation."
+        )
       }
+    },
 
+    #' @description Every trial outcome with non-negligible probability, with
+    #'   its probability, so that an operating characteristic can be computed
+    #'   as an exact weighted sum over trials instead of a Monte Carlo average.
+    #'   Each arm's responder count is kept between its `tail_mass / 4` and
+    #'   `1 - tail_mass / 4` binomial quantiles, so at most `tail_mass` is left
+    #'   out across both arms, and the weights, the product of
+    #'   the two binomial probabilities, are renormalised over the pairs kept.
+    #' @param tail_mass Upper bound on the probability of the trials left out.
+    #' @return A list: `samples`, the replicate rows as [generate()] builds
+    #'   them; `weights`, their probabilities, summing to 1; and
+    #'   `omitted_mass`, the probability of the trials left out.
+    enumerate_support = function(tail_mass = 1e-10) {
+      arm_support <- function(n, rate) {
+        counts <- seq.int(
+          stats::qbinom(tail_mass / 4, n, rate),
+          stats::qbinom(tail_mass / 4, n, rate, lower.tail = FALSE)
+        )
+        list(counts = counts, probabilities = stats::dbinom(counts, n, rate))
+      }
+      control <- arm_support(self$sample_size_control, self$control_rate)
+      treatment <- arm_support(self$sample_size_treatment, self$treatment_rate)
 
-      return(samples)
+      grid <- expand.grid(
+        control = seq_along(control$counts),
+        treatment = seq_along(treatment$counts)
+      )
+      weights <- control$probabilities[grid$control] * treatment$probabilities[grid$treatment]
+      kept_mass <- sum(weights)
+
+      list(
+        samples = self$samples_from_counts(
+          control$counts[grid$control],
+          treatment$counts[grid$treatment]
+        ),
+        weights = weights / kept_mass,
+        omitted_mass = max(0, 1 - kept_mass)
+      )
     },
     #' @description Converts the target data object to a dictionary.
     #' @return A list representing the target data object.
