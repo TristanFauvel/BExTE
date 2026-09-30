@@ -319,6 +319,15 @@ simulation_frequentist_ocs <- function(env,
 
   results_dir <- paste0("./results/", env, "/", "frequentist")
 
+  # Replicates are generated once per scenario and shared by all its methods -
+  # see generate_replicates(). The directory is emptied first, so that nothing
+  # an earlier run generated, possibly with other code, is ever reused.
+  generation_cache_dir <- file.path(
+    normalizePath(paste0("./results/", env), mustWork = FALSE), "generated"
+  )
+  unlink(generation_cache_dir, recursive = TRUE)
+  simulation_config$generation_cache_dir <- generation_cache_dir
+
   if (!(any("separate" %in% methods))) {
     warning("Separate analysis not included in the methods.")
     futile.logger::flog.warn("Separate analysis not included in the methods.")
@@ -523,5 +532,9 @@ simulation_frequentist_ocs <- function(env,
         clear_stan_draws(case_study, method)
       }
     }
+
+    # Every method of this case study has run, so its replicates will not be
+    # read again.
+    unlink(generation_cache_dir, recursive = TRUE)
   }
 }

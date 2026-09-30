@@ -662,8 +662,17 @@ Model <- R6::R6Class(
       # threshold this run decides at, rather than assuming one.
       self$analysis_critical_value <- critical_value
 
-      # Generate data for n_replicates clinical trials, unless they were given
-      target_data_samples <- if (is.null(samples)) target_data$generate(n_replicates) else samples
+      # Generate data for n_replicates clinical trials, unless they were given,
+      # sharing them with every method of the scenario when the simulation
+      # driver provides a cache directory.
+      target_data_samples <- if (is.null(samples)) {
+        generate_replicates(
+          target_data, n_replicates,
+          cache_dir = simulation_config$generation_cache_dir
+        )
+      } else {
+        samples
+      }
 
       # A replicate whose target summary measure is not estimable carries no
       # information about the treatment effect and cannot be analysed: a
