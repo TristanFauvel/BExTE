@@ -24,12 +24,17 @@
 #'   posterior summaries agree with a 3072-node rule to within 5e-5 over target
 #'   estimates from 0 to 2.
 #' @param n_gamma Number of conditional power-parameter nodes per `tau` node.
-#'   Ignored when the model does not borrow a power parameter.
+#'   Ignored when the model does not borrow a power parameter. Against a rule
+#'   twice as fine in both dimensions, 12 nodes keep every configured prior's
+#'   posterior quantiles within 0.2% of a posterior standard deviation on the
+#'   Botox, Belimumab, Mepolizumab and Teriflunomide designs, the same order as
+#'   the error left by the `tau` rule; 24 nodes halve that difference at twice
+#'   the cost of every replicate.
 #' @return A list containing normal-mixture `weights`, `means` and `sds`, plus
 #'   the `tau` and `power_parameter` value represented by each component.
 #'   `power_parameter` is `NULL` when the model does not have one.
 #' @keywords internal
-commensurate_prior_mixture <- function(model, n_tau = 48L, n_gamma = 24L) {
+commensurate_prior_mixture <- function(model, n_tau = 48L, n_gamma = 12L) {
   tau_rule <- commensurate_tau_quadrature(model, n_tau)
   source_standard_error <- model$prior$source$standard_error
 

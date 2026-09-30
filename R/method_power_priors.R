@@ -1324,39 +1324,44 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
       }
 
       prior_mixture <- commensurate_prior_mixture(self)
-      posterior <- normal_mixture_posterior(
-        weights = prior_mixture$weights,
-        means = prior_mixture$means,
-        sds = prior_mixture$sds,
-        estimate = samples$treatment_effect_estimate,
-        standard_error = samples$treatment_effect_standard_error
-      )
 
-      posterior_parameters <- commensurate_parameter_summary(
-        posterior_weights = posterior$weights,
-        mixture = prior_mixture,
-        heterogeneity_prior_family = self$heterogeneity_prior_family,
-        heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior,
-        borrows_power_parameter = self$borrows_power_parameter
-      )
+      # The posterior has one column per mixture component, hundreds of them,
+      # so the replicates are analysed in chunks to bound the memory it takes.
+      analyse_in_replicate_chunks(samples, function(chunk) {
+        posterior <- normal_mixture_posterior(
+          weights = prior_mixture$weights,
+          means = prior_mixture$means,
+          sds = prior_mixture$sds,
+          estimate = chunk$treatment_effect_estimate,
+          standard_error = chunk$treatment_effect_standard_error
+        )
 
-      vectorised_normal_mixture_simulation(
-        weights = prior_mixture$weights,
-        means = prior_mixture$means,
-        sds = prior_mixture$sds,
-        samples = samples,
-        target_data = target_data,
-        to_return = to_return,
-        critical_value = critical_value,
-        theta_0 = theta_0,
-        confidence_level = confidence_level,
-        null_space = null_space,
-        posterior_parameters = posterior_parameters,
-        posterior = posterior,
-        # This model samples when it is not on the fast path, so zero-filled
-        # diagnostics would read as a perfectly converged, never-diverging run.
-        mcmc = self$mcmc
-      )
+        posterior_parameters <- commensurate_parameter_summary(
+          posterior_weights = posterior$weights,
+          mixture = prior_mixture,
+          heterogeneity_prior_family = self$heterogeneity_prior_family,
+          heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior,
+          borrows_power_parameter = self$borrows_power_parameter
+        )
+
+        vectorised_normal_mixture_simulation(
+          weights = prior_mixture$weights,
+          means = prior_mixture$means,
+          sds = prior_mixture$sds,
+          samples = chunk,
+          target_data = target_data,
+          to_return = to_return,
+          critical_value = critical_value,
+          theta_0 = theta_0,
+          confidence_level = confidence_level,
+          null_space = null_space,
+          posterior_parameters = posterior_parameters,
+          posterior = posterior,
+          # This model samples when it is not on the fast path, so zero-filled
+          # diagnostics would read as a perfectly converged, never-diverging run.
+          mcmc = self$mcmc
+        )
+      })
     },
     #' @description Compute posterior parameters
     compute_posterior_parameters = function() {

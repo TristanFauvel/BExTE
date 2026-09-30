@@ -106,7 +106,7 @@ test_that("commensurate posterior summaries are converged at default nodes", {
     for (model in list(commensurate_fast_path_model(prior),
                        commensurate_prior_fast_path_model(prior))) {
       for (estimate in seq(0, 2, by = 0.25)) {
-        default <- commensurate_posterior_summary(model, 48L, 24L,
+        default <- commensurate_posterior_summary(model, 48L, 12L,
                                                   estimate = estimate)
         reference <- commensurate_posterior_summary(model, 768L, 48L,
                                                     estimate = estimate)
@@ -119,7 +119,7 @@ test_that("commensurate posterior summaries are converged at default nodes", {
 
 test_that("commensurate ELIR sample size is converged at default nodes", {
   elir <- function(model, n_tau) {
-    mixture <- commensurate_prior_mixture(model, n_tau, n_gamma = 24L)
+    mixture <- commensurate_prior_mixture(model, n_tau, n_gamma = 12L)
     normal_mixture_elir_ess(
       weights = mixture$weights,
       means = mixture$means,
