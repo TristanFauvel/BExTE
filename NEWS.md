@@ -1,4 +1,25 @@
 # BExTE 0.0.2
+* The commensurate power prior, which took more than half the simulation
+  time, is about ten times faster: 9 s instead of 97 s for a scenario of
+  10000 replicates. Posterior quantiles of normal mixtures are found by a
+  safeguarded Newton iteration instead of bisection, with identical results to
+  1e-12; the conditional power-parameter rule uses 12 nodes instead of 24,
+  which moves posterior quantiles by less than 0.2% of a posterior standard
+  deviation; and the replicates are analysed in chunks of 1000, which bounds
+  each worker's memory. The quantile change also speeds up every other
+  mixture-based method, the NPP among them.
+* The binomial borrowing models of the Aprepitant case study - the robust
+  mixture prior, its Egidi variant, the conditional power prior and the
+  p-value-based power prior - now compute their posterior exactly, by
+  deterministic quadrature over the control rates and the treatment effect,
+  instead of sampling it with Stan. The posterior has two or three parameters,
+  so the grid is exact to about 1e-5, far below the Monte Carlo error of the
+  sampler, and a replicate takes tens of milliseconds instead of seconds. The
+  new `engine` key of `mcmc_config.yml` chooses between `quadrature`, the
+  default, and `stan`, which keeps the sampling path for comparison. Since the
+  analysis no longer carries sampling error, replicates with the same counts
+  now share one analysis through the inference cache, including for the
+  empirical Bayes models, whose prior is a function of the replicate's sample.
 * The frequentist baselines (power of the separate and pooled analyses, at
   the nominal and at the equivalent type I error) are now simulated for
   Mepolizumab, as for every endpoint that is not continuous. They used to be

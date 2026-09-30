@@ -879,6 +879,9 @@ p_value_based_PP_Binomial <- R6::R6Class(
     summary_measure_likelihood = NULL,
     null_space = NULL,
     empirical_bayes = TRUE,
+    # The power parameter is set by a test on the replicate's estimates and
+    # standard error, so equal samples give equal priors.
+    empirical_bayes_from_sample = TRUE,
     shape_parameter = NULL,
     equivalence_margin = NULL,
     method = "p_value_based_PP",
@@ -949,6 +952,11 @@ p_value_based_PP_Binomial <- R6::R6Class(
 
       self$posterior_parameters$power_parameter <- self$power_parameter_estimation(target_data = target_data)
       self$power_parameter <- self$posterior_parameters$power_parameter
+      # The prior depends on the power parameter just chosen, so a prior cached
+      # for an earlier replicate no longer applies.
+      self$prior_grid <- NULL
+      self$prior_pdf_approx <- NULL
+      self$prior_cdf_approx <- NULL
     },
 
     #' Perform inference using the Gaussian_empirical_Bayes_PP method.

@@ -33,7 +33,10 @@ rmp_weight_mcmc_config <- function() {
     max_chain_length = 10000L,
     target_ess = 10L,
     rhat_threshold = 1.1,
-    max_divergence_rate = 0.01
+    max_divergence_rate = 0.01,
+    # These tests are about the sampling path; test-binomial_quadrature.R
+    # covers the same quantities under the quadrature engine.
+    engine = "stan"
   )
 }
 

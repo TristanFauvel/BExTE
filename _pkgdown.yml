@@ -119,11 +119,28 @@ reference:
   - p_value_based_PP_Gaussian
   - BinomialConjugate
 
+- title: Binomial quadrature
+  desc: Exact posteriors of a difference in response rates for the binomial
+    borrowing models, computed on a grid instead of sampled
+- contents:
+  - truncated_normal_mixture_binomial_posterior
+  - binomial_power_prior_posterior
+  - binomial_effect_grid
+  - beta_quadrature_nodes
+  - beta_sd
+  - grid_posterior
+  - grid_posterior_cdf
+  - grid_posterior_pdf
+  - grid_posterior_quantile
+  - grid_posterior_sample
+
 - title: Vectorised inference
   desc: Conjugate updates and frequentist tests evaluated across all
     replicates of a scenario at once
 - contents:
   - normal_mixture_posterior
+  - analyse_in_replicate_chunks
+  - combine_replicate_results
   - fit_egidi_mixture
   - normal_mixture_summary
   - normal_mixture_elir_ess

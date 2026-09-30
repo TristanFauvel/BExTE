@@ -594,34 +594,15 @@ test_that("a run that skipped a power baseline is short of the paper", {
   expect_equal(paper_config_shortfalls(every_step, requirements), character(0))
 })
 
-test_that("a binomial-likelihood case study is simulated at 1000 replicates", {
+test_that("every case study, the binomial one included, is simulated at 10000 replicates", {
   requirements <- paper_replication_requirements(paper_manifest_ids(), config_dir())
 
-  ## Aprepitant's binomial likelihood is fitted by MCMC for the conditional
-  ## power prior, replicate by replicate; every other case study uses a normal
-  ## likelihood and keeps the paper's 10000.
-  expect_equal(case_study_n_replicates(requirements, "aprepitant"), 1000)
-  for (case_study in setdiff(requirements$case_studies, "aprepitant")) {
+  ## Aprepitant's exact binomial likelihood is analysed by quadrature, which is
+  ## cheap enough for the paper's full replicate count.
+  for (case_study in requirements$case_studies) {
     expect_equal(case_study_n_replicates(requirements, case_study), 10000,
                  info = case_study)
   }
-})
-
-test_that("a case study analysed under the normal approximation keeps 10000", {
-  withr::with_tempdir({
-    case_study <- yaml::read_yaml(file.path(config_dir(), "aprepitant.yml"))
-    case_study$summary_measure_likelihood <- "normal"
-    dir.create("case_studies")
-    for (file in list.files(config_dir(), pattern = "\\.yml$")) {
-      file.copy(file.path(config_dir(), file), file.path("case_studies", file))
-    }
-    yaml::write_yaml(case_study, file.path("case_studies", "aprepitant.yml"))
-
-    requirements <- paper_replication_requirements(
-      paper_manifest_ids(), "case_studies/"
-    )
-    expect_equal(case_study_n_replicates(requirements, "aprepitant"), 10000)
-  })
 })
 
 test_that("a run with too few replicates for one case study is short", {

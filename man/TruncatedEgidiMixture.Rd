@@ -90,10 +90,13 @@ quantile, which for this method is the selected weight.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>MCMCModel$posterior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_cdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_cdf'><code>MCMCModel$prior_cdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_pdf'><code>MCMCModel$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_prior'><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="prepare_data"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-prepare_data'><code>TruncatedGaussianRMP$prepare_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="print_model_summary"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-print_model_summary'><code>TruncatedGaussianRMP$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="prior_elir_ess"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-prior_elir_ess'><code>TruncatedGaussianRMP$prior_elir_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="quadrature_posterior"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-quadrature_posterior'><code>TruncatedGaussianRMP$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="sample_prior"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-sample_prior'><code>TruncatedGaussianRMP$sample_prior()</code></a></span></li>
 </ul>
 </details>}}
