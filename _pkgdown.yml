@@ -242,6 +242,7 @@ reference:
   - compute_control_drift_range
   - compute_drift_range
   - compute_source_denominator_range
+  - compute_time_to_event_ranges
   - frequentist_ocs_scenario_simulation
   - bayesian_ocs_scenario_simulation
   - simulation_analysis
@@ -252,6 +253,9 @@ reference:
   - run_progress_tracker
   - time_to_event_expected_events
   - time_to_event_delayed_log_hr
+  - is_primary_time_to_event_design
+  - time_to_event_axes_off_primary
+  - time_to_event_sensitivity_reference
 
 - title: Tables
 - contents:
