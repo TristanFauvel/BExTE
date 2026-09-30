@@ -142,6 +142,18 @@ analysis_runs_in_parallel <- function(parallelization) {
 #' @noRd
 ANALYSIS_PARALLEL_MIN_ROWS <- 200L
 
+#' Fewest simulated trials worth generating on a cluster
+#'
+#' The separate analysis's trials are simulated once per design, and their cost
+#' scales with the replicate count: about 0.25 ms a trial on a time-to-event
+#' endpoint, which fits a model to each, so 2.5 s a design at the paper's
+#' 10,000 replicates. The cluster costs 15-30 s to stand up, so the threshold is
+#' on designs times replicates rather than on designs: 24 designs of 2,000
+#' trials took 6.7 s sequentially and 28 s on a cluster, while the paper's 264
+#' designs of 10,000 are 2.6 million trials.
+#' @noRd
+ANALYSIS_PARALLEL_MIN_TRIALS <- 200000L
+
 #' Whether to analyse this many rows on a cluster
 #'
 #' @param parallelization Whether the caller asked for parallelism.
