@@ -313,6 +313,8 @@ reference:
 - contents:
   - inference_cache_size
   - inference_cache_reset
+  - generate_replicates
+  - generation_cache_key
   - npp_kl_calibration_cache_size
   - npp_kl_calibration_cache_reset
   - clear_stan_draws

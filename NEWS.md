@@ -88,6 +88,16 @@
   results file, the rate came out at -1e-16, and every simulated trial was NA.
   The rates are now clamped to [0, 1] once checked to lie within rounding of
   it.
+* Each scenario's replicates are now generated once and shared by every
+  method and parameter setting that simulates it, instead of being
+  regenerated about 56 times in the paper's grid. They were identical anyway:
+  every simulation of a scenario seeds the generator the same way. The
+  Mepolizumab and Teriflunomide case studies fit a model to each generated
+  trial, which made regeneration the larger part of their run time; a small
+  Mepolizumab run is 6.6 times faster, with identical results. The shared
+  replicates are stored under the run's `results/<env>/generated/`, keyed by
+  the design, the replicate count and the generator state, and deleted once
+  each case study is done.
 * The commensurate power prior, which took more than half the simulation
   time, is about ten times faster: 9 s instead of 97 s for a scenario of
   10000 replicates. Posterior quantiles of normal mixtures are found by a
