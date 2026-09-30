@@ -501,8 +501,225 @@ prior_proba_success <- function(conditional_proba_success,
   return(p)
 }
 
-compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_studies_config_dir = NULL) {
-  results_bayesian_ocs <- data.frame()
+#' Bayesian operating characteristics of one method setting on one design
+#'
+#' @description Rebuilds the model of one method and parameter combination for
+#'   one trial design, and integrates its probability of success curve against
+#'   each design prior. [compute_bayesian_ocs()] collects one job per
+#'   combination and hands them to this function, sequentially or on a
+#'   cluster; the jobs share nothing, so they can run in any order.
+#'
+#' @param job A list with the combination's results rows (`results_df`), its
+#'   `parameters_combination` row, and the case study, method, design and
+#'   source data they belong to.
+#' @param simulation_config The simulation configuration.
+#' @param mcmc_config The MCMC configuration.
+#' @param design_prior_types The design priors to integrate against.
+#'
+#' @return A data frame with one row per design prior.
+#' @noRd
+bayesian_ocs_for_combination <- function(job,
+                                         simulation_config,
+                                         mcmc_config,
+                                         design_prior_types) {
+  case_study <- job$case_study
+  case_study_config <- job$case_study_config
+  null_space <- case_study_config$null_space
+  theta_0 <- case_study_config$theta_0
+  source_data <- job$source_data
+  source_data_df <- job$source_data_df
+  source_denominator_change_factor <- job$source_denominator_change_factor
+  target_to_source_std_ratio <- job$target_to_source_std_ratio
+  method <- job$method
+  target_sample_size_per_arm <- job$target_sample_size_per_arm
+  parameters_combination <- job$parameters_combination
+  results_df <- job$results_df
+
+  # The mixture approximations of the priors are fitted to random draws. Each
+  # job is seeded on its own, so its result does not depend on which jobs ran
+  # before it, or on whether they ran on a cluster.
+  set.seed(simulation_config$seed)
+
+  rows <- list()
+
+  # We unpack the parameter inside this loop (and not inside the previous one), because for some methods such as the commensurate power prior, there is a nested parameters structure which implies that they cannot all be stored in a single dataframe.
+  method_parameters <- as.list(get_parameters(
+    parameters_combination[, "parameters", drop = FALSE]
+  ))
+  # convert strings to numeric or boolean if possible
+  method_parameters <- data.frame(lapply(method_parameters, convert_if_possible))
+
+  # The following applies to a single row dataframe, to recover the nested list structure
+  method_params <- extract_nested_parameter(method_parameters)
+
+  conditional_proba_success <- results_df$success_proba
+  treatment_effect_values <- results_df$target_treatment_effect
+
+  model <- Model$new()
+  model <- model$create(
+    case_study_config = case_study_config,
+    method = method,
+    method_parameters = method_params,
+    source_data = source_data,
+    mcmc_config = mcmc_config
+  )
+
+  # A method whose hyperparameters follow from the design has to be
+  # given one here as well: this model is rebuilt from the results
+  # file rather than handed over by the simulation, so it arrives
+  # uncalibrated.
+  #
+  # The design used is the nominal one - the trial this row
+  # describes, at zero treatment drift - rather than any particular
+  # drift, because the model stands for the whole curve here: it
+  # supplies the design prior, which is a property of the method and
+  # the design and not of the treatment effect the curve is indexed
+  # by. On a continuous endpoint that is the same design the
+  # simulation calibrated against at every drift, since the standard
+  # error the design implies does not move with the drift there.
+  first_row <- results_df[1, , drop = FALSE]
+  column_or <- function(name, fallback) {
+    if (name %in% names(first_row) && !is.na(first_row[[name]])) {
+      first_row[[name]]
+    } else {
+      fallback
+    }
+  }
+  model$calibrate_for_design(
+    TargetDataFactory$new()$create(
+      source_data = source_data,
+      case_study_config = case_study_config,
+      target_sample_size_per_arm = target_sample_size_per_arm,
+      control_drift = column_or("control_drift", 0),
+      treatment_drift = 0,
+      summary_measure_likelihood =
+        case_study_config$summary_measure_likelihood,
+      target_to_source_std_ratio = target_to_source_std_ratio,
+      dropout_probability = column_or("dropout_probability", 0),
+      event_time_distribution =
+        column_or("event_time_distribution", "exponential"),
+      treatment_delay = column_or("treatment_delay", 0)
+    )
+  )
+
+  for (design_prior_type in design_prior_types) {
+    if (design_prior_type == "analysis_prior" &&
+        model$empirical_bayes) {
+      # We cannot compute the Bayesian OCs with an analysis design prior for empirical Bayes methods.
+      results_to_add <- data.frame(
+        case_study = case_study,
+        method = method,
+        target_sample_size_per_arm = target_sample_size_per_arm,
+        parameters = parameters_combination[1, ],
+        source_denominator_change_factor = source_denominator_change_factor,
+        target_to_source_std_ratio = target_to_source_std_ratio,
+        design_prior_type = design_prior_type,
+        prior_proba_success = NA,
+        prior_proba_no_benefit = NA,
+        prior_proba_benefit = NA,
+        prepost_proba_FP = NA,
+        prepost_proba_TP = NA,
+        average_tie = NA,
+        average_power = NA,
+        upper_bound_proba_FP = NA
+      )
+    } else {
+      design_prior <- DesignPrior$new()
+      design_prior <- design_prior$create(
+        design_prior_type = design_prior_type,
+        model = model,
+        source_data = source_data,
+        case_study_config = case_study_config,
+        simulation_config = simulation_config,
+        mcmc_config = mcmc_config,
+        case_study = case_study
+      )
+
+      design_prior_pdf <- design_prior$pdf(treatment_effect_values)
+
+      if (null_space == "left") {
+        prior_proba_no_benefit <- design_prior$cdf(theta_0)
+      } else if (null_space == "right") {
+        prior_proba_no_benefit <- 1 - design_prior$cdf(theta_0)
+      } else {
+        stop("Null space must be either 'left' or 'right'.")
+      }
+
+      prior_proba_benefit <- 1 - prior_proba_no_benefit
+
+      prior_proba_success_SI <- prior_proba_success(
+        conditional_proba_success = conditional_proba_success,
+        treatment_effect_values = treatment_effect_values,
+        design_prior_pdf = design_prior_pdf,
+        design_prior_cdf = design_prior$cdf,
+        null_space = null_space
+      )
+
+      prepost_proba_FP_SI <- preposterior_proba_FP(
+        conditional_proba_success = conditional_proba_success,
+        treatment_effect_values = treatment_effect_values,
+        theta_0 = theta_0,
+        null_space = null_space,
+        design_prior_pdf = design_prior_pdf,
+        design_prior_cdf = design_prior$cdf
+      )
+
+      prepost_proba_TP_SI <- preposterior_proba_TP(
+        conditional_proba_success = conditional_proba_success,
+        treatment_effect_values = treatment_effect_values,
+        theta_0 = theta_0,
+        null_space = null_space,
+        design_prior_pdf = design_prior_pdf,
+        design_prior_cdf = design_prior$cdf
+      )
+
+      average_tie_SI <- average_tie(
+        prepost_proba_FP = prepost_proba_FP_SI,
+        prior_proba_no_benefit = prior_proba_no_benefit
+      )
+
+      average_power_SI <- average_power(
+        prepost_proba_TP = prepost_proba_TP_SI,
+        prior_proba_no_benefit = prior_proba_no_benefit
+      )
+
+      if(length(conditional_proba_success[treatment_effect_values == theta_0]) > 1){
+        stop("Too many values corresponding to TIE.")
+      }
+      upper_bound_proba_FP_SI <- upper_bound_proba_FP(
+        prior_proba_no_benefit = prior_proba_no_benefit,
+        treatment_effect_values = treatment_effect_values,
+        conditional_proba_success = conditional_proba_success,
+        theta_0 = theta_0
+      )
+
+      results_to_add <- data.frame(
+        case_study = case_study,
+        method = method,
+        target_sample_size_per_arm = target_sample_size_per_arm,
+        parameters = parameters_combination[1, ],
+        source_denominator_change_factor = source_denominator_change_factor,
+        target_to_source_std_ratio = target_to_source_std_ratio,
+        design_prior_type = design_prior_type,
+        prior_proba_success = prior_proba_success_SI,
+        prior_proba_no_benefit = prior_proba_no_benefit,
+        prior_proba_benefit = prior_proba_benefit,
+        prepost_proba_FP = prepost_proba_FP_SI,
+        prepost_proba_TP = prepost_proba_TP_SI,
+        average_tie = average_tie_SI,
+        average_power = average_power_SI,
+        upper_bound_proba_FP = upper_bound_proba_FP_SI
+      )
+    }
+    rows[[design_prior_type]] <- cbind(results_to_add, source_data_df)
+  }
+
+  dplyr::bind_rows(rows)
+}
+
+
+compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_studies_config_dir = NULL, parallelization = FALSE) {
+  jobs <- list()
 
   if (is.null(config_dir)) {
     config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
@@ -594,191 +811,59 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
             )
 
             for (i in seq_len(nrow(parameters_combinations))) {
-              # We unpack the parameter inside this loop (and not inside the previous one), because for some methods such as the commensurate power prior, there is a nested parameters structure which implies that they cannot all be stored in a single dataframe.
-              method_parameters <- as.list(get_parameters(
-                parameters_combinations[i, "parameters", drop = FALSE]
-              ))
-              # convert strings to numeric or boolean if possible
-              method_parameters <- data.frame(lapply(method_parameters, convert_if_possible))
-
-              # The following applies to a single row dataframe, to recover the nested list structure
-              method_params <- extract_nested_parameter(method_parameters)
-
               # Joining against the one-row combination keeps this working
               # whichever of the design columns the results happen to carry.
-              results_df <- dplyr::inner_join(
-                results_df_4,
-                parameters_combinations[i, , drop = FALSE],
-                by = c("parameters", design_columns)
-              )
-
-              conditional_proba_success <- results_df$success_proba
-              treatment_effect_values <- results_df$target_treatment_effect
-
-              model <- Model$new()
-              model <- model$create(
+              jobs[[length(jobs) + 1]] <- list(
+                case_study = case_study,
                 case_study_config = case_study_config,
-                method = method,
-                method_parameters = method_params,
                 source_data = source_data,
-                mcmc_config = mcmc_config
-              )
-
-              # A method whose hyperparameters follow from the design has to be
-              # given one here as well: this model is rebuilt from the results
-              # file rather than handed over by the simulation, so it arrives
-              # uncalibrated.
-              #
-              # The design used is the nominal one - the trial this row
-              # describes, at zero treatment drift - rather than any particular
-              # drift, because the model stands for the whole curve here: it
-              # supplies the design prior, which is a property of the method and
-              # the design and not of the treatment effect the curve is indexed
-              # by. On a continuous endpoint that is the same design the
-              # simulation calibrated against at every drift, since the standard
-              # error the design implies does not move with the drift there.
-              first_row <- results_df[1, , drop = FALSE]
-              column_or <- function(name, fallback) {
-                if (name %in% names(first_row) && !is.na(first_row[[name]])) {
-                  first_row[[name]]
-                } else {
-                  fallback
-                }
-              }
-              model$calibrate_for_design(
-                TargetDataFactory$new()$create(
-                  source_data = source_data,
-                  case_study_config = case_study_config,
-                  target_sample_size_per_arm = target_sample_size_per_arm,
-                  control_drift = column_or("control_drift", 0),
-                  treatment_drift = 0,
-                  summary_measure_likelihood =
-                    case_study_config$summary_measure_likelihood,
-                  target_to_source_std_ratio = target_to_source_std_ratio,
-                  dropout_probability = column_or("dropout_probability", 0),
-                  event_time_distribution =
-                    column_or("event_time_distribution", "exponential"),
-                  treatment_delay = column_or("treatment_delay", 0)
+                source_data_df = source_data_df,
+                source_denominator_change_factor = source_denominator_change_factor,
+                target_to_source_std_ratio = target_to_source_std_ratio,
+                method = method,
+                target_sample_size_per_arm = target_sample_size_per_arm,
+                parameters_combination = parameters_combinations[i, , drop = FALSE],
+                results_df = dplyr::inner_join(
+                  results_df_4,
+                  parameters_combinations[i, , drop = FALSE],
+                  by = c("parameters", design_columns)
                 )
               )
-
-              for (design_prior_type in design_prior_types) {
-                if (design_prior_type == "analysis_prior" &&
-                    model$empirical_bayes) {
-                  # We cannot compute the Bayesian OCs with an analysis design prior for empirical Bayes methods.
-                  results_to_add <- data.frame(
-                    case_study = case_study,
-                    method = method,
-                    target_sample_size_per_arm = target_sample_size_per_arm,
-                    parameters = parameters_combinations[i, ],
-                    source_denominator_change_factor = source_denominator_change_factor,
-                    target_to_source_std_ratio = target_to_source_std_ratio,
-                    design_prior_type = design_prior_type,
-                    prior_proba_success = NA,
-                    prior_proba_no_benefit = NA,
-                    prior_proba_benefit = NA,
-                    prepost_proba_FP = NA,
-                    prepost_proba_TP = NA,
-                    average_tie = NA,
-                    average_power = NA,
-                    upper_bound_proba_FP = NA
-                  )
-                } else {
-                  design_prior <- DesignPrior$new()
-                  design_prior <- design_prior$create(
-                    design_prior_type = design_prior_type,
-                    model = model,
-                    source_data = source_data,
-                    case_study_config = case_study_config,
-                    simulation_config = simulation_config,
-                    mcmc_config = mcmc_config,
-                    case_study = case_study
-                  )
-
-                  design_prior_pdf <- design_prior$pdf(treatment_effect_values)
-
-                  if (null_space == "left") {
-                    prior_proba_no_benefit <- design_prior$cdf(theta_0)
-                  } else if (null_space == "right") {
-                    prior_proba_no_benefit <- 1 - design_prior$cdf(theta_0)
-                  } else {
-                    stop("Null space must be either 'left' or 'right'.")
-                  }
-
-                  prior_proba_benefit <- 1 - prior_proba_no_benefit
-
-                  prior_proba_success_SI <- prior_proba_success(
-                    conditional_proba_success = conditional_proba_success,
-                    treatment_effect_values = treatment_effect_values,
-                    design_prior_pdf = design_prior_pdf,
-                    design_prior_cdf = design_prior$cdf,
-                    null_space = null_space
-                  )
-
-                  prepost_proba_FP_SI <- preposterior_proba_FP(
-                    conditional_proba_success = conditional_proba_success,
-                    treatment_effect_values = treatment_effect_values,
-                    theta_0 = theta_0,
-                    null_space = null_space,
-                    design_prior_pdf = design_prior_pdf,
-                    design_prior_cdf = design_prior$cdf
-                  )
-
-                  prepost_proba_TP_SI <- preposterior_proba_TP(
-                    conditional_proba_success = conditional_proba_success,
-                    treatment_effect_values = treatment_effect_values,
-                    theta_0 = theta_0,
-                    null_space = null_space,
-                    design_prior_pdf = design_prior_pdf,
-                    design_prior_cdf = design_prior$cdf
-                  )
-
-                  average_tie_SI <- average_tie(
-                    prepost_proba_FP = prepost_proba_FP_SI,
-                    prior_proba_no_benefit = prior_proba_no_benefit
-                  )
-
-                  average_power_SI <- average_power(
-                    prepost_proba_TP = prepost_proba_TP_SI,
-                    prior_proba_no_benefit = prior_proba_no_benefit
-                  )
-
-                  if(length(conditional_proba_success[treatment_effect_values == theta_0]) > 1){
-                    stop("Too many values corresponding to TIE.")
-                  }
-                  upper_bound_proba_FP_SI <- upper_bound_proba_FP(
-                    prior_proba_no_benefit = prior_proba_no_benefit,
-                    treatment_effect_values = treatment_effect_values,
-                    conditional_proba_success = conditional_proba_success,
-                    theta_0 = theta_0
-                  )
-
-                  results_to_add <- data.frame(
-                    case_study = case_study,
-                    method = method,
-                    target_sample_size_per_arm = target_sample_size_per_arm,
-                    parameters = parameters_combinations[i, ],
-                    source_denominator_change_factor = source_denominator_change_factor,
-                    target_to_source_std_ratio = target_to_source_std_ratio,
-                    design_prior_type = design_prior_type,
-                    prior_proba_success = prior_proba_success_SI,
-                    prior_proba_no_benefit = prior_proba_no_benefit,
-                    prior_proba_benefit = prior_proba_benefit,
-                    prepost_proba_FP = prepost_proba_FP_SI,
-                    prepost_proba_TP = prepost_proba_TP_SI,
-                    average_tie = average_tie_SI,
-                    average_power = average_power_SI,
-                    upper_bound_proba_FP = upper_bound_proba_FP_SI
-                  )
-                }
-                results_to_add <- cbind(results_to_add, source_data_df)
-                results_bayesian_ocs <- dplyr::bind_rows(results_bayesian_ocs, results_to_add)
-              }
             }
           }
         }
       }
     }
   }
-  return(results_bayesian_ocs)
+
+  if (length(jobs) == 0) {
+    return(data.frame())
+  }
+
+  # Each combination costs ~0.1 s, most of it fitting a mixture to the
+  # analysis prior, and the paper's grid has hundreds per case study.
+  if (analysis_uses_cluster(parallelization, length(jobs))) {
+    n_cores <- get_parallel_worker_count()
+    cl <- parallel::makeCluster(n_cores)
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    doParallel::registerDoParallel(cl)
+
+    # See load_bexte_in_workers() for why a bare library(BExTE) is not enough.
+    load_bexte_in_workers(cl, packages = c("dplyr", "yaml"))
+
+    # The foreach body is evaluated outside the package namespace, where an
+    # internal function is not visible; bound here, it travels to the workers
+    # as an exported variable, with the namespace as its environment.
+    run_job <- bayesian_ocs_for_combination
+    results_list <- foreach(job = jobs, .packages = c("dplyr", "yaml")) %dopar% {
+      run_job(job, simulation_config, mcmc_config, design_prior_types)
+    }
+  } else {
+    results_list <- lapply(jobs, bayesian_ocs_for_combination,
+                           simulation_config = simulation_config,
+                           mcmc_config = mcmc_config,
+                           design_prior_types = design_prior_types)
+  }
+
+  dplyr::bind_rows(results_list)
 }

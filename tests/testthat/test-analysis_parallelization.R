@@ -91,7 +91,8 @@ test_that("the nominal-TIE step is handed the resolved setting, like the equival
 
   body_text <- paste(deparse(body(simulation_analysis)), collapse = " ")
   hits <- gregexpr("parallelization = run_in_parallel", body_text, fixed = TRUE)[[1]]
-  expect_equal(sum(hits > 0), 2L)
+  # Equivalent TIE, nominal TIE and the Bayesian OCs.
+  expect_equal(sum(hits > 0), 3L)
 
   # The cluster is worth standing up for the number of distinct designs, which
   # is the work, not for the number of rows, which is 56 times larger.

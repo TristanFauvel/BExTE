@@ -185,3 +185,22 @@ test_that("a cache built for other settings is not reused", {
   expect_false(keys == p_value_cache_key("design", "t-test", list(seed = 1), 10000))
   expect_false(keys == p_value_cache_key("other", "t-test", list(seed = 1), 1000))
 })
+
+test_that("the design cluster is sized by the trials simulated, not the designs", {
+  # 24 designs of 2,000 trials took 6.7s sequentially and 28s on a cluster.
+  expect_false(analysis_uses_cluster(TRUE, 24 * 2000, min_rows = ANALYSIS_PARALLEL_MIN_TRIALS))
+  expect_true(analysis_uses_cluster(TRUE, 264 * 10000, min_rows = ANALYSIS_PARALLEL_MIN_TRIALS))
+
+  # deparse() wraps long lines, so whitespace is squeezed before matching.
+  body_text <- gsub("\\s+", " ", paste(deparse(body(equivalent_tie_design_p_values)), collapse = " "))
+  expect_match(body_text, "length(to_simulate) * n_replicates", fixed = TRUE)
+})
+
+test_that("the workers are handed the simulation as a variable, not by name", {
+  # A foreach body is evaluated outside the package namespace, so an internal
+  # function called by name there is "not found" in every worker.
+  # deparse() wraps long lines, so whitespace is squeezed before matching.
+  body_text <- gsub("\\s+", " ", paste(deparse(body(equivalent_tie_design_p_values)), collapse = " "))
+  expect_match(body_text, "simulate_design <- design_test_p_values", fixed = TRUE)
+  expect_false(grepl("%dopar% { design_test_p_values", body_text, fixed = TRUE))
+})

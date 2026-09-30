@@ -1,4 +1,9 @@
 # BExTE 0.0.2
+* The deterministic Bayesian operating characteristics run on a cluster when
+  the analysis is parallelised: 26 s instead of 65 s for the 448 method and
+  design combinations of a Teriflunomide run, most of it cluster start-up.
+  Each combination is now an independent job, seeded on its own, and the
+  results are identical to the sequential ones and to before.
 * The frequentist power at the equivalent type I error is about a hundred
   times faster on the case studies where it is simulated (time-to-event,
   recurrent-event and binary): 1 s instead of 129 s for 336 Teriflunomide
