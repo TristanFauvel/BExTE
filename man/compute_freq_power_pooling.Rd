@@ -13,7 +13,8 @@ compute_freq_power_pooling(
   null_space,
   simulation_config,
   case_study = NULL,
-  n_replicates = 1000
+  n_replicates = 1000,
+  trials = NULL
 )
 }
 \arguments{
@@ -34,6 +35,10 @@ compute_freq_power_pooling(
 \item{case_study}{Optional case-study name.}
 
 \item{n_replicates}{Number of Monte Carlo replicates for non-analytical power calculations.}
+
+\item{trials}{Optional trials already simulated for this design, with the
+same seed and \code{n_replicates}, as the separate analysis's power reads them.
+\code{NULL} simulates them. Ignored when the power has a closed form.}
 }
 \value{
 The power of the test.

@@ -71,17 +71,56 @@ simulate_test_p_values <- function(target_data,
     stop("Only implemented for a t-test.")
   }
 
+  trial_p_values(
+    simulated_trials(target_data, simulation_config, n_replicates),
+    theta_0 = theta_0,
+    alternative = alternative
+  )
+}
+
+#' The trials a simulated frequentist power is read from
+#'
+#' @description Seeds the generator with `simulation_config$seed` and
+#'   generates `n_replicates` trials, keeping the estimable ones. Every
+#'   simulated power of a design - the separate analysis's at the equivalent
+#'   and at the nominal type I error, and the pooled analysis's - reads these
+#'   same trials, so they are generated once per design and shared. Only the
+#'   three summaries the tests read are kept, which is what makes holding one
+#'   set per design affordable.
+#'
+#' @param target_data Target data object.
+#' @param simulation_config Simulation configuration.
+#' @param n_replicates Number of trials to simulate.
+#'
+#' @return A data frame with `treatment_effect_estimate`,
+#'   `standard_deviation` and `sample_size_per_arm`, one row per estimable
+#'   trial.
+#' @noRd
+simulated_trials <- function(target_data, simulation_config, n_replicates) {
   set.seed(simulation_config$seed)
 
-  # Estimate the frequentist OCs for the model in the scenario considered
-  # Generate data for n_replicates clinical trials
-  target_data_samples <- estimable_replicates(target_data$generate(n_replicates))
+  samples <- estimable_replicates(target_data$generate(n_replicates))
+  data.frame(
+    treatment_effect_estimate = samples$treatment_effect_estimate,
+    standard_deviation = samples$standard_deviation,
+    sample_size_per_arm = samples$sample_size_per_arm
+  )
+}
 
+#' The separate analysis's t-test p-value in each trial
+#'
+#' @param trials Trials from [simulated_trials()].
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param alternative Direction of the alternative hypothesis.
+#'
+#' @return A numeric vector of p-values, one per trial.
+#' @noRd
+trial_p_values <- function(trials, theta_0, alternative) {
   one_sample_t_test_p_values(
-    estimate = target_data_samples$treatment_effect_estimate,
+    estimate = trials$treatment_effect_estimate,
     mu = theta_0,
-    standard_deviation = target_data_samples$standard_deviation,
-    n = target_data_samples$sample_size_per_arm,
+    standard_deviation = trials$standard_deviation,
+    n = trials$sample_size_per_arm,
     alternative = alternative
   )
 }
@@ -395,6 +434,9 @@ interval_score <- function(lower, upper, true_value, confidence_level = 0.95) {
 #' @param simulation_config Simulation configuration.
 #' @param case_study Optional case-study name.
 #' @param n_replicates Number of Monte Carlo replicates for non-analytical power calculations.
+#' @param trials Optional trials already simulated for this design, with the
+#'   same seed and `n_replicates`, as the separate analysis's power reads them.
+#'   `NULL` simulates them. Ignored when the power has a closed form.
 #'
 #' @return The power of the test.
 #'
@@ -407,7 +449,8 @@ compute_freq_power_pooling <- function(alpha,
                                        null_space,
                                        simulation_config,
                                        case_study =  NULL,
-                                       n_replicates = 1000) {
+                                       n_replicates = 1000,
+                                       trials = NULL) {
 
   if (null_space == "left") {
     alternative <- "greater"
@@ -472,12 +515,13 @@ compute_freq_power_pooling <- function(alpha,
       }
       conf_int_power <- c(power, power)
     } else {
-      # In this case, we cannot use an analytical computation of power
-      set.seed(simulation_config$seed)
-
-      # Estimate the frequentist OCs for the model in the scenario considered
-      # Generate data for n_replicates clinical trials
-      target_data_samples <- estimable_replicates(target_data$generate(n_replicates))
+      # In this case, we cannot use an analytical computation of power. These
+      # are the same trials the separate analysis's power is read from.
+      target_data_samples <- if (is.null(trials)) {
+        simulated_trials(target_data, simulation_config, n_replicates)
+      } else {
+        trials
+      }
 
       if (frequentist_test != "t-test") {
         stop("Only implemented for a t-test.")
@@ -696,54 +740,68 @@ compute_power_with_tie_ci <- function(alpha,
 }
 
 
-#' Key under which one design's simulated p-values are cached
+#' Key under which one design's simulated trials are cached
 #'
-#' The p-values follow from the design, the test, the seed and the number of
-#' replicates, so a key naming all four identifies them.
+#' The trials follow from the design, the seed and the number of replicates,
+#' so a key naming all three identifies them.
 #'
 #' @param design_key Keys from [nominal_tie_design_key()].
-#' @param frequentist_test The test the p-values are computed for.
 #' @param simulation_config The simulation configuration, for its seed.
 #' @param n_replicates Number of trials simulated.
 #'
 #' @return A character vector, one key per design key.
 #' @noRd
-p_value_cache_key <- function(design_key, frequentist_test, simulation_config, n_replicates) {
+trial_cache_key <- function(design_key, simulation_config, n_replicates) {
   seed <- simulation_config$seed
-  paste(design_key, frequentist_test,
+  paste(design_key,
         if (is.null(seed)) "no seed" else format(seed),
         n_replicates, sep = "\003")
 }
 
 
-#' Simulate the separate analysis's p-values for one design
+#' The cached trials of each design, where the cache holds them
+#'
+#' @param design_key Keys from [nominal_tie_design_key()].
+#' @param simulation_config The simulation configuration.
+#' @param n_replicates Number of trials simulated per design.
+#' @param trial_cache An environment of cached trials, or `NULL`.
+#'
+#' @return A list with one entry per design key: its trials, or `NULL`.
+#' @noRd
+cached_design_trials <- function(design_key, simulation_config, n_replicates, trial_cache) {
+  trials <- vector("list", length(design_key))
+  if (is.null(trial_cache)) {
+    return(trials)
+  }
+
+  keys <- trial_cache_key(design_key, simulation_config, n_replicates)
+  for (d in which(vapply(keys, exists, logical(1), envir = trial_cache, inherits = FALSE))) {
+    trials[[d]] <- get(keys[d], envir = trial_cache)
+  }
+  trials
+}
+
+
+#' Simulate the trials of one design
 #'
 #' @param row A results row describing the design.
-#' @param frequentist_test The test the p-values are computed for.
 #' @param simulation_config The simulation configuration.
 #' @param n_replicates Number of trials to simulate.
 #'
-#' @return The p-values, sorted.
+#' @return The design's trials, as [simulated_trials()] returns them.
 #' @noRd
-design_test_p_values <- function(row, frequentist_test, simulation_config, n_replicates) {
+design_trials <- function(row, simulation_config, n_replicates) {
   target_data <- load_data(row, type = "target", reload_data_objects = TRUE)
-
-  sort(simulate_test_p_values(
-    target_data = target_data,
-    frequentist_test = frequentist_test,
-    theta_0 = row$theta_0,
-    alternative = alternative_from_null_space(row$null_space),
-    simulation_config = simulation_config,
-    n_replicates = n_replicates
-  ))
+  simulated_trials(target_data, simulation_config, n_replicates)
 }
 
 
 #' The separate analysis's p-values for every design that needs them
 #'
 #' @description Designs whose power has a closed form get `NULL`. The others
-#'   are read from `p_value_cache` when it holds them, and simulated otherwise,
-#'   on a cluster when there are enough of them to pay for one.
+#'   read their trials from `trial_cache` when it holds them, and simulate
+#'   them otherwise, on a cluster when there are enough of them to pay for
+#'   one; the trials simulated are added to the cache.
 #'
 #' @param design_rows One results row per design.
 #' @param design_keys Their keys from [nominal_tie_design_key()].
@@ -752,7 +810,9 @@ design_test_p_values <- function(row, frequentist_test, simulation_config, n_rep
 #' @param simulation_config The simulation configuration.
 #' @param n_replicates Number of trials simulated per design.
 #' @param parallelization Whether the caller asked for parallelism.
-#' @param p_value_cache An environment to read from and add to, or `NULL`.
+#' @param trial_cache An environment to read from and add to, or `NULL`.
+#' @param cluster A cluster from [new_analysis_cluster()] to run on, or
+#'   `NULL` to start one here if one is needed.
 #'
 #' @return A list with one entry per design: its sorted p-values, or `NULL`.
 #' @noRd
@@ -763,7 +823,8 @@ equivalent_tie_design_p_values <- function(design_rows,
                                            simulation_config,
                                            n_replicates,
                                            parallelization,
-                                           p_value_cache = NULL) {
+                                           trial_cache = NULL,
+                                           cluster = NULL) {
   p_values <- vector("list", nrow(design_rows))
 
   # which() drops an undetermined answer along with the closed-form designs.
@@ -772,55 +833,55 @@ equivalent_tie_design_p_values <- function(design_rows,
     return(p_values)
   }
 
-  cache_keys <- p_value_cache_key(
-    design_keys[needs_simulation], frequentist_test, simulation_config, n_replicates
+  trials <- cached_design_trials(
+    design_keys[needs_simulation], simulation_config, n_replicates, trial_cache
   )
-  cached <- if (is.null(p_value_cache)) {
-    rep(FALSE, length(cache_keys))
-  } else {
-    vapply(cache_keys, exists, logical(1), envir = p_value_cache, inherits = FALSE)
-  }
-  for (j in which(cached)) {
-    p_values[[needs_simulation[j]]] <- get(cache_keys[j], envir = p_value_cache)
-  }
+  to_simulate <- which(vapply(trials, is.null, logical(1)))
 
-  to_simulate <- needs_simulation[!cached]
-  if (length(to_simulate) == 0) {
-    return(p_values)
-  }
+  if (length(to_simulate) > 0) {
+    # Only the rows being simulated are sent to the workers.
+    rows_to_simulate <- lapply(needs_simulation[to_simulate], function(d) {
+      design_rows[d, , drop = FALSE]
+    })
 
-  # Only the rows being simulated are sent to the workers.
-  rows_to_simulate <- lapply(to_simulate, function(d) design_rows[d, , drop = FALSE])
+    if (analysis_uses_cluster(parallelization, length(to_simulate) * n_replicates,
+                              min_rows = ANALYSIS_PARALLEL_MIN_TRIALS)) {
+      if (is.null(cluster)) {
+        cluster <- new_analysis_cluster()
+        on.exit(cluster$stop(), add = TRUE)
+      }
+      cluster$get()
 
-  if (analysis_uses_cluster(parallelization, length(to_simulate) * n_replicates,
-                            min_rows = ANALYSIS_PARALLEL_MIN_TRIALS)) {
-    n_cores <- get_parallel_worker_count()
-    cl <- parallel::makeCluster(n_cores)
-    on.exit(parallel::stopCluster(cl), add = TRUE)
-    doParallel::registerDoParallel(cl)
-
-    # See load_bexte_in_workers() for why a bare library(BExTE) is not enough.
-    load_bexte_in_workers(cl, packages = c("dplyr", "yaml"))
-
-    # The foreach body is evaluated outside the package namespace, where an
-    # internal function is not visible; bound here, it travels to the workers
-    # as an exported variable, with the namespace as its environment.
-    simulate_design <- design_test_p_values
-    simulated <- foreach(row = rows_to_simulate, .packages = c("dplyr", "yaml")) %dopar% {
-      simulate_design(row, frequentist_test, simulation_config, n_replicates)
+      # The foreach body is evaluated outside the package namespace, where an
+      # internal function is not visible; bound here, it travels to the
+      # workers as an exported variable, with the namespace as its environment.
+      simulate_design <- design_trials
+      trials[to_simulate] <- foreach(row = rows_to_simulate, .packages = c("dplyr", "yaml")) %dopar% {
+        simulate_design(row, simulation_config, n_replicates)
+      }
+    } else {
+      trials[to_simulate] <- lapply(rows_to_simulate, design_trials,
+                                    simulation_config = simulation_config,
+                                    n_replicates = n_replicates)
     }
-  } else {
-    simulated <- lapply(rows_to_simulate, design_test_p_values,
-                        frequentist_test = frequentist_test,
-                        simulation_config = simulation_config,
-                        n_replicates = n_replicates)
+
+    if (!is.null(trial_cache)) {
+      keys <- trial_cache_key(
+        design_keys[needs_simulation][to_simulate], simulation_config, n_replicates
+      )
+      for (j in seq_along(to_simulate)) {
+        assign(keys[j], trials[[to_simulate[j]]], envir = trial_cache)
+      }
+    }
   }
 
-  p_values[to_simulate] <- simulated
-  if (!is.null(p_value_cache)) {
-    for (j in seq_along(to_simulate)) {
-      assign(cache_keys[!cached][j], simulated[[j]], envir = p_value_cache)
-    }
+  for (j in seq_along(needs_simulation)) {
+    row <- design_rows[needs_simulation[j], , drop = FALSE]
+    p_values[[needs_simulation[j]]] <- sort(trial_p_values(
+      trials[[j]],
+      theta_0 = row$theta_0,
+      alternative = alternative_from_null_space(row$null_space)
+    ))
   }
 
   p_values
@@ -836,15 +897,18 @@ equivalent_tie_design_p_values <- function(design_rows,
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
-#' @param p_value_cache Optional environment holding the simulated p-values of
-#'   the separate analysis by design, filled here and read back by
-#'   `frequentist_power_at_nominal_tie()`, which simulates the same trials.
-#'   `NULL` keeps them for this call only.
+#' @param trial_cache Optional environment holding the simulated trials of
+#'   each design, filled here and read back by
+#'   `frequentist_power_at_nominal_tie()`, whose separate and pooled powers
+#'   read the same trials. `NULL` keeps them for this call only.
+#' @param cluster Optional shared cluster from `new_analysis_cluster()`, as
+#'   [simulation_analysis()] passes it. `NULL` starts one for this call if the
+#'   work warrants it.
 #'
 #' @return The final results data frame with power and frequentist test columns added.
 #'
 #' @export
-frequentist_power_at_equivalent_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000, p_value_cache = NULL) {
+frequentist_power_at_equivalent_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000, trial_cache = NULL, cluster = NULL) {
   if (nrow(results) == 0) {
     stop("The results dataframe is empty.")
   }
@@ -962,7 +1026,8 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     simulation_config = simulation_config,
     n_replicates = n_replicates,
     parallelization = parallelization,
-    p_value_cache = p_value_cache
+    trial_cache = trial_cache,
+    cluster = cluster
   )
 
   # The type I error draws and the posterior of each rejection count are the
@@ -1026,8 +1091,9 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
-#' @param p_values Optional p-values of the separate analysis for this design,
-#'   already simulated. `NULL` simulates them.
+#' @param trials Optional trials already simulated for this design, as
+#'   [simulated_trials()] returns them. `NULL` simulates them if the powers
+#'   need them.
 #'
 #' @return A named list holding the six power columns for that row.
 #' @noRd
@@ -1036,11 +1102,28 @@ nominal_tie_power_row <- function(row,
                                   frequentist_test,
                                   simulation_config,
                                   n_replicates,
-                                  p_values = NULL) {
+                                  trials = NULL) {
   target_data <- load_data(row, type = "target", reload_data_objects = TRUE)
   source_data <- load_data(row, type = "source", reload_data_objects = TRUE)
 
   assert_target_data_numbers(target_data)
+
+  # Where both powers are simulated they read the same trials - each would
+  # otherwise reseed and generate them again - so they are generated once
+  # here, unless the caller already holds them.
+  simulated <- identical(target_data$summary_measure_likelihood, "normal") &&
+    isFALSE(uses_analytical_power(target_data)) &&
+    identical(frequentist_test, "t-test")
+  if (!simulated) {
+    trials <- NULL
+  } else if (is.null(trials)) {
+    trials <- simulated_trials(target_data, simulation_config, n_replicates)
+  }
+  p_values <- if (is.null(trials)) {
+    NULL
+  } else {
+    trial_p_values(trials, row$theta_0, alternative_from_null_space(row$null_space))
+  }
 
   separate <- compute_freq_power(
     alpha = nominal_tie,
@@ -1063,7 +1146,8 @@ nominal_tie_power_row <- function(row,
     null_space = row$null_space,
     case_study = row$case_study,
     simulation_config = simulation_config,
-    n_replicates = n_replicates
+    n_replicates = n_replicates,
+    trials = trials
   )
 
   # The bounds are unnamed so that binding the rows together downstream gives
@@ -1152,12 +1236,14 @@ nominal_tie_design_key <- function(design) {
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
-#' @param p_value_cache Optional environment of simulated p-values left by
-#'   [frequentist_power_at_equivalent_tie()]. The separate baseline reads the
-#'   same trials, so a design found there is not simulated again.
+#' @param trial_cache Optional environment of simulated trials left by
+#'   [frequentist_power_at_equivalent_tie()]. Both baselines read the same
+#'   trials, so a design found there is not simulated again.
+#' @param cluster Optional shared cluster from `new_analysis_cluster()`.
+#'   `NULL` starts one for this call if the work warrants it.
 #'
 #' @return The results data frame with the six baseline power columns added.
-frequentist_power_at_nominal_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000, p_value_cache = NULL) {
+frequentist_power_at_nominal_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000, trial_cache = NULL, cluster = NULL) {
   if (nrow(results) == 0) {
     stop("The results dataframe is empty.")
   }
@@ -1185,62 +1271,62 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   design_rows <- results[representatives, , drop = FALSE]
   design_index <- match(design_key, design_key[representatives])
 
-  # The separate baseline's trials, where the equivalent-TIE step already
-  # simulated them. A design missing from the cache gets NULL and simulates
-  # its own.
-  cached_p_values <- vector("list", nrow(design_rows))
-  if (!is.null(p_value_cache)) {
-    cache_keys <- p_value_cache_key(
-      design_key[representatives], frequentist_test, simulation_config, n_replicates
-    )
-    for (i in which(vapply(cache_keys, exists, logical(1),
-                           envir = p_value_cache, inherits = FALSE))) {
-      cached_p_values[[i]] <- get(cache_keys[i], envir = p_value_cache)
-    }
-  }
+  # The trials the equivalent-TIE step already simulated. A design missing
+  # from the cache gets NULL and simulates its own.
+  cached_trials <- cached_design_trials(
+    design_key[representatives], simulation_config, n_replicates, trial_cache
+  )
 
   # Only the distinct designs are handed to the workers, rather than the whole
   # results frame: on the paper's environment that is 330 rows to serialise
   # instead of 18,480, each carrying its parameters as JSON.
-  compute_design <- function(i) {
+  compute_design <- function(i, trials = NULL) {
     nominal_tie_power_row(
       row = design_rows[i, ],
       nominal_tie = nominal_tie,
       frequentist_test = frequentist_test,
       simulation_config = simulation_config,
       n_replicates = n_replicates,
-      p_values = cached_p_values[[i]]
+      trials = trials
     )
   }
 
-  if (analysis_uses_cluster(parallelization, nrow(design_rows))) {
-    # Set up parallel backend
-    n_cores <- get_parallel_worker_count()
-    cl <- parallel::makeCluster(n_cores)
-    on.exit(parallel::stopCluster(cl), add = TRUE)
-    doParallel::registerDoParallel(cl)
+  # A design whose trials are cached costs milliseconds - two tests on
+  # trials already drawn - so those are computed here.
+  computed_list <- vector("list", nrow(design_rows))
+  is_cached <- !vapply(cached_trials, is.null, logical(1))
+  for (i in which(is_cached)) {
+    computed_list[[i]] <- compute_design(i, cached_trials[[i]])
+  }
+  # Dropped before compute_design() goes to the workers: foreach ships the
+  # environment it was defined in, which would carry every cached trial to
+  # each of them.
+  cached_trials <- NULL
+  to_compute <- which(!is_cached)
 
-    # As in frequentist_power_at_equivalent_tie(): BExTE is often loaded from
-    # source rather than installed, which a bare library(BExTE) in the
-    # workers cannot cope with - see load_bexte_in_workers().
-    load_bexte_in_workers(cl, packages = c("pwr", "dplyr", "yaml", "BSDA"))
+  if (length(to_compute) > 0 &&
+      analysis_uses_cluster(parallelization, length(to_compute))) {
+    if (is.null(cluster)) {
+      cluster <- new_analysis_cluster()
+      on.exit(cluster$stop(), add = TRUE)
+    }
+    cluster$get()
 
-    computed_list <- foreach(i = seq_len(nrow(design_rows)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
+    computed_list[to_compute] <- foreach(i = to_compute, .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
       compute_design(i)
     }
-  } else {
+  } else if (length(to_compute) > 0) {
     # One progress bar for the whole loop. Building it inside the loop, as
     # this did, restarts it on every step, and what gets printed is then
     # thousands of bars that never pass the first few percent.
-    pb <- txtProgressBar(min = 0, max = nrow(design_rows), style = 3)
+    pb <- txtProgressBar(min = 0, max = length(to_compute), style = 3)
     on.exit(close(pb), add = TRUE)
 
-    computed_list <- vector("list", nrow(design_rows))
-    for (i in seq_len(nrow(design_rows))) {
-      computed_list[[i]] <- compute_design(i)
+    for (k in seq_along(to_compute)) {
+      computed_list[[to_compute[k]]] <- compute_design(to_compute[k])
 
       # Update progress bar
-      setTxtProgressBar(pb, i)
+      setTxtProgressBar(pb, k)
     }
   }
 

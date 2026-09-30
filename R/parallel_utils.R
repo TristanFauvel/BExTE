@@ -221,3 +221,47 @@ load_bexte_in_workers <- function(cl, packages = character()) {
 register_parallel_backend <- function(cl) {
   invisible(doSNOW::registerDoSNOW(cl))
 }
+
+#' Packages every analysis worker attaches
+#'
+#' The union of what the analysis steps' workers need, so that one cluster
+#' can serve all of them.
+#' @noRd
+ANALYSIS_WORKER_PACKAGES <- c("dplyr", "yaml", "pwr", "BSDA")
+
+#' A worker cluster the analysis steps share, started on first use
+#'
+#' Each analysis step used to stand up its own cluster and stop it on the
+#' way out, at 15-30 seconds a time on a source checkout - most of the
+#' parallel run time of a small environment. [simulation_analysis()] creates
+#' one of these instead and hands it to every step; the cluster starts the
+#' first time a step actually wants one, so a run whose steps all stay
+#' sequential never pays for it.
+#'
+#' @return A list of two functions: `get()`, which returns the cluster,
+#'   starting it if need be, with the foreach backend registered on it; and
+#'   `stop()`, which stops it if it was started.
+#' @noRd
+new_analysis_cluster <- function() {
+  state <- new.env(parent = emptyenv())
+
+  list(
+    get = function() {
+      if (is.null(state$cl)) {
+        state$cl <- parallel::makeCluster(get_parallel_worker_count())
+        load_bexte_in_workers(state$cl, packages = ANALYSIS_WORKER_PACKAGES)
+      }
+      # Registered on every use: something in between may have registered
+      # another backend.
+      doParallel::registerDoParallel(state$cl)
+      state$cl
+    },
+    stop = function() {
+      if (!is.null(state$cl)) {
+        parallel::stopCluster(state$cl)
+        state$cl <- NULL
+      }
+      invisible(NULL)
+    }
+  )
+}

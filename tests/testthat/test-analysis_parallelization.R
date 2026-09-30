@@ -94,10 +94,11 @@ test_that("the nominal-TIE step is handed the resolved setting, like the equival
   # Equivalent TIE, nominal TIE and the Bayesian OCs.
   expect_equal(sum(hits > 0), 3L)
 
-  # The cluster is worth standing up for the number of distinct designs, which
-  # is the work, not for the number of rows, which is 56 times larger.
-  nominal <- paste(deparse(body(frequentist_power_at_nominal_tie)), collapse = " ")
-  expect_true(grepl("analysis_uses_cluster(parallelization, nrow(design_rows))",
+  # The cluster is worth standing up for the distinct designs still to
+  # compute, which are the work, not for the number of rows, which is 56 times
+  # larger. deparse() wraps long lines, so whitespace is squeezed first.
+  nominal <- gsub("\\s+", " ", paste(deparse(body(frequentist_power_at_nominal_tie)), collapse = " "))
+  expect_true(grepl("analysis_uses_cluster(parallelization, length(to_compute))",
                     nominal, fixed = TRUE))
 })
 

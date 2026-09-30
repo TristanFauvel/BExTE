@@ -718,7 +718,7 @@ bayesian_ocs_for_combination <- function(job,
 }
 
 
-compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_studies_config_dir = NULL, parallelization = FALSE) {
+compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_studies_config_dir = NULL, parallelization = FALSE, cluster = NULL) {
   jobs <- list()
 
   if (is.null(config_dir)) {
@@ -843,13 +843,13 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
   # Each combination costs ~0.1 s, most of it fitting a mixture to the
   # analysis prior, and the paper's grid has hundreds per case study.
   if (analysis_uses_cluster(parallelization, length(jobs))) {
-    n_cores <- get_parallel_worker_count()
-    cl <- parallel::makeCluster(n_cores)
-    on.exit(parallel::stopCluster(cl), add = TRUE)
-    doParallel::registerDoParallel(cl)
-
-    # See load_bexte_in_workers() for why a bare library(BExTE) is not enough.
-    load_bexte_in_workers(cl, packages = c("dplyr", "yaml"))
+    # The cluster simulation_analysis() shares between its steps, or one of
+    # its own for a direct call.
+    if (is.null(cluster)) {
+      cluster <- new_analysis_cluster()
+      on.exit(cluster$stop(), add = TRUE)
+    }
+    cluster$get()
 
     # The foreach body is evaluated outside the package namespace, where an
     # internal function is not visible; bound here, it travels to the workers

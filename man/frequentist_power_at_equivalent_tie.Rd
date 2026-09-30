@@ -10,7 +10,8 @@ frequentist_power_at_equivalent_tie(
   simulation_config,
   parallelization = FALSE,
   n_replicates = 1000,
-  p_value_cache = NULL
+  trial_cache = NULL,
+  cluster = NULL
 )
 }
 \arguments{
@@ -22,10 +23,14 @@ frequentist_power_at_equivalent_tie(
 estimates are built from, for the case studies analytical_power() cannot
 be used for.}
 
-\item{p_value_cache}{Optional environment holding the simulated p-values of
-the separate analysis by design, filled here and read back by
-\code{frequentist_power_at_nominal_tie()}, which simulates the same trials.
-\code{NULL} keeps them for this call only.}
+\item{trial_cache}{Optional environment holding the simulated trials of
+each design, filled here and read back by
+\code{frequentist_power_at_nominal_tie()}, whose separate and pooled powers
+read the same trials. \code{NULL} keeps them for this call only.}
+
+\item{cluster}{Optional shared cluster from \code{new_analysis_cluster()}, as
+\code{\link[=simulation_analysis]{simulation_analysis()}} passes it. \code{NULL} starts one for this call if the
+work warrants it.}
 }
 \value{
 The final results data frame with power and frequentist test columns added.

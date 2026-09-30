@@ -56,6 +56,13 @@ simulated_design_results <- function() {
 
 counting_load_data <- function(counter) {
   function(results_row, type, reload_data_objects = FALSE) {
+    if (type == "source") {
+      return(list(
+        treatment_effect_estimate = results_row$source_treatment_effect_estimate,
+        standard_error = results_row$source_standard_error,
+        equivalent_source_sample_size_per_arm = results_row$equivalent_source_sample_size_per_arm
+      ))
+    }
     list(
       sample_size_per_arm = 30,
       treatment_effect = results_row$target_treatment_effect,
@@ -87,7 +94,7 @@ test_that("the trials are simulated once per design, not once per row", {
         simulation_config = list(seed = 7),
         parallelization = FALSE,
         n_replicates = 200,
-        p_value_cache = cache
+        trial_cache = cache
       )
     },
     load_data = counting_load_data(counter),
@@ -146,8 +153,13 @@ test_that("the nominal-TIE step reads the trials the equivalent-TIE step cached"
 
   handed <- new.env()
   handed$p_values <- list()
+  handed$trials <- list()
   record_separate <- function(..., p_values = NULL) {
     handed$p_values[[length(handed$p_values) + 1]] <- p_values
+    list(power = 0.5, conf_int_power = c(0.4, 0.6))
+  }
+  record_pooling <- function(..., trials = NULL) {
+    handed$trials[[length(handed$trials) + 1]] <- trials
     list(power = 0.5, conf_int_power = c(0.4, 0.6))
   }
 
@@ -158,32 +170,84 @@ test_that("the nominal-TIE step reads the trials the equivalent-TIE step cached"
         analysis_config = list(frequentist_test = "t-test"),
         simulation_config = list(seed = 7),
         n_replicates = 200,
-        p_value_cache = cache
+        trial_cache = cache
       )
       frequentist_power_at_nominal_tie(
         results = results,
         analysis_config = list(frequentist_test = "t-test", nominal_tie = 0.025),
         simulation_config = list(seed = 7),
         n_replicates = 200,
-        p_value_cache = cache
+        trial_cache = cache
       )
     },
     load_data = counting_load_data(counter),
     compute_freq_power = record_separate,
-    compute_freq_power_pooling = function(...) list(power = 0.5, conf_int_power = c(0.4, 0.6)),
+    compute_freq_power_pooling = record_pooling,
     .package = "BExTE"
   )
 
   expect_equal(counter$draws, 2)
   expect_length(handed$p_values, 2)
   expect_true(all(vapply(handed$p_values, length, integer(1)) == 200))
+  # The pooled power reads the very same trials.
+  expect_length(handed$trials, 2)
+  expect_true(all(vapply(handed$trials, nrow, integer(1)) == 200))
+})
+
+test_that("without a cache, each design's trials are generated once for both baselines", {
+  counter <- new.env()
+  counter$draws <- 0
+
+  with_mocked_bindings(
+    powers <- frequentist_power_at_nominal_tie(
+      results = simulated_design_results(),
+      analysis_config = list(frequentist_test = "t-test", nominal_tie = 0.025),
+      simulation_config = list(seed = 7),
+      n_replicates = 200
+    ),
+    load_data = counting_load_data(counter),
+    .package = "BExTE"
+  )
+
+  # Two designs; the separate and the pooled power used to draw them each.
+  expect_equal(counter$draws, 2)
+  expect_false(anyNA(powers$nominal_frequentist_power_separate))
+  expect_false(anyNA(powers$nominal_frequentist_power_pooling))
+})
+
+test_that("shared trials give the powers a fresh simulation gives", {
+  counter <- new.env()
+  counter$draws <- 0
+  cache <- new.env(parent = emptyenv())
+  config <- list(frequentist_test = "t-test", nominal_tie = 0.025)
+
+  with_mocked_bindings(
+    {
+      fresh <- frequentist_power_at_nominal_tie(
+        simulated_design_results(), config, list(seed = 7), n_replicates = 300
+      )
+      frequentist_power_at_equivalent_tie(
+        simulated_design_results(), config, list(seed = 7), n_replicates = 300,
+        trial_cache = cache
+      )
+      shared <- frequentist_power_at_nominal_tie(
+        simulated_design_results(), config, list(seed = 7), n_replicates = 300,
+        trial_cache = cache
+      )
+    },
+    load_data = counting_load_data(counter),
+    .package = "BExTE"
+  )
+
+  columns <- grep("^nominal_frequentist_power", names(fresh), value = TRUE)
+  expect_identical(shared[columns], fresh[columns])
 })
 
 test_that("a cache built for other settings is not reused", {
-  keys <- p_value_cache_key("design", "t-test", list(seed = 1), 1000)
-  expect_false(keys == p_value_cache_key("design", "t-test", list(seed = 2), 1000))
-  expect_false(keys == p_value_cache_key("design", "t-test", list(seed = 1), 10000))
-  expect_false(keys == p_value_cache_key("other", "t-test", list(seed = 1), 1000))
+  keys <- trial_cache_key("design", list(seed = 1), 1000)
+  expect_false(keys == trial_cache_key("design", list(seed = 2), 1000))
+  expect_false(keys == trial_cache_key("design", list(seed = 1), 10000))
+  expect_false(keys == trial_cache_key("other", list(seed = 1), 1000))
 })
 
 test_that("the design cluster is sized by the trials simulated, not the designs", {
@@ -201,6 +265,19 @@ test_that("the workers are handed the simulation as a variable, not by name", {
   # function called by name there is "not found" in every worker.
   # deparse() wraps long lines, so whitespace is squeezed before matching.
   body_text <- gsub("\\s+", " ", paste(deparse(body(equivalent_tie_design_p_values)), collapse = " "))
-  expect_match(body_text, "simulate_design <- design_test_p_values", fixed = TRUE)
-  expect_false(grepl("%dopar% { design_test_p_values", body_text, fixed = TRUE))
+  expect_match(body_text, "simulate_design <- design_trials", fixed = TRUE)
+  expect_false(grepl("%dopar% { design_trials", body_text, fixed = TRUE))
+})
+
+test_that("the shared analysis cluster starts only when a step asks for it", {
+  shared <- new_analysis_cluster()
+  # Stopping one that never started is a no-op, which is what a run whose
+  # steps all stayed sequential does on its way out.
+  expect_null(shared$stop())
+
+  body_text <- gsub("\\s+", " ", paste(deparse(body(simulation_analysis)), collapse = " "))
+  expect_match(body_text, "cluster <- new_analysis_cluster()", fixed = TRUE)
+  hits <- gregexpr("cluster = cluster", body_text, fixed = TRUE)[[1]]
+  # Equivalent TIE, nominal TIE and the Bayesian OCs.
+  expect_equal(sum(hits > 0), 3L)
 })
