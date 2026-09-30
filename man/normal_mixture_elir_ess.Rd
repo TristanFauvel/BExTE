@@ -45,8 +45,14 @@ panel. Every component then gets panels matched to its own width, whatever
 the spread of scales, and the result agrees with RBesT to around 1e-10 while
 running on all replicates at once.
 
-Two cases short-circuit the quadrature entirely. A single-component mixture
-has constant Fisher information, so its ELIR is exactly
-\eqn{\sigma^2/\mathrm{variance}}. A prior shared by every replicate is
-integrated once and rescaled, since ELIR is proportional to \eqn{\sigma^2}.
+Several cases short-circuit the quadrature. A single-component mixture has
+constant Fisher information, so its ELIR is exactly
+\eqn{\sigma^2/\mathrm{variance}}; so does any row whose other components all
+have weight zero, as when the Egidi mixture selects no weak component. A prior
+shared by every replicate is integrated once and rescaled, since ELIR is
+proportional to \eqn{\sigma^2}. A prior that varies across replicates through
+one component's standard deviation alone, as the empirical Bayes robust
+mixture's vague component does, is integrated at Chebyshev nodes over the
+range of that standard deviation and interpolated - see
+\code{\link[=interpolate_smooth_function]{interpolate_smooth_function()}} - to a relative error below 1e-9.
 }
