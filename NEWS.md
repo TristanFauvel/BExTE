@@ -1,4 +1,13 @@
 # BExTE 0.0.2
+* The binomial models of the Aprepitant case study - the separate and pooled
+  analyses, the conditional and p-value-based power priors, the robust mixture
+  prior and its Egidi variant - could condition on one responder too few.
+  They rebuilt each arm's responder count from its rate as
+  `as.integer(n * rate)`, and `(k / n) * n` often falls just below `k` in
+  floating point (7 of 71, 14 of 71, 3 of 47, ...), which truncation turned
+  into `k - 1`. The count is now rounded, and a rate that is not a whole
+  number of responders is an error. Aprepitant results for these methods shift
+  slightly; rerun them.
 * The commensurate power prior, which took more than half the simulation
   time, is about ten times faster: 9 s instead of 97 s for a scenario of
   10000 replicates. Posterior quantiles of normal mixtures are found by a
