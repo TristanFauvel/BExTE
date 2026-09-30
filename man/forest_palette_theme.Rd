@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_methods_comparison_forestplot.R
 \name{forest_palette_theme}
 \alias{forest_palette_theme}
-\title{Forest-plot colours for a Shiny colour scheme}
+\title{Forest-plot colours for a BExTE-app colour scheme}
 \usage{
 forest_palette_theme(palette)
 }
@@ -13,10 +13,10 @@ forest_palette_theme(palette)
 A ggplot2 theme, or NULL when there is no palette.
 }
 \description{
-The forest plots are the only charts the app renders as static
+The forest plots are the only charts BExTE-app renders as static
 images (they are multi-panel gtables, so they cannot go through
 bexte_plotly() like every other chart) and therefore cannot inherit the
-page's stylesheet. These helpers take one of bexte_palette()'s schemes and
+page's stylesheet. These helpers take one of the app's bexte_palette() schemes and
 recolour a subplot for it. \code{palette = NULL} is the publication figure,
 unchanged.
 }

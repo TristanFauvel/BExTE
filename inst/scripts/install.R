@@ -57,20 +57,7 @@ if (cmdstan_installed) {
   cmdstanr::install_cmdstan()
 }
 
-## An application-menu entry, so the app can be started without an R session.
-## Desktop entries are a freedesktop.org convention, so this is Linux only.
-if (identical(tolower(Sys.info()[["sysname"]]), "linux")) {
-  BExTE::create_bexte_shortcut()
-  message("Added an \"BExTE\" entry to the application menu.")
-} else {
-  message(
-    "No application-menu entry was added: BExTE::create_bexte_shortcut() ",
-    "writes a freedesktop.org desktop entry, which only applies on Linux."
-  )
-}
-
 message(
-  "\nDone. Launch BExTE from the application menu, or from R with:\n",
-  "  library(BExTE)\n",
-  "  run_bexte_app()\n"
+  "\nDone. For a browser interface, install BExTE-app:\n",
+  "  remotes::install_github(\"TristanFauvel/BExTE-app\")\n"
 )

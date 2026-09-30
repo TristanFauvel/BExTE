@@ -1,9 +1,9 @@
-#' Forest-plot colours for a Shiny colour scheme
+#' Forest-plot colours for a BExTE-app colour scheme
 #'
-#' @description The forest plots are the only charts the app renders as static
+#' @description The forest plots are the only charts BExTE-app renders as static
 #' images (they are multi-panel gtables, so they cannot go through
 #' bexte_plotly() like every other chart) and therefore cannot inherit the
-#' page's stylesheet. These helpers take one of bexte_palette()'s schemes and
+#' page's stylesheet. These helpers take one of the app's bexte_palette() schemes and
 #' recolour a subplot for it. `palette = NULL` is the publication figure,
 #' unchanged.
 #'
@@ -138,7 +138,7 @@ scale_by_separate <- function(df, metric_columns) {
 #' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
 #' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
 #' @param x_metric_label Label of the metric on the x-axis
-#' @param palette A colour scheme from bexte_palette() for the Shiny app's
+#' @param palette A colour scheme from bexte_palette() for BExTE-app's
 #'   dark mode, or NULL for the publication figure.
 #' @param reference_line x position of a dotted vertical reference line, or NULL for none.
 #'
@@ -506,7 +506,7 @@ forest_subplot <- function(data,
 #' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
 #' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
 #' @param x_metric_label Label of the metric on the x-axis
-#' @param palette A colour scheme from bexte_palette() for the Shiny app's
+#' @param palette A colour scheme from bexte_palette() for BExTE-app's
 #'   dark mode, or NULL for the publication figure.
 #'
 #' @return A ggplot2::ggplot( object representing the forest plot.
@@ -672,7 +672,7 @@ forest_combined_plot <- function(data,
 #' @param selected_case_study The selected case study.
 #' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
-#' @param palette A colour scheme from bexte_palette() for the Shiny app's
+#' @param palette A colour scheme from bexte_palette() for BExTE-app's
 #'   dark mode, or NULL for the publication figure.
 #' @param relative_to_separate When TRUE, divide the metric and its confidence
 #'   bounds by the separate analysis's value in the same scenario, label the
@@ -684,6 +684,7 @@ forest_combined_plot <- function(data,
 #' @param subtitle Optional line drawn above the panels.
 #'
 #' @return None
+#' @export
 forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL,
                         relative_to_separate = FALSE, filename_suffix = "",
                         subtitle = NULL) {
@@ -1002,7 +1003,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
       # arrangeGrob() only builds the combined grob, with no drawing side
       # effect - unlike grid.arrange(), it doesn't require (or open) a
       # graphics device, which matters when this runs headless (e.g. from
-      # the Shiny app), where the implicitly-opened default device can't
+      # BExTE-app), where the implicitly-opened default device can't
       # render the plot theme's font and grid.arrange() would error.
       panels <- gridExtra::arrangeGrob(
         grob_no_effect,
@@ -1103,10 +1104,11 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
 #' @param selected_case_study The selected case study.
 #' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
-#' @param palette A colour scheme from bexte_palette() for the Shiny app's
+#' @param palette A colour scheme from bexte_palette() for BExTE-app's
 #'   dark mode, or NULL for the publication figure.
 #'
 #' @return None
+#' @export
 forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
   close_device <- use_font_capable_device()
   on.exit(close_device(), add = TRUE)
@@ -1211,8 +1213,8 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
 
   # arrangeGrob() (unlike grid.arrange()) only builds the combined grob, with
   # no drawing side effect, so it doesn't require (or open) a graphics
-  # device - which matters when this runs headless (e.g. from the Shiny
-  # app), where the implicitly-opened default device can't render the plot
+  # device - which matters when this runs headless (e.g. from
+  # BExTE-app), where the implicitly-opened default device can't render the plot
   # theme's font and grid.arrange() would error.
   plt <- gridExtra::arrangeGrob(
     grob_ui_design_prior,

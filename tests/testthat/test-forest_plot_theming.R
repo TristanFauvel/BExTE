@@ -1,9 +1,9 @@
-## The Analyze tab renders forest plots as static PNGs (they are multi-panel
-## gtables, so they cannot go through bexte_plotly() like every other chart).
-## That path drew in ink that only works on white: geom_pointrange() had no
-## colour, so the point estimates came out black and vanished against the dark
-## surface. forest_plot()/forest_plot_bayesian() therefore take an optional
-## palette; NULL keeps the publication figures exactly as they were.
+## Forest plots can be drawn for a dark surface (BExTE-app's Analyze tab
+## renders them as static PNGs). The default ink only works on white:
+## geom_pointrange() had no colour, so the point estimates came out black and
+## vanished against the dark surface. forest_plot()/forest_plot_bayesian()
+## therefore take an optional palette; NULL keeps the publication figures
+## exactly as they were.
 
 ## The plot_*() functions resolve their style constants and methods_dict as
 ## free variables out of .GlobalEnv (see inst/scripts/plots.R), so a test that
@@ -20,30 +20,24 @@ setup_forest_plot_globals <- function(figures_dir) {
   invisible(NULL)
 }
 
+## BExTE-app's dark scheme (bexte_palette("dark") in its theme.R).
+dark_palette <- function() {
+  list(ink = "#E5E9EF", ink_muted = "#94A3B8", hairline = "#2A3138",
+       accent = "#2DD4BF", surface = "#171C22",
+       ref_target = "#E5E9EF", ref_source = "#FF8A8A")
+}
+
 forest_plot_fixture <- function() {
   readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
 }
 
-test_that("bexte_palette supplies reference-line colours that differ by scheme", {
-  source(system.file("shiny_app/theme.R", package = "BExTE"))
-
-  light <- bexte_palette("light")
-  dark <- bexte_palette("dark")
-
-  expect_true(all(c("ref_target", "ref_source") %in% names(light)))
-  expect_true(all(c("ref_target", "ref_source") %in% names(dark)))
-  expect_false(identical(light$ref_target, dark$ref_target))
-  expect_false(identical(light$ref_source, dark$ref_source))
-})
-
 test_that("forest_subplot draws point ranges in the palette ink when given a palette", {
-  source(system.file("shiny_app/theme.R", package = "BExTE"))
   data <- forest_plot_fixture()
   data <- data[data$drift == data$drift[1], , drop = FALSE]
   data$rows <- seq_len(nrow(data))
   withr::with_tempdir({
     setup_forest_plot_globals(file.path(getwd(), ""))
-    pal <- bexte_palette("dark")
+    pal <- dark_palette()
 
     plt <- forest_subplot(
       data, "No effect",
@@ -95,7 +89,6 @@ test_that("forest_subplot leaves point ranges at the ggplot2 default without a p
 })
 
 test_that("forest_plot writes a separate dark PNG and leaves the light figures untouched", {
-  source(system.file("shiny_app/theme.R", package = "BExTE"))
   data <- forest_plot_fixture()
   withr::with_tempdir({
     figures_dir <- file.path(getwd(), "figures", "")
@@ -110,7 +103,7 @@ test_that("forest_plot writes a separate dark PNG and leaves the light figures u
     light_pdf_mtime <- file.mtime(light_pdf)
 
     dark_path <- suppressWarnings(
-      forest_plot(data, "success_proba", palette = bexte_palette("dark"))
+      forest_plot(data, "success_proba", palette = dark_palette())
     )
 
     ## A distinct file, so the publication figure is never overwritten.
@@ -128,38 +121,5 @@ test_that("forest_plot writes a separate dark PNG and leaves the light figures u
       readBin(dark_path, "raw", file.size(dark_path)),
       light_png_before
     ))
-  })
-})
-
-## The app decides per render which palette to hand the plot builders. Light
-## mode passes NULL, so what the user sees on screen is exactly the figure that
-## goes into the paper; only dark mode asks for a recoloured copy.
-test_that("bexte_plot_palette returns NULL for light mode and the scheme for dark", {
-  source(system.file("shiny_app/theme.R", package = "BExTE"))
-
-  expect_null(bexte_plot_palette("light"))
-  expect_identical(bexte_plot_palette("dark"), bexte_palette("dark"))
-})
-
-test_that("forest_image_for_mode picks the dark file only in dark mode", {
-  source(system.file("shiny_app/theme.R", package = "BExTE"))
-  source(system.file("shiny_app/modules/mod_analyze.R", package = "BExTE"))
-  data <- forest_plot_fixture()
-  withr::with_tempdir({
-    figures_dir <- file.path(getwd(), "figures", "")
-    dir.create(figures_dir, recursive = TRUE, showWarnings = FALSE)
-    setup_forest_plot_globals(figures_dir)
-
-    light <- suppressWarnings(
-      forest_image_for_mode("forest_plot", data, "success_proba", "light")
-    )
-    dark <- suppressWarnings(
-      forest_image_for_mode("forest_plot", data, "success_proba", "dark")
-    )
-
-    expect_false(grepl("_dark\\.png$", light))
-    expect_match(dark, "_dark\\.png$")
-    expect_true(file.exists(light))
-    expect_true(file.exists(dark))
   })
 })

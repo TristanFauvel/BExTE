@@ -2,7 +2,7 @@
 ## tags below. Everything else stays in DESCRIPTION's Imports - which
 ## guarantees it is installed without loading it - and is reached with
 ## pkg::fun() at the point of use, so its namespace loads on first call
-## rather than on library(BExTE). That matters for the Shiny app, which
+## rather than on library(BExTE). That matters for BExTE-app, which
 ## attaches the package to serve a web UI that touches none of the
 ## simulation stack: an @importFrom of five RBesT symbols that nothing used
 ## bare was pulling in rstan and ~200 MB of resident memory at startup.

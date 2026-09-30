@@ -1,5 +1,5 @@
-## A run started from the Shiny app happens in a background process, so the
-## filesystem is the only channel back to the Run tab. Result rows are too
+## A run started from BExTE-app happens in a background process, so the
+## filesystem is the only channel back to the app's Run tab. Result rows are too
 ## coarse a signal on their own: a method that runs in parallel collects its
 ## scenarios in the master and writes them all at once when the method is
 ## over, so the readout would jump a whole method at a time. The tracker

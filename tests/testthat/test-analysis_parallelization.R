@@ -3,7 +3,7 @@
 ## frequentist_power_at_equivalent_tie() with parallelization = FALSE
 ## hardcoded, and that function's workers loaded BExTE with a bare
 ## library(BExTE), which fails when the package is only load_all()ed from
-## source (main.R and the Shiny app both do exactly that).
+## source (main.R and BExTE-app both do exactly that).
 
 test_that("analysis_runs_in_parallel reads both forms of the config entry", {
   expect_false(analysis_runs_in_parallel(NULL))

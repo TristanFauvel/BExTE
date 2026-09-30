@@ -169,5 +169,6 @@ BEXTE_RESULTS_DIR=results/paper_replication_<date>_<time> Rscript inst/scripts/r
   output, and the script exits with a non-zero status. The failure reason is
   in the status table.
 
-There is also a browser interface: `BExTE::run_bexte_app()`, then the
-**Replicate paper** page, does the same three steps with checkboxes.
+There is also a browser interface: the **Replicate paper** page of
+[BExTE-app](https://github.com/TristanFauvel/BExTE-app) does the same three
+steps with checkboxes.

@@ -249,6 +249,7 @@ reference:
   - simulation_frequentist_ocs
   - simulation_scenarios
   - run_simulation_env
+  - run_progress_tracker
   - time_to_event_expected_events
   - time_to_event_delayed_log_hr
 
@@ -301,12 +302,6 @@ reference:
   - AnalysisPriorDesignPrior
   - SourcePosteriorDesignPrior
   - UnitInformationDesignPrior
-
-- title: Shiny app
-  desc: Launching the browser-based interface
-- contents:
-  - run_bexte_app
-  - create_bexte_shortcut
 
 - title: Caching
   desc: Inspecting and clearing the compiled-model and analysis caches

@@ -55,5 +55,5 @@ Runs the frequentist and/or Bayesian Monte Carlo operating
 characteristics simulation for a single environment. This mirrors the
 per-environment body of the driver loop in \code{inst/scripts/main.R}, extracted
 into a callable function so it can be invoked directly (e.g. from a
-background process launched by the Shiny app).
+background process launched by BExTE-app).
 }
