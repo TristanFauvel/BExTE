@@ -1,4 +1,16 @@
 # BExTE 0.0.2
+* The binomial test-then-pool methods, the binomial p-value based power prior
+  and the Egidi mixture are much faster under exact enumeration. At
+  Aprepitant's n = 71, test-then-pool took 83 s instead of 1770 s and the
+  p-value power prior 326 s instead of 1702 s, with identical results apart
+  from the ELIR effective sample size. Test-then-pool reports the ELIR of the
+  component its test selected, fitted once, instead of refitting a mixture
+  for every replicate, and shares analyses across drifts through the
+  inference cache. The p-value power prior interpolates its ELIR from nodes
+  on a grid of power parameters, each averaged over ten fits. The Egidi
+  prior-predictive tables are built once per worker, and its mixture-weight
+  scan reads all candidate weights off one sort. The commensurate models
+  compile their Stan program only if they are asked to sample.
 * The Shiny app moved to its own repository,
   [BExTE-app](https://github.com/TristanFauvel/BExTE-app), which imports
   BExTE. `run_bexte_app()` and `create_bexte_shortcut()` are now
