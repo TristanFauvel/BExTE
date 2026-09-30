@@ -55,6 +55,9 @@ It inherits from the Model class.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-MCMCModel-initialize}{\code{MCMCModel$new()}}
+    \item \href{#method-MCMCModel-uses_quadrature}{\code{MCMCModel$uses_quadrature()}}
+    \item \href{#method-MCMCModel-quadrature_posterior}{\code{MCMCModel$quadrature_posterior()}}
+    \item \href{#method-MCMCModel-quadrature_prior}{\code{MCMCModel$quadrature_prior()}}
     \item \href{#method-MCMCModel-check_mcmc_config}{\code{MCMCModel$check_mcmc_config()}}
     \item \href{#method-MCMCModel-prepare_data}{\code{MCMCModel$prepare_data()}}
     \item \href{#method-MCMCModel-inference}{\code{MCMCModel$inference()}}
@@ -103,6 +106,12 @@ It inherits from the Model class.
 \if{latex}{\out{\hypertarget{method-MCMCModel-initialize}{}}}
 \subsection{\code{MCMCModel$new()}}{
   Initialize the MCMCModel object
+
+A subclass that can also compute its posterior by quadrature declares
+\code{quadrature_available = TRUE} and implements \code{quadrature_posterior()}.
+For such a class, \code{mcmc_config$engine} chooses between the two:
+\code{"quadrature"}, the default, or \code{"stan"}. Every other subclass samples
+with Stan whatever the setting.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{MCMCModel$new(prior, mcmc_config)}
@@ -115,6 +124,60 @@ It inherits from the Model class.
       \item{\code{mcmc_config}}{The MCMC configuration parameters}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-MCMCModel-uses_quadrature"></a>}}
+\if{latex}{\out{\hypertarget{method-MCMCModel-uses_quadrature}{}}}
+\subsection{\code{MCMCModel$uses_quadrature()}}{
+  Whether the posterior is computed by quadrature
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MCMCModel$uses_quadrature()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} under the quadrature engine, \code{FALSE} when sampling.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-MCMCModel-quadrature_posterior"></a>}}
+\if{latex}{\out{\hypertarget{method-MCMCModel-quadrature_posterior}{}}}
+\subsection{\code{MCMCModel$quadrature_posterior()}}{
+  The posterior as a grid, under the quadrature engine.
+Subclasses with \code{quadrature_available = TRUE} must implement it.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MCMCModel$quadrature_posterior(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target data for inference}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \code{\link[=grid_posterior]{grid_posterior()}} list.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-MCMCModel-quadrature_prior"></a>}}
+\if{latex}{\out{\hypertarget{method-MCMCModel-quadrature_prior}{}}}
+\subsection{\code{MCMCModel$quadrature_prior()}}{
+  The prior as a grid, under the quadrature engine. Only
+needed by subclasses that sample their prior with Stan otherwise.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MCMCModel$quadrature_prior()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \code{\link[=grid_posterior]{grid_posterior()}} list.
   }
 }
 
@@ -161,7 +224,7 @@ Subclasses must implement the 'prepare_data' method.
 \if{html}{\out{<a id="method-MCMCModel-inference"></a>}}
 \if{latex}{\out{\hypertarget{method-MCMCModel-inference}{}}}
 \subsection{\code{MCMCModel$inference()}}{
-  Perform inference using MCMC sampling
+  Perform inference, by quadrature or by MCMC sampling
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{MCMCModel$inference(target_data)}

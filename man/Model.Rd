@@ -59,6 +59,10 @@ for every method that does not select anything.}
 
     \item{\code{aic_penalty_parameter_mixture_approx}}{AIC penalty parameter used for the mixture approximation}
 
+    \item{\code{empirical_bayes_from_sample}}{Whether the empirical Bayes quantities
+are a function of the replicate's sample alone, so that a deterministic
+model may still share an analysis between replicates with equal samples.}
+
     \item{\code{n_nonestimable_replicates}}{Replicates dropped by the last
 simulation because their target summary measure was undefined.}
 

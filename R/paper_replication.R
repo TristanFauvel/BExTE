@@ -73,28 +73,15 @@ paper_replication_requirements <- function(ids, case_studies_config_dir) {
     requirements <- c(requirements, PAPER_TTE_SENSITIVITY)
   }
 
-  ## A binomial likelihood is analysed exactly, which for the conditional power
-  ## prior means an MCMC fit per replicate; those case studies are run at a
-  ## tenth of the replicates. The same case study under the normal
-  ## approximation is as cheap as the others and keeps the full count.
-  binomial <- Filter(function(case_study) {
-    config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
-    identical(config$summary_measure_likelihood, "binomial")
-  }, case_studies)
-  if (length(binomial) > 0) {
-    requirements$case_study_n_replicates <- stats::setNames(
-      as.list(rep(PAPER_BINOMIAL_N_REPLICATES, length(binomial))),
-      binomial
-    )
-  }
-
+  ## Every case study, including those analysed with the exact binomial
+  ## likelihood, runs at the paper's replicate count: the binomial models
+  ## compute their posterior by quadrature and share the analyses of repeated
+  ## counts, so they no longer need the reduced count MCMC imposed.
   requirements
 }
 
-## Replicates per scenario: the paper's Monte Carlo precision, and the
-## reduced count for case studies whose binomial likelihood is fitted by MCMC.
+## Replicates per scenario: the paper's Monte Carlo precision.
 PAPER_N_REPLICATES <- 10000
-PAPER_BINOMIAL_N_REPLICATES <- 1000
 
 ## The analysis steps the paper's outputs read.
 ##

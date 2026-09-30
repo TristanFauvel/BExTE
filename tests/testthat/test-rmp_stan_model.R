@@ -16,7 +16,8 @@ rmp_stan_mcmc_config <- function() {
     max_chain_length = 4000L,
     target_ess = 10L,
     rhat_threshold = 1.1,
-    max_divergence_rate = 0.01
+    max_divergence_rate = 0.01,
+    engine = "stan"
   )
 }
 

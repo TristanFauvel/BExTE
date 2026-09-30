@@ -35,6 +35,10 @@ Model <- R6::R6Class(
   public = list(
     empirical_bayes = FALSE,
     deterministic_inference = FALSE,
+    #' @field empirical_bayes_from_sample Whether the empirical Bayes quantities
+    #'   are a function of the replicate's sample alone, so that a deterministic
+    #'   model may still share an analysis between replicates with equal samples.
+    empirical_bayes_from_sample = FALSE,
     #' @field n_nonestimable_replicates Replicates dropped by the last
     #'   simulation because their target summary measure was undefined.
     n_nonestimable_replicates = 0,
@@ -299,12 +303,16 @@ Model <- R6::R6Class(
                                      null_space,
                                      n_samples_quantiles_estimation,
                                      simulation_config) {
-      if (!isTRUE(self$deterministic_inference) || isTRUE(self$empirical_bayes)) {
+      if (!isTRUE(self$deterministic_inference) ||
+          (isTRUE(self$empirical_bayes) && !isTRUE(self$empirical_bayes_from_sample))) {
         # An empirical Bayes prior is derived from the replicate's own data by
         # the inference a cache hit skips, so its ELIR would be read off a prior
         # belonging to whichever replicate was analysed instead. The interlock
         # is here rather than left to each subclass so that opting a model in
-        # cannot reach that case by accident.
+        # cannot reach that case by accident. A model whose empirical Bayes
+        # quantities are a function of the replicate's sample alone declares
+        # `empirical_bayes_from_sample = TRUE`: the cache key is that sample, and
+        # the replicate loop re-derives the prior on a cache hit.
         return(NULL)
       }
 
@@ -868,6 +876,12 @@ Model <- R6::R6Class(
           inference_cache_set(cache_key, collect_replicate(r))
         } else {
           restore_replicate(r, cached_replicate)
+          # The ELIR below reads the model's current prior. An empirical Bayes
+          # prior is still the one of the last replicate analysed, so it is
+          # re-derived from this replicate's sample, which the cache key matched.
+          if (requested("ess_elir") && isTRUE(self$empirical_bayes)) {
+            self$empirical_bayes_update(target_data)
+          }
         }
 
         # The ELIR reads a mixture fitted to draws from the prior, so unlike
@@ -2392,17 +2406,56 @@ MCMCModel <- R6::R6Class(
     prior_cdf_approx = NULL,
     posterior_pdf_approx = NULL,
     posterior_cdf_approx = NULL,
+    engine = "stan",
+    quadrature_available = FALSE,
+    grid_posterior = NULL,
+    prior_grid = NULL,
 
     #' @description Initialize the MCMCModel object
+    #'
+    #' A subclass that can also compute its posterior by quadrature declares
+    #' `quadrature_available = TRUE` and implements `quadrature_posterior()`.
+    #' For such a class, `mcmc_config$engine` chooses between the two:
+    #' `"quadrature"`, the default, or `"stan"`. Every other subclass samples
+    #' with Stan whatever the setting.
+    #'
     #' @param prior The prior object
     #' @param mcmc_config The MCMC configuration parameters
     initialize = function(prior, mcmc_config) {
       super$initialize()
 
-      self$mcmc <- TRUE
-
       self$check_mcmc_config(mcmc_config)
       self$mcmc_config <- mcmc_config
+
+      requested_engine <- if (is.null(mcmc_config$engine)) "quadrature" else mcmc_config$engine
+      self$engine <- if (isTRUE(self$quadrature_available)) requested_engine else "stan"
+
+      # Under quadrature the posterior is exact and a function of the data
+      # alone, so replicates with the same data may share one analysis.
+      self$mcmc <- !self$uses_quadrature()
+      self$deterministic_inference <- self$uses_quadrature()
+    },
+
+    #' @description Whether the posterior is computed by quadrature
+    #' @return `TRUE` under the quadrature engine, `FALSE` when sampling.
+    uses_quadrature = function() {
+      identical(self$engine, "quadrature")
+    },
+
+    #' @description The posterior as a grid, under the quadrature engine.
+    #' Subclasses with `quadrature_available = TRUE` must implement it.
+    #' @param target_data The target data for inference
+    #' @return A [grid_posterior()] list.
+    quadrature_posterior = function(target_data) {
+      stop("Subclasses with quadrature_available = TRUE must implement 'quadrature_posterior'.",
+           call. = FALSE)
+    },
+
+    #' @description The prior as a grid, under the quadrature engine. Only
+    #' needed by subclasses that sample their prior with Stan otherwise.
+    #' @return A [grid_posterior()] list.
+    quadrature_prior = function() {
+      stop("This model does not implement 'quadrature_prior'.", call. = FALSE)
     },
 
     #' @description Check validity of the MCMC configuration
@@ -2423,6 +2476,12 @@ MCMCModel <- R6::R6Class(
           mcmc_config$max_divergence_rate > 1) {
         stop("max_divergence_rate must lie between 0 and 1.", call. = FALSE)
       }
+      if (!is.null(mcmc_config$engine) &&
+          !(identical(mcmc_config$engine, "quadrature") ||
+            identical(mcmc_config$engine, "stan"))) {
+        stop("engine must be either \"quadrature\" or \"stan\", but it is ",
+             format(mcmc_config$engine), ".", call. = FALSE)
+      }
     },
 
     #' @description Prepare the data for inference.
@@ -2433,11 +2492,20 @@ MCMCModel <- R6::R6Class(
       stop("Subclasses must implement the 'prepare_data' method.", call. = FALSE)
     },
 
-    #' @description Perform inference using MCMC sampling
+    #' @description Perform inference, by quadrature or by MCMC sampling
     #' @param target_data The target data for inference
     #'
     inference = function(target_data) {
       self$empirical_bayes_update(target_data)
+
+      if (self$uses_quadrature()) {
+        self$grid_posterior <- self$quadrature_posterior(target_data)
+        self$post_mean <- self$grid_posterior$mean
+        self$post_var <- self$grid_posterior$variance
+        self$post_median <- grid_posterior_quantile(self$grid_posterior, 0.5)
+        self$compute_posterior_parameters()
+        return("Success")
+      }
 
       data_list <- self$prepare_data(target_data)
 
@@ -2527,6 +2595,13 @@ MCMCModel <- R6::R6Class(
     #' @return The credible interval as a numeric vector
     #'
     credible_interval = function(level = 0.95) {
+      if (self$uses_quadrature()) {
+        alpha <- (1 - level) / 2
+        ci <- grid_posterior_quantile(self$grid_posterior, c(alpha, 1 - alpha))
+        self$credible_interval_2.5 <- ci[[1]]
+        self$credible_interval_97.5 <- ci[[2]]
+        return(ci)
+      }
       if (level != 0.95) {
         stop("Not implemented for level other than 0.95")
       }
@@ -2575,6 +2650,9 @@ MCMCModel <- R6::R6Class(
     #' @return The sampled treatment effect values as a numeric vector
     #'
     sample_posterior = function(n_samples) {
+      if (self$uses_quadrature()) {
+        return(grid_posterior_sample(self$grid_posterior, n_samples))
+      }
       treatment_effect_draws <- self$fit$draws("target_treatment_effect")
       treatment_effect_draws <- unlist(as.list(treatment_effect_draws))
       return(sample(
@@ -2596,6 +2674,9 @@ MCMCModel <- R6::R6Class(
     #' @description Posterior PDF
     #' @param target_treatment_effect Point at which to evaluate the posterior PDF
     posterior_pdf = function(target_treatment_effect) {
+      if (self$uses_quadrature()) {
+        return(grid_posterior_pdf(self$grid_posterior, target_treatment_effect))
+      }
       if (is.null(self$posterior_pdf_approx)){
         treatment_effect_draws <- self$fit$draws("target_treatment_effect")
         treatment_effect_draws <- unlist(as.list(treatment_effect_draws))
@@ -2609,6 +2690,9 @@ MCMCModel <- R6::R6Class(
     #' @param target_treatment_effect The target treatment effect.
     #' @return The posterior CDF.
     posterior_cdf = function(target_treatment_effect) {
+      if (self$uses_quadrature()) {
+        return(grid_posterior_cdf(self$grid_posterior, target_treatment_effect))
+      }
       if (is.null(self$posterior_cdf_approx)){
         treatment_effect_draws <- self$fit$draws("target_treatment_effect")
         treatment_effect_draws <- unlist(as.list(treatment_effect_draws))
@@ -2644,6 +2728,12 @@ MCMCModel <- R6::R6Class(
     #' @param n_samples Number of samples to draw
     #' @return A vector of samples
     sample_prior = function(n_samples) {
+      if (self$uses_quadrature()) {
+        if (is.null(self$prior_grid)) {
+          self$prior_grid <- self$quadrature_prior()
+        }
+        return(grid_posterior_sample(self$prior_grid, n_samples))
+      }
       if (is.null(self$prior_draws)) {
         self$draw_mcmc_prior()
       }

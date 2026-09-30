@@ -27,6 +27,8 @@ A class representing a Binomial Conditional Power Prior model.
   \itemize{
     \item \href{#method-BinomialCPP-initialize}{\code{BinomialCPP$new()}}
     \item \href{#method-BinomialCPP-prepare_data}{\code{BinomialCPP$prepare_data()}}
+    \item \href{#method-BinomialCPP-quadrature_posterior}{\code{BinomialCPP$quadrature_posterior()}}
+    \item \href{#method-BinomialCPP-quadrature_prior}{\code{BinomialCPP$quadrature_prior()}}
     \item \href{#method-BinomialCPP-draw_mcmc_prior}{\code{BinomialCPP$draw_mcmc_prior()}}
     \item \href{#method-BinomialCPP-clone}{\code{BinomialCPP$clone()}}
   }
@@ -67,6 +69,7 @@ A class representing a Binomial Conditional Power Prior model.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_pdf'><code>MCMCModel$prior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_prior'><code>MCMCModel$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -108,6 +111,46 @@ A class representing a Binomial Conditional Power Prior model.
   }
   \subsection{Returns}{
     A list of prepared data
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinomialCPP-quadrature_posterior"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialCPP-quadrature_posterior}{}}}
+\subsection{\code{BinomialCPP$quadrature_posterior()}}{
+  The posterior on a grid, under the quadrature engine
+
+The same model as the Stan program, with the current power parameter.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialCPP$quadrature_posterior(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target study data}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \code{\link[=grid_posterior]{grid_posterior()}} list.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinomialCPP-quadrature_prior"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialCPP-quadrature_prior}{}}}
+\subsection{\code{BinomialCPP$quadrature_prior()}}{
+  The prior on a grid, under the quadrature engine: the same
+model without target patients, as in the Stan prior program.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialCPP$quadrature_prior()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \code{\link[=grid_posterior]{grid_posterior()}} list.
   }
 }
 
