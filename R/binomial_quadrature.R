@@ -196,6 +196,66 @@ grid_posterior_sample <- function(posterior, n_samples) {
 }
 
 
+#' Gauss-Legendre nodes and weights on (-1, 1), computed once per size
+#'
+#' @param n_nodes Number of nodes.
+#' @return A list with `nodes` and `weights`.
+#' @keywords internal
+legendre_rule <- local({
+  rules <- list()
+  function(n_nodes) {
+    key <- as.character(n_nodes)
+    if (is.null(rules[[key]])) {
+      rules[[key]] <<- statmod::gauss.quad(n_nodes, kind = "legendre")
+    }
+    rules[[key]]
+  }
+})
+
+
+#' Expectation over a Beta-distributed control rate of a function of the
+#' treatment rate
+#'
+#' @description Computes \eqn{E_v[g(\theta + v)]} for each effect
+#'   \eqn{\theta}, where \eqn{v \sim Beta(a, b)} is the control rate and
+#'   \eqn{g} is the treatment arm's distribution function or density - the
+#'   distribution function and density of a difference of independent Beta
+#'   variables.
+#'
+#'   The control rate is integrated in rate space by Gauss-Legendre quadrature
+#'   over the Beta's effective support, cut where \eqn{\theta + v} leaves
+#'   \eqn{[0, 1]}. There \eqn{g} has a corner, or a jump for a density with a
+#'   shape parameter of one, and a rule on a piece that straddled it would
+#'   converge slowly; on each smooth piece a few dozen nodes reach an accuracy
+#'   a midpoint rule in probability space needs hundreds of thousands of
+#'   nodes for.
+#'
+#' @param effect Treatment effects at which to evaluate the expectation.
+#' @param shape1,shape2 Shape parameters of the control rate's Beta.
+#' @param treatment_function Function of the treatment rate, vectorised.
+#' @param n_nodes Nodes per smooth piece.
+#' @param tail Probability left outside the effective support on each side.
+#' @return One value per effect.
+#' @keywords internal
+beta_difference_expectation <- function(effect, shape1, shape2, treatment_function,
+                                        n_nodes = 32L, tail = 1e-15) {
+  rule <- legendre_rule(n_nodes)
+  support <- stats::qbeta(c(tail, 1 - tail), shape1, shape2)
+  vapply(effect, function(theta) {
+    corners <- pmin(pmax(c(-theta, 1 - theta), support[1]), support[2])
+    cuts <- sort(unique(c(support, corners)))
+    lower <- cuts[-length(cuts)]
+    upper <- cuts[-1]
+    kept <- upper > lower
+    half <- (upper[kept] - lower[kept]) / 2
+    middle <- (upper[kept] + lower[kept]) / 2
+    rates <- as.vector(outer(rule$nodes, half) + rep(middle, each = n_nodes))
+    weights <- as.vector(outer(rule$weights, half)) * stats::dbeta(rates, shape1, shape2)
+    sum(weights * treatment_function(theta + rates)) / sum(weights)
+  }, numeric(1))
+}
+
+
 #' A grid posterior as distribution functions
 #'
 #' @param posterior Output of [grid_posterior()].

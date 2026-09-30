@@ -17,15 +17,16 @@
 #'
 #' and the treatment effect is their difference. Moments are available
 #' analytically; the distribution function of the difference is obtained by
-#' one-dimensional quadrature and inverted numerically for quantiles, so no
-#' Monte Carlo error enters the operating characteristics.
+#' one-dimensional quadrature over the control rate - see
+#' [beta_difference_expectation()] - and inverted numerically for quantiles, so
+#' no Monte Carlo error enters the operating characteristics.
 #'
 #' @field control_shape1 First shape parameter of the control rate posterior.
 #' @field control_shape2 Second shape parameter of the control rate posterior.
 #' @field treatment_shape1 First shape parameter of the treatment rate posterior.
 #' @field treatment_shape2 Second shape parameter of the treatment rate posterior.
-#' @field n_quadrature_nodes Number of nodes used to integrate over the control rate.
-#' @field quadrature_control_rates Quadrature nodes on the control rate posterior.
+#' @field n_quadrature_nodes Gauss-Legendre nodes per smooth piece of the
+#'   integral over the control rate.
 #' @field interval_memo Credible intervals of the current posterior, by level.
 #' @export
 BinomialConjugate <- R6::R6Class(
@@ -36,8 +37,7 @@ BinomialConjugate <- R6::R6Class(
     control_shape2 = NULL,
     treatment_shape1 = NULL,
     treatment_shape2 = NULL,
-    n_quadrature_nodes = 1024L,
-    quadrature_control_rates = NULL,
+    n_quadrature_nodes = 32L,
     interval_memo = list(),
 
     # The posterior shape parameters are the observed counts incremented by one,
@@ -90,16 +90,6 @@ BinomialConjugate <- R6::R6Class(
       self$post_var <- beta_variance(self$treatment_shape1, self$treatment_shape2) +
         beta_variance(self$control_shape1, self$control_shape2)
 
-      # Stratified nodes on the control rate posterior. Integrating a smooth
-      # function of the control rate against these is a midpoint rule in
-      # probability space, which handles the tails of the Beta without tuning.
-      node_probabilities <- (seq_len(self$n_quadrature_nodes) - 0.5) / self$n_quadrature_nodes
-      self$quadrature_control_rates <- stats::qbeta(
-        node_probabilities,
-        self$control_shape1,
-        self$control_shape2
-      )
-
       self$interval_memo <- list()
       self$post_median <- self$posterior_quantile(0.5)
 
@@ -109,25 +99,25 @@ BinomialConjugate <- R6::R6Class(
     #' @description Posterior CDF of the treatment effect
     #' @param target_treatment_effect Point at which to evaluate the posterior CDF
     posterior_cdf = function(target_treatment_effect) {
-      vapply(target_treatment_effect, function(effect) {
-        mean(stats::pbeta(
-          effect + self$quadrature_control_rates,
-          self$treatment_shape1,
-          self$treatment_shape2
-        ))
-      }, numeric(1))
+      shape1 <- self$treatment_shape1
+      shape2 <- self$treatment_shape2
+      beta_difference_expectation(
+        target_treatment_effect, self$control_shape1, self$control_shape2,
+        function(rate) stats::pbeta(rate, shape1, shape2),
+        n_nodes = self$n_quadrature_nodes
+      )
     },
 
     #' @description Posterior PDF of the treatment effect
     #' @param target_treatment_effect Point at which to evaluate the posterior PDF
     posterior_pdf = function(target_treatment_effect) {
-      vapply(target_treatment_effect, function(effect) {
-        mean(stats::dbeta(
-          effect + self$quadrature_control_rates,
-          self$treatment_shape1,
-          self$treatment_shape2
-        ))
-      }, numeric(1))
+      shape1 <- self$treatment_shape1
+      shape2 <- self$treatment_shape2
+      beta_difference_expectation(
+        target_treatment_effect, self$control_shape1, self$control_shape2,
+        function(rate) stats::dbeta(rate, shape1, shape2),
+        n_nodes = self$n_quadrature_nodes
+      )
     },
 
     #' @description Quantiles of the posterior treatment effect
