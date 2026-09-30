@@ -199,6 +199,26 @@ BinomialConjugate <- R6::R6Class(
       return(target_treatment_effect)
     },
 
+    #' @description The prior of the treatment effect given the target control
+    #' rate
+    #'
+    #' The marginal prior averages over a uniform control rate and spans
+    #' (-1, 1); a trial whose control rate is known can only have an effect in
+    #' `(-control_rate, 1 - control_rate)`, and given the control rate the
+    #' effect is uniform there.
+    #'
+    #' @param control_rate The target control rate.
+    #' @return A list of three functions of the treatment effect: `cdf`, `pdf`,
+    #'   and `sample`, which takes the number of draws.
+    prior_given_control_rate = function(control_rate) {
+      force(control_rate)
+      list(
+        cdf = function(x) stats::punif(x, -control_rate, 1 - control_rate),
+        pdf = function(x) stats::dunif(x, -control_rate, 1 - control_rate),
+        sample = function(n_samples) stats::runif(n_samples, -control_rate, 1 - control_rate)
+      )
+    },
+
     #' @description Prior PDF
     #' @param target_treatment_effect Point at which to evaluate the prior PDF
     prior_pdf = function(target_treatment_effect) {

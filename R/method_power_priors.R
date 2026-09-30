@@ -181,6 +181,32 @@ BinomialCPP <- R6::R6Class(
       )
     },
 
+    #' @description The prior of the treatment effect given the target control
+    #' rate
+    #'
+    #' The power prior of [quadrature_prior()] with the target control rate
+    #' fixed rather than integrated out, so the effect is confined to the
+    #' range that rate leaves it.
+    #'
+    #' @param control_rate The target control rate.
+    #' @return A list of three functions of the treatment effect: `cdf`, `pdf`,
+    #'   and `sample`, which takes the number of draws.
+    prior_given_control_rate = function(control_rate) {
+      source <- self$prior$source
+      grid_distribution(binomial_power_prior_posterior(
+        power_parameter = self$power_parameter,
+        n_control_source = as.integer(source$sample_size_control),
+        n_successes_control_source = counts_from_rate(source$control_rate, source$sample_size_control),
+        n_treatment_source = as.integer(source$sample_size_treatment),
+        n_successes_treatment_source = counts_from_rate(source$treatment_rate, source$sample_size_treatment),
+        n_control = 0L,
+        n_successes_control = 0L,
+        n_treatment = 0L,
+        n_successes_treatment = 0L,
+        control_rate = control_rate
+      ))
+    },
+
     #' @description Sample from the prior using Stan
     draw_mcmc_prior = function() {
       model_name <- "binomial_cpp_prior"

@@ -196,6 +196,22 @@ grid_posterior_sample <- function(posterior, n_samples) {
 }
 
 
+#' A grid posterior as distribution functions
+#'
+#' @param posterior Output of [grid_posterior()].
+#' @return A list of three functions of the treatment effect: `cdf`, `pdf`, and
+#'   `sample`, which takes the number of draws.
+#' @keywords internal
+grid_distribution <- function(posterior) {
+  force(posterior)
+  list(
+    cdf = function(x) grid_posterior_cdf(posterior, x),
+    pdf = function(x) grid_posterior_pdf(posterior, x),
+    sample = function(n_samples) grid_posterior_sample(posterior, n_samples)
+  )
+}
+
+
 #' Posterior of the treatment effect under a truncated normal mixture prior
 #'
 #' @description The binomial robust mixture prior: the target control rate v is
@@ -300,6 +316,10 @@ truncated_normal_mixture_binomial_posterior <- function(weights, means, sds,
 #' @param n_source_nodes Nodes on the source control rate.
 #' @param points_per_scale Treatment effect grid points per narrowest standard
 #'   deviation, passed to [binomial_effect_grid()].
+#' @param control_rate Target control rate to condition on, or `NULL` to
+#'   integrate it out. Conditioning puts the target control rate's whole mass
+#'   at this value, which confines the treatment effect to
+#'   `(-control_rate, 1 - control_rate)`.
 #' @return A [grid_posterior()] list.
 #' @keywords internal
 binomial_power_prior_posterior <- function(power_parameter,
@@ -313,7 +333,8 @@ binomial_power_prior_posterior <- function(power_parameter,
                                            n_successes_treatment,
                                            n_control_nodes = 512L,
                                            n_source_nodes = 512L,
-                                           points_per_scale = 20) {
+                                           points_per_scale = 20,
+                                           control_rate = NULL) {
   if (!is.numeric(power_parameter) || length(power_parameter) != 1 ||
       is.na(power_parameter) || power_parameter < 0 || power_parameter > 1) {
     stop("The power parameter must be a single number in [0, 1].", call. = FALSE)
@@ -331,7 +352,11 @@ binomial_power_prior_posterior <- function(power_parameter,
   treatment_shape2 <- n_treatment - n_successes_treatment + 1
 
   source_nodes <- beta_quadrature_nodes(source_control_shape1, source_control_shape2, n_source_nodes)
-  control_nodes <- beta_quadrature_nodes(target_control_shape1, target_control_shape2, n_control_nodes)
+  control_nodes <- if (is.null(control_rate)) {
+    beta_quadrature_nodes(target_control_shape1, target_control_shape2, n_control_nodes)
+  } else {
+    control_rate
+  }
 
   grid <- binomial_effect_grid(
     treatment_shape1, treatment_shape2, control_nodes,
