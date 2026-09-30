@@ -182,8 +182,8 @@ normal_reference_ess <- function(reference_scale,
 #' @export
 truncated_normal_mixture_elir <- function(weights, means, sds, lower, upper,
                                           sigma) {
-  assertions::assert_number(lower)
-  assertions::assert_number(upper)
+  assert_single_number(lower)
+  assert_single_number(upper)
   if (lower >= upper) {
     stop("The truncation interval must be non-empty.", call. = FALSE)
   }

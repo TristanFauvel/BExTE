@@ -321,7 +321,7 @@ GaussianRMP_RBesT <- R6::R6Class(
 
       self$post_var <- unname(self$posterior_summary["standard_deviation"] ^ 2)
       self$post_median <- self$posterior_summary["median"]
-      assertions::assert_number(self$post_mean)
+      assert_single_number(self$post_mean)
     },
 
 
@@ -616,7 +616,7 @@ GaussianRMP <- R6::R6Class(
 
       wpost <- post_weights[1]
 
-      assertions::assert_number(wpost)
+      assert_single_number(wpost)
       if (is.na(wpost)) {
         stop(
           "Posterior w is NaN, most likely due to both the vague and informative likelihood equal to 0."

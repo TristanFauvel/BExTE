@@ -228,7 +228,7 @@ analytical_power <- function(alpha, target_data, frequentist_test, theta_0, alte
 #' Hoisted out of compute_freq_power(): compute_power_with_tie_ci()
 #' evaluates power at 1000 sampled alphas per result row and target_data is
 #' identical across all of them, so asserting inside that call ran the same
-#' three checks 3000 times a row. assertions::assert_number() costs ~190us a
+#' three checks 3000 times a row. assert_single_number() costs ~190us a
 #' call (it deparses, matches the call and dispatches over a list of
 #' assertion functions), which made argument checking ~87% of the analysis.
 #'
@@ -237,9 +237,9 @@ analytical_power <- function(alpha, target_data, frequentist_test, theta_0, alte
 #' @return `NULL`, invisibly. Called for the error it raises.
 #' @noRd
 assert_target_data_numbers <- function(target_data) {
-  assertions::assert_number(target_data$treatment_effect)
-  assertions::assert_number(target_data$standard_deviation)
-  assertions::assert_number(target_data$sample_size_per_arm)
+  assert_single_number(target_data$treatment_effect)
+  assert_single_number(target_data$standard_deviation)
+  assert_single_number(target_data$sample_size_per_arm)
 
   invisible(NULL)
 }
@@ -460,9 +460,9 @@ compute_freq_power_pooling <- function(alpha,
     stop("Null space must be either 'left' or 'right'")
   }
 
-  assertions::assert_number(target_data$treatment_effect)
-  assertions::assert_number(target_data$standard_deviation)
-  assertions::assert_number(target_data$sample_size_per_arm)
+  assert_single_number(target_data$treatment_effect)
+  assert_single_number(target_data$standard_deviation)
+  assert_single_number(target_data$sample_size_per_arm)
 
   power <- NA # Default value in case of an unsupported distribution
 
@@ -578,7 +578,7 @@ compute_freq_power_pooling <- function(alpha,
     stop("This likelihood is not supported.")
   }
 
-  assertions::assert_number(power)
+  assert_single_number(power)
   return(list(power = power, conf_int_power = conf_int_power))
 }
 
