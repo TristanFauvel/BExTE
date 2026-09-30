@@ -1,4 +1,13 @@
 # BExTE 0.0.2
+* `sweet_spot()` failed on time-to-event results with "arguments imply
+  differing number of rows". It pooled every design of a case study -
+  dropout, event time distribution, treatment delay - into one curve per
+  method, then bound one results row per design to sweet spots found on the
+  mixture. Each design is now its own curve with its own sweet spot. A curve
+  with several `power_larger_than_nominal` or
+  `success_proba_smaller_than_nominal_TIE` sweet spots now gets one row with
+  list columns, as the other metrics already did, instead of one row per
+  sweet spot.
 * The frequentist power baselines of the time-to-event sensitivity designs
   were computed on the primary design's trials. `load_data()` rebuilt a
   scenario's target data without its dropout probability, event time
