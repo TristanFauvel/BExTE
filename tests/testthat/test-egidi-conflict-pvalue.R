@@ -6,7 +6,7 @@
 ## component sits at the source estimate and the weak one at theta_0.
 ##
 ## The implementation gets there by splitting the line at the turning points of
-## the mixture density and then bisecting for the level crossings. Scanning for
+## the mixture density and then root-finding for the level crossings. Scanning for
 ## the crossings directly is what it replaced: when the statistic lands near a
 ## turning point, the region above the level can be orders of magnitude narrower
 ## than either component and any fixed grid steps straight over it. The first

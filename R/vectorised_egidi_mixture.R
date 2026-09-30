@@ -75,9 +75,10 @@ egidi_level_bounds <- function(level, weights, means, sds) {
 #' strictly increasing; above both means it is strictly decreasing. All turning
 #' points therefore lie between the two means, where \eqn{m_\psi'} is scanned on a
 #' grid fine enough to resolve the narrower component and its sign changes are
-#' refined by bisection. There are at most three of them, giving at most four
-#' monotone pieces, each of which holds at most one root and yields it exactly by
-#' bisection.
+#' refined by root-finding. There are at most three of them, giving at most four
+#' monotone pieces, each of which holds at most one root. Both refinements run
+#' [vectorised_bracketed_root()] on a bracket found beforehand, so neither can
+#' lose its root.
 #'
 #' Scanning for the level crossings directly would not be robust: when the
 #' observed statistic sits near a turning point the region above the level can be
@@ -100,16 +101,12 @@ egidi_level_bounds <- function(level, weights, means, sds) {
 #' @param mu_q Mean of the weak component's predictive.
 #' @param sigma_q Standard deviation of the weak component's predictive,
 #'   \eqn{\sqrt{s_T^2 + \tau_q^2}}.
-#' @param turning_point_nodes Minimum number of grid nodes placed between the two
-#'   component means to bracket the turning points. The grid is refined beyond
-#'   this when the means are far apart relative to the narrower component.
-#' @param bisection_iterations Number of bisection steps used to refine each
-#'   bracketed turning point and each root.
+#' @param root_tolerance Relative width at which each bracketed turning point
+#'   and each root is considered found.
 #' @return The conflict p-value, one per replicate.
 #' @keywords internal
 egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_q,
-                                         turning_point_nodes = 65L,
-                                         bisection_iterations = 60L) {
+                                         root_tolerance = 1e-13) {
   recycled <- egidi_recycle(t_obs = t_obs, psi = psi, mu_p = mu_p,
                             sigma_p = sigma_p, mu_q = mu_q, sigma_q = sigma_q)
   t_obs <- recycled$t_obs
@@ -160,15 +157,23 @@ egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_
     (1 - psi[i]) * stats::dnorm(t, mu_p[i], sigma_p[i]) +
       psi[i] * stats::dnorm(t, mu_q[i], sigma_q[i])
   }
+  # The level crossings are found on the log scale, where the tails of the
+  # density neither underflow nor flatten out.
+  log_density <- function(t, i = seq_len(n)) {
+    informative <- log1p(-psi[i]) + stats::dnorm(t, mu_p[i], sigma_p[i], log = TRUE)
+    weak <- log(psi[i]) + stats::dnorm(t, mu_q[i], sigma_q[i], log = TRUE)
+    largest <- pmax(informative, weak)
+    largest + log(exp(informative - largest) + exp(weak - largest))
+  }
   distribution <- function(t) {
     (1 - psi) * stats::pnorm(t, mu_p, sigma_p) + psi * stats::pnorm(t, mu_q, sigma_q)
   }
 
   # Turning points are found from the sign of the derivative, but the derivative
   # itself is not evaluated: between the two means its two terms have opposite
-  # signs, so comparing their logarithms decides the sign exactly. Well separated
-  # components make each term underflow to zero at the other's mean, which would
-  # hide every sign change if the difference were formed directly.
+  # signs, so the difference of their logarithms has the derivative's sign. Well
+  # separated components make each term underflow to zero at the other's mean,
+  # which would hide every sign change if the difference were formed directly.
   informative_is_left <- mu_p < mu_q
   mean_left <- ifelse(informative_is_left, mu_p, mu_q)
   sd_left <- ifelse(informative_is_left, sigma_p, sigma_q)
@@ -177,16 +182,17 @@ egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_
   sd_right <- ifelse(informative_is_left, sigma_q, sigma_p)
   weight_right <- ifelse(informative_is_left, psi, 1 - psi)
 
-  rising_at <- function(t, i) {
+  rising_margin <- function(t, i) {
     t <- pmin(pmax(t, mean_left[i]), mean_right[i])
     pull_up <- log(weight_right[i]) + log(mean_right[i] - t) -
       2 * log(sd_right[i]) + stats::dnorm(t, mean_right[i], sd_right[i], log = TRUE)
     pull_down <- log(weight_left[i]) + log(t - mean_left[i]) -
       2 * log(sd_left[i]) + stats::dnorm(t, mean_left[i], sd_left[i], log = TRUE)
-    pull_up > pull_down
+    pull_up - pull_down
   }
 
   level <- density(t_obs)
+  log_level <- log_density(t_obs)
 
   # A level that has underflowed puts every point of the sample space strictly
   # above it, so the conflict set is empty. Reporting zero is the limit of the
@@ -202,81 +208,108 @@ egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_
   lower <- pmin(bounds$lower, mean_left)
   upper <- pmax(bounds$upper, mean_right)
 
-  # Turning points lie strictly between the means. Resolving the narrower
-  # component across that gap separates them; the regions outside the means are
-  # monotone already and need no nodes of their own.
-  # The nodes are shared by every replicate, so the count is the largest any one
-  # of them asks for rather than the ratio of the widest span to the narrowest
-  # component, which no single replicate need combine.
-  resolution <- max((mean_right - mean_left) / pmin(sigma_p, sigma_q))
-  nodes <- max(turning_point_nodes,
-               min(2049L, ceiling(16 * resolution) + 1L))
-  fractions <- seq(0, 1, length.out = nodes)
+  # Turning points lie strictly between the means, where they are the zeros of
+  # the rising margin g. Writing t = mean_left + gap * u, the derivative of g
+  # has the sign of the cubic
+  #   h(u) = (B + (A - B) u) u (1 - u) - 1,
+  # with A = (gap / sd_left)^2 and B = (gap / sd_right)^2. h is -1 at both ends
+  # of [0, 1] and has its local maximum inside, at u_top below, so it is either
+  # negative throughout - g decreases from +Inf to -Inf and has one zero - or
+  # positive on an interval (u_1, u_2), in which case g decreases, increases and
+  # decreases again, and has a zero on each of those pieces that changes sign.
+  # Either way the pieces are monotone, so each zero is bracketed exactly and
+  # none can be missed, however narrow the components.
+  gap <- mean_right - mean_left
+  A <- (gap / sd_left)^2
+  B <- (gap / sd_right)^2
+  h <- function(u, i) (B[i] + (A[i] - B[i]) * u) * u * (1 - u) - 1
+  u_top <- B / (2 * B - A + sqrt(A^2 - A * B + B^2))
+  at_u <- function(u, i) mean_left[i] + gap[i] * u
 
-  grid <- outer(mean_right - mean_left, fractions) + mean_left
-  rising <- rising_at(grid, rep(seq_len(n), times = nodes))
-  dim(rising) <- dim(grid)
+  # Pieces of the unit interval on which g is monotone, one row per replicate:
+  # [0, u_1], [u_1, u_2] and [u_2, 1], or [0, 1] alone when h stays negative.
+  piece_ends <- cbind(0, u_top, u_top, 1)
+  bends <- which(h(u_top, seq_len(n)) > 0)
+  if (length(bends) > 0) {
+    first <- vectorised_bracketed_root(
+      f = function(u, within) h(u, bends[within]),
+      lower = rep(0, length(bends)), upper = u_top[bends],
+      f_lower = rep(-1, length(bends)), f_upper = h(u_top[bends], bends),
+      tolerance = root_tolerance
+    )
+    second <- vectorised_bracketed_root(
+      f = function(u, within) h(u, bends[within]),
+      lower = u_top[bends], upper = rep(1, length(bends)),
+      f_lower = h(u_top[bends], bends), f_upper = rep(-1, length(bends)),
+      tolerance = root_tolerance
+    )
+    piece_ends[bends, 2] <- first$root
+    piece_ends[bends, 3] <- second$root
+  }
+  single <- setdiff(seq_len(n), bends)
+  piece_ends[single, 2:3] <- 1
 
-  # The density rises at the left mean and falls at the right one, so at least
-  # one sign change is always present. Unused slots hold the right mean, which
-  # leaves the boundaries sorted and the extra pieces empty.
-  turning <- matrix(mean_right, nrow = n, ncol = 3L)
-  crossing <- rising[, -ncol(rising), drop = FALSE] != rising[, -1, drop = FALSE]
-  located <- which(crossing, arr.ind = TRUE)
-  if (nrow(located) > 0) {
-    located <- located[order(located[, 1], located[, 2]), , drop = FALSE]
-    slot <- stats::ave(located[, 1], located[, 1], FUN = seq_along)
-    usable <- slot <= 3L
-    located <- located[usable, , drop = FALSE]
-    slot <- slot[usable]
-
-    row <- located[, 1]
-    left <- grid[, -ncol(grid), drop = FALSE][located]
-    right <- grid[, -1, drop = FALSE][located]
-    rising_at_left <- rising[, -ncol(rising), drop = FALSE][located]
-
-    for (iteration in seq_len(bisection_iterations)) {
-      middle <- (left + right) / 2
-      keep_left <- rising_at(middle, row) == rising_at_left
-      left[keep_left] <- middle[keep_left]
-      right[!keep_left] <- middle[!keep_left]
+  # g is +Inf at the left mean and -Inf at the right one.
+  turning <- matrix(NA_real_, nrow = n, ncol = 3L)
+  for (piece in 1:3) {
+    left_u <- piece_ends[, piece]
+    right_u <- piece_ends[, piece + 1L]
+    g_left <- ifelse(left_u == 0, Inf, rising_margin(at_u(left_u, seq_len(n)), seq_len(n)))
+    g_right <- ifelse(right_u == 1, -Inf, rising_margin(at_u(right_u, seq_len(n)), seq_len(n)))
+    changes <- which(right_u > left_u & ((g_left > 0) != (g_right > 0) | g_left == 0))
+    if (length(changes) == 0) {
+      next
     }
-    turning[cbind(row, slot)] <- (left + right) / 2
+    zero <- vectorised_bracketed_root(
+      f = function(t, within) rising_margin(t, changes[within]),
+      lower = at_u(left_u[changes], changes),
+      upper = at_u(right_u[changes], changes),
+      f_lower = g_left[changes],
+      f_upper = g_right[changes],
+      tolerance = root_tolerance
+    )
+    turning[changes, piece] <- zero$root
   }
 
+  # The density rises at the left mean and falls at the right one, so at least
+  # one turning point is always present. Unused slots hold the right mean, which
+  # leaves the boundaries sorted and the extra pieces empty.
+  turning <- sort_rows(turning)
+  turning[is.na(turning)] <- matrix(mean_right, nrow = n, ncol = 3L)[is.na(turning)]
+
   # Each consecutive pair of boundaries is a piece on which the density is
-  # monotone, so it holds at most one root and bisection cannot miss it.
+  # monotone, so it holds at most one root and a bracketed search cannot miss it.
   boundaries <- cbind(lower, turning, upper)
   roots <- matrix(NA_real_, nrow = n, ncol = ncol(boundaries) - 1L)
   for (piece in seq_len(ncol(boundaries) - 1L)) {
     left <- boundaries[, piece]
     right <- boundaries[, piece + 1L]
-    above_at_left <- density(left) > level
-    brackets <- (above_at_left != (density(right) > level))
+    excess_left <- log_density(left) - log_level
+    excess_right <- log_density(right) - log_level
+    brackets <- (excess_left > 0) != (excess_right > 0)
     brackets[is.na(brackets)] <- FALSE
     if (!any(brackets)) {
       next
     }
     index <- which(brackets)
-    a <- left[index]
-    b <- right[index]
-    reference <- above_at_left[index]
-    for (iteration in seq_len(bisection_iterations)) {
-      middle <- (a + b) / 2
-      keep_a <- (density(middle, index) > level[index]) == reference
-      a[keep_a] <- middle[keep_a]
-      b[!keep_a] <- middle[!keep_a]
-    }
-    roots[index, piece] <- (a + b) / 2
+    found <- vectorised_bracketed_root(
+      f = function(t, within) {
+        rows <- index[within]
+        log_density(t, rows) - log_level[rows]
+      },
+      lower = left[index],
+      upper = right[index],
+      f_lower = excess_left[index],
+      f_upper = excess_right[index],
+      tolerance = root_tolerance
+    )
+    roots[index, piece] <- found$root
   }
 
   # The density vanishes in both tails, so the crossings come in pairs and the
   # region above the level is the union of the intervals between the first and
   # second root, the third and fourth, and so on.
-  ordered <- matrix(
-    t(apply(roots, 1, sort, na.last = TRUE)),
-    nrow = n, ncol = ncol(roots)
-  )
+  ordered <- sort_rows(roots)
   mass <- rep(0, n)
   for (pair in seq_len(ncol(ordered) %/% 2)) {
     contribution <- distribution(ordered[, 2 * pair]) -
@@ -361,14 +394,23 @@ egidi_monte_carlo_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p,
 #' @param evaluate Function of a candidate weight and the row indices it belongs
 #'   to, returning the conflict p-value.
 #' @param alpha_pc Conflict threshold.
-#' @return A list with the bracketing `lower` and `upper` weights.
+#' @param lower_value,upper_value The conflict p-value at `lower` and `upper`,
+#'   which are carried to the ends of the bracket so that refining it needs no
+#'   further evaluation there. `NA` when unknown.
+#' @return A list with the bracketing `lower` and `upper` weights, and the
+#'   conflict p-values there as `lower_value` and `upper_value`.
 #' @keywords internal
-egidi_first_crossing <- function(lower, upper, steps, evaluate, alpha_pc) {
+egidi_first_crossing <- function(lower, upper, steps, evaluate, alpha_pc,
+                                 lower_value = rep(NA_real_, length(lower)),
+                                 upper_value = rep(NA_real_, length(lower))) {
   n <- length(lower)
   resolved <- rep(FALSE, n)
   bracket_lower <- lower
   bracket_upper <- upper
   previous <- lower
+  previous_value <- lower_value
+  bracket_lower_value <- lower_value
+  bracket_upper_value <- upper_value
 
   for (step in seq_len(steps)) {
     remaining <- which(!resolved)
@@ -377,22 +419,30 @@ egidi_first_crossing <- function(lower, upper, steps, evaluate, alpha_pc) {
     }
     candidate <- lower[remaining] +
       (upper[remaining] - lower[remaining]) * step / steps
-    crossed <- evaluate(candidate, remaining) >= alpha_pc
+    value <- evaluate(candidate, remaining)
+    crossed <- value >= alpha_pc
 
     found <- remaining[crossed]
     bracket_lower[found] <- previous[found]
+    bracket_lower_value[found] <- previous_value[found]
     bracket_upper[found] <- candidate[crossed]
+    bracket_upper_value[found] <- value[crossed]
     resolved[found] <- TRUE
     previous[remaining] <- candidate
+    previous_value[remaining] <- value
   }
 
   # The upper end satisfies the criterion by construction, so anything the scan
   # did not resolve crosses in its final step.
   missed <- !resolved
   bracket_lower[missed] <- previous[missed]
+  bracket_lower_value[missed] <- previous_value[missed]
   bracket_upper[missed] <- upper[missed]
 
-  list(lower = bracket_lower, upper = bracket_upper)
+  list(
+    lower = bracket_lower, upper = bracket_upper,
+    lower_value = bracket_lower_value, upper_value = bracket_upper_value
+  )
 }
 
 #' Select the smallest acceptable weak-component weight
@@ -416,8 +466,8 @@ egidi_first_crossing <- function(lower, upper, steps, evaluate, alpha_pc) {
 #' refining it, since monotonicity in \eqn{\psi} is not guaranteed.
 #'
 #' The scan is run in two stages, a coarse one to locate the crossing and a fine
-#' one at `weight_grid_step` inside it, and then bisected. The two-stage scan
-#' agrees with a single scan at `weight_grid_step` unless a crossing both starts
+#' one at `weight_grid_step` inside it, and the crossing is then refined by
+#' [vectorised_bracketed_root()]. The two-stage scan agrees with a single scan at `weight_grid_step` unless a crossing both starts
 #' and ends inside one coarse step; `weight_scan_step = weight_grid_step` disables
 #' the coarse stage.
 #'
@@ -428,7 +478,8 @@ egidi_first_crossing <- function(lower, upper, steps, evaluate, alpha_pc) {
 #' @param alpha_pc Conflict threshold, 0.05 in the primary analysis.
 #' @param weight_grid_step Resolution of the weight scan.
 #' @param weight_scan_step Resolution of the coarse stage of the scan.
-#' @param refinements Number of bisection steps used to refine the crossing.
+#' @param weight_tolerance Width of the weight bracket at which the crossing is
+#'   considered found.
 #' @return A data frame with one row per replicate and the columns `psi_weak`,
 #'   `pvalue_informative`, `pvalue_weak`, `pvalue_selected`, `initial_conflict`
 #'   and `conflict_unresolved`.
@@ -437,7 +488,7 @@ egidi_select_weak_weight <- function(t_obs, s_target, mu_p, tau_p, mu_q, tau_q,
                                      alpha_pc = 0.05,
                                      weight_grid_step = 0.001,
                                      weight_scan_step = 0.02,
-                                     refinements = 30L) {
+                                     weight_tolerance = 1e-12) {
   recycled <- egidi_recycle(t_obs = t_obs, s_target = s_target, mu_p = mu_p,
                             tau_p = tau_p, mu_q = mu_q, tau_q = tau_q)
   t_obs <- recycled$t_obs
@@ -485,26 +536,31 @@ egidi_select_weak_weight <- function(t_obs, s_target, mu_p, tau_p, mu_q, tau_q,
     coarse <- egidi_first_crossing(
       lower = rep(0, length(general)), upper = rep(1, length(general)),
       steps = max(1L, as.integer(round(1 / weight_scan_step))),
-      evaluate = evaluate, alpha_pc = alpha_pc
+      evaluate = evaluate, alpha_pc = alpha_pc,
+      lower_value = pvalue_informative[general],
+      upper_value = pvalue_weak[general]
     )
     fine <- egidi_first_crossing(
       lower = coarse$lower, upper = coarse$upper,
       steps = max(1L, as.integer(ceiling(weight_scan_step / weight_grid_step))),
-      evaluate = evaluate, alpha_pc = alpha_pc
+      evaluate = evaluate, alpha_pc = alpha_pc,
+      lower_value = coarse$lower_value,
+      upper_value = coarse$upper_value
     )
 
     # The upper end of the bracket satisfies the criterion and the lower end does
-    # not, so bisection keeps that invariant and the upper end is returned: the
-    # selected weight is one the criterion actually holds at.
-    low <- fine$lower
-    high <- fine$upper
+    # not. The root search keeps that invariant, and the upper end is returned:
+    # the selected weight is one the criterion actually holds at.
     index <- seq_along(general)
-    for (refinement in seq_len(refinements)) {
-      middle <- (low + high) / 2
-      acceptable <- evaluate(middle, index) >= alpha_pc
-      high[acceptable] <- middle[acceptable]
-      low[!acceptable] <- middle[!acceptable]
-    }
+    refined <- vectorised_bracketed_root(
+      f = function(candidate, within) evaluate(candidate, within) - alpha_pc,
+      lower = fine$lower,
+      upper = fine$upper,
+      f_lower = fine$lower_value - alpha_pc,
+      f_upper = fine$upper_value - alpha_pc,
+      tolerance = weight_tolerance
+    )
+    high <- refined$upper
 
     psi[general] <- pmin(pmax(high, 0), 1)
     pvalue_selected[general] <- evaluate(high, index)

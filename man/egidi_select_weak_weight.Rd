@@ -14,7 +14,7 @@ egidi_select_weak_weight(
   alpha_pc = 0.05,
   weight_grid_step = 0.001,
   weight_scan_step = 0.02,
-  refinements = 30L
+  weight_tolerance = 1e-12
 )
 }
 \arguments{
@@ -32,7 +32,8 @@ egidi_select_weak_weight(
 
 \item{weight_scan_step}{Resolution of the coarse stage of the scan.}
 
-\item{refinements}{Number of bisection steps used to refine the crossing.}
+\item{weight_tolerance}{Width of the weight bracket at which the crossing is
+considered found.}
 }
 \value{
 A data frame with one row per replicate and the columns \code{psi_weak},
@@ -59,8 +60,8 @@ Otherwise the weight is found by scanning upwards for the first crossing and
 refining it, since monotonicity in \eqn{\psi} is not guaranteed.
 
 The scan is run in two stages, a coarse one to locate the crossing and a fine
-one at \code{weight_grid_step} inside it, and then bisected. The two-stage scan
-agrees with a single scan at \code{weight_grid_step} unless a crossing both starts
+one at \code{weight_grid_step} inside it, and the crossing is then refined by
+\code{\link[=vectorised_bracketed_root]{vectorised_bracketed_root()}}. The two-stage scan agrees with a single scan at \code{weight_grid_step} unless a crossing both starts
 and ends inside one coarse step; \code{weight_scan_step = weight_grid_step} disables
 the coarse stage.
 }
