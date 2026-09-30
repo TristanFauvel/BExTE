@@ -66,6 +66,9 @@ model may still share an analysis between replicates with equal samples.}
     \item{\code{n_nonestimable_replicates}}{Replicates dropped by the last
 simulation because their target summary measure was undefined.}
 
+    \item{\code{estimable_replicates}}{Which rows of the last simulation's
+replicates were kept for analysis, in the order they were generated.}
+
     \item{\code{analysis_critical_value}}{Posterior probability threshold the
 analysis decides at, recorded when a simulation starts. Methods whose
 tuning depends on the decision rule read it, so that they are tuned for
@@ -565,7 +568,8 @@ Calculates the credible interval of the posterior distribution for a given level
     "ess_elir", "fit_success", "mcmc_diagnostics"),
   verbose = 0,
   n_samples_quantiles_estimation,
-  simulation_config = NULL
+  simulation_config = NULL,
+  samples = NULL
 )}
     \if{html}{\out{</div>}}
   }
@@ -588,6 +592,10 @@ Calculates the credible interval of the posterior distribution for a given level
 and the method has no vectorised fast path, since those outputs are
 computed via \code{posterior_to_RBesT()}/\code{prior_to_RBesT()}, which need
 \code{simulation_config$n_samples_mixture_approx}.}
+      \item{\code{samples}}{Optional replicate rows to analyse instead of generating
+\code{n_replicates} of them, such as the trials of
+\code{BinaryTargetData$enumerate_support()}. \code{n_replicates} must then be
+their number.}
     }
     \if{html}{\out{</div>}}
   }
@@ -641,7 +649,9 @@ computed via \code{posterior_to_RBesT()}/\code{prior_to_RBesT()}, which need
   case_study,
   method,
   verbose = 0,
-  simulation_config = NULL
+  simulation_config = NULL,
+  exact_enumeration = FALSE,
+  enumeration_tail_mass = 1e-10
 )}
     \if{html}{\out{</div>}}
   }
@@ -661,6 +671,13 @@ computed via \code{posterior_to_RBesT()}/\code{prior_to_RBesT()}, which need
       \item{\code{simulation_config}}{Simulation configuration, needed by
 \code{simulation_for_given_treatment_effect()} for \code{ess_moment},
 \code{ess_precision} and \code{ess_elir} on methods without a vectorised fast path.}
+      \item{\code{exact_enumeration}}{Whether to compute the operating
+characteristics exactly, as sums over every trial outcome weighted by
+its probability (see \code{BinaryTargetData$enumerate_support()}), instead
+of averages over \code{n_replicates} simulated trials. The intervals then
+collapse onto the point estimates, since there is no Monte Carlo error.}
+      \item{\code{enumeration_tail_mass}}{Upper bound on the probability of the trial
+outcomes the enumeration leaves out.}
     }
     \if{html}{\out{</div>}}
   }

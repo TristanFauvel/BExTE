@@ -180,6 +180,12 @@ config_frequentist <- list(
     not_missing = FALSE
   ),
   parallelization = list(type = "logical", not_missing = TRUE),
+  exact_ocs = list(type = "logical", not_missing = TRUE),
+  enumeration_omitted_mass = list(
+    type = "numeric",
+    range = c(0, 1),
+    not_missing = FALSE
+  ),
   success_proba = list(
     type = "numeric",
     range = c(0, 1),

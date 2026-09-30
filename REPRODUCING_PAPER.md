@@ -50,10 +50,18 @@ the case studies, sample sizes and methods that the selection plots. It then
 simulates only those, at the paper's fidelity, and exports the outputs:
 
 - 30 drift points per scenario;
-- 10,000 replicates per scenario, for every case study. Aprepitant is analysed
-  with its exact binomial likelihood; its posteriors are computed by
-  quadrature rather than MCMC (see below), which makes the full count
-  affordable;
+- 10,000 replicates per scenario for the continuous, recurrent-event and
+  time-to-event case studies;
+- no replicates at all for the two binary case studies, Aprepitant and
+  Belimumab. A trial there reaches the analysis only through the responder
+  counts of its two arms, so each operating characteristic is summed exactly
+  over every pair of counts, weighted by its binomial probability, instead of
+  averaged over simulated trials (`exact_enumeration` in the scenarios
+  config). The pairs left out have probability below 1e-10. These results
+  have no Monte Carlo error and their figures no error bars, and
+  `BEXTE_N_REPLICATES` does not affect them. Aprepitant is analysed with its
+  exact binomial likelihood; its posteriors are computed by quadrature rather
+  than MCMC (see below);
 - after the simulations, only the two analysis steps the figures read: the
   power baselines at the equivalent and at the nominal type I error rate. The
   sweet spot and the Bayesian operating characteristics are skipped.
@@ -63,8 +71,13 @@ simulates only those, at the paper's fidelity, and exports the outputs:
 - The five normal-likelihood case studies (botox, belimumab, dapagliflozin,
   mepolizumab, teriflunomide): about 9 hours of simulation at 10,000
   replicates, then about 1 hour for the two analysis steps.
+  Belimumab is now enumerated rather than simulated, and that run time has
+  not been re-measured.
 - Aprepitant: an estimated 2.5 hours on 11 workers for the four methods that
-  used to be the bottleneck, at 10,000 replicates. This is an estimate from
+  used to be the bottleneck, at 10,000 replicates. Aprepitant is now
+  enumerated rather than simulated, which analyses about as many distinct
+  pairs of counts as 10,000 replicates did; this has not been timed end to
+  end either. The estimate was made from
   measured costs per analysis, not an end-to-end timing: the conditional power
   prior, the p-value-based power prior, the RMP and the Egidi RMP
   (`egidi_empirical_mixture`) take 0.04 to 0.8 CPU seconds per analysis by
@@ -131,7 +144,9 @@ BEXTE_RESULTS_DIR=results/paper_replication_<date>_<time> Rscript inst/scripts/r
 
 - **Reproducibility.** The simulation seed is fixed (`seed: 42` in
   `inst/conf/simulation_config.yml`). The same commit on the same package
-  versions should reproduce the figures up to Monte Carlo error. Parallel
+  versions should reproduce the figures up to Monte Carlo error. The paper's
+  Aprepitant and Belimumab figures were simulated, so the exact results
+  differ from them by that paper run's Monte Carlo error. Parallel
   scheduling can change the order in which random numbers are consumed, so
   small differences are not a sign of a problem.
 - **Commensurate priors.** The commensurate power prior and the commensurate

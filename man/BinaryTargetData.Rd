@@ -23,6 +23,8 @@ A class for binary target data objects.
   \itemize{
     \item \href{#method-BinaryTargetData-initialize}{\code{BinaryTargetData$new()}}
     \item \href{#method-BinaryTargetData-generate}{\code{BinaryTargetData$generate()}}
+    \item \href{#method-BinaryTargetData-samples_from_counts}{\code{BinaryTargetData$samples_from_counts()}}
+    \item \href{#method-BinaryTargetData-enumerate_support}{\code{BinaryTargetData$enumerate_support()}}
     \item \href{#method-BinaryTargetData-to_dict}{\code{BinaryTargetData$to_dict()}}
     \item \href{#method-BinaryTargetData-clone}{\code{BinaryTargetData$clone()}}
   }
@@ -82,6 +84,66 @@ A class for binary target data objects.
   }
   \subsection{Returns}{
     A data frame containing the generated samples.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinaryTargetData-samples_from_counts"></a>}}
+\if{latex}{\out{\hypertarget{method-BinaryTargetData-samples_from_counts}{}}}
+\subsection{\code{BinaryTargetData$samples_from_counts()}}{
+  The replicate rows a trial with the given responder counts
+is analysed from. \code{\link[=generate]{generate()}} draws the counts and
+\code{\link[=enumerate_support]{enumerate_support()}} lists them, and both build their rows here, so
+the two cannot disagree on what a trial looks like to the analysis.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinaryTargetData$samples_from_counts(
+  n_control_responders,
+  n_treatment_responders
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_control_responders}}{Integer vector of control-arm responders.}
+      \item{\code{n_treatment_responders}}{Integer vector of treatment-arm
+responders, the same length.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with one row per pair of counts.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinaryTargetData-enumerate_support"></a>}}
+\if{latex}{\out{\hypertarget{method-BinaryTargetData-enumerate_support}{}}}
+\subsection{\code{BinaryTargetData$enumerate_support()}}{
+  Every trial outcome with non-negligible probability, with
+its probability, so that an operating characteristic can be computed
+as an exact weighted sum over trials instead of a Monte Carlo average.
+Each arm's responder count is kept between its \code{tail_mass / 4} and
+\code{1 - tail_mass / 4} binomial quantiles, so at most \code{tail_mass} is left
+out across both arms, and the weights, the product of
+the two binomial probabilities, are renormalised over the pairs kept.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinaryTargetData$enumerate_support(tail_mass = 1e-10)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{tail_mass}}{Upper bound on the probability of the trials left out.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list: \code{samples}, the replicate rows as \code{\link[=generate]{generate()}} builds
+them; \code{weights}, their probabilities, summing to 1; and
+\code{omitted_mass}, the probability of the trials left out.
   }
 }
 
