@@ -792,8 +792,8 @@ equivalent_tie_design_p_values <- function(design_rows,
   # Only the rows being simulated are sent to the workers.
   rows_to_simulate <- lapply(to_simulate, function(d) design_rows[d, , drop = FALSE])
 
-  if (analysis_uses_cluster(parallelization, length(to_simulate),
-                            min_rows = ANALYSIS_PARALLEL_MIN_DESIGNS)) {
+  if (analysis_uses_cluster(parallelization, length(to_simulate) * n_replicates,
+                            min_rows = ANALYSIS_PARALLEL_MIN_TRIALS)) {
     n_cores <- get_parallel_worker_count()
     cl <- parallel::makeCluster(n_cores)
     on.exit(parallel::stopCluster(cl), add = TRUE)
@@ -802,8 +802,12 @@ equivalent_tie_design_p_values <- function(design_rows,
     # See load_bexte_in_workers() for why a bare library(BExTE) is not enough.
     load_bexte_in_workers(cl, packages = c("dplyr", "yaml"))
 
+    # The foreach body is evaluated outside the package namespace, where an
+    # internal function is not visible; bound here, it travels to the workers
+    # as an exported variable, with the namespace as its environment.
+    simulate_design <- design_test_p_values
     simulated <- foreach(row = rows_to_simulate, .packages = c("dplyr", "yaml")) %dopar% {
-      design_test_p_values(row, frequentist_test, simulation_config, n_replicates)
+      simulate_design(row, frequentist_test, simulation_config, n_replicates)
     }
   } else {
     simulated <- lapply(rows_to_simulate, design_test_p_values,
