@@ -611,6 +611,105 @@ paper_write_numbered_copies <- function(status, entries, numbered_dir) {
   invisible(NULL)
 }
 
+## Produce manifest entries in forked processes, `workers` at a time.
+##
+## A figure costs about a second to draw, twice over for its PDF and PNG, and
+## the paper's 60 items draw several hundred, one after the other. The items
+## are independent, so they run in parallel here - but the sequential path
+## works out which files an item wrote by comparing the output directories
+## before and after it, which cannot tell concurrent items apart. Each item
+## therefore writes into its own staging directories, and the files are
+## copied into place afterwards in manifest order, so the final directories
+## hold what a sequential run would have left there, and each item is
+## credited with exactly the paths a sequential run would report for it.
+##
+## The progress callback runs here, in the parent, as each item finishes: a
+## callback reaching into a Shiny session could not work from a child.
+##
+## Returns one list per entry: status, message and the paths written.
+paper_export_in_parallel <- function(entries, run_generator, figures_dir,
+                                     tables_dir, workers, progress) {
+  staging_root <- tempfile("bexte-paper-export-")
+  dir.create(staging_root)
+  on.exit(unlink(staging_root, recursive = TRUE), add = TRUE)
+  staging_dir <- function(index, kind) {
+    file.path(staging_root, index, kind)
+  }
+
+  run_in_child <- function(index) {
+    entry_figures_dir <- paste0(staging_dir(index, "figures"), "/")
+    entry_tables_dir <- staging_dir(index, "tables")
+    dir.create(entry_figures_dir, recursive = TRUE)
+    dir.create(entry_tables_dir, recursive = TRUE)
+    ## Only the child's own copy of .GlobalEnv changes.
+    assign("figures_dir", entry_figures_dir, envir = .GlobalEnv)
+    run_generator(entries[[index]], entry_tables_dir)
+  }
+
+  outcomes <- vector("list", length(entries))
+  jobs <- list()
+  job_index <- integer()
+  next_index <- 1L
+  finished <- 0L
+
+  while (finished < length(entries)) {
+    while (length(jobs) < workers && next_index <= length(entries)) {
+      job <- parallel::mcparallel(run_in_child(next_index))
+      jobs[[as.character(job$pid)]] <- job
+      job_index[[as.character(job$pid)]] <- next_index
+      next_index <- next_index + 1L
+    }
+
+    done <- parallel::mccollect(jobs, wait = FALSE, timeout = 0.5)
+    for (pid in names(done)) {
+      index <- job_index[[pid]]
+      value <- done[[pid]]
+      outcomes[[index]] <- if (is.list(value) && !is.null(value$status)) {
+        value
+      } else {
+        ## An error outside the generator's own tryCatch() comes back as a
+        ## try-error, and a process that died comes back as NULL.
+        list(status = "failed", message = if (inherits(value, "try-error")) {
+          conditionMessage(attr(value, "condition"))
+        } else {
+          "The process producing this item exited without a result."
+        })
+      }
+      jobs[[pid]] <- NULL
+      job_index <- job_index[names(job_index) != pid]
+      finished <- finished + 1L
+      if (!is.null(progress)) {
+        progress(finished, length(entries), entries[[index]]$id)
+      }
+    }
+  }
+
+  ## In manifest order, so that where two items write the same file the later
+  ## one's copy is kept, as it would be sequentially.
+  for (index in seq_along(entries)) {
+    written <- character()
+    for (kind in c("figures", "tables")) {
+      source_dir <- staging_dir(index, kind)
+      target_dir <- if (kind == "figures") figures_dir else tables_dir
+      relative <- list.files(source_dir, recursive = TRUE)
+      for (path in relative) {
+        target <- file.path(target_dir, path)
+        dir.create(dirname(target), showWarnings = FALSE, recursive = TRUE)
+        file.copy(file.path(source_dir, path), target, overwrite = TRUE)
+      }
+      ## The form list.files(full.names = TRUE) gives, which is how the
+      ## sequential path reports them. paste() of no paths would still give
+      ## one, the bare directory.
+      if (length(relative) > 0) {
+        written <- c(written, paste(target_dir, relative, sep = "/"))
+      }
+    }
+    outcomes[[index]]$written <- written
+  }
+
+  outcomes
+}
+
 #' Produce the paper's figures and tables
 #'
 #' @description Runs each selected manifest entry's generator against
@@ -631,13 +730,19 @@ paper_write_numbered_copies <- function(status, entries, numbered_dir) {
 #' @param numbered_dir Optional directory for numbered copies ("Figure 1.png",
 #'   "Table S1.tex"). Numbered figures are copied as PNG, tables as both
 #'   `.tex` and `.pdf`. Unnumbered `X` figures are omitted. `NULL` skips it.
+#' @param workers Number of items to produce at once, each in a forked
+#'   process. The default, 1, produces them one after the other in this
+#'   process. Forking is unavailable on Windows, which always uses one. The
+#'   files written and the status returned are the same either way; with more
+#'   than one worker, `progress` is called as each item finishes rather than
+#'   as it starts.
 #'
 #' @return A status data frame, invisibly.
 #'
 #' @export
 export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
                                  case_studies_config_dir, progress = NULL,
-                                 numbered_dir = NULL) {
+                                 numbered_dir = NULL, workers = 1L) {
   ## Some generators build their paths with paste0(figures_dir, case_study)
   ## rather than file.path(), so a directory named without a trailing
   ## separator concatenates into a sibling of itself - "figures" and
@@ -711,27 +816,45 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
     on.exit(options(device = previous_device), add = TRUE)
   }
 
-  rows <- lapply(seq_along(entries), function(index) {
-    entry <- entries[[index]]
-    if (!is.null(progress)) {
-      progress(index, length(entries), entry$id)
-    }
-
-    before <- paper_output_snapshot(figures_dir, tables_dir)
-
-    result <- tryCatch({
+  ## Runs one entry's generator, writing its tables to `entry_tables_dir` and
+  ## its figures to whatever figures_dir .GlobalEnv holds.
+  run_generator <- function(entry, entry_tables_dir) {
+    tryCatch({
       ctx <- paper_entry_context(
-        entry, results_df, results_dir, tables_dir, case_studies_config_dir,
-        case_studies, sample_size_factors, analysis_config
+        entry, results_df, results_dir, entry_tables_dir,
+        case_studies_config_dir, case_studies, sample_size_factors,
+        analysis_config
       )
       entry$generator(ctx)
       list(status = "ok", message = "")
     }, error = function(e) {
       list(status = "failed", message = conditionMessage(e))
     })
+  }
 
-    after <- paper_output_snapshot(figures_dir, tables_dir)
-    written <- paper_outputs_written(before, after)
+  outcomes <- if (workers > 1 && length(entries) > 1 &&
+                  .Platform$OS.type == "unix") {
+    paper_export_in_parallel(entries, run_generator, figures_dir, tables_dir,
+                             workers, progress)
+  } else {
+    lapply(seq_along(entries), function(index) {
+      entry <- entries[[index]]
+      if (!is.null(progress)) {
+        progress(index, length(entries), entry$id)
+      }
+
+      before <- paper_output_snapshot(figures_dir, tables_dir)
+      result <- run_generator(entry, tables_dir)
+      after <- paper_output_snapshot(figures_dir, tables_dir)
+
+      c(result, list(written = paper_outputs_written(before, after)))
+    })
+  }
+
+  rows <- lapply(seq_along(entries), function(index) {
+    entry <- entries[[index]]
+    result <- outcomes[[index]][c("status", "message")]
+    written <- outcomes[[index]]$written
 
     ## A generator handed a slice it has no rows for can return without
     ## raising - plot_success_proba_vs_drift() warns "Dataframe is empty" and
