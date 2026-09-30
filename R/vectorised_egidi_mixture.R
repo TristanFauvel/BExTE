@@ -592,12 +592,21 @@ egidi_binomial_predictive_table <- function(mu, sd, n_control, n_treatment,
     stats::dbinom(y, n_treatment, rate)
   }) * simpson
 
+  # The nodes are equally spaced, so the kernel depends on a pair of nodes only
+  # through the difference of their indices. Its 2 n_nodes - 1 distinct values
+  # are computed once and indexed, rather than one density per pair.
+  offsets <- seq.int(-(n_nodes - 1L), n_nodes - 1L)
+  kernel_values <- stats::dnorm(offsets * spacing, mu, sd)
+
   inner <- matrix(0, nrow = n_nodes, ncol = n_treatment + 1L)
   for (start in seq.int(1L, n_nodes, by = block)) {
     rows <- seq.int(start, min(start + block - 1L, n_nodes))
-    kernel <- outer(nodes[rows], nodes, function(control, treatment) {
-      stats::dnorm(treatment - control, mu, sd)
-    })
+    kernel <- matrix(
+      kernel_values[outer(rows, seq_len(n_nodes), function(control, treatment) {
+        treatment - control + n_nodes
+      })],
+      nrow = length(rows)
+    )
     # Where the component has no mass left after truncation the row contributes
     # nothing, rather than a ratio of two zeros.
     scaling <- ifelse(normalisers[rows] > 0, 1 / normalisers[rows], 0)
@@ -605,6 +614,67 @@ egidi_binomial_predictive_table <- function(mu, sd, n_control, n_treatment,
   }
 
   crossprod(control_likelihood, inner)
+}
+
+#' Cache of prior-predictive tables
+#'
+#' @description A table depends on the component and the arm sizes alone, not
+#' on the drift, so every scenario of a design reads the same ones. The store
+#' lives in the package rather than on a model because a model is built afresh
+#' for each scenario, the same reason [inference_cache_store] does.
+#'
+#' @keywords internal
+egidi_table_cache_store <- new.env(parent = emptyenv())
+
+#' Empty the prior-predictive table cache
+#'
+#' @return `NULL`, invisibly.
+#' @keywords internal
+egidi_table_cache_reset <- function() {
+  rm(
+    list = ls(envir = egidi_table_cache_store, all.names = TRUE),
+    envir = egidi_table_cache_store
+  )
+  invisible(NULL)
+}
+
+#' Prior-predictive table of one component, built once per worker
+#'
+#' @description Returns [egidi_binomial_predictive_table()] for these inputs,
+#' from the cache when it holds it. A table is a deterministic function of its
+#' inputs, so serving it from the cache changes nothing but the time taken.
+#'
+#' The weak component's scale takes a few hundred rounded values per design, and
+#' the largest arms give tables of several hundred kilobytes, so the cache is
+#' emptied once it holds `max_bytes`, which bounds each worker's memory.
+#'
+#' @param mu,sd Mean and standard deviation of the component.
+#' @param n_control,n_treatment Arm sizes.
+#' @param n_nodes Number of quadrature nodes.
+#' @param max_bytes Size the cache may reach before it is emptied.
+#' @return The table.
+#' @keywords internal
+egidi_cached_predictive_table <- function(mu, sd, n_control, n_treatment, n_nodes,
+                                          max_bytes = 128 * 1024^2) {
+  key <- paste(format(mu, digits = 17), format(sd, digits = 17),
+               n_control, n_treatment, n_nodes, sep = "/")
+  if (exists(key, envir = egidi_table_cache_store, inherits = FALSE)) {
+    return(get(key, envir = egidi_table_cache_store))
+  }
+
+  table <- egidi_binomial_predictive_table(
+    mu = mu, sd = sd, n_control = n_control,
+    n_treatment = n_treatment, n_nodes = n_nodes
+  )
+
+  held <- mget(ls(envir = egidi_table_cache_store, all.names = TRUE),
+               envir = egidi_table_cache_store)
+  held_cells <- sum(vapply(held, length, numeric(1)))
+  if (8 * (held_cells + length(table)) > max_bytes) {
+    egidi_table_cache_reset()
+  }
+  assign(key, table, envir = egidi_table_cache_store)
+  table
 }
 
 #' Exact discrete conflict p-value for a two-arm binomial target
@@ -636,6 +706,85 @@ egidi_binomial_conflict_pvalue <- function(table_informative, table_weak, psi,
     return(NA_real_)
   }
   sum(mixture[conflicting]) / total
+}
+
+#' Conflict p-values at many weights at once
+#'
+#' @description [egidi_binomial_conflict_pvalue()] at every weight in `psi`,
+#' for the cost of sorting the table once rather than of one pass over it per
+#' weight.
+#'
+#' @details
+#' The mixture is `A + psi (B - A)`, so whether a cell is at or below the
+#' observed one, with the same relative tolerance, is a linear inequality in
+#' `psi`: every cell enters or leaves the conflict set at a single crossing
+#' weight. Sorting the crossings turns the conflict mass at each weight into a
+#' difference of cumulative sums. A cell tied with the observed one to rounding
+#' at exactly one of the weights may be counted differently than by the direct
+#' computation, so a caller that must agree with it exactly re-checks the weight
+#' it selects.
+#'
+#' @param table_informative,table_weak Component tables.
+#' @param psi Weights on the weak component.
+#' @param y_control,y_treatment Observed responder counts.
+#' @param tolerance Relative tolerance used when comparing probabilities.
+#' @return The conflict p-value at each weight.
+#' @keywords internal
+egidi_binomial_conflict_pvalue_path <- function(table_informative, table_weak, psi,
+                                                y_control, y_treatment,
+                                                tolerance = 1e-9) {
+  informative <- as.vector(table_informative)
+  difference <- as.vector(table_weak) - informative
+  observed <- (y_treatment) * nrow(table_informative) + y_control + 1L
+
+  # Cell i is in the conflict set at weight psi when
+  # intercept_i + psi * slope_i <= 0.
+  intercept <- informative - (1 + tolerance) * informative[observed] - .Machine$double.xmin
+  slope <- difference - (1 + tolerance) * difference[observed]
+
+  # Conflict mass at each weight, as sum(informative) + psi * sum(difference)
+  # over the cells in the set.
+  mass_informative <- numeric(length(psi))
+  mass_difference <- numeric(length(psi))
+
+  # Cells whose comparison does not depend on the weight.
+  flat <- slope == 0 & intercept <= 0
+  mass_informative <- mass_informative + sum(informative[flat])
+  mass_difference <- mass_difference + sum(difference[flat])
+
+  # Rising cells are in the set up to their crossing, falling cells from it.
+  rising <- which(slope > 0)
+  if (length(rising)) {
+    crossing <- -intercept[rising] / slope[rising]
+    order_rising <- order(crossing)
+    crossing <- crossing[order_rising]
+    cumulative_informative <- c(0, cumsum(informative[rising][order_rising]))
+    cumulative_difference <- c(0, cumsum(difference[rising][order_rising]))
+    # Those crossing below psi have left the set.
+    left <- findInterval(psi, crossing, left.open = TRUE)
+    mass_informative <- mass_informative +
+      cumulative_informative[length(rising) + 1L] - cumulative_informative[left + 1L]
+    mass_difference <- mass_difference +
+      cumulative_difference[length(rising) + 1L] - cumulative_difference[left + 1L]
+  }
+
+  falling <- which(slope < 0)
+  if (length(falling)) {
+    crossing <- -intercept[falling] / slope[falling]
+    order_falling <- order(crossing)
+    crossing <- crossing[order_falling]
+    cumulative_informative <- c(0, cumsum(informative[falling][order_falling]))
+    cumulative_difference <- c(0, cumsum(difference[falling][order_falling]))
+    # Those crossing at or below psi have entered it.
+    entered <- findInterval(psi, crossing)
+    mass_informative <- mass_informative + cumulative_informative[entered + 1L]
+    mass_difference <- mass_difference + cumulative_difference[entered + 1L]
+  }
+
+  total <- sum(informative) + psi * sum(difference)
+  pvalue <- (mass_informative + psi * mass_difference) / total
+  pvalue[!is.finite(total) | total <= 0] <- NA_real_
+  pvalue
 }
 
 #' Select the weak-component weight from a pair of response counts
@@ -696,6 +845,30 @@ egidi_select_weak_weight_binomial <- function(table_informative, table_weak,
   }
 
   candidates <- seq(weight_grid_step, 1, by = weight_grid_step)
+
+  # The p-value at every candidate at once locates the first crossing; the
+  # scan's own function then confirms it there and just before it, so that the
+  # weight reported is the one the scan below would find. Only if a cell's
+  # comparison lands differently under the two ways of computing it - a cell
+  # tied with the observed one to rounding, at exactly a candidate weight -
+  # does the scan run, and it then decides.
+  path <- egidi_binomial_conflict_pvalue_path(
+    table_informative, table_weak, candidates, y_control, y_treatment, tolerance
+  )
+  first <- which(path >= alpha_pc)[1]
+  if (!is.na(first)) {
+    pvalue <- at(candidates[first])
+    confirmed <- pvalue >= alpha_pc &&
+      (first == 1L || at(candidates[first - 1L]) < alpha_pc)
+    if (confirmed) {
+      return(data.frame(
+        psi_weak = candidates[first], pvalue_informative = pvalue_informative,
+        pvalue_weak = pvalue_weak, pvalue_selected = pvalue,
+        initial_conflict = TRUE, conflict_unresolved = FALSE
+      ))
+    }
+  }
+
   for (candidate in candidates) {
     pvalue <- at(candidate)
     if (pvalue >= alpha_pc) {

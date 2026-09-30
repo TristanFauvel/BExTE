@@ -2467,6 +2467,8 @@ PoolGaussian_RBesT <- R6::R6Class(
 #'
 #' @field stan_model_code Code of the Stan model
 #' @field stan_model The compiled Stan model
+#' @field stan_model_name Name the Stan model is compiled under, for models
+#'   that compile it only when they first sample
 #' @field summary_variables Variables to summarise from the posterior draws
 #' @field fit The MCMC fit object
 #' @field fit_summary Summary of the Stan fit
@@ -2491,6 +2493,7 @@ MCMCModel <- R6::R6Class(
   public = list(
     stan_model = NULL,
     stan_model_code = NULL,
+    stan_model_name = NULL,
     summary_variables = "target_treatment_effect",
     fit_summary = NULL,
     fit = NULL,
@@ -2535,6 +2538,24 @@ MCMCModel <- R6::R6Class(
       # alone, so replicates with the same data may share one analysis.
       self$mcmc <- !self$uses_quadrature()
       self$deterministic_inference <- self$uses_quadrature()
+    },
+
+    #' @description The compiled Stan model, compiled on first use
+    #'
+    #' A model that names its Stan program in `stan_model_name` rather than
+    #' compiling it in `initialize()` is compiled here, the first time it
+    #' samples. Models whose simulations never sample, because their replicates
+    #' go through a quadrature path, therefore never compile at all.
+    #'
+    #' @return The compiled Stan model.
+    stan_sampler = function() {
+      if (is.null(self$stan_model) && !is.null(self$stan_model_name)) {
+        self$stan_model <- compile_stan_model(self$stan_model_name, self$stan_model_code)
+      }
+      if (is.null(self$stan_model)) {
+        stop("This model has no Stan program to sample with.", call. = FALSE)
+      }
+      self$stan_model
     },
 
     #' @description Whether the posterior is computed by quadrature
@@ -2613,7 +2634,7 @@ MCMCModel <- R6::R6Class(
       self$check_data(data_list)
 
       # Sample from the posterior
-      self$fit <- self$stan_model$sample(
+      self$fit <- self$stan_sampler()$sample(
         data = data_list,
         chains = self$mcmc_config$num_chains,
         parallel_chains = self$mcmc_config$parallel_chains,

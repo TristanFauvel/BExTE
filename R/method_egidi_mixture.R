@@ -273,7 +273,8 @@ GaussianEgidiMixture <- R6::R6Class(
 #' component is a deliberately diffuse unit-information prior whose scale is a
 #' modelling choice, and rounding it by a fraction of a percent cannot move the
 #' selected weight, while rebuilding the table for every replicate would dominate
-#' the run.
+#' the run. The tables do not depend on the drift, so the cache is shared by
+#' every scenario a worker runs - see [egidi_cached_predictive_table()].
 #'
 #' @field alpha_pc Prior-predictive conflict threshold.
 #' @field pvalue_method How the conflict p-value is computed.
@@ -316,7 +317,6 @@ TruncatedEgidiMixture <- R6::R6Class(
       self$posterior_parameters <- egidi_posterior_parameters(
         NA_real_, self$selection
       )
-      private$tables <- list()
     },
 
     #' @description Select the mixture weight for a replicate.
@@ -372,8 +372,6 @@ TruncatedEgidiMixture <- R6::R6Class(
     }
   ),
   private = list(
-    tables = NULL,
-
     #' Cached joint prior-predictive table of one component.
     table_for = function(mu, sd, n_control, n_treatment, n_nodes) {
       rounded <- if (self$table_scale_tolerance > 0) {
@@ -381,14 +379,10 @@ TruncatedEgidiMixture <- R6::R6Class(
       } else {
         sd
       }
-      key <- paste(mu, rounded, n_control, n_treatment, n_nodes, sep = "/")
-      if (is.null(private$tables[[key]])) {
-        private$tables[[key]] <- egidi_binomial_predictive_table(
-          mu = mu, sd = rounded, n_control = n_control,
-          n_treatment = n_treatment, n_nodes = n_nodes
-        )
-      }
-      private$tables[[key]]
+      egidi_cached_predictive_table(
+        mu = mu, sd = rounded, n_control = n_control,
+        n_treatment = n_treatment, n_nodes = n_nodes
+      )
     }
   )
 )
