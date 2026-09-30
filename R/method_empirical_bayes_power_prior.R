@@ -177,6 +177,31 @@ findCalibrationParameter <- function(n_iter = 1e6,
 }
 
 
+#' Interpolate an expensive function of a positive scalar
+#'
+#' @description Evaluates `f` at `n_nodes` points spaced evenly on the log scale
+#' across the range of `x`, and interpolates linearly in `log(x)` between them.
+#' Where every `x` is equal, `f` is evaluated once.
+#'
+#' @param f A function of one positive number, returning one number.
+#' @param x Positive values at which `f` is wanted.
+#' @param n_nodes Number of evaluations of `f`.
+#' @return `f` interpolated at `x`.
+#' @keywords internal
+log_grid_interpolation <- function(f, x, n_nodes = 100L) {
+  if (any(!is.finite(x) | x <= 0)) {
+    stop("log_grid_interpolation() needs positive, finite values.", call. = FALSE)
+  }
+  bounds <- range(x)
+  if (bounds[[1]] == bounds[[2]]) {
+    return(rep(f(bounds[[1]]), length(x)))
+  }
+  nodes <- exp(seq(log(bounds[[1]]), log(bounds[[2]]), length.out = n_nodes))
+  values <- vapply(nodes, f, numeric(1))
+  stats::approx(log(nodes), values, xout = log(x), ties = "ordered")$y
+}
+
+
 #' Gaussian_empirical_Bayes_PP class
 #'
 #' @description This is a parent class for variants of empirical Bayes PP methods for normally distributed summary measure of the treatment effect.
@@ -581,10 +606,101 @@ PDCCPP <- R6::R6Class(
       source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
       target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
 
-
       target_data_sampling_variance <- target_data$sample$treatment_effect_standard_error ^
         2 * target_data$sample_size_per_arm
 
+      calibration_parameter <- self$calibration_parameter(
+        target_data_sampling_variance = target_data_sampling_variance,
+        target_sample_size_per_arm = target_data$sample_size_per_arm,
+        source_treatment_effect_estimate = source_treatment_effect_estimate
+      )
+      assert_single_number(calibration_parameter)
+
+      power_parameter <- self$power_parameter_from_calibration(
+        target_treatment_effect_estimate = target_treatment_effect_estimate,
+        source_treatment_effect_estimate = source_treatment_effect_estimate,
+        target_data_sampling_variance = target_data_sampling_variance,
+        target_sample_size_per_arm = target_data$sample_size_per_arm,
+        calibration_parameter = calibration_parameter
+      )
+
+      if (is.null(power_parameter) || is.na(power_parameter)) {
+        stop("Variable is NULL or NA. Execution stopped.")
+      }
+
+      return(power_parameter)
+    },
+
+    #' @description The power parameter for every replicate at once
+    #'
+    #' The calibration depends on a replicate only through its target sampling
+    #' variance, and it is a smooth function of it. Rather than search for it
+    #' once per replicate, it is computed at 200 variances spaced evenly on the
+    #' log scale across the replicates' range and interpolated linearly. Near
+    #' the borrowing cut-off the power parameter is very sensitive to the
+    #' calibration, so these few searches are run to a tolerance of 1e-9
+    #' rather than the configured one: the interpolated calibration is then
+    #' closer to the exact one than a per-replicate search at the configured
+    #' tolerance would be. Equation (9) is evaluated for every replicate,
+    #' exactly as `power_parameter_estimation()` does.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of power parameters, one per replicate.
+    vectorised_power_parameter = function(target_data, samples) {
+      if (any(!is.finite(samples$treatment_effect_standard_error))) {
+        stop("The standard error on the treatment effect is Inf")
+      }
+
+      transformed <- self$vectorised_hypothesis_space_transformation(samples)
+      source_estimate <- transformed$source_treatment_effect_estimate
+      target_estimate <- transformed$target_treatment_effect_estimate
+
+      target_sampling_variance <- samples$treatment_effect_standard_error^2 *
+        target_data$sample_size_per_arm
+
+      calibration_parameter <- log_grid_interpolation(
+        function(variance) {
+          self$calibration_parameter(
+            target_data_sampling_variance = variance,
+            target_sample_size_per_arm = target_data$sample_size_per_arm,
+            source_treatment_effect_estimate = source_estimate,
+            tolerance = min(self$parameters$tolerance, 1e-9)
+          )
+        },
+        target_sampling_variance,
+        n_nodes = 200L
+      )
+
+      power_parameter <- self$power_parameter_from_calibration(
+        target_treatment_effect_estimate = target_estimate,
+        source_treatment_effect_estimate = source_estimate,
+        target_data_sampling_variance = target_sampling_variance,
+        target_sample_size_per_arm = target_data$sample_size_per_arm,
+        calibration_parameter = calibration_parameter
+      )
+
+      if (anyNA(power_parameter)) {
+        stop("Variable is NULL or NA. Execution stopped.")
+      }
+
+      power_parameter
+    },
+
+    #' @description The calibration parameter z_{1-c/2} for one target
+    #' sampling variance
+    #'
+    #' @param target_data_sampling_variance Target sampling variance, per
+    #'   patient.
+    #' @param target_sample_size_per_arm Target sample size per arm.
+    #' @param source_treatment_effect_estimate Source estimate, after
+    #'   `hypothesis_space_transformation()`.
+    #' @param tolerance Tolerance of the search; the configured one by default.
+    #' @return The calibration parameter, a positive number.
+    calibration_parameter = function(target_data_sampling_variance,
+                                     target_sample_size_per_arm,
+                                     source_treatment_effect_estimate,
+                                     tolerance = self$parameters$tolerance) {
       equivalent_source_sample_size_per_arm <- self$prior$source$equivalent_source_sample_size_per_arm
 
       source_data_sampling_variance <- equivalent_source_sample_size_per_arm * self$prior$source$standard_error ^ 2
@@ -603,13 +719,13 @@ PDCCPP <- R6::R6Class(
       calibration <- findCalibrationParameter(
         n_iter = self$parameters$n_iter,
         source_sample_size_per_arm = equivalent_source_sample_size_per_arm,
-        target_sample_size_per_arm = target_data$sample_size_per_arm,
+        target_sample_size_per_arm = target_sample_size_per_arm,
         source_treatment_effect_estimate = source_treatment_effect_estimate,
         desired_tie = self$parameters$desired_tie,
         significance_level = significance_level,
         target_data_sampling_variance = target_data_sampling_variance,
         source_data_sampling_variance = source_data_sampling_variance,
-        tolerance = self$parameters$tolerance,
+        tolerance = tolerance,
         # hypothesis_space_transformation() has already translated the
         # estimates so that the boundary of the null hypothesis space sits
         # at 0. theta_0 here is the mean of the target estimate's sampling
@@ -622,7 +738,6 @@ PDCCPP <- R6::R6Class(
       )
 
       calibration_parameter <- as.numeric(calibration[1, 2])
-      assertions::assert_number(calibration_parameter)
 
       # The calibration parameter is z_{1-c/2}, a number of predictive standard
       # deviations, not a probability: only positivity is required of it, and
@@ -634,12 +749,37 @@ PDCCPP <- R6::R6Class(
       if (!is.finite(calibration_parameter) || calibration_parameter <= 0) {
         stop("Calibration parameter must be positive.")
       }
+
+      calibration_parameter
+    },
+
+    #' @description The power parameter given the calibration, equation (9)
+    #' of Nikolakopoulos et al (2018)
+    #'
+    #' Vectorised over its arguments, so it serves one replicate or all of them.
+    #'
+    #' @param target_treatment_effect_estimate Target estimates, after
+    #'   `hypothesis_space_transformation()`.
+    #' @param source_treatment_effect_estimate Source estimate, after the same
+    #'   transformation.
+    #' @param target_data_sampling_variance Target sampling variances, per
+    #'   patient.
+    #' @param target_sample_size_per_arm Target sample size per arm.
+    #' @param calibration_parameter Calibration parameters z_{1-c/2}.
+    #' @return The power parameters.
+    power_parameter_from_calibration = function(target_treatment_effect_estimate,
+                                                source_treatment_effect_estimate,
+                                                target_data_sampling_variance,
+                                                target_sample_size_per_arm,
+                                                calibration_parameter) {
       # Same prior sample size the calibration used, so that the cut-off is
       # measured against the same predictive standard deviation.
-      n0 <- equivalent_source_sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
+      n0 <- self$prior$source$equivalent_source_sample_size_per_arm *
+        target_data_sampling_variance /
+        (self$prior$source$equivalent_source_sample_size_per_arm * self$prior$source$standard_error ^ 2)
 
       standard_deviation_predictive <- sqrt(
-        target_data_sampling_variance / n0 + target_data_sampling_variance / target_data$sample_size_per_arm
+        target_data_sampling_variance / n0 + target_data_sampling_variance / target_sample_size_per_arm
       )
 
       # findCalibrationParameter reports z_{1-c/2}, which equation (9) of
@@ -650,7 +790,7 @@ PDCCPP <- R6::R6Class(
       # recovers z_{1-c/2} as qnorm(1 - c / 2). Sending a z-score through that
       # conversion a second time applied a wider cut-off than the one the
       # search had just calibrated.
-      power_parameter <- ifelse(((
+      ifelse(((
         target_treatment_effect_estimate > (
           source_treatment_effect_estimate + standard_deviation_predictive * calibration_parameter
         )
@@ -662,15 +802,9 @@ PDCCPP <- R6::R6Class(
         )), ((target_data_sampling_variance / n0) / (((
           target_treatment_effect_estimate - source_treatment_effect_estimate
         ) / calibration_parameter
-        ) ^ 2 - target_data_sampling_variance / target_data$sample_size_per_arm
+        ) ^ 2 - target_data_sampling_variance / target_sample_size_per_arm
         )
         ), 1)
-
-      if (is.null(power_parameter) || is.na(power_parameter)) {
-        stop("Variable is NULL or NA. Execution stopped.")
-      }
-
-      return(power_parameter)
     }
   )
 )
