@@ -13,7 +13,8 @@ compute_power_with_tie_ci(
   simulation_config,
   case_study = NULL,
   n_replicates = 1000,
-  n_samples = 1000
+  n_samples = 1000,
+  p_values = NULL
 )
 }
 \arguments{
@@ -35,6 +36,12 @@ exact interval bounds, and its \code{mcse} or \code{n_replicates} when available
 \item{n_replicates}{Number of Monte Carlo replicates for non-analytical power.}
 
 \item{n_samples}{Number of draws of the type I error.}
+
+\item{p_values}{Optional p-values of the separate analysis, already
+simulated for this design by \code{\link[=simulate_test_p_values]{simulate_test_p_values()}}. They depend on the
+design alone, not on the borrowing method, so a caller pricing many rows of
+one design simulates them once and passes them here. \code{NULL} simulates them.
+Ignored when the power has a closed form.}
 }
 \value{
 A list with the power, its interval, and the number of draws used.

@@ -101,8 +101,13 @@ simulation_analysis <- function(env,
     "equivalent_source_sample_size_per_arm"
   )
 
+  # Both power steps read the separate analysis off the same simulated trials,
+  # which depend on the design alone: the first simulates them, the second
+  # reads them back instead of simulating every design a second time.
+  p_value_cache <- new.env(parent = emptyenv())
+
   if ("frequentist_power_at_equivalent_tie" %in% to_compute){
-    new_results_power_df <- frequentist_power_at_equivalent_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = run_in_parallel, n_replicates = n_replicates)
+    new_results_power_df <- frequentist_power_at_equivalent_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = run_in_parallel, n_replicates = n_replicates, p_value_cache = p_value_cache)
 
     updated_results_df <- results_freq_df %>%
       dplyr::anti_join(new_results_power_df, by = matching_columns)
@@ -117,7 +122,7 @@ simulation_analysis <- function(env,
     readr::write_csv(results_freq_df, freq_filename)
   }
   if ("frequentist_power_at_nominal_tie" %in% to_compute){
-    new_results_power_df <- frequentist_power_at_nominal_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = run_in_parallel, n_replicates = n_replicates)
+    new_results_power_df <- frequentist_power_at_nominal_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = run_in_parallel, n_replicates = n_replicates, p_value_cache = p_value_cache)
 
     updated_results_df <- results_freq_df %>%
       dplyr::anti_join(new_results_power_df, by = matching_columns)

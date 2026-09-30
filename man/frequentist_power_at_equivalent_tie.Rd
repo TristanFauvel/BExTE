@@ -9,7 +9,8 @@ frequentist_power_at_equivalent_tie(
   analysis_config,
   simulation_config,
   parallelization = FALSE,
-  n_replicates = 1000
+  n_replicates = 1000,
+  p_value_cache = NULL
 )
 }
 \arguments{
@@ -20,6 +21,11 @@ frequentist_power_at_equivalent_tie(
 \item{n_replicates}{Number of Monte Carlo replicates the simulated power
 estimates are built from, for the case studies analytical_power() cannot
 be used for.}
+
+\item{p_value_cache}{Optional environment holding the simulated p-values of
+the separate analysis by design, filled here and read back by
+\code{frequentist_power_at_nominal_tie()}, which simulates the same trials.
+\code{NULL} keeps them for this call only.}
 }
 \value{
 The final results data frame with power and frequentist test columns added.
