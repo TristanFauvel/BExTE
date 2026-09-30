@@ -33,7 +33,11 @@ plot_metric_vs_drift(
 
 \item{method}{The method name}
 
-\item{category}{The category to group the results by (either "parameters" or "target_sample_size_per_arm")}
+\item{category}{The category to group the results by: "parameters",
+"target_sample_size_per_arm", "source_denominator_change_factor",
+"target_to_source_std_ratio", or one of the time-to-event design axes
+"control_drift", "dropout_probability" and "event_time_distribution",
+which hold the other two axes at their primary value.}
 
 \item{control_drift}{Logical indicating whether to filter results by control drift (TRUE) or treatment drift (FALSE)}
 

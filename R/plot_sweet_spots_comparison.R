@@ -112,7 +112,11 @@ forest_subplot_sweet_spot <- function(data,
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
   source_treatment_effect_estimate <- unique(data$source_treatment_effect_estimate)[1]
-  mandatory_drift_values <- sort(important_drift_values(source_treatment_effect_estimate, case_study_config))
+  # Not sorted: important_drift_values() returns the no-effect, partially
+  # consistent and consistent drifts in that order, which is the order of the
+  # labels below. Sorting reversed them for a negative source effect
+  # (teriflunomide, mepolizumab), putting "No effect" on the consistent drift.
+  mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
 
   mandatory_drift_values <- data.frame(
     drift_value = mandatory_drift_values,

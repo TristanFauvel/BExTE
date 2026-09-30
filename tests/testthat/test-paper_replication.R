@@ -637,3 +637,118 @@ test_that("a run with too few replicates for one case study is short", {
   generous$case_study_n_replicates <- NULL
   expect_equal(paper_config_shortfalls(generous, requirements), character(0))
 })
+
+## ---- Time-to-event sensitivity figures (S45-S50) ----------------------
+
+## The forest-plot fixture relabelled as the teriflunomide slice the
+## sensitivity figures read, at every loss-to-follow-up level.
+teriflunomide_dropout_fixture <- function(levels = c(0, 0.05, 0.10)) {
+  df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
+  df$case_study <- "teriflunomide"
+  df$target_sample_size_per_arm <- 123
+  df$control_drift <- 0
+  df$event_time_distribution <- "exponential"
+  do.call(rbind, lapply(levels, function(level) {
+    df$dropout_probability <- level
+    df
+  }))
+}
+
+test_that("the sensitivity designs are requested only with a figure that reads them", {
+  without <- paper_replication_requirements("S31", config_dir())
+  expect_null(without$dropout_probability)
+  expect_null(without$sensitivity_reference)
+
+  with <- paper_replication_requirements(c("S31", "S45"), config_dir())
+  expect_equal(with$dropout_probability, c(0, 0.05, 0.10))
+  expect_equal(with$event_time_distribution, c("exponential", "weibull"))
+  expect_equal(with$control_drift_range, c(-0.405, 0, 0.405))
+  expect_equal(with$treatment_delay, c(0, 0.230769, 0.461538))
+  expect_true(with$sensitivity_one_at_a_time)
+  ## The reference has to be a factor the run simulates, or the scenario
+  ## grid refuses the config.
+  expect_true(with$sensitivity_reference$sample_size_factor %in% with$sample_size_factors)
+})
+
+test_that("a run without the sensitivity designs is short of the figures that read them", {
+  requirements <- paper_replication_requirements("S45", config_dir())
+  run_config <- requirements
+  run_config$dropout_probability <- NULL
+
+  expect_equal(paper_config_shortfalls(requirements, requirements), character(0))
+  expect_match(
+    paper_config_shortfalls(run_config, requirements),
+    "sensitivity designs were not simulated \\(dropout_probability\\)",
+    all = FALSE
+  )
+})
+
+test_that("coverage wants the varied axis, not only the primary design", {
+  df <- teriflunomide_dropout_fixture(levels = 0)
+  coverage <- paper_replication_coverage(df, c("S31", "S45"), config_dir())
+
+  expect_true(coverage$covered[coverage$id == "S31"])
+  expect_false(coverage$covered[coverage$id == "S45"])
+  expect_match(coverage$reason[coverage$id == "S45"], "dropout_probability")
+})
+
+test_that("the other figures read the primary design alone", {
+  df <- teriflunomide_dropout_fixture()
+  df$treatment_delay <- 0
+  context <- function(id) {
+    paper_entry_context(
+      paper_manifest_entry(id), df, "results", "tables", config_dir(),
+      "teriflunomide", 6, list()
+    )
+  }
+
+  ## Pooled into S31's points, the sensitivity rows would triple them.
+  expect_equal(unique(context("S31")$df$dropout_probability), 0)
+  expect_equal(nrow(context("S31")$df), nrow(df) / 3)
+  expect_equal(nrow(context("S45")$df), nrow(df))
+})
+
+test_that("the loss-to-follow-up figures write one plot per level and method", {
+  df <- teriflunomide_dropout_fixture()
+
+  withr::with_tempdir({
+    results_dir <- file.path(getwd(), "results")
+    dir.create(results_dir)
+    readr::write_csv(df, file.path(results_dir, "results_frequentist.csv"))
+
+    status <- suppressWarnings(export_paper_outputs(
+      results_dir = results_dir,
+      figures_dir = file.path(getwd(), "figures", ""),
+      tables_dir = file.path(getwd(), "tables"),
+      ids = c("S45", "S48"),
+      case_studies_config_dir = config_dir()
+    ))
+
+    expect_equal(status$status, c("ok", "ok"))
+    s45 <- strsplit(status$outputs[status$id == "S45"], "; ")[[1]]
+    ## Three levels by three metrics, as PDF and PNG.
+    expect_length(s45, 18)
+    expect_true(any(grepl("dropout=0.05", s45)))
+    s48 <- strsplit(status$outputs[status$id == "S48"], "; ")[[1]]
+    ## The fixture has two methods, drawn for two metrics.
+    expect_length(grep("\\.png$", s48), 4)
+    expect_true(all(grepl("cat_dropout_probability", s48)))
+  })
+})
+
+test_that("a delayed treatment effect is not pooled into the primary figures", {
+  df <- teriflunomide_dropout_fixture(levels = 0)
+  df$treatment_delay <- 0
+  delayed <- df
+  delayed$treatment_delay <- 0.461538
+  df <- rbind(df, delayed)
+
+  context <- paper_entry_context(
+    paper_manifest_entry("S31"), df, "results", "tables", config_dir(),
+    "teriflunomide", 6, list()
+  )
+  expect_equal(unique(context$df$treatment_delay), 0)
+
+  ## Results written before the axis existed describe proportional hazards.
+  expect_true(all(paper_primary_design_rows(df[, setdiff(names(df), "treatment_delay")])))
+})

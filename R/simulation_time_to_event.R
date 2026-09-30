@@ -75,20 +75,33 @@ time_to_event_dropout_rate <- function(dropout_probability, max_follow_up_time) 
 # on (0, A) and C = min(L, A + F - R), the administrative survivor function is
 # S_C(t) = min(1, (A + F - t)/A) on [0, L) and zero afterwards. It has a kink
 # where entry stops buying full follow-up, so the integral is split there.
+#
+# With a delay, `parameter` is the control one and the arm is the delayed
+# treatment arm of time_to_event_delayed_arms(): control hazard until `delay`,
+# multiplied by exp(late_log_hr) afterwards.
 time_to_event_event_probability <- function(parameter,
                                             event_time_distribution,
                                             weibull_shape,
                                             accrual_period,
                                             final_follow_up,
                                             max_follow_up_time,
-                                            dropout_rate) {
+                                            dropout_rate,
+                                            delay = 0,
+                                            late_log_hr = 0) {
   closing_time <- accrual_period + final_follow_up
 
-  density <- function(t) {
-    if (event_time_distribution == "exponential") {
-      stats::dexp(t, rate = parameter)
-    } else {
-      stats::dweibull(t, shape = weibull_shape, scale = parameter)
+  density <- if (delay > 0) {
+    arms <- time_to_event_delayed_arms(
+      parameter, event_time_distribution, weibull_shape, delay, late_log_hr
+    )
+    function(t) arms$treatment_hazard(t) * arms$treatment_survival(t)
+  } else {
+    function(t) {
+      if (event_time_distribution == "exponential") {
+        stats::dexp(t, rate = parameter)
+      } else {
+        stats::dweibull(t, shape = weibull_shape, scale = parameter)
+      }
     }
   }
 
@@ -98,7 +111,8 @@ time_to_event_event_probability <- function(parameter,
   }
 
   kink <- min(max(closing_time - max_follow_up_time, 0), max_follow_up_time)
-  breaks <- unique(c(0, kink, max_follow_up_time))
+  breaks <- sort(unique(c(0, kink, if (delay > 0) min(delay, max_follow_up_time),
+                          max_follow_up_time)))
 
   sum(vapply(seq_len(length(breaks) - 1L), function(i) {
     stats::integrate(integrand, breaks[i], breaks[i + 1L])$value
@@ -118,8 +132,10 @@ time_to_event_standard_deviation <- function(control_parameter,
                                              accrual_period,
                                              final_follow_up,
                                              max_follow_up_time,
-                                             dropout_rate) {
-  event_probability <- function(parameter) {
+                                             dropout_rate,
+                                             delay = 0,
+                                             late_log_hr = 0) {
+  event_probability <- function(parameter, delay = 0, late_log_hr = 0) {
     time_to_event_event_probability(
       parameter = parameter,
       event_time_distribution = event_time_distribution,
@@ -127,12 +143,309 @@ time_to_event_standard_deviation <- function(control_parameter,
       accrual_period = accrual_period,
       final_follow_up = final_follow_up,
       max_follow_up_time = max_follow_up_time,
-      dropout_rate = dropout_rate
+      dropout_rate = dropout_rate,
+      delay = delay,
+      late_log_hr = late_log_hr
     )
   }
 
-  sqrt(1 / event_probability(control_parameter) +
-         1 / event_probability(treatment_parameter))
+  # Under a delayed effect the treatment arm is the control one with its hazard
+  # multiplied after the delay; 1/d0 + 1/d1 is then only an approximation to
+  # the variance of the Cox estimate, as the hazard ratio is not constant.
+  treatment_events <- if (delay > 0) {
+    event_probability(control_parameter, delay, late_log_hr)
+  } else {
+    event_probability(treatment_parameter)
+  }
+  sqrt(1 / event_probability(control_parameter) + 1 / treatment_events)
+}
+
+
+#' Expected number of observed events in each arm of the target trial
+#'
+#' @description The number of events is what loss to follow-up, the event time
+#'   distribution and control-arm heterogeneity change in the time-to-event
+#'   trial, and what the precision of its log hazard ratio rests on. Uses the
+#'   same arm parameters and censoring as the data generator.
+#'
+#' @param case_study_config A time-to-event case study configuration.
+#' @param sample_size_per_arm Number of patients in each arm.
+#' @param control_drift Control-arm heterogeneity, kappa, on the log scale.
+#' @param dropout_probability Probability of loss to follow-up over the
+#'   maximum follow-up time.
+#' @param event_time_distribution Either "exponential" or "weibull".
+#' @param treatment_effect Target log hazard ratio; the source estimate by
+#'   default, i.e. a consistent treatment effect. Under a delayed effect, the
+#'   Cox model's large-sample limit (see [time_to_event_delayed_log_hr()]).
+#' @param treatment_delay Time before the treatment effect starts, in years.
+#'
+#' @return A named numeric vector with elements `control` and `treatment`.
+#'
+#' @export
+time_to_event_expected_events <- function(case_study_config,
+                                          sample_size_per_arm,
+                                          control_drift = 0,
+                                          dropout_probability = 0,
+                                          event_time_distribution = "exponential",
+                                          treatment_effect = case_study_config$source$treatment_effect,
+                                          treatment_delay = 0) {
+  target <- case_study_config$target
+  control_rate <- case_study_config$source$control_rate * exp(control_drift)
+
+  weibull_scale <- NULL
+  if (event_time_distribution == "weibull") {
+    weibull_scale <- weibull_control_scale(
+      max_follow_up_time = target$max_follow_up_time,
+      shape = target$weibull_shape,
+      relapse_free_probability = target$weibull_relapse_free_probability
+    )
+  }
+
+  parameters <- time_to_event_arm_parameters(
+    event_time_distribution = event_time_distribution,
+    control_rate = control_rate,
+    treatment_rate = control_rate * exp(treatment_effect),
+    treatment_effect = treatment_effect,
+    control_drift = control_drift,
+    weibull_shape = target$weibull_shape,
+    weibull_scale = weibull_scale
+  )
+  dropout_rate <- time_to_event_dropout_rate(
+    dropout_probability, target$max_follow_up_time
+  )
+
+  late_log_hr <- time_to_event_delayed_log_hr(
+    log_hr = treatment_effect,
+    control_parameter = parameters$control,
+    event_time_distribution = event_time_distribution,
+    weibull_shape = target$weibull_shape,
+    delay = treatment_delay,
+    accrual_period = target$accrual_period,
+    final_follow_up = target$final_follow_up,
+    max_follow_up_time = target$max_follow_up_time,
+    dropout_rate = dropout_rate
+  )
+
+  events <- function(parameter, delay = 0) {
+    sample_size_per_arm * time_to_event_event_probability(
+      parameter = parameter,
+      event_time_distribution = event_time_distribution,
+      weibull_shape = target$weibull_shape,
+      accrual_period = target$accrual_period,
+      final_follow_up = target$final_follow_up,
+      max_follow_up_time = target$max_follow_up_time,
+      dropout_rate = dropout_rate,
+      delay = delay,
+      late_log_hr = late_log_hr
+    )
+  }
+
+  c(
+    control = events(parameters$control),
+    treatment = if (treatment_delay > 0) {
+      events(parameters$control, treatment_delay)
+    } else {
+      events(parameters$treatment)
+    }
+  )
+}
+
+
+# ---- Delayed treatment effect ------------------------------------------------
+#
+# The non-proportional-hazards sensitivity analysis. The treatment arm shares the
+# control hazard for the first `delay` years and is multiplied by exp(beta)
+# afterwards, so the hazard ratio is 1 and then exp(beta): a treatment whose
+# effect takes time to set in. The Cox model then estimates an average of the
+# two, weighted by when the events fall, and it is that average - the Cox
+# model's large-sample limit under the trial's own censoring - that plays the
+# part of the scenario's treatment effect. beta is chosen so that the limit
+# equals it; see time_to_event_delayed_log_hr().
+
+
+# Cumulative control hazard and its inverse.
+time_to_event_control_cumulative_hazard <- function(t,
+                                                    parameter,
+                                                    event_time_distribution,
+                                                    weibull_shape) {
+  if (event_time_distribution == "exponential") {
+    parameter * t
+  } else {
+    (t / parameter)^weibull_shape
+  }
+}
+
+time_to_event_control_inverse_cumulative_hazard <- function(x,
+                                                            parameter,
+                                                            event_time_distribution,
+                                                            weibull_shape) {
+  if (event_time_distribution == "exponential") {
+    x / parameter
+  } else {
+    parameter * x^(1 / weibull_shape)
+  }
+}
+
+
+# Hazard and survivor functions of both arms under a delayed treatment effect.
+#
+# With delay = 0 the treatment arm is the proportional-hazards one, hazard
+# multiplied by exp(late_log_hr) throughout.
+time_to_event_delayed_arms <- function(control_parameter,
+                                       event_time_distribution,
+                                       weibull_shape,
+                                       delay,
+                                       late_log_hr) {
+  cumulative <- function(t) {
+    time_to_event_control_cumulative_hazard(
+      t, control_parameter, event_time_distribution, weibull_shape
+    )
+  }
+  hazard <- function(t) {
+    if (event_time_distribution == "exponential") {
+      rep(control_parameter, length(t))
+    } else {
+      (weibull_shape / control_parameter) *
+        (t / control_parameter)^(weibull_shape - 1)
+    }
+  }
+  at_delay <- cumulative(delay)
+  multiplier <- exp(late_log_hr)
+
+  list(
+    control_hazard = hazard,
+    control_survival = function(t) exp(-cumulative(t)),
+    treatment_hazard = function(t) hazard(t) * ifelse(t < delay, 1, multiplier),
+    treatment_survival = function(t) {
+      exp(-ifelse(t < delay, cumulative(t),
+                  at_delay + multiplier * (cumulative(t) - at_delay)))
+    }
+  )
+}
+
+
+# Survivor function of the censoring: loss to follow-up, and the administrative
+# censoring of the fixed-calendar design (see time_to_event_event_probability()).
+time_to_event_censoring_survival <- function(accrual_period,
+                                             final_follow_up,
+                                             dropout_rate) {
+  closing_time <- accrual_period + final_follow_up
+  function(t) {
+    exp(-dropout_rate * t) *
+      pmin(1, pmax(0, (closing_time - t) / accrual_period))
+  }
+}
+
+
+# Integrate over [0, L), split where the integrand has a kink: at the end of the
+# delay, and where entry stops buying full follow-up.
+time_to_event_integrate <- function(integrand,
+                                    accrual_period,
+                                    final_follow_up,
+                                    max_follow_up_time,
+                                    delay = 0) {
+  kink <- min(max(accrual_period + final_follow_up - max_follow_up_time, 0),
+              max_follow_up_time)
+  breaks <- sort(unique(c(0, kink, min(delay, max_follow_up_time), max_follow_up_time)))
+  sum(vapply(seq_len(length(breaks) - 1L), function(i) {
+    stats::integrate(integrand, breaks[i], breaks[i + 1L],
+                     rel.tol = 1e-8)$value
+  }, numeric(1)))
+}
+
+
+# Large-sample limit of the Cox estimate under a delayed treatment effect.
+#
+# With equal arms, the expected partial-likelihood score is
+#   U(b) = integral of G S0 S1 (h1 - exp(b) h0) / (S0 + exp(b) S1) dt
+# over the follow-up window (Struthers and Kalbfleisch, 1986), where G is the
+# censoring survivor function. Its root is the log hazard ratio the Cox model
+# converges to, a weighted average of 0 before the delay and late_log_hr after.
+time_to_event_cox_limit <- function(control_parameter,
+                                    event_time_distribution,
+                                    weibull_shape,
+                                    delay,
+                                    late_log_hr,
+                                    accrual_period,
+                                    final_follow_up,
+                                    max_follow_up_time,
+                                    dropout_rate) {
+  if (late_log_hr == 0) {
+    return(0)
+  }
+  arms <- time_to_event_delayed_arms(
+    control_parameter, event_time_distribution, weibull_shape, delay, late_log_hr
+  )
+  censoring <- time_to_event_censoring_survival(
+    accrual_period, final_follow_up, dropout_rate
+  )
+
+  score <- function(b) {
+    integrand <- function(t) {
+      s0 <- arms$control_survival(t)
+      s1 <- arms$treatment_survival(t)
+      censoring(t) * s0 * s1 *
+        (arms$treatment_hazard(t) - exp(b) * arms$control_hazard(t)) /
+        (s0 + exp(b) * s1)
+    }
+    time_to_event_integrate(integrand, accrual_period, final_follow_up,
+                            max_follow_up_time, delay)
+  }
+
+  # The limit lies between 0 and late_log_hr, and the score is decreasing in b.
+  stats::uniroot(score, sort(c(0, late_log_hr)), tol = 1e-10)$root
+}
+
+
+#' Post-delay log hazard ratio that gives a target Cox estimand
+#'
+#' @description Under a delayed treatment effect the hazard ratio is 1 for the
+#'   first `delay` years and exp(beta) afterwards. The Cox model fitted to such a
+#'   trial converges to an average of the two, weighted by when the events fall
+#'   under the trial's censoring. This returns the beta for which that average
+#'   equals `log_hr`, so that the delayed-effect scenario keeps the treatment
+#'   effect - and hence the drift, the bias and the null hypothesis - of the
+#'   proportional-hazards scenario it replaces. Under no effect beta is 0 and
+#'   the two arms coincide.
+#'
+#' @param log_hr The Cox estimand, the scenario's target treatment effect.
+#' @param control_parameter Control rate (exponential) or scale (Weibull).
+#' @param event_time_distribution Either "exponential" or "weibull".
+#' @param weibull_shape The Weibull shape, unused for exponential times.
+#' @param delay Time before the treatment effect starts, in years.
+#' @param accrual_period,final_follow_up,max_follow_up_time The calendar design.
+#' @param dropout_rate Rate of loss to follow-up.
+#'
+#' @return The post-delay log hazard ratio, beta.
+#'
+#' @export
+time_to_event_delayed_log_hr <- function(log_hr,
+                                         control_parameter,
+                                         event_time_distribution,
+                                         weibull_shape,
+                                         delay,
+                                         accrual_period,
+                                         final_follow_up,
+                                         max_follow_up_time,
+                                         dropout_rate) {
+  if (delay <= 0 || log_hr == 0) {
+    return(log_hr)
+  }
+  if (delay >= max_follow_up_time) {
+    stop(paste0(
+      "A treatment delay of ", delay, " years leaves no follow-up after the",
+      " effect starts (maximum follow-up ", max_follow_up_time, " years)."
+    ), call. = FALSE)
+  }
+  limit <- function(beta) {
+    time_to_event_cox_limit(
+      control_parameter, event_time_distribution, weibull_shape, delay, beta,
+      accrual_period, final_follow_up, max_follow_up_time, dropout_rate
+    ) - log_hr
+  }
+  # The delay dilutes the effect, so beta is further from 0 than log_hr.
+  stats::uniroot(limit, sort(c(log_hr, 4 * log_hr)), extendInt = "yes",
+                 tol = 1e-8)$root
 }
 
 
@@ -161,14 +474,29 @@ sample_time_to_event_arm <- function(n_subjects,
                                      accrual_period,
                                      final_follow_up,
                                      max_follow_up_time,
-                                     dropout_rate) {
+                                     dropout_rate,
+                                     delay = 0,
+                                     late_log_hr = 0) {
   n <- n_replicates * n_subjects
 
   entry <- stats::runif(n, min = 0, max = accrual_period)
   administrative <- pmin(max_follow_up_time,
                          accrual_period + final_follow_up - entry)
 
-  event_time <- if (event_time_distribution == "exponential") {
+  event_time <- if (delay > 0) {
+    # A delayed effect: `parameter` is the control one, and the hazard is
+    # multiplied by exp(late_log_hr) after `delay`. Invert the piecewise
+    # cumulative hazard at a unit exponential draw.
+    at_delay <- time_to_event_control_cumulative_hazard(
+      delay, parameter, event_time_distribution, weibull_shape
+    )
+    unit <- stats::rexp(n)
+    control_scale <- ifelse(unit <= at_delay, unit,
+                            at_delay + (unit - at_delay) * exp(-late_log_hr))
+    time_to_event_control_inverse_cumulative_hazard(
+      control_scale, parameter, event_time_distribution, weibull_shape
+    )
+  } else if (event_time_distribution == "exponential") {
     stats::rexp(n, rate = parameter)
   } else {
     stats::rweibull(n, shape = weibull_shape, scale = parameter)
@@ -301,7 +629,9 @@ simulate_time_to_event_trial <- function(n_replicates,
                                          accrual_period,
                                          final_follow_up,
                                          max_follow_up_time,
-                                         dropout_rate) {
+                                         dropout_rate,
+                                         treatment_delay = 0,
+                                         late_log_hr = 0) {
   n_observations <- 2L * as.integer(sample_size_per_arm)
   arm <- rep(c(0, 1), each = sample_size_per_arm)
 
@@ -325,16 +655,20 @@ simulate_time_to_event_trial <- function(n_replicates,
       max_follow_up_time = max_follow_up_time,
       dropout_rate = dropout_rate
     )
+    # Under a delayed effect the treatment arm is drawn from the control
+    # hazard, multiplied by exp(late_log_hr) once the delay has passed.
     treatment <- sample_time_to_event_arm(
       n_subjects = sample_size_per_arm,
       n_replicates = size,
-      parameter = treatment_parameter,
+      parameter = if (treatment_delay > 0) control_parameter else treatment_parameter,
       event_time_distribution = event_time_distribution,
       weibull_shape = weibull_shape,
       accrual_period = accrual_period,
       final_follow_up = final_follow_up,
       max_follow_up_time = max_follow_up_time,
-      dropout_rate = dropout_rate
+      dropout_rate = dropout_rate,
+      delay = treatment_delay,
+      late_log_hr = late_log_hr
     )
 
     fit <- fit_two_sample_cox(

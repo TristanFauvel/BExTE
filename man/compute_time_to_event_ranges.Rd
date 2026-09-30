@@ -12,11 +12,13 @@ compute_time_to_event_ranges(scenarios_config, case_study_config)
 \item{case_study_config}{Configuration for the case study.}
 }
 \value{
-A list with the \code{dropout_probability} and \code{event_time_distribution} ranges.
+A list with the \code{dropout_probability}, \code{event_time_distribution} and
+\code{treatment_delay} ranges.
 }
 \description{
-The probability of loss to follow-up and the distribution of the
-event times only change how a time-to-event trial is simulated, so every other
+The probability of loss to follow-up, the distribution of the
+event times and the delay before the treatment effect only change how a
+time-to-event trial is simulated, so every other
 case study keeps a single scenario at the primary design rather than paying for
 a cross product that would generate identical data.
 }

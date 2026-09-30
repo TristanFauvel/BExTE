@@ -542,6 +542,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
   #'   maximum follow-up time. Only used for the time-to-event endpoint.
   #' @param event_time_distribution Distribution of the event times, either "exponential"
   #'   or "weibull". Only used for the time-to-event endpoint.
+  #' @param treatment_delay Time before the treatment effect starts, in years.
+  #'   Only used for the time-to-event endpoint.
   #' @return The created target data object.
   create = function(source_data,
                     case_study_config,
@@ -551,7 +553,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
                     summary_measure_likelihood,
                     target_to_source_std_ratio = NULL,
                     dropout_probability = 0,
-                    event_time_distribution = "exponential") {
+                    event_time_distribution = "exponential",
+                    treatment_delay = 0) {
     assertions::assert_class(source_data, c("SourceData", "ObservedSourceData"))
     assert_single_number(target_sample_size_per_arm)
     assert_single_number(control_drift)
@@ -603,7 +606,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
         weibull_relapse_free_probability =
           case_study_config$target$weibull_relapse_free_probability,
         dropout_probability = dropout_probability,
-        event_time_distribution = event_time_distribution
+        event_time_distribution = event_time_distribution,
+        treatment_delay = treatment_delay
       )
     } else {
       stop("Not implemented for other endpoints")
@@ -1338,6 +1342,9 @@ RecurrentEventTargetData <- R6::R6Class(
 #' @field event_time_distribution Either "exponential" or "weibull"
 #' @field weibull_shape Common Weibull shape parameter, q
 #' @field weibull_scale Control-arm Weibull scale, calibrated to the reported relapse-free probability
+#' @field treatment_delay Time before the treatment effect starts, in years; 0 for proportional hazards
+#' @field late_log_hr Log hazard ratio once the effect has started, chosen so that
+#'   the Cox model's large-sample limit equals the treatment effect
 #'
 #' @export
 TimeToEventTargetData <- R6::R6Class(
@@ -1353,6 +1360,8 @@ TimeToEventTargetData <- R6::R6Class(
     event_time_distribution = NULL,
     weibull_shape = NULL,
     weibull_scale = NULL,
+    treatment_delay = 0,
+    late_log_hr = NULL,
 
     #' @description Initialize the TimeToEventTargetData object
     #'
@@ -1371,6 +1380,8 @@ TimeToEventTargetData <- R6::R6Class(
     #' @param dropout_probability The probability of loss to follow-up over the maximum
     #'   follow-up time.
     #' @param event_time_distribution Either "exponential" or "weibull".
+    #' @param treatment_delay Time before the treatment effect starts, in years.
+    #'   Zero, the default, is the proportional-hazards design.
     initialize = function(source_data,
                           sampling_approximation,
                           target_sample_size_per_arm,
@@ -1383,7 +1394,8 @@ TimeToEventTargetData <- R6::R6Class(
                           weibull_shape = NULL,
                           weibull_relapse_free_probability = NULL,
                           dropout_probability = 0,
-                          event_time_distribution = "exponential") {
+                          event_time_distribution = "exponential",
+                          treatment_delay = 0) {
       super$initialize(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
@@ -1417,6 +1429,7 @@ TimeToEventTargetData <- R6::R6Class(
       self$dropout_probability <- dropout_probability
       self$event_time_distribution <- event_time_distribution
       self$weibull_shape <- weibull_shape
+      self$treatment_delay <- treatment_delay
 
       if (event_time_distribution == "weibull") {
         if (is.null(weibull_shape) || is.null(weibull_relapse_free_probability)) {
@@ -1456,6 +1469,22 @@ TimeToEventTargetData <- R6::R6Class(
       # events, so it has to account for the staggered entry, the database lock
       # and the loss to follow-up rather than for a common follow-up time.
       parameters <- self$arm_parameters()
+
+      # Under a delayed effect, the treatment effect is the Cox model's
+      # large-sample limit; the hazard ratio after the delay is whatever makes
+      # the limit equal it. Without a delay the two coincide.
+      self$late_log_hr <- time_to_event_delayed_log_hr(
+        log_hr = self$treatment_effect,
+        control_parameter = parameters$control,
+        event_time_distribution = self$event_time_distribution,
+        weibull_shape = self$weibull_shape,
+        delay = self$treatment_delay,
+        accrual_period = self$accrual_period,
+        final_follow_up = self$final_follow_up,
+        max_follow_up_time = self$max_follow_up_time,
+        dropout_rate = self$dropout_rate()
+      )
+
       self$standard_deviation <- time_to_event_standard_deviation(
         control_parameter = parameters$control,
         treatment_parameter = parameters$treatment,
@@ -1464,7 +1493,9 @@ TimeToEventTargetData <- R6::R6Class(
         accrual_period = self$accrual_period,
         final_follow_up = self$final_follow_up,
         max_follow_up_time = self$max_follow_up_time,
-        dropout_rate = self$dropout_rate()
+        dropout_rate = self$dropout_rate(),
+        delay = self$treatment_delay,
+        late_log_hr = self$late_log_hr
       )
     },
 
@@ -1501,6 +1532,12 @@ TimeToEventTargetData <- R6::R6Class(
 
       if (self$summary_measure_likelihood == "normal" &&
           self$sampling_approximation == TRUE) {
+        if (self$treatment_delay > 0) {
+          stop(paste0(
+            "A delayed treatment effect is only simulated patient by patient;",
+            " set sampling_approximation: FALSE in the case study configuration."
+          ), call. = FALSE)
+        }
         # Sample number of events over the follow-up period in each arm according to a Poisson distributions.
         n_control_events <- rpois(n_replicates,
                                   self$control_rate * self$max_follow_up_time * n_control_target)
@@ -1537,7 +1574,9 @@ TimeToEventTargetData <- R6::R6Class(
           accrual_period = self$accrual_period,
           final_follow_up = self$final_follow_up,
           max_follow_up_time = self$max_follow_up_time,
-          dropout_rate = self$dropout_rate()
+          dropout_rate = self$dropout_rate(),
+          treatment_delay = self$treatment_delay,
+          late_log_hr = self$late_log_hr
         )
       } else {
         stop("Not implemented for other distributions")

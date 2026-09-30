@@ -30,6 +30,8 @@ bayesian_ocs_scenario_simulation <- function(scenario,
   target_to_source_std_ratio <- scenario$target_to_source_std_ratio[[1]]
   dropout_probability <- scenario$dropout_probability[[1]]
   event_time_distribution <- scenario$event_time_distribution[[1]]
+  # Absent from scenarios written before the delayed-effect axis existed.
+  treatment_delay <- if (is.null(scenario$treatment_delay)) 0 else scenario$treatment_delay[[1]]
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
   mcmc_config <- read_config(paste0(config_dir, "/mcmc_config.yml"), mcmc_config_schema)
@@ -71,7 +73,8 @@ bayesian_ocs_scenario_simulation <- function(scenario,
       summary_measure_likelihood = case_study_config$summary_measure_likelihood,
       target_to_source_std_ratio = target_to_source_std_ratio,
       dropout_probability = dropout_probability,
-      event_time_distribution = event_time_distribution
+      event_time_distribution = event_time_distribution,
+      treatment_delay = treatment_delay
     )
   )
 
@@ -253,6 +256,7 @@ estimate_bayesian_ocs <- function(scenario,
       target_to_source_std_ratio = target_to_source_std_ratio,
       dropout_probability = dropout_probability,
       event_time_distribution = event_time_distribution,
+      treatment_delay = treatment_delay,
       simulation_config = simulation_config,
       case_study = scenario$case_study[[1]],
       method = scenario$method[[1]],

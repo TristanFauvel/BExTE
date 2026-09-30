@@ -25,7 +25,6 @@ test_that("the full names spell out the abbreviations rather than repeating them
   labels <- get("methods_labels", envir = config)
 
   expect_equal(labels$conditional_power_prior$full_name, "Conditional Power Prior")
-  expect_equal(labels$commensurate_power_prior$full_name, "Commensurate Power Prior")
   expect_equal(labels$EB_PP$full_name, "Empirical Bayes Power Prior")
   expect_equal(labels$NPP$full_name, "Normalized Power Prior")
   expect_equal(labels$RMP$full_name, "Robust Mixture Prior")
@@ -50,6 +49,17 @@ test_that("no figure title is built from the abbreviated label", {
   )
 
   expect_equal(basename(offenders), character(0))
+})
+
+test_that("the commensurate priors are named in short form in titles", {
+  ## Their titles also carry the heterogeneity prior, e.g. tau^2 ~ IG(alpha =
+  ## 0.14, beta = 1), and the spelt-out name pushed the sample size off the
+  ## edge of the figure.
+  config <- methods_plots_config()
+  labels <- get("methods_labels", envir = config)
+
+  expect_equal(labels$commensurate_power_prior$full_name, "Com. PP")
+  expect_equal(labels$commensurate_prior$full_name, "Com. prior")
 })
 
 test_that("the p-value based power prior is named in short form in titles", {

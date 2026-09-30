@@ -1,4 +1,35 @@
 # BExTE 0.0.2
+* The frequentist baselines (power of the separate and pooled analyses, at
+  the nominal and at the equivalent type I error) are now simulated for
+  Mepolizumab, as for every endpoint that is not continuous. They used to be
+  computed in closed form, although Mepolizumab's trials are generated patient
+  by patient from a negative binomial with the standard error re-estimated in
+  each one. The simulated baselines also leave out replicates whose summary
+  measure is not estimable (an arm with no event), as the Bayesian operating
+  characteristics already did; one such replicate used to make the whole
+  simulated power NA. Rerun the analysis steps to update Mepolizumab's
+  baselines.
+* The paper replication gains figures S45-S50 for the Teriflunomide case
+  study: how loss to follow-up, Weibull event times and control-arm
+  heterogeneity change the number of events and, through it, each prior's
+  probability of success, MSE and coverage. S45-S47 are forest plots, one per
+  level of each axis, captioned with the expected number of events
+  (`time_to_event_expected_events()`); S48-S50 plot each method against drift
+  with one line per level. Selecting them makes `reproduce_paper.R` simulate
+  the sensitivity designs at N_T/2 = 123, one axis at a time (the new
+  `sensitivity_one_at_a_time` scenarios key). Every other figure now reads
+  the primary time-to-event design alone: before, a results file holding
+  sensitivity designs would have pooled them into the teriflunomide figures.
+  The full-study configs `combined` and `full` now simulate the same
+  sensitivity designs, so a full-study run also carries their data.
+* New time-to-event axis `treatment_delay`: the treatment effect starts only
+  after a delay, a departure from proportional hazards that the Cox analysis
+  does not model. The scenario's treatment effect is the Cox model's
+  large-sample limit under the trial's censoring, and the hazard ratio after
+  the delay is solved to match it (`time_to_event_delayed_log_hr()`), so drift,
+  bias and the null hypothesis keep their meaning. Figures S51-S52 show 12- and
+  24-week delays for Teriflunomide. Scenarios without a delay simulate exactly
+  as before.
 * New borrowing method `egidi_empirical_mixture`, the data-dependent mixture
   prior of Egidi, Pauli and Torelli. It reuses the robust mixture prior's two
   components unchanged and selects the mixture weight from each replicate's own
