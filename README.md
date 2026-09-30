@@ -14,7 +14,7 @@ A collection of R tools to :
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 my-4">
 <div class="col"><a href="articles/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📚 Vignettes</h5><p class="card-text small text-muted">Step-by-step guides to simulation studies, data generation, borrowing methods, and case-study replications.</p></div></a></div>
 <div class="col"><a href="reference/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🔧 API reference</h5><p class="card-text small text-muted">Every exported function and R6 class, grouped by topic: data, methods, plots, tables, operating characteristics.</p></div></a></div>
-<div class="col"><a href="#browser-based-interface" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🖥️ Browser app</h5><p class="card-text small text-muted">Configure, run, and analyze a simulation study from a Shiny app, without hand-editing config files.</p></div></a></div>
+<div class="col"><a href="https://github.com/TristanFauvel/BExTE-app" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🖥️ Browser app</h5><p class="card-text small text-muted">Configure, run, and analyze a simulation study from BExTE-app, a separate Shiny app, without hand-editing config files.</p></div></a></div>
 <div class="col"><a href="news/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📝 Changelog</h5><p class="card-text small text-muted">What changed in each release.</p></div></a></div>
 </div>
 
@@ -89,43 +89,14 @@ devtools::load_all()
 ### Browser-based interface
 
 Instead of hand-editing config files and running the scripts above, you can
-configure, run, and analyze a simulation study from a browser:
+configure, run, and analyze a simulation study from a browser with
+[BExTE-app](https://github.com/TristanFauvel/BExTE-app), a Shiny app built on
+this package:
 
 ```r
-library(BExTE)
-run_bexte_app()
+remotes::install_github("TristanFauvel/BExTE-app")
+BExTEapp::run_bexte_app()
 ```
-
-The app works out of a *workspace* directory, where `results/`, `logs/` and
-`user_configs/` live. Launched from a source checkout it uses the checkout, so
-results land next to the ones `main.R` produces; installed from a release
-tarball it uses a per-user directory under `tools::R_user_dir("BExTE", "data")`.
-Either way the path is reported when the app starts, and `run_bexte_app()`
-takes an explicit one:
-
-```r
-run_bexte_app(workspace = "~/bexte-studies")
-```
-
-On Linux, `install.R` also adds an **BExTE** entry to the application menu, so
-the app can be started without an R session. `create_bexte_shortcut()` rewrites
-it, optionally pinned to a workspace:
-
-```r
-create_bexte_shortcut(workspace = "~/bexte-studies")
-```
-
-The entry opens a terminal, which is where the workspace path and the progress
-of a run appear, and where Ctrl+C stops the app.
-
-When developing against a checkout, `devtools::load_all()` replaces
-`library(BExTE)`.
-
-This opens a local Shiny app with three tabs:
-
-- **Configure**: pick an existing case study or build a new one, choose methods and their parameter grids, and set scenario/MCMC settings. Saving writes a new environment under `user_configs/` (gitignored) without touching the package's own `inst/conf/`.
-- **Run**: launch a saved environment as a background process, with a live progress bar, log tail, and a cancel button.
-- **Analyze**: browse any `results/<env>/` directory - including ones produced by `main.R`/HPC runs, not just ones launched from the app - filter it, render interactive plots, and browse/export the data as a table.
 
 ## Design logic
 

@@ -343,6 +343,7 @@ combine_parameters <- function(method) {
 #'   files.
 #'
 #' @return A list of simulation scenarios.
+#' @export
 simulation_scenarios <- function(config_dir, scenarios_config, case_studies_config_dir) {
   source(paste0(config_dir, "methods_config.R"))
   case_studies <- scenarios_config$case_studies

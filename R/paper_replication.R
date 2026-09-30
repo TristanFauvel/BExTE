@@ -398,12 +398,12 @@ paper_replication_coverage <- function(results_df, ids, case_studies_config_dir,
 ## frequentist_metrics/inference_metrics, the drift-axis helper xvars, and the
 ## method labelling tables methods_dict/methods_labels. This is exactly how
 ## inst/scripts/plots.R has always driven them, and how
-## inst/shiny_app/modules/mod_analyze.R's ensure_plot_globals()/
-## prepare_plot_globals_for_env() sets them up for the Analyze page. This
+## BExTE-app's ensure_plot_globals()/prepare_plot_globals_for_env() (in its
+## inst/app/modules/mod_analyze.R) sets them up for the Analyze page. This
 ## mirrors that: source the three config files that define the style
 ## constants and metric tables, then set methods_dict from the package's
-## canonical template (mirroring read_methods_template() in
-## inst/shiny_app/helpers.R), since the exporter has no results-environment
+## canonical template (mirroring read_methods_template() in BExTE-app's
+## inst/app/helpers.R), since the exporter has no results-environment
 ## methods_config.R of its own to prefer.
 ensure_paper_plot_globals <- function() {
   source(system.file("conf/plots_config.R", package = "BExTE"))
@@ -419,7 +419,7 @@ ensure_paper_plot_globals <- function() {
 
 ## Snapshot every name currently bound in .GlobalEnv (and the current ggplot
 ## theme), so a later call to paper_restore_globals() can put the caller's
-## session back exactly as it was. Unlike mod_analyze.R's
+## session back exactly as it was. Unlike BExTE-app's
 ## ensure_plot_globals() - which is allowed to leave these set because it
 ## lives inside a single long-running Shiny session - export_paper_outputs()
 ## is an exported library function that a script or interactive session can
@@ -777,8 +777,8 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
   ## style/config constants (font, textwidth, methods_dict, ...) as free
   ## variables out of .GlobalEnv - see inst/scripts/plots.R and
   ## ensure_paper_plot_globals() above, modelled on
-  ## inst/shiny_app/modules/mod_analyze.R's ensure_plot_globals()/
-  ## prepare_plot_globals_for_env(). Unlike that Shiny module, this is an
+  ## BExTE-app's ensure_plot_globals()/prepare_plot_globals_for_env(). Unlike
+  ## that Shiny module, this is an
   ## exported function a caller can invoke from their own script or
   ## interactive session, so every name it is about to set is snapshotted
   ## first and restored via on.exit(), including the ggplot theme

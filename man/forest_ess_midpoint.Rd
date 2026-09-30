@@ -21,7 +21,7 @@ forest_ess_midpoint(data)
 
 \item{x_metric_label}{Label of the metric on the x-axis}
 
-\item{palette}{A colour scheme from bexte_palette() for the Shiny app's
+\item{palette}{A colour scheme from bexte_palette() for BExTE-app's
 dark mode, or NULL for the publication figure.}
 
 \item{reference_line}{x position of a dotted vertical reference line, or NULL for none.}

@@ -138,7 +138,7 @@ test_that("chain parallelism is capped only for a method that runs in parallel",
 })
 
 ## The simulation loops pass a per-scenario callback as `.options.snow$progress`:
-## it drives the console progress bar and the progress file the Shiny app's Run
+## it drives the console progress bar and the progress file BExTE-app's Run
 ## tab reads. Only doSNOW honours that option - doParallel warns "ignoring
 ## unrecognized snow option(s): progress" and never calls it, which leaves both
 ## readouts frozen until a whole case study/method block is finished. Which

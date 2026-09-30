@@ -66,7 +66,7 @@ resolve_analysis_steps <- function(scenarios_config, all_case_studies_shipped) {
 #'   characteristics simulation for a single environment. This mirrors the
 #'   per-environment body of the driver loop in `inst/scripts/main.R`, extracted
 #'   into a callable function so it can be invoked directly (e.g. from a
-#'   background process launched by the Shiny app).
+#'   background process launched by BExTE-app).
 #'
 #' @param env The environment name (used to name the `./logs/<env>/` and
 #'   `./results/<env>/` directories).
