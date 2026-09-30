@@ -1103,6 +1103,35 @@ p_value_based_PP_Binomial <- R6::R6Class(
       return(super$inference(target_data))
     },
 
+    #' @description ELIR effective sample size of the current prior
+    #'
+    #' The prior changes between replicates only through the power parameter,
+    #' so under the quadrature engine the ELIR is interpolated from a table over
+    #' the power parameter, shared across scenarios - see
+    #' [binomial_power_prior_unit_elir()]. Refitting a mixture to fresh prior
+    #' draws for every replicate, as the inherited route does, was most of the
+    #' method's run time. Under Stan the prior can only be sampled, so that
+    #' route is kept.
+    #'
+    #' @param target_data Target study data, whose sampling standard deviation
+    #'   is the reference scale.
+    #' @param simulation_config Configuration of simulation study
+    #' @return The ELIR effective sample size.
+    prior_elir_ess = function(target_data, simulation_config) {
+      if (!self$uses_quadrature()) {
+        return(super$prior_elir_ess(
+          target_data = target_data,
+          simulation_config = simulation_config
+        ))
+      }
+      unit_information <- binomial_power_prior_unit_elir(
+        model = self,
+        power_parameter = self$power_parameter,
+        n_samples = simulation_config$n_samples_mixture_approx
+      )
+      return(unit_information * target_data$sample$standard_deviation^2)
+    },
+
     #' Test method
     #'
     #' @description This method performs the test for the given target data.

@@ -48,6 +48,14 @@ TestThenPool <- R6::R6Class(
       self$pooling$prior <- prior
       self$separate$prior <- prior
 
+      # The test reads the replicate's sample alone, so when both analyses are
+      # deterministic, so is the method, and replicates that observed the same
+      # sample can share one analysis through the inference cache. On a binomial
+      # endpoint that also shares it between scenarios differing only in drift.
+      self$deterministic_inference <- isTRUE(self$separate$deterministic_inference) &&
+        isTRUE(self$pooling$deterministic_inference)
+      self$empirical_bayes_from_sample <- TRUE
+
       self$source_treatment_effect_estimate <- prior$source$treatment_effect_estimate
       self$source_standard_error <- prior$source$standard_error
     },
@@ -176,6 +184,10 @@ TestThenPool <- R6::R6Class(
     #' @description Performs the empirical Bayes update with the Test-then-Pool method.
     #' @param target_data The data from the target study.
     empirical_bayes_update = function(target_data) {
+      # The test is what makes the prior depend on the data. Running it here
+      # lets a replicate served from the inference cache, whose inference is
+      # skipped, select its own prior again rather than the last one analysed.
+      self$test(target_data)
       if (self$pool) {
         self$pooling$empirical_bayes_update(target_data)
       } else {
@@ -290,6 +302,27 @@ TestThenPool <- R6::R6Class(
         return(self$pooling$posterior_ess(target_data = target_data, ...))
       }
       return(self$separate$posterior_ess(target_data = target_data, ...))
+    },
+
+    #' @description ELIR effective sample size of the current prior
+    #'
+    #' The prior is whichever component the test selected, and neither
+    #' component's prior depends on the data, so each component reports its
+    #' own, fitted once. The inherited route treats the method as empirical
+    #' Bayes and refits a mixture to fresh prior draws for every replicate,
+    #' although only two priors can ever come out of the test. On a binomial
+    #' endpoint that refit was nine tenths of the method's run time.
+    #'
+    #' @param target_data Target study data, whose sampling standard deviation
+    #'   is the reference scale.
+    #' @param simulation_config Configuration of simulation study
+    #' @return The ELIR effective sample size.
+    prior_elir_ess = function(target_data, simulation_config) {
+      component <- if (self$pool) self$pooling else self$separate
+      return(component$prior_elir_ess(
+        target_data = target_data,
+        simulation_config = simulation_config
+      ))
     },
 
     #' @description Convert the posterior distribution to RBesT format
