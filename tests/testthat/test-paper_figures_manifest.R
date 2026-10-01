@@ -6,14 +6,17 @@
 test_that("the manifest covers every paper item exactly once", {
   ids <- paper_manifest_ids()
 
-  expect_length(ids, 60)
-  expect_length(unique(ids), 60)
+  expect_length(ids, 64)
+  expect_length(unique(ids), 64)
   expect_true(all(c("1", "2", "3", "4") %in% ids))
   expect_true(all(paste0("S", 3:37) %in% ids))
   ## S38-S44 are the interval-score figures added in revision.
   expect_true(all(paste0("S", 38:44) %in% ids))
   ## S45-S52 are the teriflunomide time-to-event sensitivity figures.
   expect_true(all(paste0("S", 45:52) %in% ids))
+  ## S53-S56 are the power gains at a matched type I error rate, added in
+  ## revision.
+  expect_true(all(paste0("S", 53:56) %in% ids))
   ## Tables S2 and S4 are hand-authored in the manuscript.
   expect_true(all(c("TS1", "TS3", "TS5") %in% ids))
   expect_false(any(c("TS2", "TS4", "TS7", "TS8") %in% ids))
@@ -112,7 +115,7 @@ test_that("the added ids sort after the manuscript's own supplement", {
   ids <- paper_manifest_ids()
   figures <- ids[startsWith(ids, "S")]
 
-  expect_equal(tail(figures, 15), paste0("S", 38:52))
+  expect_equal(tail(figures, 19), paste0("S", 38:56))
 })
 
 test_that("unnumbered manuscript figures use their requested scenarios", {
