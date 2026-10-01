@@ -53,6 +53,28 @@ test_that("for a binary endpoint the calibration does not depend on the drift", 
   expect_equal(shapes[3, 2], design$standard_deviation / sqrt(71))
 })
 
+test_that("the binomial calibration is close to the normal one", {
+  # The same criterion on the exact marginal likelihood of the expected counts:
+  # for the Aprepitant design the two priors differ by a few thousandths.
+  withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
+  config <- kl_config()
+  source_data <- SourceData$new(config)
+  model <- Model$new()$create(
+    case_study_config = config, method = "NPP_KL",
+    method_parameters = list(initial_prior = list("noninformative")),
+    source_data = source_data, mcmc_config = kl_mcmc_config()
+  )
+  design <- kl_design(config, source_data, 0)
+  model$calibrate_for_design(design)
+  normal <- npp_kl_calibrate_design(model$prior$source, design, config$theta_0,
+                                    model$calibration_settings)
+  binomial <- npp_kl_beta_moments(model$p, model$q)
+  reference <- npp_kl_beta_moments(normal$alpha_gamma, normal$beta_gamma)
+  expect_equal(binomial$mean, reference$mean, tolerance = 0.01)
+  expect_equal(binomial$sd, reference$sd, tolerance = 0.01)
+  expect_true(model$calibration$optimizer_converged)
+})
+
 test_that("a continuous endpoint keeps the design's standard error", {
   design <- list(standard_deviation = 2, sample_size_per_arm = 100)
   expect_equal(npp_kl_expected_target_se(design, list()), 0.2)

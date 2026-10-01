@@ -683,8 +683,10 @@ BinomialNPP <- R6::R6Class(
 #'
 #' @description The KL-calibrated normalized power prior of [Gaussian_NPP_KL]
 #'   for a binary endpoint: the Beta prior on the power parameter is calibrated
-#'   to the design with the same criterion, [calibrate_npp_kl()], and the
-#'   target data are analysed with the binomial normalized power prior,
+#'   to the design with the criterion of [calibrate_npp_kl()], the posterior of
+#'   the power parameter under the two hypothetical results being computed from
+#'   the binomial marginal likelihood ([npp_kl_calibrate_design_binomial()]),
+#'   and the target data are analysed with the binomial normalized power prior,
 #'   [BinomialNPP], under that prior. The shape parameters are `NULL` until
 #'   [Model]`$calibrate_for_design()` has run.
 #'
@@ -719,16 +721,19 @@ BinomialNPP_KL <- R6::R6Class(
       self$calibration_settings <- npp_kl_settings(prior$method_parameters, null_space)
     },
 
-    #' @description Calibrate the prior on the power parameter to this design;
-    #' see [npp_kl_calibrate_design()].
+    #' @description Calibrate the prior on the power parameter to this design,
+    #' with the criterion of [calibrate_npp_kl()] evaluated on the binomial
+    #' marginal likelihood; see [npp_kl_calibrate_design_binomial()].
     #' @param target_data Target study data for the scenario.
     #' @return The calibration, invisibly.
     calibrate_for_design = function(target_data) {
-      self$calibration <- npp_kl_calibrate_design(
+      self$calibration <- npp_kl_calibrate_design_binomial(
+        source_counts = self$source_counts(),
         source = self$prior$source,
         target_data = target_data,
         theta_0 = self$theta_0,
-        settings = self$calibration_settings
+        settings = self$calibration_settings,
+        n_lattice = self$n_lattice
       )
       self$p <- self$calibration$alpha_gamma
       self$q <- self$calibration$beta_gamma

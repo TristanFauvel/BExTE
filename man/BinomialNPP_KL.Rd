@@ -6,8 +6,10 @@
 \description{
 The KL-calibrated normalized power prior of \link{Gaussian_NPP_KL}
 for a binary endpoint: the Beta prior on the power parameter is calibrated
-to the design with the same criterion, \code{\link[=calibrate_npp_kl]{calibrate_npp_kl()}}, and the
-target data are analysed with the binomial normalized power prior,
+to the design with the criterion of \code{\link[=calibrate_npp_kl]{calibrate_npp_kl()}}, the posterior of
+the power parameter under the two hypothetical results being computed from
+the binomial marginal likelihood (\code{\link[=npp_kl_calibrate_design_binomial]{npp_kl_calibrate_design_binomial()}}),
+and the target data are analysed with the binomial normalized power prior,
 \link{BinomialNPP}, under that prior. The shape parameters are \code{NULL} until
 \link{Model}\verb{$calibrate_for_design()} has run.
 }
@@ -111,8 +113,9 @@ supported.}
 \if{html}{\out{<a id="method-BinomialNPP_KL-calibrate_for_design"></a>}}
 \if{latex}{\out{\hypertarget{method-BinomialNPP_KL-calibrate_for_design}{}}}
 \subsection{\code{BinomialNPP_KL$calibrate_for_design()}}{
-  Calibrate the prior on the power parameter to this design;
-see \code{\link[=npp_kl_calibrate_design]{npp_kl_calibrate_design()}}.
+  Calibrate the prior on the power parameter to this design,
+with the criterion of \code{\link[=calibrate_npp_kl]{calibrate_npp_kl()}} evaluated on the binomial
+marginal likelihood; see \code{\link[=npp_kl_calibrate_design_binomial]{npp_kl_calibrate_design_binomial()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BinomialNPP_KL$calibrate_for_design(target_data)}
