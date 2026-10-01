@@ -1,4 +1,24 @@
 # BExTE 0.0.2
+* The normalized power prior (NPP) of a binary endpoint uses the binomial
+  likelihoods of the two arms of each study, with the risk difference shared
+  between them, instead of a normal approximation of the risk difference
+  (`BinomialNPP`). The power parameter's Beta prior is integrated out exactly:
+  integrated over it, the NPP is a fixed prior on the target control rate and
+  the risk difference, computed once per worker on a lattice of 1,000
+  response rates, so a dataset costs one weighted sum. The posterior mean and
+  standard deviation of the power parameter are reported as before. Rerun the
+  Aprepitant NPP scenarios to update existing results.
+* Fixed: the binomial conditional power prior and the binomial p-value-based
+  power prior were wrong when the target data conflict with the source. Their
+  quadrature placed its nodes on the quantiles of the source and target
+  control rates' own likelihoods, and under conflict the posterior moves into
+  the tails of the source likelihood, which those nodes did not reach. At a
+  power parameter of 1, P(theta > 0) was 0.582 instead of 0.597 (71/39 control
+  and 71/20 treatment responders), and the posterior mean -0.256 instead of
+  -0.188 (143/79 and 143/0), against Stan. The posterior is now computed on
+  the same lattice as the NPP, which covers the whole unit square and agrees
+  with Stan to Monte Carlo error. Rerun the Aprepitant conditional power prior
+  and p-value-based power prior scenarios to update existing results.
 * The frequentist reference test every borrowing method's power is read
   against - at the method's own type I error and at the nominal one - is
   calibrated on its actual type I error in the design's null scenario rather

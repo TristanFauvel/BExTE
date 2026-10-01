@@ -14,9 +14,8 @@ binomial_power_prior_posterior(
   n_successes_control,
   n_treatment,
   n_successes_treatment,
-  n_control_nodes = 512L,
-  n_source_nodes = 512L,
-  points_per_scale = 20
+  n_lattice = 1000L,
+  control_rate = NULL
 )
 }
 \arguments{
@@ -30,12 +29,12 @@ binomial_power_prior_posterior(
 
 \item{n_treatment, n_successes_treatment}{Target treatment arm.}
 
-\item{n_control_nodes}{Nodes on the target control rate.}
+\item{n_lattice}{Number of lattice points N on the rates.}
 
-\item{n_source_nodes}{Nodes on the source control rate.}
-
-\item{points_per_scale}{Treatment effect grid points per narrowest standard
-deviation, passed to \code{\link[=binomial_effect_grid]{binomial_effect_grid()}}.}
+\item{control_rate}{Target control rate to condition on, or \code{NULL} to
+integrate it out. Conditioning puts the target control rate's whole mass
+on the lattice cell that contains it, which confines the treatment effect
+to the differences that keep the target treatment rate in \link{0, 1}.}
 }
 \value{
 A \code{\link[=grid_posterior]{grid_posterior()}} list.
@@ -45,10 +44,23 @@ The binomial conditional power prior: uniform priors on the
 source control rate u and the target control rate v, a uniform prior on
 the common treatment effect theta over (-min(u, v), 1 - max(u, v)), which
 has density 1 / (1 - |u - v|), and the source likelihood raised to the
-power gamma. Raised to gamma, the source binomial likelihoods are Beta
-kernels, Beta(gamma s + 1, gamma (n - s) + 1), in the control and treatment
-rates, so u is integrated on quantile nodes of the first and the second is
-evaluated at u + theta. The double sum over u and v is a matrix product.
+power gamma.
+
+The rates are discretised on the lattice of \code{\link[=binomial_npp_prior_kernels]{binomial_npp_prior_kernels()}}:
+the midpoints of N equal cells of \link{0, 1}, with the treatment effect on the
+multiples of the cell width, so that every treatment rate is a lattice
+point. The lattice covers the whole unit square, so it follows the
+posterior wherever the target data move it, including far into the tails
+of the source likelihood when the two studies conflict. Nodes placed on the
+quantiles of the source and target control rates' own likelihoods, as an
+earlier version of this function used, miss that region: under conflict
+the posterior probability of benefit was off by 0.016 and the posterior
+mean by up to 0.07 against Stan.
+
+Only the target control rates and treatment rates where the target
+likelihood exceeds \code{1e-20} of its maximum are visited, and every source
+control rate, so the cost is N times the number of target lattice points
+per arm times the number of treatment effects they reach.
 
 With no target patients the target counts are zero and the result is the
 prior.

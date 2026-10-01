@@ -194,6 +194,8 @@ test_that("the quadrature has converged at the default resolution", {
       n_control_nodes = nodes, points_per_scale = points
     )
   }
+  # The power prior's lattice is refined by its number of points alone; the
+  # coarse setting stands for the default here and the fine one doubles it.
   cpp <- function(nodes, points) {
     binomial_power_prior_posterior(
       power_parameter = 0.5,
@@ -201,8 +203,7 @@ test_that("the quadrature has converged at the default resolution", {
       n_treatment_source = 293, n_successes_treatment_source = 184,
       n_control = 143, n_successes_control = 80,
       n_treatment = 143, n_successes_treatment = 92,
-      n_control_nodes = nodes, n_source_nodes = nodes,
-      points_per_scale = points
+      n_lattice = if (nodes == 512L) 1000L else 2000L
     )
   }
 
@@ -216,6 +217,52 @@ test_that("the quadrature has converged at the default resolution", {
       tolerance = 1e-3
     )
   }
+})
+
+
+test_that("the power prior posterior follows the target into the source's tails", {
+  # Stan, 4 x 25,000 draws of the BinomialCPP program. When the target conflicts
+  # with the source, the posterior moves far into the tails of the source
+  # likelihood. Quadrature nodes placed on the source's own quantiles missed
+  # that region: P(theta > 0) came out 0.582 for the first case and the mean
+  # -0.256 for the second.
+  moderate <- binomial_power_prior_posterior(
+    power_parameter = 1,
+    n_control_source = 280, n_successes_control_source = 154,
+    n_treatment_source = 293, n_successes_treatment_source = 184,
+    n_control = 71, n_successes_control = 39,
+    n_treatment = 71, n_successes_treatment = 20
+  )
+  expect_equal(1 - grid_posterior_cdf(moderate, 0), 0.59745, tolerance = 0.006)
+  expect_equal(moderate$mean, 0.0091689, tolerance = 0.001)
+
+  strong <- binomial_power_prior_posterior(
+    power_parameter = 1,
+    n_control_source = 280, n_successes_control_source = 154,
+    n_treatment_source = 293, n_successes_treatment_source = 184,
+    n_control = 143, n_successes_control = 79,
+    n_treatment = 143, n_successes_treatment = 0
+  )
+  expect_equal(strong$mean, -0.18789, tolerance = 0.001)
+  expect_equal(sqrt(strong$variance), 0.0345939, tolerance = 0.001)
+})
+
+
+test_that("the conditional power prior's cached kernel gives the direct posterior", {
+  model <- BinomialCPP$new(prior = cpp_quadrature_prior(0.5), mcmc_config = quadrature_mcmc_config())
+  model$prior <- cpp_quadrature_prior(0.5)
+  target_data <- quadrature_target_data(quadrature_samples(22, 30))
+
+  cached <- model$quadrature_posterior(target_data)
+  direct <- binomial_power_prior_posterior(
+    power_parameter = 0.5,
+    n_control_source = 280, n_successes_control_source = 154,
+    n_treatment_source = 293, n_successes_treatment_source = 184,
+    n_control = 40, n_successes_control = 22,
+    n_treatment = 40, n_successes_treatment = 30
+  )
+  expect_equal(cached$mean, direct$mean, tolerance = 1e-10)
+  expect_equal(grid_posterior_cdf(cached, 0), grid_posterior_cdf(direct, 0), tolerance = 1e-10)
 })
 
 

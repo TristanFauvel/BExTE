@@ -5,6 +5,8 @@
 #' @field method Method name
 #' @field stan_prior Stan prior model
 #' @field stan_prior_code Stan code for the prior
+#' @field fixed_power_parameter Whether the power parameter is the same for
+#'   every replicate, so that the posterior is read off a cached prior kernel.
 #' @export
 BinomialCPP <- R6::R6Class(
   "BinomialCPP",
@@ -13,6 +15,10 @@ BinomialCPP <- R6::R6Class(
     power_parameter = NULL,
     method = "CPP",
     quadrature_available = TRUE,
+    # The power parameter is fixed for the whole run, so the posterior is read
+    # off a prior kernel computed once per worker. A subclass that sets the power
+    # parameter from each replicate's data computes it afresh instead.
+    fixed_power_parameter = TRUE,
     stan_prior = NULL,
     stan_prior_code = "
         data {
@@ -148,6 +154,21 @@ BinomialCPP <- R6::R6Class(
     quadrature_posterior = function(target_data) {
       data_list <- self$prepare_data(target_data)
       self$check_data(data_list)
+      if (isTRUE(self$fixed_power_parameter)) {
+        return(binomial_npp_posterior(
+          binomial_cpp_cached_kernel(
+            n_control_source = data_list$n_control_source,
+            n_successes_control_source = data_list$successes_control_source,
+            n_treatment_source = data_list$n_treatment_source,
+            n_successes_treatment_source = data_list$successes_treatment_source,
+            power_parameter = self$power_parameter
+          ),
+          n_control = data_list$n_control_target,
+          n_successes_control = data_list$successes_control_target,
+          n_treatment = data_list$n_treatment_target,
+          n_successes_treatment = data_list$successes_treatment_target
+        ))
+      }
       binomial_power_prior_posterior(
         power_parameter = self$power_parameter,
         n_control_source = data_list$n_control_source,

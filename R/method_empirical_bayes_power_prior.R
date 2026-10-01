@@ -1016,6 +1016,8 @@ p_value_based_PP_Binomial <- R6::R6Class(
     # The power parameter is set by a test on the replicate's estimates and
     # standard error, so equal samples give equal priors.
     empirical_bayes_from_sample = TRUE,
+    # ... and differs between them, so no prior kernel is shared.
+    fixed_power_parameter = FALSE,
     shape_parameter = NULL,
     equivalence_margin = NULL,
     method = "p_value_based_PP",
