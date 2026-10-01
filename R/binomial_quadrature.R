@@ -277,18 +277,26 @@ grid_distribution <- function(posterior) {
 #' @description The binomial robust mixture prior: the target control rate v is
 #'   uniform and, given v, the treatment effect has the mixture prior
 #'   sum_k w_k N(theta | mu_k, sd_k^2) / Z_k(v), each component truncated to
-#'   (-v, 1 - v), where Z_k(v) = Phi_k(1 - v) - Phi_k(-v). Because the prior
-#'   factor separates into a function of theta and a function of v for each
-#'   component, the integral over v is one matrix product.
+#'   (-v, 1 - v).
+#'
+#'   The rates are discretised on the lattice of [binomial_npp_prior_kernels()]:
+#'   the midpoints of N equal cells of [0, 1], with the treatment effect on the
+#'   multiples of the cell width, so that every treatment rate is a lattice
+#'   point, and each component's truncation constant Z_k(v) is the sum of its
+#'   density over the admissible effects. The lattice covers every control rate
+#'   the target likelihood allows, so it follows the posterior when the
+#'   informative component pulls it away from the observed control rate, which
+#'   nodes on the quantiles of the control rate's own likelihood, as an earlier
+#'   version of this function used, did not quite reach: under conflict the
+#'   posterior probability of benefit was off by up to 5e-4 and the informative
+#'   component's weight by 6 per cent.
 #'
 #'   With no target patients the counts are zero and the result is the prior.
 #'
 #' @param weights,means,sds Parallel vectors describing the mixture.
 #' @param n_control,n_successes_control Control arm size and responders.
 #' @param n_treatment,n_successes_treatment Treatment arm size and responders.
-#' @param n_control_nodes Number of quadrature nodes on the control rate.
-#' @param points_per_scale Treatment effect grid points per narrowest standard
-#'   deviation, passed to [binomial_effect_grid()].
+#' @param n_lattice Number of lattice points N on the rates.
 #' @return A [grid_posterior()] list, with `component_weights`, the posterior
 #'   probability of each mixture component.
 #' @keywords internal
@@ -297,58 +305,45 @@ truncated_normal_mixture_binomial_posterior <- function(weights, means, sds,
                                                         n_successes_control,
                                                         n_treatment,
                                                         n_successes_treatment,
-                                                        n_control_nodes = 512L,
-                                                        points_per_scale = 20) {
+                                                        n_lattice = 1000L) {
   if (length(weights) != length(means) || length(weights) != length(sds)) {
     stop("The mixture components must be given as parallel vectors.", call. = FALSE)
   }
+  N <- as.integer(n_lattice)
+  rates <- (seq_len(N) - 0.5) / N
+  arm_likelihood <- function(n, successes) {
+    log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
+    exp(log_likelihood - max(log_likelihood))
+  }
+  control <- arm_likelihood(n_control, n_successes_control)
+  treatment <- arm_likelihood(n_treatment, n_successes_treatment)
 
-  control_nodes <- beta_quadrature_nodes(
-    n_successes_control + 1, n_control - n_successes_control + 1, n_control_nodes
-  )
-  treatment_shape1 <- n_successes_treatment + 1
-  treatment_shape2 <- n_treatment - n_successes_treatment + 1
+  control_points <- which(control > 1e-20)
+  treatment_points <- which(treatment > 1e-20)
+  differences <- seq(min(treatment_points) - max(control_points),
+                     max(treatment_points) - min(control_points))
 
-  grid <- binomial_effect_grid(
-    treatment_shape1, treatment_shape2, control_nodes,
-    scales = c(
-      sds,
-      beta_sd(treatment_shape1, treatment_shape2),
-      beta_sd(n_successes_control + 1, n_control - n_successes_control + 1)
-    ),
-    points_per_scale = points_per_scale
-  )
+  # J x K: the target likelihood, zero where the treatment rate leaves [0, 1].
+  likelihood <- control[control_points] *
+    lattice_shift_matrix(treatment, control_points, differences)
 
-  # G x M: the treatment arm likelihood at every (theta, v) pair.
-  treatment_likelihood <- matrix(
-    stats::dbeta(outer(grid, control_nodes, "+"), treatment_shape1, treatment_shape2),
-    nrow = length(grid)
-  )
+  all_differences <- seq(-(N - 1L), N - 1L)
+  components <- vapply(seq_along(weights), function(k) {
+    density <- stats::dnorm(all_differences / N, means[k], sds[k])
+    # Truncation constant at each control rate j: the density summed over the
+    # admissible effects, 1 - j <= d <= N - j, i.e. columns N + 1 - j to 2N - j.
+    cumulative <- c(0, cumsum(density))
+    normalisers <- cumulative[2L * N - control_points + 1L] -
+      cumulative[N - control_points + 1L]
+    reciprocal <- ifelse(normalisers > 1e-280, 1 / normalisers, 0)
+    weights[k] * density[differences + N] * as.vector(crossprod(reciprocal, likelihood))
+  }, numeric(length(differences)))
+  components <- matrix(components, nrow = length(differences))
 
-  # M x K: the reciprocal truncation constant of each component at each node.
-  # Where a component has no mass on (-v, 1 - v) it contributes nothing.
-  normalisers <- vapply(seq_along(weights), function(k) {
-    stats::pnorm(1 - control_nodes, means[k], sds[k]) -
-      stats::pnorm(-control_nodes, means[k], sds[k])
-  }, numeric(length(control_nodes)))
-  normalisers <- matrix(normalisers, nrow = length(control_nodes))
-  reciprocal <- ifelse(normalisers > 0, 1 / normalisers, 0)
-
-  inner <- treatment_likelihood %*% reciprocal / length(control_nodes)
-  kernels <- vapply(seq_along(weights), function(k) {
-    stats::dnorm(grid, means[k], sds[k])
-  }, numeric(length(grid)))
-  kernels <- matrix(kernels, nrow = length(grid))
-
-  components <- sweep(inner * kernels, 2, weights, "*")
-  posterior <- grid_posterior(grid, rowSums(components))
-
-  widths <- diff(grid)
-  component_mass <- colSums(
-    widths * (components[-1, , drop = FALSE] + components[-length(grid), , drop = FALSE]) / 2
-  )
-  posterior$component_weights <- component_mass / sum(component_mass)
-
+  support <- c(min(differences) - 1L, differences, max(differences) + 1L)
+  posterior <- grid_posterior(support / N, c(0, rowSums(components), 0))
+  mass <- colSums(components)
+  posterior$component_weights <- mass / sum(mass)
   posterior
 }
 
@@ -434,25 +429,23 @@ binomial_power_prior_posterior <- function(power_parameter,
   differences <- seq(min(treatment_points) - max(control_points),
                      max(treatment_points) - min(control_points))
 
-  # N x K: the discounted source likelihood at every source control rate i and
+  # The source control rates that carry any discounted likelihood: all of them
+  # at a power parameter near 0, a narrow band near 1.
+  source_rows <- which(source_control > 1e-300)
+
+  # R x K: the discounted source likelihood at every source control rate i and
   # treatment effect k, zero where the source treatment rate leaves [0, 1].
-  source_rate <- outer(seq_len(N), differences, "+")
-  inside <- source_rate >= 1L & source_rate <= N
-  source_weight <- matrix(0, N, length(differences))
-  source_weight[inside] <- source_control[row(source_rate)[inside]] *
-    source_treatment[source_rate[inside]]
+  source_weight <- source_control[source_rows] *
+    lattice_shift_matrix(source_treatment, source_rows, differences)
 
   # J x K: summed over the source control rate against the prior density of
   # theta given the two control rates, 1 / (N - |i - j|).
-  width <- 1 / (N - abs(outer(seq_len(N), control_points, "-")))
+  width <- binomial_lattice_width(N)[source_rows, control_points, drop = FALSE]
   kernel <- crossprod(width, source_weight)
 
   # The target likelihood, zero where the target treatment rate leaves [0, 1].
-  target_rate <- outer(control_points, differences, "+")
-  target_inside <- target_rate >= 1L & target_rate <= N
-  likelihood <- matrix(0, length(control_points), length(differences))
-  likelihood[target_inside] <- target_control[control_points[row(target_rate)[target_inside]]] *
-    target_treatment[target_rate[target_inside]]
+  likelihood <- target_control[control_points] *
+    lattice_shift_matrix(target_treatment, control_points, differences)
 
   density <- colSums(kernel * likelihood)
   support <- c(min(differences) - 1L, differences, max(differences) + 1L)

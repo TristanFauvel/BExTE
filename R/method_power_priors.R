@@ -854,71 +854,22 @@ Gaussian_NPP_KL <- R6::R6Class(
       self$theta_0 <- theta_0
       self$null_space <- null_space
 
-      parameters <- prior$method_parameters
-
-      first_or <- function(value, fallback) {
-        if (is.null(value)) fallback else value[[1]]
-      }
-
-      d_mtd_rule <- first_or(parameters$d_mtd_rule, "source_to_null")
-      if (!identical(d_mtd_rule, "source_to_null")) {
-        stop(
-          "The only maximum tolerable discrepancy rule implemented is ",
-          "'source_to_null', but d_mtd_rule is '", d_mtd_rule,
-          "'. Pass an explicit numeric d_mtd to use a different discrepancy."
-        )
-      }
-
-      # An absent benefit_sign is the usual case: the case study records the
-      # benefit direction as its null space, and deriving it there is what keeps
-      # the maximum tolerable discrepancy on the side that moves the target
-      # towards the null for the log-ratio case studies as well.
-      self$calibration_settings <- list(
-        lambda_kl = first_or(parameters$lambda_kl, 0.5),
-        c_target = first_or(parameters$c_target, 10),
-        d_mtd_rule = d_mtd_rule,
-        d_mtd_multiplier = first_or(parameters$d_mtd_multiplier, 1),
-        d_mtd = if (is.null(parameters$d_mtd)) NULL else parameters$d_mtd[[1]],
-        benefit_sign = if (is.null(parameters$benefit_sign)) {
-          benefit_sign_from_null_space(null_space)
-        } else {
-          parameters$benefit_sign[[1]]
-        },
-        beta_parameter_bounds = if (is.null(parameters$beta_parameter_bounds)) {
-          NPP_KL_DEFAULT_BOUNDS
-        } else {
-          unlist(parameters$beta_parameter_bounds)
-        }
-      )
+      self$calibration_settings <- npp_kl_settings(prior$method_parameters, null_space)
     },
 
-    #' @description Calibrate the prior on the power parameter to this design.
-    #'
-    #' The expected target standard error is the one the design implies, which
-    #' every target data class carries as a sampling standard deviation on the
-    #' per-patient scale. It is not the standard error of any replicate: those
-    #' vary around this one, and using them would make the prior a function of
-    #' the data it is supposed to be a prior for.
+    #' @description Calibrate the prior on the power parameter to this design;
+    #' see [npp_kl_calibrate_design()]. For a binary endpoint the expected
+    #' target standard error is taken at zero treatment drift, so that the prior
+    #' does not depend on the scenario's true treatment effect.
     #'
     #' @param target_data Target study data for the scenario.
     #' @return The calibration, invisibly.
     calibrate_for_design = function(target_data) {
-      se_target_expected <- target_data$standard_deviation /
-        sqrt(target_data$sample_size_per_arm)
-
-      settings <- self$calibration_settings
-
-      self$calibration <- calibrate_npp_kl(
-        theta_source = self$prior$source$treatment_effect_estimate,
-        se_source = self$prior$source$standard_error,
-        se_target_expected = se_target_expected,
-        theta_null = self$theta_0,
-        benefit_sign = settings$benefit_sign,
-        d_mtd = settings$d_mtd,
-        d_mtd_multiplier = settings$d_mtd_multiplier,
-        lambda_kl = settings$lambda_kl,
-        c_target = settings$c_target,
-        beta_parameter_bounds = settings$beta_parameter_bounds
+      self$calibration <- npp_kl_calibrate_design(
+        source = self$prior$source,
+        target_data = target_data,
+        theta_0 = self$theta_0,
+        settings = self$calibration_settings
       )
 
       self$p <- self$calibration$alpha_gamma
