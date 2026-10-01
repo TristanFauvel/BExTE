@@ -1,8 +1,7 @@
-## The generators name their files after the scenario they plot, which is what
-## makes them recognisable inside a results directory but useless for reading
-## the paper alongside them: manifest.csv is the only thing that says which
-## file is figure S33. A second copy of each output, named by its paper
-## number, is what you actually hand someone.
+## The generators name their files after the scenario they plot, spread over
+## one folder per case study. A copy of every paper output, gathered in one
+## folder under the same names, is what you actually hand someone;
+## manifest.csv says which file is figure S33.
 
 config_dir <- function() {
   paste0(system.file("conf/case_studies", package = "BExTE"), "/")
@@ -17,7 +16,7 @@ test_that("figures and tables are labelled the way the paper refers to them", {
   expect_equal(paper_numbered_label(paper_manifest_entry("TS3")), "Table S3")
 })
 
-test_that("a numbered copy of each produced output is written", {
+test_that("a copy of each produced output is written under its own name", {
   df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
   df$target_sample_size_per_arm <- 58
 
@@ -38,23 +37,30 @@ test_that("a numbered copy of each produced output is written", {
 
     expect_true(dir.exists(numbered_dir))
     produced <- list.files(numbered_dir)
+    written <- function(id) {
+      basename(trimws(strsplit(status$outputs[status$id == id], ";", fixed = TRUE)[[1]]))
+    }
 
     ## Figures are wanted as PNG - the format that drops straight into a
     ## document or a slide - not as the PDF the generators also write.
-    expect_true("Figure 1.png" %in% produced)
-    expect_false(any(grepl("^Figure 1\\.pdf$", produced)))
+    figure <- written("1")
+    expect_true(all(grep("\\.png$", figure, value = TRUE) %in% produced))
+    expect_false(any(grep("\\.pdf$", figure, value = TRUE) %in% produced))
 
     ## Tables keep both: the .tex is what the manuscript includes, the .pdf is
     ## what you look at.
-    expect_true("Table S1.tex" %in% produced)
-    expect_true("Table S1.pdf" %in% produced)
+    table <- written("TS1")
+    expect_true(all(grep("\\.(tex|pdf)$", table, value = TRUE) %in% produced))
+
+    ## Nothing is renamed after its paper number.
+    expect_false(any(grepl("^(Figure|Table) ", produced)))
 
     ## The copies are real files, not empty placeholders.
-    expect_gt(file.info(file.path(numbered_dir, "Figure 1.png"))$size, 0)
+    expect_true(all(file.info(file.path(numbered_dir, produced))$size > 0))
   })
 })
 
-test_that("an item that produced nothing gets no numbered copy", {
+test_that("an item that produced nothing gets no copy", {
   df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
 
   withr::with_tempdir({
@@ -67,7 +73,7 @@ test_that("an item that produced nothing gets no numbered copy", {
     ## fails - a numbered file for it would claim a figure that was never
     ## drawn, which is exactly what the manifest's honest statuses exist to
     ## prevent.
-    export_paper_outputs(
+    status <- export_paper_outputs(
       results_dir = results_dir,
       figures_dir = file.path(getwd(), "figures", ""),
       tables_dir = file.path(getwd(), "tables"),
@@ -77,8 +83,9 @@ test_that("an item that produced nothing gets no numbered copy", {
     )
 
     produced <- list.files(numbered_dir)
-    expect_false(any(grepl("^Figure S16", produced)))
-    expect_true("Table S1.tex" %in% produced)
+    expect_false(any(grepl("belimumab", produced)))
+    table <- basename(trimws(strsplit(status$outputs[status$id == "TS1"], ";", fixed = TRUE)[[1]]))
+    expect_true(all(grep("\\.tex$", table, value = TRUE) %in% produced))
   })
 })
 
