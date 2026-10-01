@@ -62,10 +62,11 @@ manifest_forest <- function(id, caption, case_study, factor, metric,
 ## grids thinned to their informative range, and PDCCPP left out of these
 ## panels. It remains in the forest plots, which compare every method.
 ##
-## Test-then-pool keeps every setting of both variants. The text reads its
-## conclusions about test-then-pool - less power, larger MSE and worse
-## coverage at a given type I error rate - off these very panels, so they
-## have to show it.
+## Test-then-pool keeps half the settings of each variant, spread over the type
+## I error range. The text reads its conclusions about test-then-pool - less
+## power, larger MSE and worse coverage at a given type I error rate - off
+## these very panels, so they have to show it, but all ten settings crowded
+## the legend.
 ##
 ## A method mapped to an empty list keeps all of its rows (it has no
 ## parameters to choose between); a method absent from this list is dropped.
@@ -89,10 +90,18 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   ## distinguishes this method from the plain NPP, and the multiplier is the
   ## knob it turns, so thinning to one would hide the thing being shown.
   NPP_KL = list(),
-  ## Four significance levels for the difference test, and two levels by
-  ## three equivalence margins for the equivalence test.
-  test_then_pool_difference = list(),
-  test_then_pool_equivalence = list()
+  ## Half the settings of each variant, chosen to span the type I error range
+  ## and to keep the settings the text cites. Difference test: eta = 0.8
+  ## (median TIE 0.07, and the largest losses at a matched TIE) and eta = 0.1
+  ## (0.29). Equivalence test: eta = lambda = 0.1 (0.03, near nominal),
+  ## eta = 0.5 with lambda = 0.1 (0.10, the largest Teriflunomide gain) and
+  ## eta = 0.1 with lambda = 0.8 (0.35).
+  test_then_pool_difference = list(significance_level = c(0.1, 0.8)),
+  test_then_pool_equivalence = list(
+    list(significance_level = 0.1, equivalence_margin = 0.1),
+    list(significance_level = 0.5, equivalence_margin = 0.1),
+    list(significance_level = 0.1, equivalence_margin = 0.8)
+  )
 )
 
 ## Keep only the rows PAPER_VS_TIE_COMBINATIONS names.
@@ -108,8 +117,8 @@ paper_vs_tie_subset <- function(df) {
   expanded <- cbind(df, get_parameters(df[, "parameters", drop = FALSE]))
   keep <- rep(FALSE, nrow(expanded))
 
-  for (method in names(PAPER_VS_TIE_COMBINATIONS)) {
-    spec <- PAPER_VS_TIE_COMBINATIONS[[method]]
+  ## Rows of `method` whose parameters take the values one named spec lists.
+  matching <- function(method, spec) {
     matches <- expanded$method == method
     for (column in names(spec)) {
       ## A parameter the run did not record cannot match. Bail out with
@@ -117,12 +126,22 @@ paper_vs_tie_subset <- function(df) {
       ## there: `expanded[[column]]` is NULL then, and `NULL %in% ...`
       ## collapses to logical(0), which silently shortens `matches`.
       if (!column %in% names(expanded)) {
-        matches <- rep(FALSE, nrow(expanded))
-        break
+        return(rep(FALSE, nrow(expanded)))
       }
       matches <- matches & expanded[[column]] %in% spec[[column]]
     }
-    keep <- keep | matches
+    matches
+  }
+
+  for (method in names(PAPER_VS_TIE_COMBINATIONS)) {
+    spec <- PAPER_VS_TIE_COMBINATIONS[[method]]
+    ## A named spec selects the cross product of its values; an unnamed list
+    ## of named specs selects the union of theirs, for combinations that do
+    ## not form a product.
+    alternatives <- if (length(spec) > 0 && is.null(names(spec))) spec else list(spec)
+    for (alternative in alternatives) {
+      keep <- keep | matching(method, alternative)
+    }
   }
 
   df[keep, , drop = FALSE]
