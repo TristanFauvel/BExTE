@@ -17,11 +17,17 @@
     error of that analysis - a sum over every outcome under the null - instead
     of the normal closed form. The per-design table it needs is saved under
     `tools::R_user_dir("BExTE", "cache")` (or `BEXTE_CACHE_DIR`).
-  The robust mixture priors (RMP, Egidi) already used binomial likelihoods;
-  their posterior is now computed on the lattice too, which corrects a small
-  error under conflict (P(theta > 0) 0.0514 instead of 0.0519, and an
-  informative weight 6% too low, against brute force). Their informative
-  component remains the normal approximation of the source posterior.
+  - `BinomialRMP` and `BinomialEgidiMixture`: the robust mixture priors with
+    an exact binomial informative component - the conditional power prior
+    with full borrowing, i.e. the source posterior of the risk difference -
+    instead of its normal approximation N(theta_S_hat, SE_S^2), and a weak
+    component giving both target response rates independent uniform priors.
+    Egidi's conflict p-value is computed from the exact prior-predictive
+    tables of the two components; the weak one is uniform over the pairs of
+    counts. The previous classes, `TruncatedGaussianRMP` and
+    `TruncatedEgidiMixture`, remain, and their posterior is now computed on
+    the lattice too, which corrects a small error under conflict
+    (P(theta > 0) 0.0514 instead of 0.0519 against brute force).
 * Fixed: for a binary endpoint, the KL-calibrated NPP took the expected target
   standard error at the scenario's true response rates, so its prior depended
   on the true treatment effect. It is now taken at zero treatment drift, as
