@@ -107,6 +107,11 @@ reference:
   - BinomialCPP
   - BinomialNPP
   - BinomialGravestockEBPP
+  - BinomialLatticePrior
+  - BinomialNPP_KL
+  - BinomialPDCCPP
+  - BinomialCommensuratePowerPrior
+  - BinomialCommensuratePrior
   - GaussianCommensuratePowerPrior
   - GaussianCommensuratePrior
   - GaussianEgidiMixture
