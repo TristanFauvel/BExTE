@@ -150,6 +150,45 @@ manifest_vs_tie <- function(id, caption, case_study, factor, metric,
   )
 }
 
+## The difference between a method's power and the power a frequentist test of
+## the target data alone reaches at the same type I error rate - the method's
+## own, not the nominal one - with its interval from flag_power_differences().
+## A method above zero is more powerful than a test that spends as much type I
+## error; on zero, its extra power is what that extra type I error buys anyway.
+POWER_GAIN_METRIC <- list(
+  name = "power_gain",
+  label = "Power gain over a test at the same TIE",
+  reference_line = 0
+)
+
+manifest_power_gain_vs_tie <- function(id, caption, case_study, factor,
+                                       treatment_effect) {
+  list(
+    id = id, kind = "figure", caption = caption,
+    case_study = case_study, sample_size_factor = factor,
+    ## Read off the probability of success and the power at the equivalent
+    ## type I error, which the success_proba requirements already bring in.
+    metric = "success_proba",
+    needs = "frequentist",
+    methods = "all",
+    generator = function(ctx) {
+      df <- flag_power_differences(paper_vs_tie_subset(ctx$df))
+      df$power_gain <- df$power_difference
+      df$conf_int_power_gain_lower <- df$power_difference_lower
+      df$conf_int_power_gain_upper <- df$power_difference_upper
+      operating_characteristic_vs_tie(
+        df,
+        case_study = case_study,
+        target_sample_size_per_arm = ctx$target_sample_size_per_arm,
+        treatment_effect = treatment_effect,
+        operating_characteristic = POWER_GAIN_METRIC,
+        source_denominator_change_factor = 1,
+        target_to_source_std_ratio = 1
+      )
+    }
+  )
+}
+
 paper_manifest_figures_forest <- function() {
   list(
     manifest_forest("1", "Probability of success for the three principal treatment-effect scenarios in the Botox case study (N_T/2 = 58).", "botox", 4, "success_proba"),
@@ -214,7 +253,16 @@ paper_manifest_figures_vs_tie <- function() {
     ## same slice, so the score can be read against the coverage it folds in.
     manifest_vs_tie("S42", "Interval score of the 95% credible interval versus type I error rate in the Botox case study, with 117 participants per arm, no treatment effect, and a target-to-source standard-deviation ratio of 1. Smaller is better.", "botox", 2, "interval_score", "no_effect"),
     manifest_vs_tie("S43", "Interval score of the 95% credible interval versus type I error rate in the Mepolizumab case study, with 68 participants per arm and no treatment effect. Smaller is better.", "mepolizumab", 4, "interval_score", "no_effect"),
-    manifest_vs_tie("S44", "Interval score of the 95% credible interval versus type I error rate in the Teriflunomide case study, with 123 participants per arm and no treatment effect. Smaller is better.", "teriflunomide", 6, "interval_score", "no_effect")
+    manifest_vs_tie("S44", "Interval score of the 95% credible interval versus type I error rate in the Teriflunomide case study, with 123 participants per arm and no treatment effect. Smaller is better.", "teriflunomide", 6, "interval_score", "no_effect"),
+
+    ## Added in revision: the power gain at a matched type I error rate the
+    ## results text quantifies, on the designs it cites - the largest gains
+    ## (Teriflunomide, and Aprepitant at 143), and the largest losses
+    ## (Aprepitant at 71, Botox at 58).
+    manifest_power_gain_vs_tie("S53", "Power gain over a frequentist test of the target data alone performed at the same type I error rate, versus type I error rate, in the Teriflunomide case study, with 123 participants per arm and a consistent treatment effect. Error bars are 95% intervals for the difference.", "teriflunomide", 6, "consistent"),
+    manifest_power_gain_vs_tie("S54", "Power gain over a frequentist test of the target data alone performed at the same type I error rate, versus type I error rate, in the Aprepitant case study, with 143 participants per arm and a consistent treatment effect. Error bars are 95% intervals for the difference.", "aprepitant", 2, "consistent"),
+    manifest_power_gain_vs_tie("S55", "Power gain over a frequentist test of the target data alone performed at the same type I error rate, versus type I error rate, in the Aprepitant case study, with 71 participants per arm and a consistent treatment effect. Error bars are 95% intervals for the difference.", "aprepitant", 4, "consistent"),
+    manifest_power_gain_vs_tie("S56", "Power gain over a frequentist test of the target data alone performed at the same type I error rate, versus type I error rate, in the Botox case study, with 58 participants per arm and a consistent treatment effect. Error bars are 95% intervals for the difference.", "botox", 4, "consistent")
   )
 }
 
