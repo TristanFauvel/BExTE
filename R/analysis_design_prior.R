@@ -285,19 +285,23 @@ UnitInformationDesignPrior <- R6::R6Class(
           source_data = source_data,
           case_study_config = case_study_config,
           target_sample_size_per_arm = source_data$equivalent_source_sample_size_per_arm,
-          control_drift = 0, # The actual value does matter here as we set the treatment effect estimate after
-          treatment_drift = 0, # The actual value does matter here as we set the treatment effect estimate after
+          control_drift = 0, # Irrelevant: the sample is replaced by the source counts below
+          treatment_drift = 0, # Irrelevant: the sample is replaced by the source counts below
           summary_measure_likelihood = case_study_config$summary_measure_likelihood,
           target_to_source_std_ratio = 1
         )
 
-        # The target data object used for the analysis has the same properties as the source data, but centered in theta0.
+        # The target data object used for the analysis is the source study
+        # itself: the separate analysis of the source counts, whose posterior
+        # is centred on the source estimate, as the unit-information design
+        # prior of the normal likelihood above is. The binomial analysis reads
+        # the counts; the estimate is set to the source's for consistency.
         target_data$sample_size_treatment <- source_data$sample_size_treatment
         target_data$sample_size_control <- source_data$sample_size_control
         target_data$sample$sample_treatment_rate <- source_data$treatment_rate
         target_data$sample$sample_control_rate <- source_data$control_rate
         target_data$sample$sample_size_per_arm <- source_data$equivalent_source_sample_size_per_arm
-        target_data$sample$treatment_effect_estimate <- case_study_config$theta_0
+        target_data$sample$treatment_effect_estimate <- source_data$treatment_effect_estimate
         target_data$sample$treatment_effect_standard_error <- source_data$standard_error
 
         # Perform inference using a separate analysis of the source study

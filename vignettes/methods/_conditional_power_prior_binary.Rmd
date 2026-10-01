@@ -60,10 +60,14 @@ The model can be summarized as follows:
 
 * $y_T^{c} \sim \mathcal{B}(p_T^{c},N_T^{c})$
 * $y_T^{t} \sim \mathcal{B}(p_T^{t},N_T^{t})$
-* $p_T^{c} \sim \mathcal{U}(0,1)$
-* $p_T^{t} = \theta_T - p_T^{c}$
+* $p_T^{c} \sim \mathcal{U}(0,1)$, and likewise $p_S^{c} \sim \mathcal{U}(0,1)$ in the source study
+* $p_T^{t} = p_T^{c} + \theta_T$ and $p_S^{t} = p_S^{c} + \theta_T$: the treatment effect is shared by the two studies
+* the initial prior $\pi_0$ of $\theta_T$ is uniform on $(-\min(p_S^{c}, p_T^{c}),\, 1 - \max(p_S^{c}, p_T^{c}))$, the effects that keep both treatment rates in $[0, 1]$
+
 and we put a Conditional Power Prior informed by source study data on the treatment effect: 
-$p(\theta_T |\mathbf{D}_S, \gamma) \propto \mathcal{L}(\theta_T|\mathbf{D}_S)^\gamma\pi_0(\theta_T)$
+$p(\theta_T, p_S^{c} |\mathbf{D}_S, \gamma) \propto \mathcal{L}(p_S^{c}, \theta_T|\mathbf{D}_S)^\gamma\pi_0(\theta_T)$, where the source likelihood $\mathcal{L}$ is the product of the binomial likelihoods of the two source arms.
+
+This is the model of `BinomialCPP`. The package computes its posterior by numerical integration on a lattice of response rates; here it is fitted with Stan for illustration.
  
 
 ## Implementation of the model in Stan
@@ -85,12 +89,16 @@ data {
   int<lower = 0, upper = n_treatment_target> successes_treatment_target;  // number of successes in the treatment group of the target study
   int<lower = 0, upper = n_control_target> successes_control_target; // number of successes in the control group of the target study
 
-  int<lower = 0, upper = 1> gamma; // power parameter
+  real<lower = 0, upper = 1> gamma; // power parameter
 }
 parameters {
   real<lower = 0, upper = 1> control_rate_source;
   real<lower = 0, upper = 1> control_rate_target;
-  real<lower = -1, upper = 1> treatment_effect; // The power prior approach assumes that the treatment effect is the same in the source and target studies
+  // The power prior approach assumes that the treatment effect is the same in
+  // the source and target studies; it is bounded so that both treatment rates
+  // stay in [0, 1].
+  real<lower = -fmin(control_rate_target, control_rate_source),
+       upper = 1 - fmax(control_rate_target, control_rate_source)> treatment_effect;
 }
 transformed parameters {
   real treatment_rate_source = control_rate_source + treatment_effect;
@@ -100,7 +108,9 @@ model {
   control_rate_target ~ uniform(0, 1);
   control_rate_source ~ uniform(0, 1);
 
-  treatment_effect ~ uniform(-1, 1); // Initial prior on the treatment effect
+  // Initial prior on the treatment effect: uniform on the admissible effects.
+  treatment_effect ~ uniform(-fmin(control_rate_target, control_rate_source),
+                             1 - fmax(control_rate_target, control_rate_source));
 
   target += gamma * (binomial_lpmf(successes_control_source |n_control_source, control_rate_source) +
   binomial_lpmf(successes_treatment_source |n_treatment_source, treatment_rate_source)); // Likelihood of the source study p(D_S|treatment_effect)
