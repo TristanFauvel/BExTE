@@ -179,7 +179,11 @@ Model <- R6::R6Class(
       } else if (method == "PDCCPP") {
         model <- PDCCPP$new(prior, theta_0 = case_study_config$theta_0, null_space = null_space)
       } else if (method == "EB_PP") {
-        model <- Gaussian_Gravestock_EBPP$new(prior, null_space = null_space, theta_0 = case_study_config$theta_0)
+        if (case_study_config$summary_measure_likelihood == "binomial") {
+          model <- BinomialGravestockEBPP$new(prior = prior, mcmc_config = mcmc_config)
+        } else {
+          model <- Gaussian_Gravestock_EBPP$new(prior, null_space = null_space, theta_0 = case_study_config$theta_0)
+        }
       } else if (method == "NPP") {
         if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- BinomialNPP$new(prior = prior, mcmc_config = mcmc_config)

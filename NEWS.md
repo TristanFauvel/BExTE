@@ -1,4 +1,14 @@
 # BExTE 0.0.2
+* The empirical Bayes power prior (EB-PP) of a binary endpoint uses the
+  binomial likelihoods of the two arms of each study
+  (`BinomialGravestockEBPP`), instead of the closed form of a normal
+  approximation. The power parameter maximizes the marginal likelihood of the
+  target data under the binomial power prior, computed on the lattice of the
+  conditional power prior, and the target data are analysed with that power
+  prior. The initial prior is proper, so the marginal likelihood is finite at
+  a power parameter of 0, and strong conflict discards the source entirely,
+  which the normal closed form never does. Rerun the Aprepitant EB-PP
+  scenarios to update existing results.
 * The normalized power prior (NPP) of a binary endpoint uses the binomial
   likelihoods of the two arms of each study, with the risk difference shared
   between them, instead of a normal approximation of the risk difference

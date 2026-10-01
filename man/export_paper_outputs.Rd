@@ -29,9 +29,10 @@ the plot generators append their own \verb{<case_study>/} below it.}
 
 \item{progress}{Optional \verb{function(index, total, id)} progress callback.}
 
-\item{numbered_dir}{Optional directory for numbered copies ("Figure 1.png",
-"Table S1.tex"). Numbered figures are copied as PNG, tables as both
-\code{.tex} and \code{.pdf}. Unnumbered \code{X} figures are omitted. \code{NULL} skips it.}
+\item{numbered_dir}{Optional directory collecting a copy of every output
+produced, under the generators' own filenames: figures as PNG, tables as
+both \code{.tex} and \code{.pdf}. \code{manifest.csv} maps each file to its paper number.
+\code{NULL} skips it.}
 
 \item{workers}{Number of items to produce at once, each in a forked
 process. The default, 1, produces them one after the other in this
