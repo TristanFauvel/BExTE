@@ -119,7 +119,7 @@ Model <- R6::R6Class(
         if (case_study_config$summary_measure_likelihood == "normal") {
           model <- GaussianRMP_RBesT$new(prior = prior)
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
-          model <- TruncatedGaussianRMP$new(prior = prior, mcmc_config = mcmc_config)
+          model <- BinomialRMP$new(prior = prior, mcmc_config = mcmc_config)
         } else {
           stop('Only "normal" or "binomial" treatment effect distributions are supported')
         }
@@ -241,7 +241,7 @@ Model <- R6::R6Class(
         if (case_study_config$summary_measure_likelihood == "normal") {
           model <- GaussianEgidiMixture$new(prior = prior)
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
-          model <- TruncatedEgidiMixture$new(prior = prior, mcmc_config = mcmc_config)
+          model <- BinomialEgidiMixture$new(prior = prior, mcmc_config = mcmc_config)
         } else {
           stop('Only "normal" or "binomial" treatment effect distributions are supported')
         }

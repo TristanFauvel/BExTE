@@ -110,6 +110,8 @@ reference:
   - BinomialLatticePrior
   - BinomialNPP_KL
   - BinomialPDCCPP
+  - BinomialRMP
+  - BinomialEgidiMixture
   - BinomialCommensuratePowerPrior
   - BinomialCommensuratePrior
   - GaussianCommensuratePowerPrior
