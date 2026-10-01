@@ -62,10 +62,11 @@ manifest_forest <- function(id, caption, case_study, factor, metric,
 ## grids thinned to their informative range, and PDCCPP left out of these
 ## panels. It remains in the forest plots, which compare every method.
 ##
-## Test-then-pool keeps every setting of both variants. The text reads its
-## conclusions about test-then-pool - less power, larger MSE and worse
-## coverage at a given type I error rate - off these very panels, so they
-## have to show it.
+## Test-then-pool keeps half the settings of each variant, spread over the type
+## I error range. The text reads its conclusions about test-then-pool - less
+## power, larger MSE and worse coverage at a given type I error rate - off
+## these very panels, so they have to show it, but all ten settings crowded
+## the legend.
 ##
 ## A method mapped to an empty list keeps all of its rows (it has no
 ## parameters to choose between); a method absent from this list is dropped.
@@ -89,10 +90,18 @@ PAPER_VS_TIE_COMBINATIONS <- list(
   ## distinguishes this method from the plain NPP, and the multiplier is the
   ## knob it turns, so thinning to one would hide the thing being shown.
   NPP_KL = list(),
-  ## Four significance levels for the difference test, and two levels by
-  ## three equivalence margins for the equivalence test.
-  test_then_pool_difference = list(),
-  test_then_pool_equivalence = list()
+  ## Half the settings of each variant, chosen to span the type I error range
+  ## and to keep the settings the text cites. Difference test: eta = 0.8
+  ## (median TIE 0.07, and the largest losses at a matched TIE) and eta = 0.1
+  ## (0.29). Equivalence test: eta = lambda = 0.1 (0.03, near nominal),
+  ## eta = 0.5 with lambda = 0.1 (0.10, the largest Teriflunomide gain) and
+  ## eta = 0.1 with lambda = 0.8 (0.35).
+  test_then_pool_difference = list(significance_level = c(0.1, 0.8)),
+  test_then_pool_equivalence = list(
+    list(significance_level = 0.1, equivalence_margin = 0.1),
+    list(significance_level = 0.5, equivalence_margin = 0.1),
+    list(significance_level = 0.1, equivalence_margin = 0.8)
+  )
 )
 
 ## Keep only the rows PAPER_VS_TIE_COMBINATIONS names.
@@ -108,8 +117,8 @@ paper_vs_tie_subset <- function(df) {
   expanded <- cbind(df, get_parameters(df[, "parameters", drop = FALSE]))
   keep <- rep(FALSE, nrow(expanded))
 
-  for (method in names(PAPER_VS_TIE_COMBINATIONS)) {
-    spec <- PAPER_VS_TIE_COMBINATIONS[[method]]
+  ## Rows of `method` whose parameters take the values one named spec lists.
+  matching <- function(method, spec) {
     matches <- expanded$method == method
     for (column in names(spec)) {
       ## A parameter the run did not record cannot match. Bail out with
@@ -117,12 +126,22 @@ paper_vs_tie_subset <- function(df) {
       ## there: `expanded[[column]]` is NULL then, and `NULL %in% ...`
       ## collapses to logical(0), which silently shortens `matches`.
       if (!column %in% names(expanded)) {
-        matches <- rep(FALSE, nrow(expanded))
-        break
+        return(rep(FALSE, nrow(expanded)))
       }
       matches <- matches & expanded[[column]] %in% spec[[column]]
     }
-    keep <- keep | matches
+    matches
+  }
+
+  for (method in names(PAPER_VS_TIE_COMBINATIONS)) {
+    spec <- PAPER_VS_TIE_COMBINATIONS[[method]]
+    ## A named spec selects the cross product of its values; an unnamed list
+    ## of named specs selects the union of theirs, for combinations that do
+    ## not form a product.
+    alternatives <- if (length(spec) > 0 && is.null(names(spec))) spec else list(spec)
+    for (alternative in alternatives) {
+      keep <- keep | matching(method, alternative)
+    }
   }
 
   df[keep, , drop = FALSE]
@@ -143,6 +162,45 @@ manifest_vs_tie <- function(id, caption, case_study, factor, metric,
         target_sample_size_per_arm = ctx$target_sample_size_per_arm,
         treatment_effect = treatment_effect,
         operating_characteristic = frequentist_metrics[[metric]],
+        source_denominator_change_factor = 1,
+        target_to_source_std_ratio = 1
+      )
+    }
+  )
+}
+
+## The difference between a method's power and the power a frequentist test of
+## the target data alone reaches at the same type I error rate - the method's
+## own, not the nominal one - with its interval from flag_power_differences().
+## A method above zero is more powerful than a test that spends as much type I
+## error; on zero, its extra power is what that extra type I error buys anyway.
+POWER_GAIN_METRIC <- list(
+  name = "power_gain",
+  label = "Power gain over a test at the same TIE",
+  reference_line = 0
+)
+
+manifest_power_gain_vs_tie <- function(id, caption, case_study, factor,
+                                       treatment_effect) {
+  list(
+    id = id, kind = "figure", caption = caption,
+    case_study = case_study, sample_size_factor = factor,
+    ## Read off the probability of success and the power at the equivalent
+    ## type I error, which the success_proba requirements already bring in.
+    metric = "success_proba",
+    needs = "frequentist",
+    methods = "all",
+    generator = function(ctx) {
+      df <- flag_power_differences(paper_vs_tie_subset(ctx$df))
+      df$power_gain <- df$power_difference
+      df$conf_int_power_gain_lower <- df$power_difference_lower
+      df$conf_int_power_gain_upper <- df$power_difference_upper
+      operating_characteristic_vs_tie(
+        df,
+        case_study = case_study,
+        target_sample_size_per_arm = ctx$target_sample_size_per_arm,
+        treatment_effect = treatment_effect,
+        operating_characteristic = POWER_GAIN_METRIC,
         source_denominator_change_factor = 1,
         target_to_source_std_ratio = 1
       )
@@ -214,7 +272,16 @@ paper_manifest_figures_vs_tie <- function() {
     ## same slice, so the score can be read against the coverage it folds in.
     manifest_vs_tie("S42", "Interval score of the 95% credible interval versus type I error rate in the Botox case study, with 117 participants per arm, no treatment effect, and a target-to-source standard-deviation ratio of 1. Smaller is better.", "botox", 2, "interval_score", "no_effect"),
     manifest_vs_tie("S43", "Interval score of the 95% credible interval versus type I error rate in the Mepolizumab case study, with 68 participants per arm and no treatment effect. Smaller is better.", "mepolizumab", 4, "interval_score", "no_effect"),
-    manifest_vs_tie("S44", "Interval score of the 95% credible interval versus type I error rate in the Teriflunomide case study, with 123 participants per arm and no treatment effect. Smaller is better.", "teriflunomide", 6, "interval_score", "no_effect")
+    manifest_vs_tie("S44", "Interval score of the 95% credible interval versus type I error rate in the Teriflunomide case study, with 123 participants per arm and no treatment effect. Smaller is better.", "teriflunomide", 6, "interval_score", "no_effect"),
+
+    ## Added in revision: the power gain at a matched type I error rate the
+    ## results text quantifies, on the designs it cites - the largest gains
+    ## (Teriflunomide, and Aprepitant at 143), and the largest losses
+    ## (Aprepitant at 71, Botox at 58).
+    manifest_power_gain_vs_tie("S53", "Power gain over a frequentist test of the target data alone performed at the same type I error rate, versus type I error rate, in the Teriflunomide case study, with 123 participants per arm and a consistent treatment effect. Error bars are 95% intervals for the difference.", "teriflunomide", 6, "consistent"),
+    manifest_power_gain_vs_tie("S54", "Power gain over a frequentist test of the target data alone performed at the same type I error rate, versus type I error rate, in the Aprepitant case study, with 143 participants per arm and a consistent treatment effect. Error bars are 95% intervals for the difference.", "aprepitant", 2, "consistent"),
+    manifest_power_gain_vs_tie("S55", "Power gain over a frequentist test of the target data alone performed at the same type I error rate, versus type I error rate, in the Aprepitant case study, with 71 participants per arm and a consistent treatment effect. Error bars are 95% intervals for the difference.", "aprepitant", 4, "consistent"),
+    manifest_power_gain_vs_tie("S56", "Power gain over a frequentist test of the target data alone performed at the same type I error rate, versus type I error rate, in the Botox case study, with 58 participants per arm and a consistent treatment effect. Error bars are 95% intervals for the difference.", "botox", 4, "consistent")
   )
 }
 

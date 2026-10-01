@@ -441,6 +441,17 @@ operating_characteristic_vs_tie <- function(
       breaks = nominal_tie_breaks(analysis_config$nominal_tie)
     )
 
+  # A metric measured against a reference - a difference whose zero means "no
+  # better and no worse" - names it, and gets a horizontal line there.
+  if (!is.null(operating_characteristic$reference_line)) {
+    plt <- plt +
+      ggplot2::geom_hline(
+        yintercept = operating_characteristic$reference_line,
+        color = "black",
+        linetype = "dotted"
+      )
+  }
+
   # Add shape scale for methods
   plt <- plt +
     scale_shape_manual(

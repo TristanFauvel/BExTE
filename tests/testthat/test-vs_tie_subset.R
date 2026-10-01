@@ -41,9 +41,10 @@ test_that("the subset names exactly the methods the paper's vs-TIE panels show",
       "test_then_pool_difference", "test_then_pool_equivalence")
   )
   ## The text draws its test-then-pool conclusions from these panels, so
-  ## both variants must be on them, with every setting.
-  expect_length(PAPER_VS_TIE_COMBINATIONS$test_then_pool_difference, 0)
-  expect_length(PAPER_VS_TIE_COMBINATIONS$test_then_pool_equivalence, 0)
+  ## both variants are on them, with half their settings each.
+  expect_equal(PAPER_VS_TIE_COMBINATIONS$test_then_pool_difference$significance_level,
+               c(0.1, 0.8))
+  expect_length(PAPER_VS_TIE_COMBINATIONS$test_then_pool_equivalence, 3)
   ## PDCCPP is deliberately absent from these panels.
   expect_false("PDCCPP" %in% names(PAPER_VS_TIE_COMBINATIONS))
 })
@@ -62,6 +63,27 @@ test_that("the parameter grids are thinned to their informative range", {
   )
 })
 
+test_that("a list of specs selects the union of their combinations", {
+  settings <- expand.grid(eta = c(0.1, 0.5), lambda = c(0.1, 0.5, 0.8))
+  df <- data.frame(
+    method = "test_then_pool_equivalence",
+    parameters = sprintf(
+      "[\n  [\n  {\n    'significance_level': [%s],\n    'equivalence_margin': [%s],\n    'initial_prior': ['noninformative']\n  }\n]\n]",
+      settings$eta, settings$lambda
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  kept <- paper_vs_tie_subset(df)
+  kept_settings <- get_parameters(kept[, "parameters", drop = FALSE])
+
+  expect_equal(nrow(kept), 3)
+  expect_setequal(
+    paste(kept_settings$significance_level, kept_settings$equivalence_margin),
+    c("0.1 0.1", "0.5 0.1", "0.1 0.8")
+  )
+})
+
 test_that("the subset selects 32 combinations from a real results slice", {
   df <- local_botox_slice()
 
@@ -71,12 +93,12 @@ test_that("the subset selects 32 combinations from a real results slice", {
   ## 1 pooling + 1 separate + 1 EBPP + 5 RMP + 3 conditional PP
   ## + 1 p-PP + 1 NPP + 1 empirical mixture prior, whose weight is selected
   ## rather than swept and so has a single combination, + 2 KL-calibrated
-  ## NPP, which keeps both of its discrepancy multipliers, + 4 test-then-pool
-  ## (difference) and 6 test-then-pool (equivalence): 26, plus the
+  ## NPP, which keeps both of its discrepancy multipliers, + 2 test-then-pool
+  ## (difference) and 3 test-then-pool (equivalence): 21, plus the
   ## inverse-gamma priors of each commensurate method. Those are counted from
   ## the run, which has three or two depending on whether it predates the
   ## removal of inverse_gamma(1/1000, 1).
-  expect_equal(nrow(combinations), 26 + 2 * inverse_gamma_prior_count(df))
+  expect_equal(nrow(combinations), 21 + 2 * inverse_gamma_prior_count(df))
   expect_lt(nrow(kept), nrow(df))
 })
 
