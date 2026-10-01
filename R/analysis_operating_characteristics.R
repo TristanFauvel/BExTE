@@ -265,6 +265,11 @@ assert_target_data_numbers <- function(target_data) {
 #' @param p_values Optional p-values already simulated for this design by
 #'   [simulate_test_p_values()], with the same seed and `n_replicates`. `NULL`
 #'   simulates them. Ignored when the power has a closed form.
+#' @param null_p_values Optional p-values of the same test on the trials of the
+#'   design's null scenario. When given, the test rejects at the threshold its
+#'   actual type I error there equals `alpha` at, rather than at `alpha`
+#'   itself - see [calibrated_levels()]. Ignored when the power has a closed
+#'   form.
 #'
 #' @return A list containing the power and its confidence interval.
 #'
@@ -277,7 +282,8 @@ compute_freq_power <- function(alpha,
                                simulation_config,
                                case_study = NULL,
                                n_replicates = 1000,
-                               p_values = NULL) {
+                               p_values = NULL,
+                               null_p_values = NULL) {
   alternative <- alternative_from_null_space(null_space)
 
   if (is.na(alpha)){
@@ -307,7 +313,8 @@ compute_freq_power <- function(alpha,
         )
       }
 
-      test_decisions <- p_values < alpha
+      threshold <- if (is.null(null_p_values)) alpha else calibrated_levels(alpha, null_p_values)
+      test_decisions <- p_values < threshold
       power <- mean(test_decisions)
       conf_int_power <- binom.test(sum(test_decisions), length(test_decisions), conf.level = 0.95)$conf.int
     }
@@ -644,6 +651,11 @@ sample_equivalent_tie <- function(alpha, n_samples) {
 #'   design alone, not on the borrowing method, so a caller pricing many rows of
 #'   one design simulates them once and passes them here. `NULL` simulates them.
 #'   Ignored when the power has a closed form.
+#' @param null_p_values Optional p-values of the same test on the trials of the
+#'   design's null scenario. When given, each sampled type I error is matched
+#'   by the test's actual rejection rate there rather than by its nominal
+#'   level - see [calibrated_levels()]. Ignored when the power has a closed
+#'   form.
 #'
 #' @return A list with the power, its interval, and the number of draws used.
 #'
@@ -657,7 +669,8 @@ compute_power_with_tie_ci <- function(alpha,
                                       case_study = NULL,
                                       n_replicates = 1000,
                                       n_samples = 1000,
-                                      p_values = NULL) {
+                                      p_values = NULL,
+                                      null_p_values = NULL) {
   missing_result <- list(
     power = NA_real_,
     conf_int_power = rep(NA_real_, 2),
@@ -710,8 +723,13 @@ compute_power_with_tie_ci <- function(alpha,
     if (is.unsorted(p_values)) {
       p_values <- sort(p_values)
     }
+    levels <- if (is.null(null_p_values)) {
+      alpha_samples
+    } else {
+      calibrated_levels(alpha_samples, null_p_values)
+    }
     rejections <- as.numeric(
-      findInterval(alpha_samples, p_values, left.open = TRUE)
+      findInterval(levels, p_values, left.open = TRUE)
     )
     power_samples <- stats::rbeta(
       n_samples,
@@ -803,6 +821,8 @@ design_trials <- function(row, simulation_config, n_replicates) {
 #' @param trial_cache An environment to read from and add to, or `NULL`.
 #' @param cluster A cluster from [new_analysis_cluster()] to run on, or
 #'   `NULL` to start one here if one is needed.
+#' @param exact Logical, one per design: whether its reference is computed
+#'   exactly by enumeration instead, so needs no simulated trials.
 #'
 #' @return A list with one entry per design: its sorted p-values, or `NULL`.
 #' @noRd
@@ -814,11 +834,14 @@ equivalent_tie_design_p_values <- function(design_rows,
                                            n_replicates,
                                            parallelization,
                                            trial_cache = NULL,
-                                           cluster = NULL) {
+                                           cluster = NULL,
+                                           exact = rep(FALSE, nrow(design_rows))) {
   p_values <- vector("list", nrow(design_rows))
 
   # which() drops an undetermined answer along with the closed-form designs.
-  needs_simulation <- which(!vapply(design_target_data, uses_analytical_power, logical(1)))
+  needs_simulation <- which(
+    !vapply(design_target_data, uses_analytical_power, logical(1)) & !exact
+  )
   if (length(needs_simulation) == 0) {
     return(p_values)
   }
@@ -913,41 +936,14 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
       "frequentist_power_at_equivalent_tie",
       "frequentist_power_at_equivalent_tie_lower",
       "frequentist_power_at_equivalent_tie_upper",
-      "frequentist_test"
+      "frequentist_test",
+      "frequentist_reference_calibration"
     )
   )]
 
-  # Everything that identifies a scenario apart from the treatment effect. The
-  # type I error rate is joined back onto the scenarios it was computed for, so
-  # a design axis missing here would match one scenario's TIE to several rows.
-  matching_columns <- c(
-    "method",
-    "parameters",
-    "control_drift",
-    "source_denominator",
-    "source_denominator_change_factor",
-    "case_study",
-    "target_to_source_std_ratio",
-    "target_sample_size_per_arm",
-    "theta_0",
-    "null_space",
-    "sampling_approximation",
-    "summary_measure_likelihood",
-    "source_sample_size_treatment",
-    "source_sample_size_control",
-    "endpoint",
-    "source_standard_error",
-    "source_treatment_effect_estimate",
-    "equivalent_source_sample_size_per_arm"
-  )
-
-  # Results written before the time-to-event design axes existed do not carry
-  # them, and such a run only ever had one design, so they join only when the
-  # columns are actually there.
-  matching_columns <- c(
-    matching_columns,
-    intersect(time_to_event_design_columns, names(results))
-  )
+  # The type I error rate is joined back onto the scenarios it was computed
+  # for - see scenario_matching_columns().
+  matching_columns <- scenario_matching_columns(results)
 
   for (case_study in unique(results$case_study)){
     if (sum(results[results$case_study == case_study, ]['target_treatment_effect'] == results$theta_0) == 0){
@@ -1008,6 +1004,13 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
               reload_data_objects = TRUE)
   })
 
+  # The reference is calibrated on its actual type I error, read off the
+  # design's null scenario, which is one of the designs here: its rows carry a
+  # TIE of their own.
+  design_exact <- exact_reference_designs(design_rows)
+  design_null <- match(null_design_keys(results)[match(design_keys, design_key)],
+                       design_keys)
+
   design_p_values <- equivalent_tie_design_p_values(
     design_rows = design_rows,
     design_keys = design_keys,
@@ -1017,8 +1020,16 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     n_replicates = n_replicates,
     parallelization = parallelization,
     trial_cache = trial_cache,
-    cluster = cluster
+    cluster = cluster,
+    exact = design_exact
   )
+
+  # The exactly enumerated designs: every outcome with its probability, enough
+  # to price a randomised test at any level exactly.
+  design_support <- vector("list", nrow(design_rows))
+  for (d in which(design_exact)) {
+    design_support[[d]] <- design_target_data[[d]]$enumerate_support()
+  }
 
   # The type I error draws and the posterior of each rejection count are the
   # only random part left. Seeding them once makes the columns reproducible,
@@ -1029,39 +1040,59 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
   power_lower <- rep(NA_real_, nrow(results))
   power_upper <- rep(NA_real_, nrow(results))
   test_column <- rep(NA_character_, nrow(results))
+  calibration_column <- rep(NA_character_, nrow(results))
 
   for (i in which(has_tie)) {
     d <- row_design[i]
+    d_null <- design_null[d]
 
-    alpha <- list(
-      mean = results$tie[i],
-      conf_int_lower = results$conf_int_tie_lower[i],
-      conf_int_upper = results$conf_int_tie_upper[i],
-      mcse = results$mcse_tie[i]
-    )
+    if (design_exact[d] && !is.na(d_null)) {
+      # The type I error is exact here, and so is the reference's power at it.
+      exact_power <- exact_reference_power(
+        alpha = results$tie[i],
+        alternative_support = design_support[[d]],
+        null_support = design_support[[d_null]],
+        theta_0 = results$theta_0[i],
+        alternative = alternative_from_null_space(results$null_space[i])
+      )
+      power_estimation <- list(power = exact_power,
+                               conf_int_power = c(exact_power, exact_power))
+    } else {
+      alpha <- list(
+        mean = results$tie[i],
+        conf_int_lower = results$conf_int_tie_lower[i],
+        conf_int_upper = results$conf_int_tie_upper[i],
+        mcse = results$mcse_tie[i]
+      )
 
-    power_estimation <- compute_power_with_tie_ci(
-      alpha = alpha,
-      target_data = design_target_data[[d]],
-      frequentist_test = frequentist_test,
-      theta_0 = results$theta_0[i],
-      null_space = results$null_space[i],
-      case_study = results$case_study[i],
-      simulation_config = simulation_config,
-      n_replicates = n_replicates,
-      p_values = design_p_values[[d]]
-    )
+      power_estimation <- compute_power_with_tie_ci(
+        alpha = alpha,
+        target_data = design_target_data[[d]],
+        frequentist_test = frequentist_test,
+        theta_0 = results$theta_0[i],
+        null_space = results$null_space[i],
+        case_study = results$case_study[i],
+        simulation_config = simulation_config,
+        n_replicates = n_replicates,
+        p_values = design_p_values[[d]],
+        null_p_values = if (is.na(d_null)) NULL else design_p_values[[d_null]]
+      )
+    }
 
     power[i] <- power_estimation$power
     power_lower[i] <- power_estimation$conf_int_power[1]
     power_upper[i] <- power_estimation$conf_int_power[2]
     test_column[i] <- frequentist_test
+    calibration_column[i] <- reference_calibration_label(
+      design_target_data[[d]], exact = design_exact[d], has_null = !is.na(d_null)
+    )
   }
 
   results$frequentist_power_at_equivalent_tie <- power
   results$frequentist_power_at_equivalent_tie_lower <- power_lower
   results$frequentist_power_at_equivalent_tie_upper <- power_upper
   results$frequentist_test <- test_column
+  results$frequentist_reference_calibration <- calibration_column
 
   return(results)
 }
@@ -1084,19 +1115,28 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 #' @param trials Optional trials already simulated for this design, as
 #'   [simulated_trials()] returns them. `NULL` simulates them if the powers
 #'   need them.
+#' @param null_row The results row of the design's null scenario, which the
+#'   separate analysis's test is calibrated on, or `NULL` to leave it at its
+#'   nominal level.
+#' @param null_trials Optional trials already simulated for the null scenario.
 #'
-#' @return A named list holding the six power columns for that row.
+#' @return A named list holding the six power columns for that row, and the
+#'   calibration the separate analysis's test received.
 #' @noRd
 nominal_tie_power_row <- function(row,
                                   nominal_tie,
                                   frequentist_test,
                                   simulation_config,
                                   n_replicates,
-                                  trials = NULL) {
+                                  trials = NULL,
+                                  null_row = NULL,
+                                  null_trials = NULL) {
   target_data <- load_data(row, type = "target", reload_data_objects = TRUE)
   source_data <- load_data(row, type = "source", reload_data_objects = TRUE)
 
   assert_target_data_numbers(target_data)
+  exact <- exact_reference_designs(row)
+  alternative <- alternative_from_null_space(row$null_space)
 
   # Where both powers are simulated they read the same trials - each would
   # otherwise reseed and generate them again - so they are generated once
@@ -1115,17 +1155,42 @@ nominal_tie_power_row <- function(row,
     trial_p_values(trials, row$theta_0, alternative_from_null_space(row$null_space))
   }
 
-  separate <- compute_freq_power(
-    alpha = nominal_tie,
-    target_data = target_data,
-    frequentist_test = frequentist_test,
-    theta_0 = row$theta_0,
-    null_space = row$null_space,
-    case_study = row$case_study,
-    simulation_config = simulation_config,
-    n_replicates = n_replicates,
-    p_values = p_values
-  )
+  # The separate analysis's test is calibrated on its actual type I error in
+  # the null scenario: exactly where the operating characteristics are
+  # enumerated, on simulated null trials where they are simulated.
+  null_p_values <- NULL
+  if (!is.null(null_row) && !exact && !is.null(p_values)) {
+    if (is.null(null_trials)) {
+      null_target <- load_data(null_row, type = "target", reload_data_objects = TRUE)
+      null_trials <- simulated_trials(null_target, simulation_config, n_replicates)
+    }
+    null_p_values <- trial_p_values(null_trials, row$theta_0, alternative)
+  }
+
+  separate <- if (exact && !is.null(null_row)) {
+    null_target <- load_data(null_row, type = "target", reload_data_objects = TRUE)
+    exact_power <- exact_reference_power(
+      alpha = nominal_tie,
+      alternative_support = target_data$enumerate_support(),
+      null_support = null_target$enumerate_support(),
+      theta_0 = row$theta_0,
+      alternative = alternative
+    )
+    list(power = exact_power, conf_int_power = c(exact_power, exact_power))
+  } else {
+    compute_freq_power(
+      alpha = nominal_tie,
+      target_data = target_data,
+      frequentist_test = frequentist_test,
+      theta_0 = row$theta_0,
+      null_space = row$null_space,
+      case_study = row$case_study,
+      simulation_config = simulation_config,
+      n_replicates = n_replicates,
+      p_values = p_values,
+      null_p_values = null_p_values
+    )
+  }
 
   pooling <- compute_freq_power_pooling(
     alpha = nominal_tie,
@@ -1148,7 +1213,10 @@ nominal_tie_power_row <- function(row,
     nominal_frequentist_power_separate_upper = unname(separate$conf_int_power[2]),
     nominal_frequentist_power_pooling = pooling$power,
     nominal_frequentist_power_pooling_lower = unname(pooling$conf_int_power[1]),
-    nominal_frequentist_power_pooling_upper = unname(pooling$conf_int_power[2])
+    nominal_frequentist_power_pooling_upper = unname(pooling$conf_int_power[2]),
+    frequentist_reference_calibration = reference_calibration_label(
+      target_data, exact = exact, has_null = !is.null(null_row)
+    )
   )
 }
 
@@ -1245,7 +1313,8 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
      "nominal_frequentist_power_separate_upper",
      "nominal_frequentist_power_pooling",
      "nominal_frequentist_power_pooling_lower",
-     "nominal_frequentist_power_pooling_upper"
+     "nominal_frequentist_power_pooling_upper",
+     "frequentist_reference_calibration"
     )
   )]
 
@@ -1261,8 +1330,33 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   design_rows <- results[representatives, , drop = FALSE]
   design_index <- match(design_key, design_key[representatives])
 
-  # The trials the equivalent-TIE step already simulated. A design missing
-  # from the cache gets NULL and simulates its own.
+  # Each design's null scenario, among the designs, for calibrating the
+  # separate analysis's test on its actual type I error.
+  null_index <- match(null_design_keys(results)[representatives],
+                      design_key[representatives])
+
+  # Every simulated design's trials, once each: the equivalent-TIE step leaves
+  # them in `trial_cache`, and those it did not are simulated here, on a
+  # cluster when there are enough. A design's separate power reads both its
+  # own trials and its null scenario's - another design here - so holding them
+  # all before the per-design work keeps either from being drawn twice.
+  if (is.null(trial_cache)) {
+    trial_cache <- new.env(parent = emptyenv())
+  }
+  equivalent_tie_design_p_values(
+    design_rows = design_rows,
+    design_keys = design_key[representatives],
+    design_target_data = lapply(seq_len(nrow(design_rows)), function(d) {
+      load_data(design_rows[d, , drop = FALSE], type = "target", reload_data_objects = TRUE)
+    }),
+    frequentist_test = frequentist_test,
+    simulation_config = simulation_config,
+    n_replicates = n_replicates,
+    parallelization = parallelization,
+    trial_cache = trial_cache,
+    cluster = cluster,
+    exact = exact_reference_designs(design_rows)
+  )
   cached_trials <- cached_design_trials(
     design_key[representatives], simulation_config, n_replicates, trial_cache
   )
@@ -1270,14 +1364,16 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   # Only the distinct designs are handed to the workers, rather than the whole
   # results frame: on the paper's environment that is 330 rows to serialise
   # instead of 18,480, each carrying its parameters as JSON.
-  compute_design <- function(i, trials = NULL) {
+  compute_design <- function(i, trials = NULL, null_trials = NULL) {
     nominal_tie_power_row(
       row = design_rows[i, ],
       nominal_tie = nominal_tie,
       frequentist_test = frequentist_test,
       simulation_config = simulation_config,
       n_replicates = n_replicates,
-      trials = trials
+      trials = trials,
+      null_row = if (is.na(null_index[i])) NULL else design_rows[null_index[i], ],
+      null_trials = null_trials
     )
   }
 
@@ -1286,7 +1382,10 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   computed_list <- vector("list", nrow(design_rows))
   is_cached <- !vapply(cached_trials, is.null, logical(1))
   for (i in which(is_cached)) {
-    computed_list[[i]] <- compute_design(i, cached_trials[[i]])
+    computed_list[[i]] <- compute_design(
+      i, cached_trials[[i]],
+      if (is.na(null_index[i])) NULL else cached_trials[[null_index[i]]]
+    )
   }
   # Dropped before compute_design() goes to the workers: foreach ships the
   # environment it was defined in, which would carry every cached trial to
@@ -1324,7 +1423,8 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   # replaced instead of being shadowed by a second copy of itself.
   computed <- dplyr::bind_rows(computed_list)
   for (column in names(computed)) {
-    results[[column]] <- as.numeric(computed[[column]])[design_index]
+    values <- computed[[column]]
+    results[[column]] <- (if (is.character(values)) values else as.numeric(values))[design_index]
   }
 
   return(results)
@@ -1372,4 +1472,211 @@ pooled_binomial_power <- function(alpha, target_data, source_data, alternative) 
     stats::dbinom(target_counts, n, target_data$control_rate)
   )
   sum(probability[reject])
+}
+
+
+## ---- Calibrating the reference test on its actual type I error -------------
+##
+## The power of a frequentist test of the target data alone is the reference
+## every borrowing method's power is read against, at the method's own type I
+## error and at the nominal one. The test is a one-sample t-test, and its
+## significance level used to be set to the type I error it should match. That
+## level is only the test's actual size when its statistic is t-distributed:
+## the Wald statistic of a Cox model, a negative binomial regression or a
+## difference in proportions is approximately normal instead, and a t-test on
+## it is slightly conservative - at 123 per arm it rejects 2.4% of the time at
+## a nominal 2.5%. Matched by its nominal level, the reference then spent less
+## type I error than the method it was compared with, and every method looked
+## about 1.5 points more powerful than it is.
+##
+## The reference's critical value is therefore read off the test's actual
+## behaviour in the design's null scenario: from the same simulated trials
+## where the operating characteristics are simulated, and exactly, with a
+## randomised boundary, where they are enumerated. The continuous endpoints
+## keep their closed-form t-test, which is exact there.
+
+#' Columns that identify a scenario apart from its treatment effect
+#'
+#' The type I error is computed in each scenario's null counterpart and joined
+#' back onto it on these columns, so a design axis missing here would match
+#' one scenario's TIE to several rows.
+#' @noRd
+SCENARIO_MATCHING_COLUMNS <- c(
+  "method",
+  "parameters",
+  "control_drift",
+  "source_denominator",
+  "source_denominator_change_factor",
+  "case_study",
+  "target_to_source_std_ratio",
+  "target_sample_size_per_arm",
+  "theta_0",
+  "null_space",
+  "sampling_approximation",
+  "summary_measure_likelihood",
+  "source_sample_size_treatment",
+  "source_sample_size_control",
+  "endpoint",
+  "source_standard_error",
+  "source_treatment_effect_estimate",
+  "equivalent_source_sample_size_per_arm"
+)
+
+#' The scenario-matching columns a results frame carries
+#'
+#' Results written before the time-to-event design axes existed do not carry
+#' them, and such a run only ever had one design, so they join only when the
+#' columns are actually there.
+#'
+#' @param results A results frame.
+#' @return A character vector of column names.
+#' @noRd
+scenario_matching_columns <- function(results) {
+  c(SCENARIO_MATCHING_COLUMNS, intersect(time_to_event_design_columns, names(results)))
+}
+
+#' The design key of each row's null scenario
+#'
+#' @description The null scenario of a row is the one that agrees with it on
+#'   every scenario-matching column, method aside, and whose treatment effect
+#'   is `theta_0`.
+#'
+#' @param results A results frame.
+#' @return A character vector, one per row: the [nominal_tie_design_key()] of
+#'   its null scenario, or `NA` when the frame holds none.
+#' @noRd
+null_design_keys <- function(results) {
+  columns <- intersect(setdiff(scenario_matching_columns(results), c("method", "parameters")),
+                       names(results))
+  scenario <- nominal_tie_design_key(results[columns])
+  design <- nominal_tie_design_key(results[intersect(NOMINAL_TIE_DESIGN_COLUMNS, names(results))])
+  is_null <- results$target_treatment_effect == results$theta_0
+  is_null[is.na(is_null)] <- FALSE
+  design[is_null][match(scenario, scenario[is_null])]
+}
+
+#' Whether a row's operating characteristics were enumerated exactly
+#'
+#' @param rows Rows of a results frame.
+#' @return A logical vector, one per row; `FALSE` where the frame predates the
+#'   `exact_ocs` column or leaves it missing.
+#' @noRd
+exact_reference_designs <- function(rows) {
+  if (!"exact_ocs" %in% names(rows)) {
+    return(rep(FALSE, nrow(rows)))
+  }
+  as.logical(rows$exact_ocs) %in% TRUE
+}
+
+#' Thresholds at which a test's actual type I error equals given levels
+#'
+#' @description For each level `alpha`, the p-value threshold `c` such that
+#'   the share of the null p-values strictly below `c` is
+#'   `floor(alpha * N) / N`, within `1 / N` of `alpha`. A test rejecting when
+#'   its p-value is below `c` then has the actual rejection rate `alpha` in the
+#'   null scenario, whatever its nominal level there. Null p-values tied at the
+#'   threshold all stay unrejected, so the rate never exceeds `alpha`.
+#'
+#' @param alpha Levels, in `[0, 1]`.
+#' @param null_p_values The test's p-values on the null scenario's trials.
+#' @return One threshold per level; `Inf` rejects every trial.
+#' @keywords internal
+calibrated_levels <- function(alpha, null_p_values) {
+  null_p_values <- sort(null_p_values[!is.na(null_p_values)])
+  n <- length(null_p_values)
+  if (n == 0) {
+    stop("No null p-value to calibrate the test on.", call. = FALSE)
+  }
+  # The small offset keeps a level that is a whole number of trials up to
+  # rounding - 0.025 * 10000 - on that number rather than one below it.
+  rejected <- pmin(pmax(floor(alpha * n + 1e-9), 0), n)
+  ifelse(rejected >= n, Inf, null_p_values[pmin(rejected + 1, n)])
+}
+
+#' The reference test's p-value and probability for each enumerated outcome
+#'
+#' @description Outcomes whose summary measure is not estimable are left out
+#'   and the rest renormalised, as the enumerated operating characteristics
+#'   do. An outcome whose statistic is undefined - both arms at 0 or at n
+#'   responders, so no variability - is kept with an infinite p-value: it
+#'   never rejects.
+#'
+#' @param support Output of `enumerate_support()`.
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param alternative "greater" or "less".
+#' @return A list with the p-values `p` and probabilities `w`.
+#' @noRd
+reference_outcomes <- function(support, theta_0, alternative) {
+  samples <- support$samples
+  estimable <- is.finite(samples$treatment_effect_estimate) &
+    is.finite(samples$standard_deviation)
+  p <- trial_p_values(samples[estimable, , drop = FALSE], theta_0, alternative)
+  p[!is.finite(p)] <- Inf
+  w <- support$weights[estimable]
+  list(p = p, w = w / sum(w))
+}
+
+#' Exact power of the reference test at an exact type I error
+#'
+#' @description The most powerful use of a test statistic at a given size
+#'   rejects every outcome below a threshold and, on a discrete sample space,
+#'   a fraction of the outcomes at it. The threshold `c` and the fraction
+#'   `gamma` are chosen on the null scenario's enumerated outcomes so that the
+#'   rejected probability there is exactly `alpha`, and the power is the
+#'   probability the same randomised test rejects in the scenario of
+#'   interest. Without randomisation a binary endpoint's test could only reach
+#'   a few levels, and could not be matched to an arbitrary type I error.
+#'
+#' @param alpha The type I error to match, in `[0, 1]`.
+#' @param alternative_support,null_support Enumerated outcomes of the scenario
+#'   of interest and of its null scenario, from `enumerate_support()`.
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param alternative "greater" or "less".
+#' @return The power, one value per element of `alpha`.
+#' @keywords internal
+exact_reference_power <- function(alpha, alternative_support, null_support,
+                                  theta_0, alternative) {
+  null <- reference_outcomes(null_support, theta_0, alternative)
+  scenario <- reference_outcomes(alternative_support, theta_0, alternative)
+
+  finite <- is.finite(null$p)
+  values <- sort(unique(null$p[finite]))
+  mass <- as.vector(rowsum(null$w[finite], match(null$p[finite], values),
+                           reorder = TRUE))
+  below <- c(0, cumsum(mass))
+
+  vapply(alpha, function(level) {
+    if (is.na(level)) {
+      return(NA_real_)
+    }
+    j <- findInterval(level, below)
+    if (j > length(values)) {
+      # Every outcome that can reject does, and the level is not reached.
+      return(sum(scenario$w[is.finite(scenario$p)]))
+    }
+    threshold <- values[j]
+    gamma <- (level - below[j]) / mass[j]
+    sum(scenario$w[scenario$p < threshold]) +
+      gamma * sum(scenario$w[scenario$p == threshold])
+  }, numeric(1))
+}
+
+#' How the reference test of a design is calibrated
+#'
+#' @param target_data The design's target data.
+#' @param exact Whether its operating characteristics are enumerated exactly.
+#' @param has_null Whether its null scenario was found.
+#' @return `"exact, randomised"`, `"simulated null"` or `"none"`.
+#' @noRd
+reference_calibration_label <- function(target_data, exact, has_null) {
+  if (!has_null) {
+    return("none")
+  }
+  if (exact) {
+    return("exact, randomised")
+  }
+  if (isTRUE(uses_analytical_power(target_data))) {
+    return("none")
+  }
+  "simulated null"
 }

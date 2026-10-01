@@ -102,6 +102,7 @@ frequentist_col_types <- cols(
   frequentist_power_at_equivalent_tie_lower = col_double(),
   frequentist_power_at_equivalent_tie_upper = col_double(),
   frequentist_test = col_character(),
+  frequentist_reference_calibration = col_character(),
   nominal_frequentist_power_separate = col_double(),
   nominal_frequentist_power_separate_lower = col_double(),
   nominal_frequentist_power_separate_upper = col_double(),
@@ -213,6 +214,7 @@ results_columns <- c("success_proba", "mcse_success_proba", "conf_int_success_pr
                      "tie", "mcse_tie", "conf_int_tie_lower", "conf_int_tie_upper",
                      "frequentist_power_at_equivalent_tie", "frequentist_power_at_equivalent_tie_lower",
                      "frequentist_power_at_equivalent_tie_upper", "frequentist_test",
+                     "frequentist_reference_calibration",
                      "nominal_frequentist_power_separate", "nominal_frequentist_power_separate_lower",
                      "nominal_frequentist_power_separate_upper", "nominal_frequentist_power_pooling",
                      "nominal_frequentist_power_pooling_lower", "nominal_frequentist_power_pooling_upper")

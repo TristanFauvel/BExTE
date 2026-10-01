@@ -120,7 +120,7 @@ test_that("both branches of the nominal-TIE step compute a row the same way", {
   expect_false(grepl("compute_freq_power_pooling(", nominal, fixed = TRUE))
 })
 
-test_that("nominal_tie_power_row returns exactly the six baseline columns", {
+test_that("nominal_tie_power_row returns the six baseline columns and the reference's calibration", {
   mock_load_data <- function(results_row, type, reload_data_objects = FALSE) {
     list(type = type, treatment_effect = 0.5, standard_deviation = 1,
          sample_size_per_arm = 30)
@@ -142,10 +142,13 @@ test_that("nominal_tie_power_row returns exactly the six baseline columns", {
         "nominal_frequentist_power_separate_upper",
         "nominal_frequentist_power_pooling",
         "nominal_frequentist_power_pooling_lower",
-        "nominal_frequentist_power_pooling_upper"
+        "nominal_frequentist_power_pooling_upper",
+        "frequentist_reference_calibration"
       ))
-      expect_equal(unlist(row_power, use.names = FALSE),
+      expect_equal(unlist(row_power[1:6], use.names = FALSE),
                    c(0.8, 0.75, 0.85, 0.9, 0.87, 0.93))
+      # No null scenario was given, so the test stays at its nominal level.
+      expect_equal(row_power$frequentist_reference_calibration, "none")
 
       # dplyr::bind_rows() is how the parallel branch turns these into
       # columns, and a named bound would carry its name into the column.

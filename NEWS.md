@@ -1,4 +1,23 @@
 # BExTE 0.0.2
+* The frequentist reference test every borrowing method's power is read
+  against - at the method's own type I error and at the nominal one - is
+  calibrated on its actual type I error in the design's null scenario rather
+  than on its nominal level. It is a one-sample t-test, whose nominal level is
+  its actual size only for t-distributed statistics; on the approximately
+  normal Wald statistics of the time-to-event, recurrent-event and binary
+  case studies it is slightly conservative, and its level was also set to the
+  method's estimated type I error, Monte Carlo error included. Together these
+  made the reference spend less type I error than the method: the Bayesian
+  separate analysis of Teriflunomide (n = 123) showed a spurious power gain of
+  0.015. Where operating characteristics are simulated, the critical value is
+  now read off the null scenario's simulated trials, the same ones the
+  methods' type I error is estimated on; where they are enumerated
+  (Aprepitant, Belimumab), the reference is an exact randomised test whose
+  rejected null probability is exactly the target level. Continuous
+  endpoints keep their closed-form t-test, which is exact there. The new
+  `frequentist_reference_calibration` column records which reference a row
+  carries. Rerun the two power-baseline analysis steps to update existing
+  results.
 * The separate and pooled binomial analyses, and so test-then-pool, are 2.5
   to 2.9 times faster under exact enumeration and more accurate. The
   distribution function of the difference of the two Beta posteriors is
