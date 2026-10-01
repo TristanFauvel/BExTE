@@ -105,6 +105,7 @@ reference:
   - Gaussian_NPP
   - Gaussian_NPP_KL
   - BinomialCPP
+  - BinomialNPP
   - GaussianCommensuratePowerPrior
   - GaussianCommensuratePrior
   - GaussianEgidiMixture

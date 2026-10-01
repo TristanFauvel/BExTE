@@ -359,10 +359,23 @@ truncated_normal_mixture_binomial_posterior <- function(weights, means, sds,
 #'   source control rate u and the target control rate v, a uniform prior on
 #'   the common treatment effect theta over (-min(u, v), 1 - max(u, v)), which
 #'   has density 1 / (1 - |u - v|), and the source likelihood raised to the
-#'   power gamma. Raised to gamma, the source binomial likelihoods are Beta
-#'   kernels, Beta(gamma s + 1, gamma (n - s) + 1), in the control and treatment
-#'   rates, so u is integrated on quantile nodes of the first and the second is
-#'   evaluated at u + theta. The double sum over u and v is a matrix product.
+#'   power gamma.
+#'
+#'   The rates are discretised on the lattice of [binomial_npp_prior_kernels()]:
+#'   the midpoints of N equal cells of [0, 1], with the treatment effect on the
+#'   multiples of the cell width, so that every treatment rate is a lattice
+#'   point. The lattice covers the whole unit square, so it follows the
+#'   posterior wherever the target data move it, including far into the tails
+#'   of the source likelihood when the two studies conflict. Nodes placed on the
+#'   quantiles of the source and target control rates' own likelihoods, as an
+#'   earlier version of this function used, miss that region: under conflict
+#'   the posterior probability of benefit was off by 0.016 and the posterior
+#'   mean by up to 0.07 against Stan.
+#'
+#'   Only the target control rates and treatment rates where the target
+#'   likelihood exceeds `1e-20` of its maximum are visited, and every source
+#'   control rate, so the cost is N times the number of target lattice points
+#'   per arm times the number of treatment effects they reach.
 #'
 #'   With no target patients the target counts are zero and the result is the
 #'   prior.
@@ -372,14 +385,11 @@ truncated_normal_mixture_binomial_posterior <- function(weights, means, sds,
 #' @param n_treatment_source,n_successes_treatment_source Source treatment arm.
 #' @param n_control,n_successes_control Target control arm.
 #' @param n_treatment,n_successes_treatment Target treatment arm.
-#' @param n_control_nodes Nodes on the target control rate.
-#' @param n_source_nodes Nodes on the source control rate.
-#' @param points_per_scale Treatment effect grid points per narrowest standard
-#'   deviation, passed to [binomial_effect_grid()].
+#' @param n_lattice Number of lattice points N on the rates.
 #' @param control_rate Target control rate to condition on, or `NULL` to
 #'   integrate it out. Conditioning puts the target control rate's whole mass
-#'   at this value, which confines the treatment effect to
-#'   `(-control_rate, 1 - control_rate)`.
+#'   on the lattice cell that contains it, which confines the treatment effect
+#'   to the differences that keep the target treatment rate in [0, 1].
 #' @return A [grid_posterior()] list.
 #' @keywords internal
 binomial_power_prior_posterior <- function(power_parameter,
@@ -391,58 +401,60 @@ binomial_power_prior_posterior <- function(power_parameter,
                                            n_successes_control,
                                            n_treatment,
                                            n_successes_treatment,
-                                           n_control_nodes = 512L,
-                                           n_source_nodes = 512L,
-                                           points_per_scale = 20,
+                                           n_lattice = 1000L,
                                            control_rate = NULL) {
   if (!is.numeric(power_parameter) || length(power_parameter) != 1 ||
       is.na(power_parameter) || power_parameter < 0 || power_parameter > 1) {
     stop("The power parameter must be a single number in [0, 1].", call. = FALSE)
   }
   gamma <- power_parameter
+  N <- as.integer(n_lattice)
+  rates <- (seq_len(N) - 0.5) / N
 
-  source_control_shape1 <- gamma * n_successes_control_source + 1
-  source_control_shape2 <- gamma * (n_control_source - n_successes_control_source) + 1
-  source_treatment_shape1 <- gamma * n_successes_treatment_source + 1
-  source_treatment_shape2 <- gamma * (n_treatment_source - n_successes_treatment_source) + 1
-
-  target_control_shape1 <- n_successes_control + 1
-  target_control_shape2 <- n_control - n_successes_control + 1
-  treatment_shape1 <- n_successes_treatment + 1
-  treatment_shape2 <- n_treatment - n_successes_treatment + 1
-
-  source_nodes <- beta_quadrature_nodes(source_control_shape1, source_control_shape2, n_source_nodes)
-  control_nodes <- if (is.null(control_rate)) {
-    beta_quadrature_nodes(target_control_shape1, target_control_shape2, n_control_nodes)
-  } else {
-    control_rate
+  # Each arm's likelihood on the lattice, scaled to a maximum of one.
+  arm_log_likelihood <- function(n, successes) {
+    log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
+    log_likelihood - max(log_likelihood)
   }
+  source_control <- exp(gamma * arm_log_likelihood(n_control_source, n_successes_control_source))
+  source_treatment <- exp(gamma * arm_log_likelihood(n_treatment_source, n_successes_treatment_source))
+  target_control <- exp(arm_log_likelihood(n_control, n_successes_control))
+  target_treatment <- exp(arm_log_likelihood(n_treatment, n_successes_treatment))
 
-  grid <- binomial_effect_grid(
-    treatment_shape1, treatment_shape2, control_nodes,
-    scales = c(
-      beta_sd(treatment_shape1, treatment_shape2),
-      beta_sd(target_control_shape1, target_control_shape2),
-      beta_sd(source_treatment_shape1, source_treatment_shape2),
-      beta_sd(source_control_shape1, source_control_shape2)
-    ),
-    points_per_scale = points_per_scale
-  )
+  control_points <- if (is.null(control_rate)) {
+    which(target_control > 1e-20)
+  } else {
+    min(N, max(1L, as.integer(ceiling(control_rate * N))))
+  }
+  if (!is.null(control_rate)) {
+    target_control[] <- 0
+    target_control[control_points] <- 1
+  }
+  treatment_points <- which(target_treatment > 1e-20)
+  differences <- seq(min(treatment_points) - max(control_points),
+                     max(treatment_points) - min(control_points))
 
-  # G x U and G x M: the source and target treatment arm factors.
-  source_factor <- matrix(
-    stats::dbeta(outer(grid, source_nodes, "+"), source_treatment_shape1, source_treatment_shape2),
-    nrow = length(grid)
-  )
-  target_factor <- matrix(
-    stats::dbeta(outer(grid, control_nodes, "+"), treatment_shape1, treatment_shape2),
-    nrow = length(grid)
-  )
-  # U x M: the density of the uniform prior on theta given both control rates.
-  width_density <- 1 / (1 - abs(outer(source_nodes, control_nodes, "-")))
+  # N x K: the discounted source likelihood at every source control rate i and
+  # treatment effect k, zero where the source treatment rate leaves [0, 1].
+  source_rate <- outer(seq_len(N), differences, "+")
+  inside <- source_rate >= 1L & source_rate <= N
+  source_weight <- matrix(0, N, length(differences))
+  source_weight[inside] <- source_control[row(source_rate)[inside]] *
+    source_treatment[source_rate[inside]]
 
-  density <- rowSums((source_factor %*% width_density) * target_factor) /
-    (length(source_nodes) * length(control_nodes))
+  # J x K: summed over the source control rate against the prior density of
+  # theta given the two control rates, 1 / (N - |i - j|).
+  width <- 1 / (N - abs(outer(seq_len(N), control_points, "-")))
+  kernel <- crossprod(width, source_weight)
 
-  grid_posterior(grid, density)
+  # The target likelihood, zero where the target treatment rate leaves [0, 1].
+  target_rate <- outer(control_points, differences, "+")
+  target_inside <- target_rate >= 1L & target_rate <= N
+  likelihood <- matrix(0, length(control_points), length(differences))
+  likelihood[target_inside] <- target_control[control_points[row(target_rate)[target_inside]]] *
+    target_treatment[target_rate[target_inside]]
+
+  density <- colSums(kernel * likelihood)
+  support <- c(min(differences) - 1L, differences, max(differences) + 1L)
+  grid_posterior(support / N, c(0, density, 0))
 }

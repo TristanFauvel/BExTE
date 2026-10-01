@@ -181,7 +181,11 @@ Model <- R6::R6Class(
       } else if (method == "EB_PP") {
         model <- Gaussian_Gravestock_EBPP$new(prior, null_space = null_space, theta_0 = case_study_config$theta_0)
       } else if (method == "NPP") {
-        model <- Gaussian_NPP$new(prior)
+        if (case_study_config$summary_measure_likelihood == "binomial") {
+          model <- BinomialNPP$new(prior = prior, mcmc_config = mcmc_config)
+        } else {
+          model <- Gaussian_NPP$new(prior)
+        }
       } else if (method == "NPP_KL") {
         model <- Gaussian_NPP_KL$new(
           prior,

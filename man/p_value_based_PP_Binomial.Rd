@@ -33,6 +33,9 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
 
     \item{\code{mcmc_config}}{MCMC configuration}
 
+    \item{\code{fixed_power_parameter}}{Whether the power parameter is the same for
+every replicate, so that the posterior is read off a cached prior kernel.}
+
     \item{\code{empirical_bayes_from_sample}}{Whether the empirical Bayes quantities
 are a function of the replicate's sample alone, so that a deterministic
 model may still share an analysis between replicates with equal samples.}
@@ -46,6 +49,7 @@ model may still share an analysis between replicates with equal samples.}
     \item \href{#method-p_value_based_PP_Binomial-hypothesis_space_transformation}{\code{p_value_based_PP_Binomial$hypothesis_space_transformation()}}
     \item \href{#method-p_value_based_PP_Binomial-empirical_bayes_update}{\code{p_value_based_PP_Binomial$empirical_bayes_update()}}
     \item \href{#method-p_value_based_PP_Binomial-inference}{\code{p_value_based_PP_Binomial$inference()}}
+    \item \href{#method-p_value_based_PP_Binomial-prior_elir_ess}{\code{p_value_based_PP_Binomial$prior_elir_ess()}}
     \item \href{#method-p_value_based_PP_Binomial-test}{\code{p_value_based_PP_Binomial$test()}}
     \item \href{#method-p_value_based_PP_Binomial-power_parameter_estimation}{\code{p_value_based_PP_Binomial$power_parameter_estimation()}}
     \item \href{#method-p_value_based_PP_Binomial-prior_pdf}{\code{p_value_based_PP_Binomial$prior_pdf()}}
@@ -70,7 +74,6 @@ model may still share an analysis between replicates with equal samples.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
@@ -86,9 +89,11 @@ model may still share an analysis between replicates with equal samples.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_cdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_cdf'><code>MCMCModel$prior_cdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_prior'><code>MCMCModel$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-stan_sampler'><code>MCMCModel$stan_sampler()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="draw_mcmc_prior"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-draw_mcmc_prior'><code>BinomialCPP$draw_mcmc_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="prepare_data"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-prepare_data'><code>BinomialCPP$prepare_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="prior_given_control_rate"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-prior_given_control_rate'><code>BinomialCPP$prior_given_control_rate()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="quadrature_posterior"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-quadrature_posterior'><code>BinomialCPP$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="quadrature_prior"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-quadrature_prior'><code>BinomialCPP$quadrature_prior()</code></a></span></li>
 </ul>
@@ -181,6 +186,38 @@ Perform inference using the Gaussian_empirical_Bayes_PP method.
   }
   \subsection{Returns}{
     The inference result.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-p_value_based_PP_Binomial-prior_elir_ess"></a>}}
+\if{latex}{\out{\hypertarget{method-p_value_based_PP_Binomial-prior_elir_ess}{}}}
+\subsection{\code{p_value_based_PP_Binomial$prior_elir_ess()}}{
+  ELIR effective sample size of the current prior
+
+The prior changes between replicates only through the power parameter,
+so under the quadrature engine the ELIR is interpolated from a table over
+the power parameter, shared across scenarios - see
+\code{\link[=binomial_power_prior_unit_elir]{binomial_power_prior_unit_elir()}}. Refitting a mixture to fresh prior
+draws for every replicate, as the inherited route does, was most of the
+method's run time. Under Stan the prior can only be sampled, so that
+route is kept.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{p_value_based_PP_Binomial$prior_elir_ess(target_data, simulation_config)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data, whose sampling standard deviation
+is the reference scale.}
+      \item{\code{simulation_config}}{Configuration of simulation study}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The ELIR effective sample size.
 Test method
   }
 }

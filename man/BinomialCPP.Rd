@@ -19,6 +19,9 @@ A class representing a Binomial Conditional Power Prior model.
     \item{\code{stan_prior}}{Stan prior model}
 
     \item{\code{stan_prior_code}}{Stan code for the prior}
+
+    \item{\code{fixed_power_parameter}}{Whether the power parameter is the same for
+every replicate, so that the posterior is read off a cached prior kernel.}
   }
   \if{html}{\out{</div>}}
 }
@@ -29,6 +32,7 @@ A class representing a Binomial Conditional Power Prior model.
     \item \href{#method-BinomialCPP-prepare_data}{\code{BinomialCPP$prepare_data()}}
     \item \href{#method-BinomialCPP-quadrature_posterior}{\code{BinomialCPP$quadrature_posterior()}}
     \item \href{#method-BinomialCPP-quadrature_prior}{\code{BinomialCPP$quadrature_prior()}}
+    \item \href{#method-BinomialCPP-prior_given_control_rate}{\code{BinomialCPP$prior_given_control_rate()}}
     \item \href{#method-BinomialCPP-draw_mcmc_prior}{\code{BinomialCPP$draw_mcmc_prior()}}
     \item \href{#method-BinomialCPP-clone}{\code{BinomialCPP$clone()}}
   }
@@ -69,6 +73,7 @@ A class representing a Binomial Conditional Power Prior model.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_pdf'><code>MCMCModel$prior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_prior'><code>MCMCModel$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-stan_sampler'><code>MCMCModel$stan_sampler()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
 </ul>
 </details>}}
@@ -146,11 +151,47 @@ The same model as the Stan program, with the current power parameter.
 model without target patients, as in the Stan prior program.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BinomialCPP$quadrature_prior()}
+    \preformatted{BinomialCPP$quadrature_prior(power_parameter = self$power_parameter)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{power_parameter}}{The power parameter of the prior, by default the
+model's own.}
+    }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
     A \code{\link[=grid_posterior]{grid_posterior()}} list.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinomialCPP-prior_given_control_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialCPP-prior_given_control_rate}{}}}
+\subsection{\code{BinomialCPP$prior_given_control_rate()}}{
+  The prior of the treatment effect given the target control
+rate
+
+The power prior of \code{\link[=quadrature_prior]{quadrature_prior()}} with the target control rate
+fixed rather than integrated out, so the effect is confined to the
+range that rate leaves it.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialCPP$prior_given_control_rate(control_rate)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{control_rate}}{The target control rate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of three functions of the treatment effect: \code{cdf}, \code{pdf},
+and \code{sample}, which takes the number of draws.
   }
 }
 
