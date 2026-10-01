@@ -123,13 +123,10 @@ in for them.
 \if{html}{\out{<a id="method-Gaussian_NPP_KL-calibrate_for_design"></a>}}
 \if{latex}{\out{\hypertarget{method-Gaussian_NPP_KL-calibrate_for_design}{}}}
 \subsection{\code{Gaussian_NPP_KL$calibrate_for_design()}}{
-  Calibrate the prior on the power parameter to this design.
-
-The expected target standard error is the one the design implies, which
-every target data class carries as a sampling standard deviation on the
-per-patient scale. It is not the standard error of any replicate: those
-vary around this one, and using them would make the prior a function of
-the data it is supposed to be a prior for.
+  Calibrate the prior on the power parameter to this design;
+see \code{\link[=npp_kl_calibrate_design]{npp_kl_calibrate_design()}}. For a binary endpoint the expected
+target standard error is taken at zero treatment drift, so that the prior
+does not depend on the scenario's true treatment effect.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Gaussian_NPP_KL$calibrate_for_design(target_data)}

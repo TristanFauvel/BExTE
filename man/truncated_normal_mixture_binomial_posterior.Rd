@@ -12,8 +12,7 @@ truncated_normal_mixture_binomial_posterior(
   n_successes_control,
   n_treatment,
   n_successes_treatment,
-  n_control_nodes = 512L,
-  points_per_scale = 20
+  n_lattice = 1000L
 )
 }
 \arguments{
@@ -23,10 +22,7 @@ truncated_normal_mixture_binomial_posterior(
 
 \item{n_treatment, n_successes_treatment}{Treatment arm size and responders.}
 
-\item{n_control_nodes}{Number of quadrature nodes on the control rate.}
-
-\item{points_per_scale}{Treatment effect grid points per narrowest standard
-deviation, passed to \code{\link[=binomial_effect_grid]{binomial_effect_grid()}}.}
+\item{n_lattice}{Number of lattice points N on the rates.}
 }
 \value{
 A \code{\link[=grid_posterior]{grid_posterior()}} list, with \code{component_weights}, the posterior
@@ -36,9 +32,19 @@ probability of each mixture component.
 The binomial robust mixture prior: the target control rate v is
 uniform and, given v, the treatment effect has the mixture prior
 sum_k w_k N(theta | mu_k, sd_k^2) / Z_k(v), each component truncated to
-(-v, 1 - v), where Z_k(v) = Phi_k(1 - v) - Phi_k(-v). Because the prior
-factor separates into a function of theta and a function of v for each
-component, the integral over v is one matrix product.
+(-v, 1 - v).
+
+The rates are discretised on the lattice of \code{\link[=binomial_npp_prior_kernels]{binomial_npp_prior_kernels()}}:
+the midpoints of N equal cells of \link{0, 1}, with the treatment effect on the
+multiples of the cell width, so that every treatment rate is a lattice
+point, and each component's truncation constant Z_k(v) is the sum of its
+density over the admissible effects. The lattice covers every control rate
+the target likelihood allows, so it follows the posterior when the
+informative component pulls it away from the observed control rate, which
+nodes on the quantiles of the control rate's own likelihood, as an earlier
+version of this function used, did not quite reach: under conflict the
+posterior probability of benefit was off by up to 5e-4 and the informative
+component's weight by 6 per cent.
 
 With no target patients the counts are zero and the result is the prior.
 }

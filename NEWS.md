@@ -1,4 +1,32 @@
 # BExTE 0.0.2
+* Every method now analyses a binary endpoint with a binomial likelihood
+  (Aprepitant) through the binomial likelihoods of both arms, rather than a
+  normal approximation of the risk difference. New, on the lattice of
+  response rates that the binomial power priors use:
+  - `BinomialCommensuratePowerPrior` and `BinomialCommensuratePrior`: separate
+    source and target risk differences linked by a normal kernel of variance
+    1/tau, truncated to the admissible effects, with the five priors on tau of
+    the normal models and, for the power prior, gamma | tau ~ Beta(g(tau), 1).
+    Integrated over everything but the target control rate and effect, the
+    prior is tabulated once per worker, so a dataset costs one weighted sum.
+  - `BinomialNPP_KL`: the Beta prior on the power parameter is calibrated with
+    the same criterion as `Gaussian_NPP_KL`, and the data analysed with
+    `BinomialNPP`.
+  - `BinomialPDCCPP`: the power parameter rule of PDCCPP, the binomial
+    conditional power prior analysis, and a calibration on the exact type I
+    error of that analysis - a sum over every outcome under the null - instead
+    of the normal closed form. The per-design table it needs is saved under
+    `tools::R_user_dir("BExTE", "cache")` (or `BEXTE_CACHE_DIR`).
+  The robust mixture priors (RMP, Egidi) already used binomial likelihoods;
+  their posterior is now computed on the lattice too, which corrects a small
+  error under conflict (P(theta > 0) 0.0514 instead of 0.0519, and an
+  informative weight 6% too low, against brute force). Their informative
+  component remains the normal approximation of the source posterior.
+* Fixed: for a binary endpoint, the KL-calibrated NPP took the expected target
+  standard error at the scenario's true response rates, so its prior depended
+  on the true treatment effect. It is now taken at zero treatment drift, as
+  the analysis step already did. This changes the KL-NPP results of Aprepitant
+  and Belimumab.
 * The empirical Bayes power prior (EB-PP) of a binary endpoint uses the
   binomial likelihoods of the two arms of each study
   (`BinomialGravestockEBPP`), instead of the closed form of a normal

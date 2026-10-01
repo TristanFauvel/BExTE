@@ -692,3 +692,121 @@ npp_kl_calibration_columns <- function(calibration, n_replicates) {
     )
   )
 }
+
+
+#' Criterion settings of the KL-calibrated normalized power prior
+#'
+#' @description Read from the method parameters, with the defaults of
+#'   [calibrate_npp_kl()]. Shared by [Gaussian_NPP_KL] and [BinomialNPP_KL].
+#'
+#' @param parameters The method parameters.
+#' @param null_space The null hypothesis space, which gives the benefit
+#'   direction when `benefit_sign` is not configured.
+#' @return A list of settings.
+#' @keywords internal
+npp_kl_settings <- function(parameters, null_space) {
+  first_or <- function(value, fallback) {
+    if (is.null(value)) fallback else value[[1]]
+  }
+
+  d_mtd_rule <- first_or(parameters$d_mtd_rule, "source_to_null")
+  if (!identical(d_mtd_rule, "source_to_null")) {
+    stop(
+      "The only maximum tolerable discrepancy rule implemented is ",
+      "'source_to_null', but d_mtd_rule is '", d_mtd_rule,
+      "'. Pass an explicit numeric d_mtd to use a different discrepancy."
+    )
+  }
+
+  # An absent benefit_sign is the usual case: the case study records the
+  # benefit direction as its null space, and deriving it there is what keeps
+  # the maximum tolerable discrepancy on the side that moves the target
+  # towards the null for the log-ratio case studies as well.
+  list(
+    lambda_kl = first_or(parameters$lambda_kl, 0.5),
+    c_target = first_or(parameters$c_target, 10),
+    d_mtd_rule = d_mtd_rule,
+    d_mtd_multiplier = first_or(parameters$d_mtd_multiplier, 1),
+    d_mtd = if (is.null(parameters$d_mtd)) NULL else parameters$d_mtd[[1]],
+    benefit_sign = if (is.null(parameters$benefit_sign)) {
+      benefit_sign_from_null_space(null_space)
+    } else {
+      parameters$benefit_sign[[1]]
+    },
+    beta_parameter_bounds = if (is.null(parameters$beta_parameter_bounds)) {
+      NPP_KL_DEFAULT_BOUNDS
+    } else {
+      unlist(parameters$beta_parameter_bounds)
+    }
+  )
+}
+
+
+#' Target standard error a design implies, for the KL calibration
+#'
+#' @description The standard error of the target estimate expected under the
+#'   design, on the scale of the analysis. For a continuous, recurrent-event or
+#'   time-to-event endpoint it is the design's sampling standard deviation over
+#'   the root sample size per arm, which does not depend on the treatment
+#'   effect. For a binary endpoint the standard error depends on the response
+#'   rates, so taking it at the scenario's true rates would make the prior a
+#'   function of the true treatment effect. It is taken instead at the design's
+#'   control rate and the source treatment rate, i.e. at zero treatment drift,
+#'   which is also the design the analysis step calibrates on (see
+#'   `compute_bayesian_ocs()`).
+#'
+#' @param target_data Target study data for the scenario.
+#' @param source The source data, with `treatment_rate` for a binary endpoint.
+#' @return The expected standard error.
+#' @keywords internal
+npp_kl_expected_target_se <- function(target_data, source) {
+  if (!inherits(target_data, "BinaryTargetData")) {
+    return(target_data$standard_deviation / sqrt(target_data$sample_size_per_arm))
+  }
+  control_rate <- target_data$control_rate
+  # The treatment rate at zero treatment drift, on either scale.
+  treatment_rate <- source$treatment_rate
+  n_control <- target_data$sample_size_control
+  n_treatment <- target_data$sample_size_treatment
+  if (identical(target_data$summary_measure_likelihood, "binomial")) {
+    sqrt(treatment_rate * (1 - treatment_rate) / n_treatment +
+           control_rate * (1 - control_rate) / n_control)
+  } else {
+    standard_error_log_odds_ratio(
+      n_control * (1 - control_rate),
+      n_treatment * (1 - treatment_rate),
+      n_control * control_rate,
+      n_treatment * treatment_rate
+    )
+  }
+}
+
+
+#' Calibrate the KL normalized power prior to a design
+#'
+#' @description The expected target standard error is the one the design
+#'   implies, from [npp_kl_expected_target_se()]. It is not the standard error
+#'   of any replicate: those vary around this one, and using them would make
+#'   the prior a function of the data it is supposed to be a prior for.
+#'
+#' @param source The source data, with `treatment_effect_estimate` and
+#'   `standard_error`.
+#' @param target_data Target study data for the scenario.
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param settings Output of [npp_kl_settings()].
+#' @return The output of [calibrate_npp_kl()].
+#' @keywords internal
+npp_kl_calibrate_design <- function(source, target_data, theta_0, settings) {
+  calibrate_npp_kl(
+    theta_source = source$treatment_effect_estimate,
+    se_source = source$standard_error,
+    se_target_expected = npp_kl_expected_target_se(target_data, source),
+    theta_null = theta_0,
+    benefit_sign = settings$benefit_sign,
+    d_mtd = settings$d_mtd,
+    d_mtd_multiplier = settings$d_mtd_multiplier,
+    lambda_kl = settings$lambda_kl,
+    c_target = settings$c_target,
+    beta_parameter_bounds = settings$beta_parameter_bounds
+  )
+}

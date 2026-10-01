@@ -19,6 +19,44 @@
 # evaluation of m(gamma) after that is a single weighted sum.
 
 
+#' Values of a lattice vector at shifted positions
+#'
+#' @description The matrix whose (r, c) entry is `values[rows[r] + shifts[c]]`,
+#'   and `fill` where that position leaves 1, ..., N: one lookup into a padded
+#'   copy of the vector, rather than building the index matrices with `outer()`.
+#'
+#' @param values A vector of length N.
+#' @param rows Row positions, in 1, ..., N.
+#' @param shifts Shifts, in -(N - 1), ..., N - 1.
+#' @param fill Value outside the lattice.
+#' @return A `length(rows)` x `length(shifts)` matrix.
+#' @keywords internal
+lattice_shift_matrix <- function(values, rows, shifts, fill = 0) {
+  N <- length(values)
+  padded <- c(rep(fill, N), values, rep(fill, N))
+  index <- rep(rows, times = length(shifts)) + rep(shifts, each = length(rows)) + N
+  matrix(padded[index], nrow = length(rows))
+}
+
+
+#' Prior density of the risk difference given both control rates, on the lattice
+#'
+#' @description 1 / (N - |i - j|), the N x N matrix every binomial power prior
+#'   integrates the control rates against; kept per worker.
+#' @param n_lattice Number of lattice points N.
+#' @return An N x N matrix.
+#' @keywords internal
+binomial_lattice_width <- function(n_lattice) {
+  key <- paste0("width ", n_lattice)
+  if (!exists(key, envir = binomial_npp_cache_store, inherits = FALSE)) {
+    N <- as.integer(n_lattice)
+    assign(key, 1 / (N - abs(outer(seq_len(N), seq_len(N), "-"))),
+           envir = binomial_npp_cache_store)
+  }
+  get(key, envir = binomial_npp_cache_store)
+}
+
+
 #' Initial prior mass of each pair of source rates on the lattice
 #'
 #' @description The uniform initial prior of the binomial power prior, summed
@@ -83,22 +121,15 @@ binomial_power_prior_target_terms <- function(n_control_source,
                      max(treatment_points) - min(control_points))
 
   # J x K: the target likelihood, zero where the target treatment rate leaves [0, 1].
-  target_rate <- outer(control_points, differences, "+")
-  inside <- target_rate >= 1L & target_rate <= N
-  likelihood <- matrix(0, length(control_points), length(differences))
-  likelihood[inside] <- target_control[control_points[row(target_rate)[inside]]] *
-    target_treatment[target_rate[inside]]
+  likelihood <- target_control[control_points] *
+    lattice_shift_matrix(target_treatment, control_points, differences)
 
   # N x K: summed over the target control rate against the prior density of
   # the risk difference given the two control rates, 1 / (N - |i - j|).
-  width <- 1 / (N - abs(outer(seq_len(N), control_points, "-")))
-  target <- width %*% likelihood
+  target <- binomial_lattice_width(N)[, control_points, drop = FALSE] %*% likelihood
 
-  source_rate <- outer(seq_len(N), differences, "+")
-  source_inside <- source_rate >= 1L & source_rate <= N
-  source_log_likelihood <- matrix(-Inf, N, length(differences))
-  source_log_likelihood[source_inside] <- source_control[row(source_rate)[source_inside]] +
-    source_treatment[source_rate[source_inside]]
+  source_log_likelihood <- source_control +
+    lattice_shift_matrix(source_treatment, seq_len(N), differences, fill = -Inf)
 
   list(
     n_lattice = N,
@@ -121,21 +152,50 @@ binomial_power_prior_target_terms <- function(n_control_source,
 #' @param power_parameter Power parameters in [0, 1].
 #' @return One log marginal likelihood per power parameter.
 #' @keywords internal
-binomial_power_prior_log_marginal <- function(terms, power_parameter) {
-  keep <- terms$target > 0 & is.finite(terms$source_log_likelihood)
-  log_target <- log(terms$target[keep])
-  log_likelihood <- terms$source_log_likelihood[keep]
+binomial_power_prior_log_marginal <- function(terms, power_parameter,
+                                              bilinear = binomial_power_prior_bilinear(terms)) {
   mass <- binomial_lattice_source_mass(terms$n_lattice)
-  vapply(power_parameter, function(gamma) {
-    exponent <- log_target + gamma * log_likelihood
+  control <- exp(outer(terms$source_control_log_likelihood, power_parameter))
+  treatment <- exp(outer(terms$source_treatment_log_likelihood, power_parameter))
+  # The numerator is a bilinear form in the two source arms' discounted
+  # likelihoods, sum_{i,s} T(i, s - i) a_i^gamma b_s^gamma, so every power
+  # parameter costs two matrix-vector products rather than an exponential per
+  # lattice point.
+  numerator <- log(colSums(control * (bilinear %*% treatment)))
+  normalizer <- log(colSums(control * (mass %*% treatment)))
+  values <- numerator - normalizer
+
+  # Where the products underflow - only under extreme conflict, at power
+  # parameters far from the maximum - the numerator is recomputed on the log
+  # scale.
+  for (index in which(!is.finite(values))) {
+    keep <- terms$target > 0 & is.finite(terms$source_log_likelihood)
+    exponent <- log(terms$target[keep]) +
+      power_parameter[index] * terms$source_log_likelihood[keep]
     largest <- max(exponent)
-    numerator <- largest + log(sum(exp(exponent - largest)))
-    normalizer <- log(sum(
-      exp(gamma * terms$source_control_log_likelihood) *
-        (mass %*% exp(gamma * terms$source_treatment_log_likelihood))
-    ))
-    numerator - normalizer
-  }, numeric(1))
+    values[index] <- largest + log(sum(exp(exponent - largest))) - normalizer[index]
+  }
+  values
+}
+
+
+#' The target terms in source coordinates
+#'
+#' @description T(i, s - i) as an N x N matrix indexed by the source control
+#'   rate i and the source treatment rate s, zero where the risk difference
+#'   s - i is not among those the target data reach.
+#'
+#' @param terms Output of [binomial_power_prior_target_terms()].
+#' @return An N x N matrix.
+#' @keywords internal
+binomial_power_prior_bilinear <- function(terms) {
+  N <- terms$n_lattice
+  rows <- rep(seq_len(N), times = length(terms$differences))
+  columns <- rows + rep(terms$differences, each = N)
+  inside <- columns >= 1L & columns <= N
+  bilinear <- matrix(0, N, N)
+  bilinear[cbind(rows[inside], columns[inside])] <- terms$target[inside]
+  bilinear
 }
 
 
@@ -149,13 +209,14 @@ binomial_power_prior_log_marginal <- function(terms, power_parameter) {
 #' @return The power parameter.
 #' @keywords internal
 binomial_power_prior_empirical_bayes <- function(terms) {
+  bilinear <- binomial_power_prior_bilinear(terms)
   grid <- seq(0, 1, by = 0.05)
-  values <- binomial_power_prior_log_marginal(terms, grid)
+  values <- binomial_power_prior_log_marginal(terms, grid, bilinear)
   best <- which.max(values)
   lower <- grid[max(1L, best - 1L)]
   upper <- grid[min(length(grid), best + 1L)]
   refined <- stats::optimize(
-    function(gamma) binomial_power_prior_log_marginal(terms, gamma),
+    function(gamma) binomial_power_prior_log_marginal(terms, gamma, bilinear),
     interval = c(lower, upper), maximum = TRUE, tol = 1e-6
   )
   if (refined$objective > values[best]) refined$maximum else grid[best]

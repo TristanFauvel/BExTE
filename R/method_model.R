@@ -177,7 +177,16 @@ Model <- R6::R6Class(
           model <- TestThenPoolDifference$new(prior = prior, mcmc_config = mcmc_config)
         }
       } else if (method == "PDCCPP") {
-        model <- PDCCPP$new(prior, theta_0 = case_study_config$theta_0, null_space = null_space)
+        if (case_study_config$summary_measure_likelihood == "binomial") {
+          model <- BinomialPDCCPP$new(
+            prior = prior,
+            theta_0 = case_study_config$theta_0,
+            null_space = null_space,
+            mcmc_config = mcmc_config
+          )
+        } else {
+          model <- PDCCPP$new(prior, theta_0 = case_study_config$theta_0, null_space = null_space)
+        }
       } else if (method == "EB_PP") {
         if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- BinomialGravestockEBPP$new(prior = prior, mcmc_config = mcmc_config)
@@ -191,11 +200,20 @@ Model <- R6::R6Class(
           model <- Gaussian_NPP$new(prior)
         }
       } else if (method == "NPP_KL") {
-        model <- Gaussian_NPP_KL$new(
-          prior,
-          theta_0 = case_study_config$theta_0,
-          null_space = null_space
-        )
+        if (case_study_config$summary_measure_likelihood == "binomial") {
+          model <- BinomialNPP_KL$new(
+            prior = prior,
+            theta_0 = case_study_config$theta_0,
+            null_space = null_space,
+            mcmc_config = mcmc_config
+          )
+        } else {
+          model <- Gaussian_NPP_KL$new(
+            prior,
+            theta_0 = case_study_config$theta_0,
+            null_space = null_space
+          )
+        }
       } else if (method == "commensurate_power_prior") {
         if (case_study_config$summary_measure_likelihood == "normal") {
           model <- GaussianCommensuratePowerPrior$new(
@@ -203,15 +221,18 @@ Model <- R6::R6Class(
             mcmc_config = mcmc_config
           )
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
-          model <- GaussianCommensuratePowerPrior$new(prior = prior, mcmc_config = mcmc_config)
+          model <- BinomialCommensuratePowerPrior$new(prior = prior, mcmc_config = mcmc_config)
         }
       } else if (method == "commensurate_prior") {
-        # The gamma == 1 case of the above. Like it, the Gaussian model serves
-        # both summary measure likelihoods.
-        model <- GaussianCommensuratePrior$new(
-          prior = prior,
-          mcmc_config = mcmc_config
-        )
+        # The gamma == 1 case of the above.
+        if (case_study_config$summary_measure_likelihood == "binomial") {
+          model <- BinomialCommensuratePrior$new(prior = prior, mcmc_config = mcmc_config)
+        } else {
+          model <- GaussianCommensuratePrior$new(
+            prior = prior,
+            mcmc_config = mcmc_config
+          )
+        }
       } else if (method == "egidi_empirical_mixture") {
         # The robust mixture prior's two components, with the weight chosen
         # from each replicate's own target data rather than prespecified. The

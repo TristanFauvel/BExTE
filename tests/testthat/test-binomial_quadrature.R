@@ -191,7 +191,7 @@ test_that("the quadrature has converged at the default resolution", {
       weights = c(0.5, 0.5), means = c(0.078, 0), sds = c(0.041, 0.6),
       n_control = 143, n_successes_control = 80,
       n_treatment = 143, n_successes_treatment = 92,
-      n_control_nodes = nodes, points_per_scale = points
+      n_lattice = if (nodes == 512L) 1000L else 2000L
     )
   }
   # The power prior's lattice is refined by its number of points alone; the
@@ -245,6 +245,26 @@ test_that("the power prior posterior follows the target into the source's tails"
   )
   expect_equal(strong$mean, -0.18789, tolerance = 0.001)
   expect_equal(sqrt(strong$variance), 0.0345939, tolerance = 0.001)
+})
+
+
+test_that("the robust mixture posterior follows the target under conflict", {
+  # Brute force on a 4000-point grid of control rates and 8001 effects, with
+  # the continuous truncation constants. Nodes on the quantiles of the control
+  # rate's own likelihood gave P = 0.0028 and an informative weight of 0.00369
+  # for the first case.
+  conflict <- truncated_normal_mixture_binomial_posterior(
+    c(0.5, 0.5), c(0.078, 0), c(0.041, 0.6), 71, 39, 71, 20
+  )
+  expect_equal(1 - grid_posterior_cdf(conflict, 0), 0.00303, tolerance = 2e-5)
+  expect_equal(conflict$component_weights[1], 0.00390, tolerance = 2e-5)
+
+  partial <- truncated_normal_mixture_binomial_posterior(
+    c(0.5, 0.5), c(0.078, 0), c(0.041, 0.6), 143, 79, 143, 60
+  )
+  expect_equal(1 - grid_posterior_cdf(partial, 0), 0.05187, tolerance = 2e-5)
+  expect_equal(partial$component_weights[1], 0.06562, tolerance = 2e-5)
+  expect_equal(partial$mean, -0.12088, tolerance = 2e-5)
 })
 
 

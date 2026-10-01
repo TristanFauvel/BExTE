@@ -4,7 +4,11 @@
 \alias{binomial_power_prior_log_marginal}
 \title{Log marginal likelihood of the target data under the binomial power prior}
 \usage{
-binomial_power_prior_log_marginal(terms, power_parameter)
+binomial_power_prior_log_marginal(
+  terms,
+  power_parameter,
+  bilinear = binomial_power_prior_bilinear(terms)
+)
 }
 \arguments{
 \item{terms}{Output of \code{\link[=binomial_power_prior_target_terms]{binomial_power_prior_target_terms()}}.}

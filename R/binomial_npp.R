@@ -256,30 +256,50 @@ binomial_npp_cached_kernels <- function(n_control_source,
                                         n_successes_treatment_source,
                                         p, q,
                                         n_lattice = 1000L) {
-  key <- rlang::hash(list(
+  key <- list(
+    "normalized power prior",
     n_control_source = as.integer(n_control_source),
     n_successes_control_source = as.integer(n_successes_control_source),
     n_treatment_source = as.integer(n_treatment_source),
     n_successes_treatment_source = as.integer(n_successes_treatment_source),
     p = p, q = q, n_lattice = as.integer(n_lattice)
-  ))
-  if (!exists(key, envir = binomial_npp_cache_store, inherits = FALSE)) {
-    # A kernel set holds three N x (2N - 1) matrices, 48 MB at N = 1000. A
-    # worker runs one prior at a time, so a few are kept and no more.
-    held <- ls(envir = binomial_npp_cache_store, all.names = TRUE)
-    if (length(held) >= 3) {
-      rm(list = held, envir = binomial_npp_cache_store)
-    }
-    assign(key, binomial_npp_prior_kernels(
+  )
+  lattice_kernel_cached(key, function() {
+    binomial_npp_prior_kernels(
       n_control_source = n_control_source,
       n_successes_control_source = n_successes_control_source,
       n_treatment_source = n_treatment_source,
       n_successes_treatment_source = n_successes_treatment_source,
       gamma_rule = npp_gamma_rule(p, q),
       n_lattice = n_lattice
-    ), envir = binomial_npp_cache_store)
+    )
+  })
+}
+
+
+#' A lattice prior kernel, kept in memory and on disk
+#'
+#' @description Kept in [binomial_npp_cache_store] for the process, and on disk
+#'   through [disk_cached()] so that the other workers of a run, and later
+#'   runs, read it instead of computing it again. A kernel set is up to five
+#'   N x (2N - 1) matrices, 80 MB at N = 1000; a worker runs one method's
+#'   priors at a time, so a few are kept in memory and no more.
+#'
+#' @param key A list identifying the kernel.
+#' @param compute A function of no arguments computing it.
+#' @param limit Number of entries kept in memory.
+#' @return The kernel.
+#' @keywords internal
+lattice_kernel_cached <- function(key, compute, limit = 6L) {
+  name <- rlang::hash(key)
+  if (!exists(name, envir = binomial_npp_cache_store, inherits = FALSE)) {
+    held <- ls(envir = binomial_npp_cache_store, all.names = TRUE)
+    if (length(held) >= limit) {
+      rm(list = held, envir = binomial_npp_cache_store)
+    }
+    assign(name, disk_cached(key, compute), envir = binomial_npp_cache_store)
   }
-  get(key, envir = binomial_npp_cache_store)
+  get(name, envir = binomial_npp_cache_store)
 }
 
 
@@ -304,17 +324,13 @@ binomial_cpp_cached_kernel <- function(n_control_source,
                                        n_successes_treatment_source,
                                        power_parameter,
                                        n_lattice = 1000L) {
-  key <- rlang::hash(list(
+  key <- list(
     "conditional power prior",
     as.integer(n_control_source), as.integer(n_successes_control_source),
     as.integer(n_treatment_source), as.integer(n_successes_treatment_source),
     power_parameter, as.integer(n_lattice)
-  ))
-  if (!exists(key, envir = binomial_npp_cache_store, inherits = FALSE)) {
-    held <- ls(envir = binomial_npp_cache_store, all.names = TRUE)
-    if (length(held) >= 6) {
-      rm(list = held, envir = binomial_npp_cache_store)
-    }
+  )
+  lattice_kernel_cached(key, function() {
     N <- as.integer(n_lattice)
     rates <- (seq_len(N) - 0.5) / N
     discounted <- function(n, successes) {
@@ -335,10 +351,8 @@ binomial_cpp_cached_kernel <- function(n_control_source,
     kernel <- crossprod(width, source_weight)
     kernel[!inside] <- 0
 
-    assign(key, list(n_lattice = N, rates = rates, differences = differences, kernel = kernel),
-           envir = binomial_npp_cache_store)
-  }
-  get(key, envir = binomial_npp_cache_store)
+    list(n_lattice = N, rates = rates, differences = differences, kernel = kernel)
+  })
 }
 
 
@@ -374,13 +388,43 @@ binomial_npp_posterior <- function(kernels,
   control_points <- which(control > 1e-20)
   treatment_points <- which(treatment > 1e-20)
 
-  j <- rep(control_points, times = length(treatment_points))
-  m <- rep(treatment_points, each = length(control_points))
-  k <- m - j
-  column <- k + N
-  likelihood <- control[j] * treatment[m]
+  # The kernels weighted by a hyperparameter, of which only the total against
+  # the likelihood is needed. `kernels$moments` names each hyperparameter and
+  # gives the kernel weighted by it (`first`) and by its square (`second`); a
+  # moment the prior does not have is NULL, and reported as Inf.
+  weighted <- list()
+  if (!is.null(kernels$kernel_gamma)) {
+    weighted$gamma_first <- kernels$kernel_gamma
+    weighted$gamma_second <- kernels$kernel_gamma_squared
+  }
+  for (name in names(kernels$moments)) {
+    for (order in c("first", "second")) {
+      if (!is.null(kernels$moments[[name]][[order]])) {
+        weighted[[paste(name, order)]] <- kernels$moments[[name]][[order]]
+      }
+    }
+  }
 
-  mass <- likelihood * kernels$kernel[cbind(j, column)]
+  # One target control rate at a time: its row of the kernel, read at the
+  # treatment rates the target data allow, is accumulated into the risk
+  # differences they imply. A row is a short slice, so this touches only the
+  # lattice points that carry likelihood.
+  lowest <- min(treatment_points) - max(control_points)
+  highest <- max(treatment_points) - min(control_points)
+  mass <- numeric(highest - lowest + 1L)
+  totals <- numeric(length(weighted))
+  treatment_likelihood <- treatment[treatment_points]
+  for (j in control_points) {
+    columns <- treatment_points - j + N
+    slots <- treatment_points - j - lowest + 1L
+    likelihood <- control[j] * treatment_likelihood
+    mass[slots] <- mass[slots] + likelihood * kernels$kernel[j, columns]
+    for (index in seq_along(weighted)) {
+      totals[index] <- totals[index] + sum(likelihood * weighted[[index]][j, columns])
+    }
+  }
+  names(totals) <- names(weighted)
+
   total <- sum(mass)
   if (!is.finite(total) || total <= 0) {
     stop("The normalized power prior posterior has no mass on the lattice.", call. = FALSE)
@@ -389,90 +433,93 @@ binomial_npp_posterior <- function(kernels,
     gamma_mean <- NA_real_
     gamma_second_moment <- NA_real_
   } else {
-    gamma_mean <- sum(likelihood * kernels$kernel_gamma[cbind(j, column)]) / total
-    gamma_second_moment <- sum(likelihood * kernels$kernel_gamma_squared[cbind(j, column)]) / total
+    gamma_mean <- totals[["gamma_first"]] / total
+    gamma_second_moment <- totals[["gamma_second"]] / total
   }
 
-  by_difference <- rowsum(mass, k, reorder = TRUE)
-  observed <- as.integer(rownames(by_difference))
   # One empty lattice point on each side, so that the grid always has two
   # points and the distribution function starts at 0 and ends at 1.
-  support <- seq(min(observed) - 1L, max(observed) + 1L)
-  density <- numeric(length(support))
-  density[match(observed, support)] <- by_difference[, 1]
-
-  posterior <- grid_posterior(support / N, density)
+  support <- seq(lowest - 1L, highest + 1L)
+  posterior <- grid_posterior(support / N, c(0, mass, 0))
   posterior$power_parameter_mean <- gamma_mean
   posterior$power_parameter_std <- sqrt(max(0, gamma_second_moment - gamma_mean^2))
+
+  for (name in names(kernels$moments)) {
+    first_key <- paste(name, "first")
+    second_key <- paste(name, "second")
+    first <- if (first_key %in% names(totals)) totals[[first_key]] / total else Inf
+    second <- if (second_key %in% names(totals)) totals[[second_key]] / total else Inf
+    posterior[[paste0(name, "_mean")]] <- first
+    posterior[[paste0(name, "_std")]] <- if (is.finite(second) && is.finite(first)) {
+      sqrt(max(0, second - first^2))
+    } else {
+      Inf
+    }
+  }
   posterior
 }
 
 
-#' BinomialNPP class
+#' BinomialLatticePrior class
 #'
-#' @description The normalized power prior for a binary endpoint, with the
-#'   binomial likelihoods of the two arms of each study and a risk difference
-#'   shared by the source and target studies, as in [BinomialCPP]. The power
-#'   parameter has a Beta prior, specified by its mean and standard deviation as
-#'   in [Gaussian_NPP], and is integrated out exactly rather than through a
-#'   normal approximation of the likelihood. The posterior is computed on a
-#'   lattice of response rates; see [binomial_npp_prior_kernels()].
+#' @description Base class of the binomial models whose prior, integrated over
+#'   every source parameter and hyperparameter, is a fixed prior on the target
+#'   control rate and the risk difference, tabulated on the lattice of
+#'   [binomial_npp_prior_kernels()]. The posterior of a dataset is that prior
+#'   times the target likelihood, so it costs one weighted sum; the prior, the
+#'   prior given a control rate and the prior ELIR follow from the same table.
 #'
-#' @field power_parameter_mean Mean of the Beta prior on the power parameter.
-#' @field power_parameter_std Standard deviation of the Beta prior.
-#' @field p Shape parameter of the Beta prior.
-#' @field q Shape parameter of the Beta prior.
+#'   A subclass implements `kernels()`, returning a list with `n_lattice`,
+#'   `rates`, `differences`, the prior `kernel` and, optionally, the moment
+#'   kernels read by [binomial_npp_posterior()]; `kernel_key()`, identifying
+#'   the prior for the ELIR cache; and `compute_posterior_parameters()`.
+#'
 #' @field n_lattice Number of lattice points on the response rates.
-#' @field method Name of the method.
 #' @field quadrature_available The posterior is computed by quadrature.
 #' @export
-BinomialNPP <- R6::R6Class(
-  "BinomialNPP",
+BinomialLatticePrior <- R6::R6Class(
+  "BinomialLatticePrior",
   inherit = MCMCModel,
   public = list(
-    power_parameter_mean = NULL,
-    power_parameter_std = NULL,
-    p = NULL,
-    q = NULL,
     n_lattice = 1000L,
-    method = "NPP",
     quadrature_available = TRUE,
 
-    #' @description Initialize a BinomialNPP model.
+    #' @description Initialize a binomial lattice model.
     #' @param prior The prior object.
     #' @param mcmc_config The MCMC configuration. Only its `engine` is read, and
-    #'   only `"quadrature"` is supported: the normalized power prior has no
-    #'   Stan program.
+    #'   only `"quadrature"` is supported: these models have no Stan program.
     initialize = function(prior, mcmc_config) {
       if (!(prior$method_parameters$initial_prior[[1]] == "noninformative")) {
         stop("Only implemented for a noninformative initial prior")
       }
       if (identical(mcmc_config$engine, "stan")) {
-        stop("The binomial normalized power prior is only computed by quadrature; ",
+        stop("The binomial ", class(self)[1], " model is only computed by quadrature; ",
              "set engine: quadrature.", call. = FALSE)
       }
       super$initialize(prior = prior, mcmc_config = mcmc_config)
       self$summary_measure_likelihood <- "binomial"
-
-      self$power_parameter_mean <- prior$method_parameters$power_parameter_mean[[1]]
-      self$power_parameter_std <- prior$method_parameters$power_parameter_std[[1]]
-      shapes <- npp_beta_shapes(self$power_parameter_mean, self$power_parameter_std)
-      self$p <- shapes$p
-      self$q <- shapes$q
     },
 
-    #' @description The prior kernels, computed once per worker and shared.
-    #' @return The output of [binomial_npp_prior_kernels()].
+    #' @description The prior kernels. Subclasses must implement it.
     kernels = function() {
+      stop("Subclasses of BinomialLatticePrior must implement 'kernels'.", call. = FALSE)
+    },
+
+    #' @description What identifies the prior, for the ELIR cache. Subclasses
+    #' must implement it.
+    kernel_key = function() {
+      stop("Subclasses of BinomialLatticePrior must implement 'kernel_key'.", call. = FALSE)
+    },
+
+    #' @description The source counts of the prior.
+    #' @return A list with the four source counts.
+    source_counts = function() {
       source <- self$prior$source
-      binomial_npp_cached_kernels(
+      list(
         n_control_source = as.integer(source$sample_size_control),
         n_successes_control_source = counts_from_rate(source$control_rate, source$sample_size_control),
         n_treatment_source = as.integer(source$sample_size_treatment),
-        n_successes_treatment_source = counts_from_rate(source$treatment_rate, source$sample_size_treatment),
-        p = self$p,
-        q = self$q,
-        n_lattice = self$n_lattice
+        n_successes_treatment_source = counts_from_rate(source$treatment_rate, source$sample_size_treatment)
       )
     },
 
@@ -497,15 +544,6 @@ BinomialNPP <- R6::R6Class(
     #' @return A [grid_posterior()] list.
     quadrature_prior = function() {
       binomial_npp_posterior(self$kernels(), 0L, 0L, 0L, 0L)
-    },
-
-    #' @description Record the posterior mean and standard deviation of the
-    #' power parameter.
-    compute_posterior_parameters = function() {
-      self$posterior_parameters <- list(
-        power_parameter_mean = self$grid_posterior$power_parameter_mean,
-        power_parameter_std = self$grid_posterior$power_parameter_std
-      )
     },
 
     #' @description The prior of the treatment effect given the target control
@@ -547,12 +585,8 @@ BinomialNPP <- R6::R6Class(
         if (is.null(simulation_config$n_samples_mixture_approx)) {
           stop("The ELIR needs simulation_config$n_samples_mixture_approx.", call. = FALSE)
         }
-        source <- self$prior$source
         key <- rlang::hash(list(
-          "binomial_npp_elir",
-          source$sample_size_control, source$sample_size_treatment,
-          source$control_rate, source$treatment_rate,
-          self$p, self$q, self$n_lattice,
+          "binomial lattice elir", class(self)[1], self$kernel_key(), self$n_lattice,
           as.integer(simulation_config$n_samples_mixture_approx),
           self$n_components_mixture_approx, self$aic_penalty_parameter_mixture_approx
         ))
@@ -568,6 +602,153 @@ BinomialNPP <- R6::R6Class(
         self$prior_elir_unit_information <- get(key, envir = power_prior_elir_cache_store)
       }
       self$prior_elir_unit_information * target_data$sample$standard_deviation^2
+    }
+  )
+)
+
+
+#' BinomialNPP class
+#'
+#' @description The normalized power prior for a binary endpoint, with the
+#'   binomial likelihoods of the two arms of each study and a risk difference
+#'   shared by the source and target studies, as in [BinomialCPP]. The power
+#'   parameter has a Beta prior, specified by its mean and standard deviation as
+#'   in [Gaussian_NPP], and is integrated out exactly rather than through a
+#'   normal approximation of the likelihood. The posterior is computed on a
+#'   lattice of response rates; see [binomial_npp_prior_kernels()].
+#'
+#' @field power_parameter_mean Mean of the Beta prior on the power parameter.
+#' @field power_parameter_std Standard deviation of the Beta prior.
+#' @field p Shape parameter of the Beta prior.
+#' @field q Shape parameter of the Beta prior.
+#' @field method Name of the method.
+#' @export
+BinomialNPP <- R6::R6Class(
+  "BinomialNPP",
+  inherit = BinomialLatticePrior,
+  public = list(
+    power_parameter_mean = NULL,
+    power_parameter_std = NULL,
+    p = NULL,
+    q = NULL,
+    method = "NPP",
+
+    #' @description Initialize a BinomialNPP model.
+    #' @param prior The prior object, with `power_parameter_mean` and
+    #'   `power_parameter_std` among its method parameters.
+    #' @param mcmc_config The MCMC configuration; only the quadrature engine is
+    #'   supported.
+    initialize = function(prior, mcmc_config) {
+      super$initialize(prior = prior, mcmc_config = mcmc_config)
+      if (!is.null(prior$method_parameters$power_parameter_mean)) {
+        self$power_parameter_mean <- prior$method_parameters$power_parameter_mean[[1]]
+        self$power_parameter_std <- prior$method_parameters$power_parameter_std[[1]]
+        shapes <- npp_beta_shapes(self$power_parameter_mean, self$power_parameter_std)
+        self$p <- shapes$p
+        self$q <- shapes$q
+      }
+    },
+
+    #' @description The prior kernels, computed once per worker and shared.
+    #' @return The output of [binomial_npp_prior_kernels()].
+    kernels = function() {
+      if (is.null(self$p) || is.null(self$q)) {
+        stop("The normalized power prior has no prior on the power parameter yet.",
+             call. = FALSE)
+      }
+      do.call(binomial_npp_cached_kernels, c(self$source_counts(), list(
+        p = self$p, q = self$q, n_lattice = self$n_lattice
+      )))
+    },
+
+    #' @description What identifies the prior, for the ELIR cache.
+    #' @return A list.
+    kernel_key = function() {
+      c(self$source_counts(), list(p = self$p, q = self$q))
+    },
+
+    #' @description Record the posterior mean and standard deviation of the
+    #' power parameter.
+    compute_posterior_parameters = function() {
+      self$posterior_parameters <- list(
+        power_parameter_mean = self$grid_posterior$power_parameter_mean,
+        power_parameter_std = self$grid_posterior$power_parameter_std
+      )
+    }
+  )
+)
+
+
+#' BinomialNPP_KL class
+#'
+#' @description The KL-calibrated normalized power prior of [Gaussian_NPP_KL]
+#'   for a binary endpoint: the Beta prior on the power parameter is calibrated
+#'   to the design with the same criterion, [calibrate_npp_kl()], and the
+#'   target data are analysed with the binomial normalized power prior,
+#'   [BinomialNPP], under that prior. The shape parameters are `NULL` until
+#'   [Model]`$calibrate_for_design()` has run.
+#'
+#' @field method Name of the method.
+#' @field theta_0 Boundary of the null hypothesis space.
+#' @field null_space The null hypothesis space, which gives the benefit direction.
+#' @field calibration The result of [calibrate_npp_kl()] for this scenario.
+#' @field calibration_settings The criterion settings read from the method parameters.
+#' @export
+BinomialNPP_KL <- R6::R6Class(
+  "BinomialNPP_KL",
+  inherit = BinomialNPP,
+  public = list(
+    method = "NPP_KL",
+    theta_0 = NULL,
+    null_space = NULL,
+    calibration = NULL,
+    calibration_settings = NULL,
+
+    #' @description Initialize a BinomialNPP_KL model.
+    #' @param prior The prior object.
+    #' @param theta_0 Value of the treatment effect under the null hypothesis.
+    #' @param null_space The null hypothesis space, either "left" or "right".
+    #' @param mcmc_config The MCMC configuration; only the quadrature engine is
+    #'   supported.
+    initialize = function(prior, theta_0, null_space, mcmc_config) {
+      prior$method_parameters$power_parameter_mean <- NULL
+      prior$method_parameters$power_parameter_std <- NULL
+      super$initialize(prior = prior, mcmc_config = mcmc_config)
+      self$theta_0 <- theta_0
+      self$null_space <- null_space
+      self$calibration_settings <- npp_kl_settings(prior$method_parameters, null_space)
+    },
+
+    #' @description Calibrate the prior on the power parameter to this design;
+    #' see [npp_kl_calibrate_design()].
+    #' @param target_data Target study data for the scenario.
+    #' @return The calibration, invisibly.
+    calibrate_for_design = function(target_data) {
+      self$calibration <- npp_kl_calibrate_design(
+        source = self$prior$source,
+        target_data = target_data,
+        theta_0 = self$theta_0,
+        settings = self$calibration_settings
+      )
+      self$p <- self$calibration$alpha_gamma
+      self$q <- self$calibration$beta_gamma
+      moments <- npp_kl_beta_moments(self$p, self$q)
+      self$power_parameter_mean <- moments$mean
+      self$power_parameter_std <- moments$sd
+      # The prior changed, so its ELIR has to be recomputed.
+      self$prior_elir_unit_information <- NULL
+      self$prior_grid <- NULL
+      invisible(self$calibration)
+    },
+
+    #' @description Record the posterior moments of the power parameter and the
+    #' calibration, which is constant within a scenario.
+    compute_posterior_parameters = function() {
+      super$compute_posterior_parameters()
+      self$posterior_parameters <- c(
+        self$posterior_parameters,
+        as.list(npp_kl_calibration_columns(self$calibration, 1L))
+      )
     }
   )
 )
