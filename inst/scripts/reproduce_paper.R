@@ -150,7 +150,7 @@ local({
   print(status)
   failed <- status[status$status != "ok", , drop = FALSE]
   message(sprintf(
-    "%d of %d outputs produced. Paper-numbered copies are in %s.",
+    "%d of %d outputs produced. Copies of them all are in %s; manifest.csv maps each to its paper number.",
     nrow(status) - nrow(failed), nrow(status),
     file.path("figures", "publication_figures", run_name, "paper_outputs")
   ))

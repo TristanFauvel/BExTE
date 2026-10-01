@@ -562,25 +562,24 @@ paper_numbered_label <- function(entry) {
   }
 }
 
-## Copy numbered outputs into `numbered_dir` under their paper numbers.
+## Copy the paper's outputs into `numbered_dir`, one folder holding every
+## figure and table the paper uses.
 ##
-## The generators name their files after the scenario they plot, which is
-## what makes them findable in a results directory and useless for reading
-## next to the paper - manifest.csv is otherwise the only thing that says
-## which file is figure S33. Figures are copied as PNG, the format that drops
-## straight into a document; tables keep both the .tex the manuscript
-## includes and the .pdf you look at. An item that produced nothing is
-## skipped, so a numbered file never claims a figure that was not drawn. The
-## unnumbered X figures keep only their descriptive filenames.
+## The files keep the names their generators gave them, which say what each
+## plots; manifest.csv maps each one to its paper number. Figures are copied
+## as PNG, the format that drops straight into a document; tables keep both
+## the .tex the manuscript includes and the .pdf you look at. An item that
+## produced nothing is skipped, so the folder never holds a figure that was
+## not drawn. Two different files with the same name - from different case
+## study folders - are told apart by prefixing the second with its folder
+## name, rather than one silently overwriting the other.
 paper_write_numbered_copies <- function(status, entries, numbered_dir) {
   dir.create(numbered_dir, showWarnings = FALSE, recursive = TRUE)
-  labels <- vapply(entries, paper_numbered_label, character(1))
-  names(labels) <- vapply(entries, function(entry) entry$id, character(1))
+  copied_from <- character(0)
 
   for (index in seq_len(nrow(status))) {
     row <- status[index, ]
-    if (startsWith(row$id, "X") || !identical(row$status, "ok") ||
-        !nzchar(row$outputs)) {
+    if (!identical(row$status, "ok") || !nzchar(row$outputs)) {
       next
     }
     produced <- trimws(strsplit(row$outputs, ";", fixed = TRUE)[[1]])
@@ -591,21 +590,14 @@ paper_write_numbered_copies <- function(status, entries, numbered_dir) {
       produced[grepl("\\.png$", produced)]
     }
 
-    label <- labels[[row$id]]
-    ## A generator that wrote several files of the wanted type keeps them all,
-    ## numbered, rather than one silently overwriting another.
-    for (position in seq_along(wanted)) {
-      extension <- tools::file_ext(wanted[position])
-      suffix <- if (sum(tools::file_ext(wanted) == extension) > 1) {
-        paste0(" (", position, ")")
-      } else {
-        ""
+    for (path in wanted) {
+      name <- basename(path)
+      source <- normalizePath(path)
+      if (name %in% names(copied_from) && !identical(copied_from[[name]], source)) {
+        name <- paste0(basename(dirname(path)), "_", name)
       }
-      file.copy(
-        wanted[position],
-        file.path(numbered_dir, paste0(label, suffix, ".", extension)),
-        overwrite = TRUE
-      )
+      file.copy(path, file.path(numbered_dir, name), overwrite = TRUE)
+      copied_from[[name]] <- source
     }
   }
   invisible(NULL)
@@ -727,9 +719,10 @@ paper_export_in_parallel <- function(entries, run_generator, figures_dir,
 #' @param ids Manifest ids to produce.
 #' @param case_studies_config_dir Directory holding the case study YAMLs.
 #' @param progress Optional `function(index, total, id)` progress callback.
-#' @param numbered_dir Optional directory for numbered copies ("Figure 1.png",
-#'   "Table S1.tex"). Numbered figures are copied as PNG, tables as both
-#'   `.tex` and `.pdf`. Unnumbered `X` figures are omitted. `NULL` skips it.
+#' @param numbered_dir Optional directory collecting a copy of every output
+#'   produced, under the generators' own filenames: figures as PNG, tables as
+#'   both `.tex` and `.pdf`. `manifest.csv` maps each file to its paper number.
+#'   `NULL` skips it.
 #' @param workers Number of items to produce at once, each in a forked
 #'   process. The default, 1, produces them one after the other in this
 #'   process. Forking is unavailable on Windows, which always uses one. The
@@ -914,13 +907,13 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
       if (is.null(numbered_dir)) {
         "No numbered copies were requested for this export."
       } else {
-        paste0("Copies of numbered outputs (\"Figure 1.png\", ",
-               "\"Table S1.tex\") are in ", numbered_dir, ".")
+        paste0("Copies of every paper output, under the same filenames ",
+               "(figures as PNG, tables as .tex and .pdf), are in ",
+               numbered_dir, ".")
       },
       "",
       "Not produced here: tables S2 (methods and parameters) and S4",
       "(simulation configuration) are hand-authored in the manuscript.",
-      "Unnumbered manuscript figures X1-X3 retain their descriptive filenames.",
       "",
       paste0(sum(status$status == "ok"), " of ", nrow(status),
              " items produced successfully.")
