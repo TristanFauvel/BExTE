@@ -692,3 +692,260 @@ npp_kl_calibration_columns <- function(calibration, n_replicates) {
     )
   )
 }
+
+
+#' Criterion settings of the KL-calibrated normalized power prior
+#'
+#' @description Read from the method parameters, with the defaults of
+#'   [calibrate_npp_kl()]. Shared by [Gaussian_NPP_KL] and [BinomialNPP_KL].
+#'
+#' @param parameters The method parameters.
+#' @param null_space The null hypothesis space, which gives the benefit
+#'   direction when `benefit_sign` is not configured.
+#' @return A list of settings.
+#' @keywords internal
+npp_kl_settings <- function(parameters, null_space) {
+  first_or <- function(value, fallback) {
+    if (is.null(value)) fallback else value[[1]]
+  }
+
+  d_mtd_rule <- first_or(parameters$d_mtd_rule, "source_to_null")
+  if (!identical(d_mtd_rule, "source_to_null")) {
+    stop(
+      "The only maximum tolerable discrepancy rule implemented is ",
+      "'source_to_null', but d_mtd_rule is '", d_mtd_rule,
+      "'. Pass an explicit numeric d_mtd to use a different discrepancy."
+    )
+  }
+
+  # An absent benefit_sign is the usual case: the case study records the
+  # benefit direction as its null space, and deriving it there is what keeps
+  # the maximum tolerable discrepancy on the side that moves the target
+  # towards the null for the log-ratio case studies as well.
+  list(
+    lambda_kl = first_or(parameters$lambda_kl, 0.5),
+    c_target = first_or(parameters$c_target, 10),
+    d_mtd_rule = d_mtd_rule,
+    d_mtd_multiplier = first_or(parameters$d_mtd_multiplier, 1),
+    d_mtd = if (is.null(parameters$d_mtd)) NULL else parameters$d_mtd[[1]],
+    benefit_sign = if (is.null(parameters$benefit_sign)) {
+      benefit_sign_from_null_space(null_space)
+    } else {
+      parameters$benefit_sign[[1]]
+    },
+    beta_parameter_bounds = if (is.null(parameters$beta_parameter_bounds)) {
+      NPP_KL_DEFAULT_BOUNDS
+    } else {
+      unlist(parameters$beta_parameter_bounds)
+    }
+  )
+}
+
+
+#' Target standard error a design implies, for the KL calibration
+#'
+#' @description The standard error of the target estimate expected under the
+#'   design, on the scale of the analysis. For a continuous, recurrent-event or
+#'   time-to-event endpoint it is the design's sampling standard deviation over
+#'   the root sample size per arm, which does not depend on the treatment
+#'   effect. For a binary endpoint the standard error depends on the response
+#'   rates, so taking it at the scenario's true rates would make the prior a
+#'   function of the true treatment effect. It is taken instead at the design's
+#'   control rate and the source treatment rate, i.e. at zero treatment drift,
+#'   which is also the design the analysis step calibrates on (see
+#'   `compute_bayesian_ocs()`).
+#'
+#' @param target_data Target study data for the scenario.
+#' @param source The source data, with `treatment_rate` for a binary endpoint.
+#' @return The expected standard error.
+#' @keywords internal
+npp_kl_expected_target_se <- function(target_data, source) {
+  if (!inherits(target_data, "BinaryTargetData")) {
+    return(target_data$standard_deviation / sqrt(target_data$sample_size_per_arm))
+  }
+  control_rate <- target_data$control_rate
+  # The treatment rate at zero treatment drift, on either scale.
+  treatment_rate <- source$treatment_rate
+  n_control <- target_data$sample_size_control
+  n_treatment <- target_data$sample_size_treatment
+  if (identical(target_data$summary_measure_likelihood, "binomial")) {
+    sqrt(treatment_rate * (1 - treatment_rate) / n_treatment +
+           control_rate * (1 - control_rate) / n_control)
+  } else {
+    standard_error_log_odds_ratio(
+      n_control * (1 - control_rate),
+      n_treatment * (1 - treatment_rate),
+      n_control * control_rate,
+      n_treatment * treatment_rate
+    )
+  }
+}
+
+
+#' Calibrate the KL normalized power prior to a design
+#'
+#' @description The expected target standard error is the one the design
+#'   implies, from [npp_kl_expected_target_se()]. It is not the standard error
+#'   of any replicate: those vary around this one, and using them would make
+#'   the prior a function of the data it is supposed to be a prior for.
+#'
+#' @param source The source data, with `treatment_effect_estimate` and
+#'   `standard_error`.
+#' @param target_data Target study data for the scenario.
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param settings Output of [npp_kl_settings()].
+#' @return The output of [calibrate_npp_kl()].
+#' @keywords internal
+npp_kl_calibrate_design <- function(source, target_data, theta_0, settings) {
+  calibrate_npp_kl(
+    theta_source = source$treatment_effect_estimate,
+    se_source = source$standard_error,
+    se_target_expected = npp_kl_expected_target_se(target_data, source),
+    theta_null = theta_0,
+    benefit_sign = settings$benefit_sign,
+    d_mtd = settings$d_mtd,
+    d_mtd_multiplier = settings$d_mtd_multiplier,
+    lambda_kl = settings$lambda_kl,
+    c_target = settings$c_target,
+    beta_parameter_bounds = settings$beta_parameter_bounds
+  )
+}
+
+
+#' Binomial marginal likelihood of the KL calibration's hypothetical results
+#'
+#' @description The KL criterion compares the posterior of the power parameter
+#'   under two hypothetical target results. With binomial likelihoods that
+#'   posterior is the Beta prior times the marginal likelihood
+#'   m(gamma) = Z_T(gamma) / Z_S(gamma) of the binomial power prior (see
+#'   [binomial_power_prior_log_marginal()]), which does not depend on the Beta
+#'   prior. It is therefore tabulated once per hypothetical result, on a grid of
+#'   power parameters dense near 0 where Beta priors with small shapes put their
+#'   quadrature nodes, and interpolated during the optimisation.
+#'
+#'   The hypothetical results are the expected responder counts of the design:
+#'   the control arm at the design's control rate, the treatment arm at that
+#'   rate plus the hypothetical risk difference. The binomial likelihood is
+#'   defined for fractional counts, as the normal criterion's hypothetical
+#'   estimate is the expected one.
+#'
+#' @param source_counts List of the four source counts.
+#' @param n_control,n_treatment Target arm sizes.
+#' @param control_rate The design's target control rate.
+#' @param effects Named vector of hypothetical risk differences.
+#' @param n_lattice Number of lattice points.
+#' @param n_grid Number of power parameters in the table.
+#' @return A list with `gamma` and one vector of log marginal likelihoods per
+#'   element of `effects`.
+#' @keywords internal
+npp_kl_binomial_log_marginals <- function(source_counts, n_control, n_treatment,
+                                          control_rate, effects, n_lattice = 1000L,
+                                          n_grid = 801L) {
+  disk_cached(list("KL-NPP binomial log marginals", source_counts, as.integer(n_control),
+                   as.integer(n_treatment), signif(control_rate, 12), signif(effects, 12),
+                   as.integer(n_lattice), as.integer(n_grid)), function() {
+    gamma <- seq(0, 1, length.out = n_grid)^2
+    tables <- lapply(effects, function(effect) {
+      treatment_rate <- min(1, max(0, control_rate + effect))
+      terms <- binomial_power_prior_target_terms(
+        source_counts$n_control_source, source_counts$n_successes_control_source,
+        source_counts$n_treatment_source, source_counts$n_successes_treatment_source,
+        n_control, n_control * control_rate, n_treatment, n_treatment * treatment_rate,
+        n_lattice = n_lattice
+      )
+      binomial_power_prior_log_marginal(terms, gamma)
+    })
+    c(list(gamma = gamma), tables)
+  }, subdirectory = "npp_kl_binomial")
+}
+
+
+#' Calibrate the KL normalized power prior on binomial likelihoods
+#'
+#' @description The criterion of [calibrate_npp_kl()] - the same two
+#'   hypothetical target results, reference distributions, weights, bounds and
+#'   optimiser - with the posterior of the power parameter computed from the
+#'   binomial marginal likelihood of each result, [npp_kl_binomial_log_marginals()],
+#'   instead of the normal one.
+#'
+#' @param source_counts List of the four source counts.
+#' @param source The source data, with `treatment_effect_estimate`.
+#' @param target_data Target study data for the scenario, a binary design.
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param settings Output of [npp_kl_settings()].
+#' @param n_lattice Number of lattice points.
+#' @param n_nodes Quadrature nodes of the Beta prior.
+#' @return A list with the fields of [calibrate_npp_kl()]'s result.
+#' @keywords internal
+npp_kl_calibrate_design_binomial <- function(source_counts, source, target_data, theta_0,
+                                             settings, n_lattice = 1000L, n_nodes = 80L) {
+  theta_source <- source$treatment_effect_estimate
+  d_mtd <- if (is.null(settings$d_mtd)) {
+    settings$d_mtd_multiplier * abs(theta_source - theta_0)
+  } else {
+    settings$d_mtd
+  }
+  effects <- c(compatible = theta_source,
+               mtd = theta_source - settings$benefit_sign * d_mtd)
+  tables <- npp_kl_binomial_log_marginals(
+    source_counts, target_data$sample_size_control, target_data$sample_size_treatment,
+    target_data$control_rate, effects, n_lattice = n_lattice
+  )
+
+  posterior_at <- function(which, alpha_gamma, beta_gamma, rule) {
+    log_likelihood <- stats::approx(tables$gamma, tables[[which]], xout = rule$nodes, rule = 2)$y
+    log_unnormalised_mass <- rule$log_weights + log_likelihood
+    log_norm_const <- npp_kl_log_sum_exp(log_unnormalised_mass)
+    list(
+      nodes = rule$nodes,
+      masses = exp(log_unnormalised_mass - log_norm_const),
+      log_density = log_likelihood +
+        stats::dbeta(rule$nodes, alpha_gamma, beta_gamma, log = TRUE) - log_norm_const
+    )
+  }
+  objective <- function(eta) {
+    if (!all(is.finite(eta))) return(Inf)
+    alpha_gamma <- exp(eta[1])
+    beta_gamma <- exp(eta[2])
+    rule <- tryCatch(npp_kl_beta_quadrature(alpha_gamma, beta_gamma, n_nodes = n_nodes),
+                     error = function(condition) NULL)
+    if (is.null(rule) || !all(is.finite(rule$log_weights))) return(Inf)
+    value <- settings$lambda_kl *
+      npp_kl_divergence(posterior_at("compatible", alpha_gamma, beta_gamma, rule), settings$c_target, 1) +
+      (1 - settings$lambda_kl) *
+      npp_kl_divergence(posterior_at("mtd", alpha_gamma, beta_gamma, rule), 1, settings$c_target)
+    if (is.finite(value)) value else Inf
+  }
+
+  attempts <- lapply(NPP_KL_DEFAULT_STARTS, function(start) {
+    tryCatch(
+      npp_kl_optimise_from(start = start, objective = objective,
+                           beta_parameter_bounds = settings$beta_parameter_bounds),
+      error = function(condition) list(objective_value = Inf, converged = FALSE,
+                                       message = conditionMessage(condition))
+    )
+  })
+  converged <- Filter(function(attempt) {
+    isTRUE(attempt$converged) && is.finite(attempt$objective_value)
+  }, attempts)
+  if (length(converged) == 0L) {
+    stop("The binomial KL calibration failed from every starting value. The last ",
+         "optimiser message was: ", attempts[[length(attempts)]]$message, call. = FALSE)
+  }
+  best <- converged[[which.min(vapply(converged, function(a) a$objective_value, numeric(1)))]]
+  list(
+    alpha_gamma = best$alpha_gamma,
+    beta_gamma = best$beta_gamma,
+    objective_value = best$objective_value,
+    optimizer_converged = TRUE,
+    optimizer_message = best$message,
+    theta_target_compatible = effects[["compatible"]],
+    theta_target_mtd = effects[["mtd"]],
+    d_mtd = d_mtd,
+    d_mtd_multiplier = settings$d_mtd_multiplier,
+    lambda_kl = settings$lambda_kl,
+    c_target = settings$c_target,
+    # Recorded for comparison with the normal criterion; not used here.
+    se_target_expected = npp_kl_expected_target_se(target_data, source)
+  )
+}

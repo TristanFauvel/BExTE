@@ -12,7 +12,7 @@ prior-predictive conflict p-value of the observed counts reaches
 prior-predictive tables (see \code{\link[=egidi_select_weak_weight_binomial]{egidi_select_weak_weight_binomial()}}).
 }
 \section{Super classes}{
-\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:BinomialLatticePrior]{BinomialLatticePrior}} -> \code{BinomialRMP} -> \code{BinomialEgidiMixture}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:BinomialLatticePrior]{BinomialLatticePrior}} -> \code{\link[BExTE:BinomialRMP]{BinomialRMP}} -> \code{BinomialEgidiMixture}
 }
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
@@ -88,9 +88,9 @@ replicate's sample alone.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="quadrature_posterior"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-quadrature_posterior'><code>BinomialLatticePrior$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="quadrature_prior"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-quadrature_prior'><code>BinomialLatticePrior$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="source_counts"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-source_counts'><code>BinomialLatticePrior$source_counts()</code></a></span></li>
-  <li><code>BinomialRMP$components()</code></li>
-  <li><code>BinomialRMP$kernel_key()</code></li>
-  <li><code>BinomialRMP$kernels()</code></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="components"><a href='../../BExTE/html/BinomialRMP.html#method-BinomialRMP-components'><code>BinomialRMP$components()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="kernel_key"><a href='../../BExTE/html/BinomialRMP.html#method-BinomialRMP-kernel_key'><code>BinomialRMP$kernel_key()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="kernels"><a href='../../BExTE/html/BinomialRMP.html#method-BinomialRMP-kernels'><code>BinomialRMP$kernels()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

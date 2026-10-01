@@ -10,8 +10,12 @@
     Integrated over everything but the target control rate and effect, the
     prior is tabulated once per worker, so a dataset costs one weighted sum.
   - `BinomialNPP_KL`: the Beta prior on the power parameter is calibrated with
-    the same criterion as `Gaussian_NPP_KL`, and the data analysed with
-    `BinomialNPP`.
+    the criterion of `Gaussian_NPP_KL`, the posterior of the power parameter
+    under its two hypothetical results (the design's expected responder
+    counts) being computed from the exact binomial marginal likelihood, and
+    the data are analysed with `BinomialNPP`. For Aprepitant the calibrated
+    prior differs from the normal criterion's by about 0.002 in mean; the
+    marginal likelihoods are tabulated once per design, in a few seconds.
   - `BinomialPDCCPP`: the power parameter rule of PDCCPP, the binomial
     conditional power prior analysis, and a calibration on the exact type I
     error of that analysis - a sum over every outcome under the null - instead

@@ -13,7 +13,7 @@ normal approximation of the likelihood. The posterior is computed on a
 lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial_npp_prior_kernels()}}.
 }
 \section{Super classes}{
-\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{BinomialNPP}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:BinomialLatticePrior]{BinomialLatticePrior}} -> \code{BinomialNPP}
 }
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
@@ -26,11 +26,7 @@ lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial
 
     \item{\code{q}}{Shape parameter of the Beta prior.}
 
-    \item{\code{n_lattice}}{Number of lattice points on the response rates.}
-
     \item{\code{method}}{Name of the method.}
-
-    \item{\code{quadrature_available}}{The posterior is computed by quadrature.}
   }
   \if{html}{\out{</div>}}
 }
@@ -39,11 +35,8 @@ lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial
   \itemize{
     \item \href{#method-BinomialNPP-initialize}{\code{BinomialNPP$new()}}
     \item \href{#method-BinomialNPP-kernels}{\code{BinomialNPP$kernels()}}
-    \item \href{#method-BinomialNPP-quadrature_posterior}{\code{BinomialNPP$quadrature_posterior()}}
-    \item \href{#method-BinomialNPP-quadrature_prior}{\code{BinomialNPP$quadrature_prior()}}
+    \item \href{#method-BinomialNPP-kernel_key}{\code{BinomialNPP$kernel_key()}}
     \item \href{#method-BinomialNPP-compute_posterior_parameters}{\code{BinomialNPP$compute_posterior_parameters()}}
-    \item \href{#method-BinomialNPP-prior_given_control_rate}{\code{BinomialNPP$prior_given_control_rate()}}
-    \item \href{#method-BinomialNPP-prior_elir_ess}{\code{BinomialNPP$prior_elir_ess()}}
     \item \href{#method-BinomialNPP-clone}{\code{BinomialNPP$clone()}}
   }
 }
@@ -85,6 +78,11 @@ lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_prior'><code>MCMCModel$sample_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-stan_sampler'><code>MCMCModel$stan_sampler()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="prior_elir_ess"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-prior_elir_ess'><code>BinomialLatticePrior$prior_elir_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="prior_given_control_rate"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-prior_given_control_rate'><code>BinomialLatticePrior$prior_given_control_rate()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="quadrature_posterior"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-quadrature_posterior'><code>BinomialLatticePrior$quadrature_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="quadrature_prior"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-quadrature_prior'><code>BinomialLatticePrior$quadrature_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="source_counts"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-source_counts'><code>BinomialLatticePrior$source_counts()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -100,10 +98,10 @@ lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{prior}}{The prior object.}
-      \item{\code{mcmc_config}}{The MCMC configuration. Only its \code{engine} is read, and
-only \code{"quadrature"} is supported: the normalized power prior has no
-Stan program.}
+      \item{\code{prior}}{The prior object, with \code{power_parameter_mean} and
+\code{power_parameter_std} among its method parameters.}
+      \item{\code{mcmc_config}}{The MCMC configuration; only the quadrature engine is
+supported.}
     }
     \if{html}{\out{</div>}}
   }
@@ -125,39 +123,17 @@ Stan program.}
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinomialNPP-quadrature_posterior"></a>}}
-\if{latex}{\out{\hypertarget{method-BinomialNPP-quadrature_posterior}{}}}
-\subsection{\code{BinomialNPP$quadrature_posterior()}}{
-  The posterior on a grid
+\if{html}{\out{<a id="method-BinomialNPP-kernel_key"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialNPP-kernel_key}{}}}
+\subsection{\code{BinomialNPP$kernel_key()}}{
+  What identifies the prior, for the ELIR cache.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BinomialNPP$quadrature_posterior(target_data)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{target_data}}{The target study data.}
-    }
+    \preformatted{BinomialNPP$kernel_key()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A \code{\link[=grid_posterior]{grid_posterior()}} list.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinomialNPP-quadrature_prior"></a>}}
-\if{latex}{\out{\hypertarget{method-BinomialNPP-quadrature_prior}{}}}
-\subsection{\code{BinomialNPP$quadrature_prior()}}{
-  The prior of the treatment effect on a grid.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{BinomialNPP$quadrature_prior()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A \code{\link[=grid_posterior]{grid_posterior()}} list.
+    A list.
   }
 }
 
@@ -171,63 +147,6 @@ power parameter.
     \if{html}{\out{<div class="r">}}
     \preformatted{BinomialNPP$compute_posterior_parameters()}
     \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinomialNPP-prior_given_control_rate"></a>}}
-\if{latex}{\out{\hypertarget{method-BinomialNPP-prior_given_control_rate}{}}}
-\subsection{\code{BinomialNPP$prior_given_control_rate()}}{
-  The prior of the treatment effect given the target control
-rate
-
-The kernel's row for the lattice cell that contains \code{control_rate},
-which confines the treatment effect to the differences that keep the
-target treatment rate in \link{0, 1}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{BinomialNPP$prior_given_control_rate(control_rate)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{control_rate}}{The target control rate.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of three functions of the treatment effect: \code{cdf}, \code{pdf},
-and \code{sample}, which takes the number of draws.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinomialNPP-prior_elir_ess"></a>}}
-\if{latex}{\out{\hypertarget{method-BinomialNPP-prior_elir_ess}{}}}
-\subsection{\code{BinomialNPP$prior_elir_ess()}}{
-  ELIR effective sample size of the prior
-
-The prior does not depend on the target data, so its unit-scale ELIR is
-computed once per worker, as the mean over several mixture fits under a
-fixed seed (see \code{\link[=grid_prior_unit_elir]{grid_prior_unit_elir()}}), and rescaled by the target's
-sampling standard deviation.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{BinomialNPP$prior_elir_ess(target_data, simulation_config)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{target_data}}{Target study data.}
-      \item{\code{simulation_config}}{Simulation configuration, for
-\code{n_samples_mixture_approx}.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The ELIR effective sample size.
   }
 }
 
