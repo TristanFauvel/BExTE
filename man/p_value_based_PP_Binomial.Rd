@@ -25,8 +25,6 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
 
     \item{\code{shape_parameter}}{Shape parameter}
 
-    \item{\code{equivalence_margin}}{Equivalence margin for the test}
-
     \item{\code{method}}{Method name}
 
     \item{\code{prior_var}}{Prior variance}

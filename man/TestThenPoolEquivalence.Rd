@@ -17,8 +17,6 @@ The TestThenPoolEquivalence class provides methods for testing and inference in 
   \describe{
     \item{\code{significance_level}}{Significance level for the test}
 
-    \item{\code{equivalence_margin}}{Equivalence margin for the test}
-
     \item{\code{method}}{Method name}
   }
   \if{html}{\out{</div>}}

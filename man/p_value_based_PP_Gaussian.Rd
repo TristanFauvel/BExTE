@@ -15,8 +15,6 @@ It inherits from the Gaussian_empirical_Bayes_PP class.
   \describe{
     \item{\code{shape_parameter}}{The shape parameter for the method.}
 
-    \item{\code{equivalence_margin}}{The equivalence margin for the method.}
-
     \item{\code{method}}{Method name}
   }
   \if{html}{\out{</div>}}
