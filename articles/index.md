@@ -33,17 +33,20 @@ Borrowing methods
 
 - [Commensurate Power
   Prior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Commensurate_Power_Prior.md):
+- [Commensurate
+  Prior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Commensurate_Prior.md):
 - [Conditional Power
   Prior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Conditional_Power_Prior.md):
+- [Empirical Mixture Prior
+  (Egidi)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Egidi_Mixture_Prior.md):
 - [Implementation of the Robust Mixture Prior for normally distributed
   treatment
   effect](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Gaussian_RMP.md):
 - [Normalized Power Prior : normal likelihood, beta prior on the power
   parameter, noninformative initial prior, known sampling
   variance](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/NPP.md):
-- [Simulation study : RMP for binary endpoints without normal
-  approximation for the treatment effect
-  distribution](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Truncated_Gaussian_RMP.md):
+- [KL-calibrated Normalized Power
+  Prior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/NPP_KL.md):
 - [Implementation of the
   PDCCPP](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/PDCCPP.md):
 - [Pooling](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/methods/Pooling.md):

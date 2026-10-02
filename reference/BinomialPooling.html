@@ -56,7 +56,7 @@ rather than sampling.</p>
 
     <div class="section level2">
     <h2 id="super-classes">Super classes<a class="anchor" aria-label="anchor" href="#super-classes"></a></h2>
-    <p><code><a href="Model.html">Model</a></code> -&gt; <code>BinomialConjugate</code> -&gt; <code>BinomialPooling</code></p>
+    <p><code><a href="Model.html">Model</a></code> -&gt; <code><a href="BinomialConjugate.html">BinomialConjugate</a></code> -&gt; <code>BinomialPooling</code></p>
     </div>
     <div class="section level2">
     <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
@@ -72,12 +72,15 @@ rather than sampling.</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-BinomialPooling-prepare_data"><code>BinomialPooling$prepare_data()</code></a></p></li>
+<li><p><a href="#method-BinomialPooling-prior_given_control_rate"><code>BinomialPooling$prior_given_control_rate()</code></a></p></li>
 <li><p><a href="#method-BinomialPooling-clone"><code>BinomialPooling$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href="Model.html#method-check_data"><code>Model$check_data()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="calibrate_for_design"><a href="Model.html#method-calibrate_for_design"><code>Model$calibrate_for_design()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href="Model.html#method-check_data"><code>Model$check_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href="Model.html#method-create"><code>Model$create()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="empirical_bayes_update"><a href="Model.html#method-empirical_bayes_update"><code>Model$empirical_bayes_update()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href="Model.html#method-estimate_bayesian_operating_characteristics"><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href="Model.html#method-estimate_frequentist_operating_characteristics"><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="hypothesis_space_transformation"><a href="Model.html#method-hypothesis_space_transformation"><code>Model$hypothesis_space_transformation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference"><a href="Model.html#method-inference"><code>Model$inference()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href="Model.html#method-inference_cache_scope"><code>Model$inference_cache_scope()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href="Model.html#method-plot_pdfs"><code>Model$plot_pdfs()</code></a></span></li>
@@ -86,6 +89,7 @@ rather than sampling.</p>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href="Model.html#method-posterior_beta_mixture"><code>Model$posterior_beta_mixture()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_mean"><a href="Model.html#method-posterior_mean"><code>Model$posterior_mean()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href="Model.html#method-posterior_to_RBesT"><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href="Model.html#method-print_model_summary"><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href="Model.html#method-prior_ESS"><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href="Model.html#method-prior_elir_ess"><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href="Model.html#method-prior_to_RBesT"><code>Model$prior_to_RBesT()</code></a></span></li>
@@ -93,18 +97,19 @@ rather than sampling.</p>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href="Model.html#method-simulation_for_given_treatment_effect"><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href="Model.html#method-test_decision"><code>Model$test_decision()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="vectorised_replicate_inference"><a href="Model.html#method-vectorised_replicate_inference"><code>Model$vectorised_replicate_inference()</code></a></span></li>
-  <li><code>BinomialConjugate$credible_interval()</code></li>
-  <li><code>BinomialConjugate$initialize()</code></li>
-  <li><code>BinomialConjugate$posterior_cdf()</code></li>
-  <li><code>BinomialConjugate$posterior_ess()</code></li>
-  <li><code>BinomialConjugate$posterior_median()</code></li>
-  <li><code>BinomialConjugate$posterior_moments()</code></li>
-  <li><code>BinomialConjugate$posterior_pdf()</code></li>
-  <li><code>BinomialConjugate$posterior_quantile()</code></li>
-  <li><code>BinomialConjugate$prior_cdf()</code></li>
-  <li><code>BinomialConjugate$prior_pdf()</code></li>
-  <li><code>BinomialConjugate$sample_posterior()</code></li>
-  <li><code>BinomialConjugate$sample_prior()</code></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="credible_interval"><a href="BinomialConjugate.html#method-credible_interval"><code>BinomialConjugate$credible_interval()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="initialize"><a href="BinomialConjugate.html#method-initialize"><code>BinomialConjugate$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="posterior_cdf"><a href="BinomialConjugate.html#method-posterior_cdf"><code>BinomialConjugate$posterior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="posterior_ess"><a href="BinomialConjugate.html#method-posterior_ess"><code>BinomialConjugate$posterior_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="posterior_median"><a href="BinomialConjugate.html#method-posterior_median"><code>BinomialConjugate$posterior_median()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="posterior_moments"><a href="BinomialConjugate.html#method-posterior_moments"><code>BinomialConjugate$posterior_moments()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="posterior_pdf"><a href="BinomialConjugate.html#method-posterior_pdf"><code>BinomialConjugate$posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="posterior_quantile"><a href="BinomialConjugate.html#method-posterior_quantile"><code>BinomialConjugate$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="prior_cdf"><a href="BinomialConjugate.html#method-prior_cdf"><code>BinomialConjugate$prior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="prior_pdf"><a href="BinomialConjugate.html#method-prior_pdf"><code>BinomialConjugate$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="sample_posterior"><a href="BinomialConjugate.html#method-sample_posterior"><code>BinomialConjugate$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="sample_prior"><a href="BinomialConjugate.html#method-sample_prior"><code>BinomialConjugate$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialConjugate" data-id="summary_rows"><a href="BinomialConjugate.html#method-summary_rows"><code>BinomialConjugate$summary_rows()</code></a></span></li>
 </ul></details></p><hr><a id="method-BinomialPooling-prepare_data"></a><div class="section">
 <h3 id="binomialpooling-prepare-data-"><code>BinomialPooling$prepare_data()</code><a class="anchor" aria-label="anchor" href="#binomialpooling-prepare-data-"></a></h3>
 <p>Assemble the pooled event counts of the source and target studies</p><div class="section">
@@ -124,13 +129,41 @@ rather than sampling.</p>
 
 </div>
 
+<p></p><hr><a id="method-BinomialPooling-prior_given_control_rate"></a><div class="section">
+<h3 id="binomialpooling-prior-given-control-rate-"><code>BinomialPooling$prior_given_control_rate()</code><a class="anchor" aria-label="anchor" href="#binomialpooling-prior-given-control-rate-"></a></h3>
+<p>The prior of the treatment effect given the target control
+rate</p>
+<p>Pooling treats the source study's patients as the target's, so before
+any target patient is seen the response rates follow the source
+posterior under uniform priors, the two arms independently. Given the
+control rate, the treatment effect is the treatment rate less that rate,
+the treatment rate following its source posterior. The inherited marginal
+prior, a uniform prior on each arm, is the one pooling updates rather than
+the one its analysis assumes about the target.</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BinomialPooling</span><span class="op">$</span><span class="fu">prior_given_control_rate</span><span class="op">(</span><span class="va">control_rate</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>control_rate</code></dt>
+<dd><p>The target control rate.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>A list of three functions of the treatment effect: <code>cdf</code>, <code>pdf</code>,
+and <code>sample</code>, which takes the number of draws.</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BinomialPooling-clone"></a><div class="section">
 <h3 id="binomialpooling-clone-"><code>BinomialPooling$clone()</code><a class="anchor" aria-label="anchor" href="#binomialpooling-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BinomialPooling</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

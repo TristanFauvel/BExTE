@@ -21,7 +21,9 @@ compute_power_with_tie_ci(
   simulation_config,
   case_study = NULL,
   n_replicates = 1000,
-  n_samples = 1000
+  n_samples = 1000,
+  p_values = NULL,
+  null_p_values = NULL
 )
 ```
 
@@ -63,6 +65,25 @@ compute_power_with_tie_ci(
 - n_samples:
 
   Number of draws of the type I error.
+
+- p_values:
+
+  Optional p-values of the separate analysis, already simulated for this
+  design by
+  [`simulate_test_p_values()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulate_test_p_values.md).
+  They depend on the design alone, not on the borrowing method, so a
+  caller pricing many rows of one design simulates them once and passes
+  them here. `NULL` simulates them. Ignored when the power has a closed
+  form.
+
+- null_p_values:
+
+  Optional p-values of the same test on the trials of the design's null
+  scenario. When given, each sampled type I error is matched by the
+  test's actual rejection rate there rather than by its nominal level -
+  see
+  [`calibrated_levels()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrated_levels.md).
+  Ignored when the power has a closed form.
 
 ## Value
 

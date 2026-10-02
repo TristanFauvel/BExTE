@@ -31,12 +31,12 @@ methods, and case-study replications.
 Every exported function and R6 class, grouped by topic: data, methods,
 plots, tables, operating characteristics.
 
-[](#browser-based-interface)
+[](https://github.com/TristanFauvel/BExTE-app)
 
 ##### 🖥️ Browser app
 
-Configure, run, and analyze a simulation study from a Shiny app, without
-hand-editing config files.
+Configure, run, and analyze a simulation study from BExTE-app, a
+separate Shiny app, without hand-editing config files.
 
 [](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/news/index.md)
 
@@ -111,58 +111,15 @@ devtools::load_all()
 ### Browser-based interface
 
 Instead of hand-editing config files and running the scripts above, you
-can configure, run, and analyze a simulation study from a browser:
+can configure, run, and analyze a simulation study from a browser with
+[BExTE-app](https://github.com/TristanFauvel/BExTE-app), a Shiny app
+built on this package:
 
 ``` r
 
-library(BExTE)
-run_bexte_app()
+remotes::install_github("TristanFauvel/BExTE-app")
+BExTEapp::run_bexte_app()
 ```
-
-The app works out of a *workspace* directory, where `results/`, `logs/`
-and `user_configs/` live. Launched from a source checkout it uses the
-checkout, so results land next to the ones `main.R` produces; installed
-from a release tarball it uses a per-user directory under
-`tools::R_user_dir("BExTE", "data")`. Either way the path is reported
-when the app starts, and
-[`run_bexte_app()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/run_bexte_app.md)
-takes an explicit one:
-
-``` r
-
-run_bexte_app(workspace = "~/bexte-studies")
-```
-
-On Linux, `install.R` also adds an **BExTE** entry to the application
-menu, so the app can be started without an R session.
-[`create_bexte_shortcut()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/create_bexte_shortcut.md)
-rewrites it, optionally pinned to a workspace:
-
-``` r
-
-create_bexte_shortcut(workspace = "~/bexte-studies")
-```
-
-The entry opens a terminal, which is where the workspace path and the
-progress of a run appear, and where Ctrl+C stops the app.
-
-When developing against a checkout,
-[`devtools::load_all()`](https://devtools.r-lib.org/reference/load_all.html)
-replaces
-[`library(BExTE)`](https://github.com/quinten-health-os/BayesianExtrapolationSimulation).
-
-This opens a local Shiny app with three tabs:
-
-- **Configure**: pick an existing case study or build a new one, choose
-  methods and their parameter grids, and set scenario/MCMC settings.
-  Saving writes a new environment under `user_configs/` (gitignored)
-  without touching the package’s own `inst/conf/`.
-- **Run**: launch a saved environment as a background process, with a
-  live progress bar, log tail, and a cancel button.
-- **Analyze**: browse any `results/<env>/` directory - including ones
-  produced by `main.R`/HPC runs, not just ones launched from the app -
-  filter it, render interactive plots, and browse/export the data as a
-  table.
 
 ## Design logic
 

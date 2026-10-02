@@ -42,7 +42,7 @@ forest_subplot_no_uncertainty(
 
 - palette:
 
-  A colour scheme from bexte_palette() for the Shiny app's dark mode, or
+  A colour scheme from bexte_palette() for BExTE-app's dark mode, or
   NULL for the publication figure.
 
 - x_metric_uncertainty_lower:

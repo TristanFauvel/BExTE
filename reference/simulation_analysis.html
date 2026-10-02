@@ -62,7 +62,8 @@ loads results, applies frequentist power analysis, and computes the sweet spot.<
 <span>    <span class="st">"frequentist_power_at_nominal_tie"</span>, <span class="st">"sweet_spot"</span>, <span class="st">"bayesian_ocs"</span><span class="op">)</span>,</span>
 <span>  methods <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  case_studies_config_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  parallelization <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  parallelization <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_replicates <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -91,6 +92,12 @@ loads results, applies frequentist power analysis, and computes the sweet spot.<
 logical, or a list of method names, in the same form as the
 <code>parallelization</code> entry of <code>scenarios_config.yml</code>. Defaults to that
 entry, read from <code>config_dir</code>.</p></dd>
+
+
+<dt id="arg-n-replicates">n_replicates<a class="anchor" aria-label="anchor" href="#arg-n-replicates"></a></dt>
+<dd><p>Number of Monte Carlo replicates the simulated power
+estimates are built from. Defaults to the <code>n_replicates</code> entry of
+<code>scenarios_config.yml</code>, read from <code>config_dir</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

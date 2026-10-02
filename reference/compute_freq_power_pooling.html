@@ -55,7 +55,8 @@
 <span>  <span class="va">null_space</span>,</span>
 <span>  <span class="va">simulation_config</span>,</span>
 <span>  case_study <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_replicates <span class="op">=</span> <span class="fl">1000</span></span>
+<span>  n_replicates <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  trials <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -97,6 +98,12 @@
 
 <dt id="arg-n-replicates">n_replicates<a class="anchor" aria-label="anchor" href="#arg-n-replicates"></a></dt>
 <dd><p>Number of Monte Carlo replicates for non-analytical power calculations.</p></dd>
+
+
+<dt id="arg-trials">trials<a class="anchor" aria-label="anchor" href="#arg-trials"></a></dt>
+<dd><p>Optional trials already simulated for this design, with the
+same seed and <code>n_replicates</code>, as the separate analysis's power reads them.
+<code>NULL</code> simulates them. Ignored when the power has a closed form.</p></dd>
 
 </dl></div>
     <div class="section level2">

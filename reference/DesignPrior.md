@@ -18,6 +18,8 @@ A class representing the design prior for Bayesian borrowing.
 
 - [`DesignPrior$create()`](#method-DesignPrior-create)
 
+- [`DesignPrior$given_control_rate()`](#method-DesignPrior-given_control_rate)
+
 - [`DesignPrior$sample()`](#method-DesignPrior-sample)
 
 - [`DesignPrior$cdf()`](#method-DesignPrior-cdf)
@@ -41,7 +43,8 @@ Creates a new instance of DesignPrior.
       case_study_config,
       simulation_config,
       mcmc_config,
-      case_study
+      case_study,
+      target_control_rate = NULL
     )
 
 #### Arguments
@@ -74,9 +77,46 @@ Creates a new instance of DesignPrior.
 
   Case study name
 
+- `target_control_rate`:
+
+  The control response rate of the simulated trials, or `NULL`. Under a
+  binomial likelihood the treatment effect is a difference in response
+  rates, and the simulated trials, whose control rate is fixed, can only
+  have an effect in `(-target_control_rate, 1 - target_control_rate)`;
+  the design prior is then taken given that control rate - see
+  `given_control_rate()`.
+
 #### Returns
 
 A new instance of DesignPrior.
+
+------------------------------------------------------------------------
+
+### `DesignPrior$given_control_rate()`
+
+The design prior given the target control rate
+
+A difference in response rates is confined to
+`(-control_rate, 1 - control_rate)` once the control rate is known. A
+design prior defined on the treatment effect alone has no joint
+distribution with the control rate to condition, so it is truncated to
+that range and renormalised. Subclasses that can condition exactly
+override this.
+
+#### Usage
+
+    DesignPrior$given_control_rate(control_rate)
+
+#### Arguments
+
+- `control_rate`:
+
+  The target control rate.
+
+#### Returns
+
+A
+[FunctionalDesignPrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/FunctionalDesignPrior.md).
 
 ------------------------------------------------------------------------
 

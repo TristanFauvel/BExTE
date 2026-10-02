@@ -18,6 +18,11 @@ inherits from the Model class.
 
   The compiled Stan model
 
+- `stan_model_name`:
+
+  Name the Stan model is compiled under, for models that compile it only
+  when they first sample
+
 - `summary_variables`:
 
   Variables to summarise from the posterior draws
@@ -88,7 +93,17 @@ inherits from the Model class.
 
 - [`MCMCModel$new()`](#method-MCMCModel-initialize)
 
+- [`MCMCModel$stan_sampler()`](#method-MCMCModel-stan_sampler)
+
+- [`MCMCModel$uses_quadrature()`](#method-MCMCModel-uses_quadrature)
+
+- [`MCMCModel$quadrature_posterior()`](#method-MCMCModel-quadrature_posterior)
+
+- [`MCMCModel$quadrature_prior()`](#method-MCMCModel-quadrature_prior)
+
 - [`MCMCModel$check_mcmc_config()`](#method-MCMCModel-check_mcmc_config)
+
+- [`MCMCModel$summary_rows()`](#method-MCMCModel-summary_rows)
 
 - [`MCMCModel$prepare_data()`](#method-MCMCModel-prepare_data)
 
@@ -120,11 +135,13 @@ inherits from the Model class.
 
 Inherited methods
 
+- [`Model$calibrate_for_design()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-calibrate_for_design)
 - [`Model$check_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-check_data)
 - [`Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
 - [`Model$empirical_bayes_update()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-empirical_bayes_update)
 - [`Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
 - [`Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$hypothesis_space_transformation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-hypothesis_space_transformation)
 - [`Model$inference_cache_scope()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-inference_cache_scope)
 - [`Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
 - [`Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
@@ -134,6 +151,7 @@ Inherited methods
 - [`Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
 - [`Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
 - [`Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$print_model_summary()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-print_model_summary)
 - [`Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
 - [`Model$prior_elir_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_elir_ess)
 - [`Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
@@ -147,6 +165,12 @@ Inherited methods
 ### `MCMCModel$new()`
 
 Initialize the MCMCModel object
+
+A subclass that can also compute its posterior by quadrature declares
+`quadrature_available = TRUE` and implements `quadrature_posterior()`.
+For such a class, `mcmc_config$engine` chooses between the two:
+`"quadrature"`, the default, or `"stan"`. Every other subclass samples
+with Stan whatever the setting.
 
 #### Usage
 
@@ -164,6 +188,79 @@ Initialize the MCMCModel object
 
 ------------------------------------------------------------------------
 
+### `MCMCModel$stan_sampler()`
+
+The compiled Stan model, compiled on first use
+
+A model that names its Stan program in `stan_model_name` rather than
+compiling it in `initialize()` is compiled here, the first time it
+samples. Models whose simulations never sample, because their replicates
+go through a quadrature path, therefore never compile at all.
+
+#### Usage
+
+    MCMCModel$stan_sampler()
+
+#### Returns
+
+The compiled Stan model.
+
+------------------------------------------------------------------------
+
+### `MCMCModel$uses_quadrature()`
+
+Whether the posterior is computed by quadrature
+
+#### Usage
+
+    MCMCModel$uses_quadrature()
+
+#### Returns
+
+`TRUE` under the quadrature engine, `FALSE` when sampling.
+
+------------------------------------------------------------------------
+
+### `MCMCModel$quadrature_posterior()`
+
+The posterior as a grid, under the quadrature engine. Subclasses with
+`quadrature_available = TRUE` must implement it.
+
+#### Usage
+
+    MCMCModel$quadrature_posterior(target_data)
+
+#### Arguments
+
+- `target_data`:
+
+  The target data for inference
+
+#### Returns
+
+A
+[`grid_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/grid_posterior.md)
+list.
+
+------------------------------------------------------------------------
+
+### `MCMCModel$quadrature_prior()`
+
+The prior as a grid, under the quadrature engine. Only needed by
+subclasses that sample their prior with Stan otherwise.
+
+#### Usage
+
+    MCMCModel$quadrature_prior()
+
+#### Returns
+
+A
+[`grid_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/grid_posterior.md)
+list.
+
+------------------------------------------------------------------------
+
 ### `MCMCModel$check_mcmc_config()`
 
 Check validity of the MCMC configuration
@@ -177,6 +274,23 @@ Check validity of the MCMC configuration
 - `mcmc_config`:
 
   MCMC configuration
+
+------------------------------------------------------------------------
+
+### `MCMCModel$summary_rows()`
+
+Rows of the model summary, with the MCMC diagnostics of the last fit
+
+The diagnostics are left out when the posterior is computed by
+quadrature.
+
+#### Usage
+
+    MCMCModel$summary_rows()
+
+#### Returns
+
+A data frame with columns `Attribute` and `Value`.
 
 ------------------------------------------------------------------------
 
@@ -199,7 +313,7 @@ Prepare the data for inference. Subclasses must implement the
 
 ### `MCMCModel$inference()`
 
-Perform inference using MCMC sampling
+Perform inference, by quadrature or by MCMC sampling
 
 #### Usage
 

@@ -15,7 +15,8 @@ compute_freq_power_pooling(
   null_space,
   simulation_config,
   case_study = NULL,
-  n_replicates = 1000
+  n_replicates = 1000,
+  trials = NULL
 )
 ```
 
@@ -57,6 +58,12 @@ compute_freq_power_pooling(
 
   Number of Monte Carlo replicates for non-analytical power
   calculations.
+
+- trials:
+
+  Optional trials already simulated for this design, with the same seed
+  and `n_replicates`, as the separate analysis's power reads them.
+  `NULL` simulates them. Ignored when the power has a closed form.
 
 ## Value
 

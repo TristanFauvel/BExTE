@@ -21,7 +21,7 @@ forest_plot_bayesian(results_bayes_df, x_metric, palette = NULL)
 
 - palette:
 
-  A colour scheme from bexte_palette() for the Shiny app's dark mode, or
+  A colour scheme from bexte_palette() for BExTE-app's dark mode, or
   NULL for the publication figure.
 
 - selected_case_study:

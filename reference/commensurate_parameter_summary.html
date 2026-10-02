@@ -50,7 +50,8 @@
 <span>  <span class="va">posterior_weights</span>,</span>
 <span>  <span class="va">mixture</span>,</span>
 <span>  <span class="va">heterogeneity_prior_family</span>,</span>
-<span>  <span class="va">heterogeneity_prior</span></span>
+<span>  <span class="va">heterogeneity_prior</span>,</span>
+<span>  borrows_power_parameter <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -72,6 +73,13 @@
 
 <dt id="arg-heterogeneity-prior">heterogeneity_prior<a class="anchor" aria-label="anchor" href="#arg-heterogeneity-prior"></a></dt>
 <dd><p>Prior parameters.</p></dd>
+
+
+<dt id="arg-borrows-power-parameter">borrows_power_parameter<a class="anchor" aria-label="anchor" href="#arg-borrows-power-parameter"></a></dt>
+<dd><p>Whether the model has a power parameter. When
+it does not, the two power-parameter columns are absent rather than
+constant: the plain commensurate prior has no such parameter to report,
+and a column of ones would read as an estimate.</p></dd>
 
 </dl></div>
     <div class="section level2">

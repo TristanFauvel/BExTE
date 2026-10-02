@@ -17,7 +17,9 @@ compute_freq_power(
   null_space,
   simulation_config,
   case_study = NULL,
-  n_replicates = 1000
+  n_replicates = 1000,
+  p_values = NULL,
+  null_p_values = NULL
 )
 ```
 
@@ -55,6 +57,22 @@ compute_freq_power(
 
   Number of Monte Carlo replicates for non-analytical power
   calculations.
+
+- p_values:
+
+  Optional p-values already simulated for this design by
+  [`simulate_test_p_values()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulate_test_p_values.md),
+  with the same seed and `n_replicates`. `NULL` simulates them. Ignored
+  when the power has a closed form.
+
+- null_p_values:
+
+  Optional p-values of the same test on the trials of the design's null
+  scenario. When given, the test rejects at the threshold its actual
+  type I error there equals `alpha` at, rather than at `alpha` itself -
+  see
+  [`calibrated_levels()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrated_levels.md).
+  Ignored when the power has a closed form.
 
 ## Value
 

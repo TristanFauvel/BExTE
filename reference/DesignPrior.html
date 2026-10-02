@@ -63,6 +63,7 @@
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-DesignPrior-create"><code>DesignPrior$create()</code></a></p></li>
+<li><p><a href="#method-DesignPrior-given_control_rate"><code>DesignPrior$given_control_rate()</code></a></p></li>
 <li><p><a href="#method-DesignPrior-sample"><code>DesignPrior$sample()</code></a></p></li>
 <li><p><a href="#method-DesignPrior-cdf"><code>DesignPrior$cdf()</code></a></p></li>
 <li><p><a href="#method-DesignPrior-pdf"><code>DesignPrior$pdf()</code></a></p></li>
@@ -78,7 +79,8 @@
 <span>  <span class="va">case_study_config</span>,</span>
 <span>  <span class="va">simulation_config</span>,</span>
 <span>  <span class="va">mcmc_config</span>,</span>
-<span>  <span class="va">case_study</span></span>
+<span>  <span class="va">case_study</span>,</span>
+<span>  target_control_rate <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
@@ -103,6 +105,14 @@
       <dt><code>case_study</code></dt>
 <dd><p>Case study name</p></dd>
 
+      <dt><code>target_control_rate</code></dt>
+<dd><p>The control response rate of the simulated
+trials, or <code>NULL</code>. Under a binomial likelihood the treatment effect is a
+difference in response rates, and the simulated trials, whose control
+rate is fixed, can only have an effect in
+<code>(-target_control_rate, 1 - target_control_rate)</code>; the design prior is
+then taken given that control rate - see <code>given_control_rate()</code>.</p></dd>
+
 
 </dl><p></p></div>
 </div><p></p><div class="section">
@@ -112,13 +122,38 @@
 
 </div>
 
+<p></p><hr><a id="method-DesignPrior-given_control_rate"></a><div class="section">
+<h3 id="designprior-given-control-rate-"><code>DesignPrior$given_control_rate()</code><a class="anchor" aria-label="anchor" href="#designprior-given-control-rate-"></a></h3>
+<p>The design prior given the target control rate</p>
+<p>A difference in response rates is confined to
+<code>(-control_rate, 1 - control_rate)</code> once the control rate is known. A
+design prior defined on the treatment effect alone has no joint
+distribution with the control rate to condition, so it is truncated to
+that range and renormalised. Subclasses that can condition exactly
+override this.</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">DesignPrior</span><span class="op">$</span><span class="fu">given_control_rate</span><span class="op">(</span><span class="va">control_rate</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>control_rate</code></dt>
+<dd><p>The target control rate.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>A <a href="FunctionalDesignPrior.html">FunctionalDesignPrior</a>.</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-DesignPrior-sample"></a><div class="section">
 <h3 id="designprior-sample-"><code>DesignPrior$sample()</code><a class="anchor" aria-label="anchor" href="#designprior-sample-"></a></h3>
 <p>Samples from the design prior.</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">DesignPrior</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="va">n_samples</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>n_samples</code></dt>
 <dd><p>The number of samples to generate.</p></dd>
 
@@ -131,10 +166,10 @@
 <p></p><hr><a id="method-DesignPrior-cdf"></a><div class="section">
 <h3 id="designprior-cdf-"><code>DesignPrior$cdf()</code><a class="anchor" aria-label="anchor" href="#designprior-cdf-"></a></h3>
 <p>Computes the cumulative distribution function (CDF) of the design prior.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">DesignPrior</span><span class="op">$</span><span class="fu">cdf</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>x</code></dt>
 <dd><p>The value at which to evaluate the CDF.</p></dd>
 
@@ -147,10 +182,10 @@
 <p></p><hr><a id="method-DesignPrior-pdf"></a><div class="section">
 <h3 id="designprior-pdf-"><code>DesignPrior$pdf()</code><a class="anchor" aria-label="anchor" href="#designprior-pdf-"></a></h3>
 <p>Computes the PDF of the design prior.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">DesignPrior</span><span class="op">$</span><span class="fu">pdf</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>x</code></dt>
 <dd><p>The value at which to evaluate the PDF.</p></dd>
 
@@ -163,10 +198,10 @@
 <p></p><hr><a id="method-DesignPrior-clone"></a><div class="section">
 <h3 id="designprior-clone-"><code>DesignPrior$clone()</code><a class="anchor" aria-label="anchor" href="#designprior-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">DesignPrior</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

@@ -63,7 +63,10 @@
 <span>  control_drift <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  <span class="va">treatment_drift</span>,</span>
 <span>  <span class="va">summary_measure_likelihood</span>,</span>
-<span>  target_to_source_std_ratio <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  target_to_source_std_ratio <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  dropout_probability <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  event_time_distribution <span class="op">=</span> <span class="st">"exponential"</span>,</span>
+<span>  treatment_delay <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
@@ -87,6 +90,18 @@
 
       <dt><code>target_to_source_std_ratio</code></dt>
 <dd><p>Ratio between the target and source study sampling standard deviation</p></dd>
+
+      <dt><code>dropout_probability</code></dt>
+<dd><p>Probability that a patient is lost to follow-up over the
+maximum follow-up time. Only used for the time-to-event endpoint.</p></dd>
+
+      <dt><code>event_time_distribution</code></dt>
+<dd><p>Distribution of the event times, either "exponential"
+or "weibull". Only used for the time-to-event endpoint.</p></dd>
+
+      <dt><code>treatment_delay</code></dt>
+<dd><p>Time before the treatment effect starts, in years.
+Only used for the time-to-event endpoint.</p></dd>
 
 
 </dl><p></p></div>

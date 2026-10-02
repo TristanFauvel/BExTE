@@ -35,6 +35,7 @@ borrowing.
 Inherited methods
 
 - [`DesignPrior$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-create)
+- [`DesignPrior$given_control_rate()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-given_control_rate)
 
 ------------------------------------------------------------------------
 

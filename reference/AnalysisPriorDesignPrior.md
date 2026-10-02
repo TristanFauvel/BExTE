@@ -22,6 +22,8 @@ borrowing.
 
 - [`AnalysisPriorDesignPrior$sample()`](#method-AnalysisPriorDesignPrior-sample)
 
+- [`AnalysisPriorDesignPrior$given_control_rate()`](#method-AnalysisPriorDesignPrior-given_control_rate)
+
 - [`AnalysisPriorDesignPrior$cdf()`](#method-AnalysisPriorDesignPrior-cdf)
 
 - [`AnalysisPriorDesignPrior$pdf()`](#method-AnalysisPriorDesignPrior-pdf)
@@ -80,6 +82,31 @@ Samples from the analysis prior design prior.
 - `n_samples`:
 
   The number of samples to generate.
+
+------------------------------------------------------------------------
+
+### `AnalysisPriorDesignPrior$given_control_rate()`
+
+The analysis prior given the target control rate
+
+The model's own prior given the control rate when it defines one, as the
+binomial models do; otherwise the analysis prior is truncated to the
+range the control rate leaves the effect.
+
+#### Usage
+
+    AnalysisPriorDesignPrior$given_control_rate(control_rate)
+
+#### Arguments
+
+- `control_rate`:
+
+  The target control rate.
+
+#### Returns
+
+A
+[FunctionalDesignPrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/FunctionalDesignPrior.md).
 
 ------------------------------------------------------------------------
 

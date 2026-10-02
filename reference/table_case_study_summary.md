@@ -1,6 +1,6 @@
-# Summary of the clinical case studies (table S7)
+# Summary of the clinical case studies (table S3)
 
-Summary of the clinical case studies (table S7)
+Summary of the clinical case studies (table S3)
 
 ## Usage
 

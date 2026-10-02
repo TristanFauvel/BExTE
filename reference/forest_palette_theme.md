@@ -1,11 +1,11 @@
-# Forest-plot colours for a Shiny colour scheme
+# Forest-plot colours for a BExTE-app colour scheme
 
-The forest plots are the only charts the app renders as static images
+The forest plots are the only charts BExTE-app renders as static images
 (they are multi-panel gtables, so they cannot go through bexte_plotly()
 like every other chart) and therefore cannot inherit the page's
-stylesheet. These helpers take one of bexte_palette()'s schemes and
-recolour a subplot for it. `palette = NULL` is the publication figure,
-unchanged.
+stylesheet. These helpers take one of the app's bexte_palette() schemes
+and recolour a subplot for it. `palette = NULL` is the publication
+figure, unchanged.
 
 ## Usage
 

@@ -46,6 +46,18 @@
 
 
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>The target study's sampling standard deviation is derived from the
+source study rather than configured:
+<code>standard_deviation = target_to_source_std_ratio * source_data$standard_error * sqrt(source_data$equivalent_source_sample_size_per_arm)</code>. With the default
+ratio of 1 it equals the source study's standard deviation, i.e. the
+adults' in an extrapolation from adults to children.</p>
+<p>The variance is treated as known in the analysis: the Bayesian methods use
+a normal likelihood whose variance is the replicate's squared standard
+error, plugged in as if it were exact, so the uncertainty in the variance
+estimate is ignored.</p>
+    </div>
+    <div class="section level2">
     <h2 id="super-class">Super class<a class="anchor" aria-label="anchor" href="#super-class"></a></h2>
     <p><code><a href="TargetData.html">TargetData</a></code> -&gt; <code>ContinuousTargetData</code></p>
     </div>

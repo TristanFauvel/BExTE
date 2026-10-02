@@ -11,7 +11,9 @@ forest_plot(
   x_metric,
   panels = TRUE,
   palette = NULL,
-  relative_to_separate = FALSE
+  relative_to_separate = FALSE,
+  filename_suffix = "",
+  subtitle = NULL
 )
 ```
 
@@ -27,7 +29,7 @@ forest_plot(
 
 - palette:
 
-  A colour scheme from bexte_palette() for the Shiny app's dark mode, or
+  A colour scheme from bexte_palette() for BExTE-app's dark mode, or
   NULL for the publication figure.
 
 - relative_to_separate:
@@ -36,6 +38,16 @@ forest_plot(
   analysis's value in the same scenario, label the axis accordingly, and
   draw a reference line at 1. Used by supplementary figures S9, S14,
   S17, S27, S32 and S37.
+
+- filename_suffix:
+
+  Appended to the generated filename, to keep apart plots of the same
+  slice under different time-to-event designs (figures S45-S47), which
+  would otherwise share one file.
+
+- subtitle:
+
+  Optional line drawn above the panels.
 
 - selected_case_study:
 

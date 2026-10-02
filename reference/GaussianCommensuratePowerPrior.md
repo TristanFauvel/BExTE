@@ -19,6 +19,14 @@ This class represents a Gaussian Commensurate Power Prior model.
 
   Heterogeneity prior family (half_normal, inverse_gamma)
 
+- `borrows_power_parameter`:
+
+  Whether the model samples a power parameter
+
+- `stan_model_prefix`:
+
+  Prefix of the compiled Stan model's name
+
 - `summary_variables`:
 
   Variables to summarise from the posterior draws
@@ -35,23 +43,27 @@ This class represents a Gaussian Commensurate Power Prior model.
 
 - [`GaussianCommensuratePowerPrior$compute_posterior_parameters()`](#method-GaussianCommensuratePowerPrior-compute_posterior_parameters)
 
+- [`GaussianCommensuratePowerPrior$tau_posterior_moments()`](#method-GaussianCommensuratePowerPrior-tau_posterior_moments)
+
 - [`GaussianCommensuratePowerPrior$sample_prior()`](#method-GaussianCommensuratePowerPrior-sample_prior)
 
 - [`GaussianCommensuratePowerPrior$joint_prior_pdf()`](#method-GaussianCommensuratePowerPrior-joint_prior_pdf)
 
-- [`GaussianCommensuratePowerPrior$unnormalized_prior_pdf()`](#method-GaussianCommensuratePowerPrior-unnormalized_prior_pdf)
-
 - [`GaussianCommensuratePowerPrior$prior_pdf()`](#method-GaussianCommensuratePowerPrior-prior_pdf)
+
+- [`GaussianCommensuratePowerPrior$prior_cdf()`](#method-GaussianCommensuratePowerPrior-prior_cdf)
 
 - [`GaussianCommensuratePowerPrior$clone()`](#method-GaussianCommensuratePowerPrior-clone)
 
 Inherited methods
 
+- [`Model$calibrate_for_design()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-calibrate_for_design)
 - [`Model$check_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-check_data)
 - [`Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
 - [`Model$empirical_bayes_update()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-empirical_bayes_update)
 - [`Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
 - [`Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$hypothesis_space_transformation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-hypothesis_space_transformation)
 - [`Model$inference_cache_scope()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-inference_cache_scope)
 - [`Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
 - [`Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
@@ -61,6 +73,7 @@ Inherited methods
 - [`Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
 - [`Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
 - [`Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$print_model_summary()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-print_model_summary)
 - [`Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
 - [`Model$prior_elir_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_elir_ess)
 - [`Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
@@ -75,8 +88,12 @@ Inherited methods
 - [`MCMCModel$posterior_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_ess)
 - [`MCMCModel$posterior_median()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_median)
 - [`MCMCModel$posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-posterior_pdf)
-- [`MCMCModel$prior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-prior_cdf)
+- [`MCMCModel$quadrature_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-quadrature_posterior)
+- [`MCMCModel$quadrature_prior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-quadrature_prior)
 - [`MCMCModel$sample_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-sample_posterior)
+- [`MCMCModel$stan_sampler()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-stan_sampler)
+- [`MCMCModel$summary_rows()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-summary_rows)
+- [`MCMCModel$uses_quadrature()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/MCMCModel.html#method-uses_quadrature)
 
 ------------------------------------------------------------------------
 
@@ -177,10 +194,24 @@ Compute posterior parameters
 
 ------------------------------------------------------------------------
 
+### `GaussianCommensuratePowerPrior$tau_posterior_moments()`
+
+Posterior mean and standard deviation of tau from the Stan draws,
+reported as `Inf` where the moment does not exist, exactly as the
+quadrature path reports them. A sample mean of such a moment would be
+finite and run-dependent, or `Inf` and `NaN` once a draw overflows.
+
+#### Usage
+
+    GaussianCommensuratePowerPrior$tau_posterior_moments()
+
+------------------------------------------------------------------------
+
 ### `GaussianCommensuratePowerPrior$sample_prior()`
 
-Draw samples from the prior distribution. Based on equation 8 in Hobbs
-et al (2011).
+Draw samples from the prior distribution. Based on equation (8) in Hobbs
+et al (2011); the plain commensurate prior shares it, with the power
+parameter at one.
 
 #### Usage
 
@@ -218,25 +249,13 @@ Joint prior p.d.f. Based on equation (8) in Hobbs et al (2011).
 
 ------------------------------------------------------------------------
 
-### `GaussianCommensuratePowerPrior$unnormalized_prior_pdf()`
-
-Integrate out gamma and tau to get the marginal PDF for treatment_effect
-
-#### Usage
-
-    GaussianCommensuratePowerPrior$unnormalized_prior_pdf(treatment_effect)
-
-#### Arguments
-
-- `treatment_effect`:
-
-  Treatment effect
-
-------------------------------------------------------------------------
-
 ### `GaussianCommensuratePowerPrior$prior_pdf()`
 
-Prior p.d.f. of the treatment effect
+Prior p.d.f. of the treatment effect: the quadrature mixture the
+simulations use, which covers the whole prior. Integrating tau
+numerically over a finite window instead would drop most of the
+heavy-tailed priors: 0.001, 100 keeps 0.9% of inverse_gamma(1/1000, 1)
+and 12% of a Cauchy(0, 30) on log(tau).
 
 #### Usage
 
@@ -247,6 +266,29 @@ Prior p.d.f. of the treatment effect
 - `treatment_effect`:
 
   Treatment effect
+
+------------------------------------------------------------------------
+
+### `GaussianCommensuratePowerPrior$prior_cdf()`
+
+Prior c.d.f. of the treatment effect, from the same mixture as
+`prior_pdf()`. Without it the MCMC parent would take the empirical
+c.d.f. of prior draws.
+
+#### Usage
+
+    GaussianCommensuratePowerPrior$prior_cdf(treatment_effect, ...)
+
+#### Arguments
+
+- `treatment_effect`:
+
+  Treatment effect
+
+- `...`:
+
+  Unused; accepted for compatibility with the parent's sample-size
+  argument.
 
 ------------------------------------------------------------------------
 

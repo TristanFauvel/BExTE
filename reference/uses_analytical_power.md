@@ -5,10 +5,16 @@ continuous endpoint; the remaining endpoints have to be simulated.
 Sharing the predicate keeps the power computation and the propagation of
 its uncertainty on the same branch.
 
+Recurrent events are simulated too. Mepolizumab used to be priced in
+closed form, but its trials are generated patient by patient from a
+negative binomial and the standard error is re-estimated in each one, so
+the closed form assumed a test the Bayesian methods were never compared
+against.
+
 ## Usage
 
 ``` r
-uses_analytical_power(target_data, case_study = NULL)
+uses_analytical_power(target_data)
 ```
 
 ## Arguments
@@ -16,10 +22,6 @@ uses_analytical_power(target_data, case_study = NULL)
 - target_data:
 
   Target data object.
-
-- case_study:
-
-  Optional case-study name.
 
 ## Value
 

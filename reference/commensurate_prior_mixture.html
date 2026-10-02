@@ -7,8 +7,8 @@ for every simulated target estimate at once, avoiding a separate Stan fit
 for each replicate.
 All three families are integrated the same way, through their quantile
 representation on a Gauss-Legendre rule over the probability scale. For the
-inverse-gamma family this remains stable for the configured shapes as small
-as 0.001, for which direct density quadrature is dominated by an endpoint
+inverse-gamma family this remains stable for shapes as small as 0.001,
+for which direct density quadrature is dominated by an endpoint
 singularity."><meta property="og:description" content="Conditional on the commensurability precision tau and power
 parameter gamma, the treatment-effect prior is normal. Quadrature over
 those two parameters therefore turns the continuous prior into a finite
@@ -17,8 +17,8 @@ for every simulated target estimate at once, avoiding a separate Stan fit
 for each replicate.
 All three families are integrated the same way, through their quantile
 representation on a Gauss-Legendre rule over the probability scale. For the
-inverse-gamma family this remains stable for the configured shapes as small
-as 0.001, for which direct density quadrature is dominated by an endpoint
+inverse-gamma family this remains stable for shapes as small as 0.001,
+for which direct density quadrature is dominated by an endpoint
 singularity."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -69,14 +69,14 @@ for every simulated target estimate at once, avoiding a separate Stan fit
 for each replicate.</p>
 <p>All three families are integrated the same way, through their quantile
 representation on a Gauss-Legendre rule over the probability scale. For the
-inverse-gamma family this remains stable for the configured shapes as small
-as 0.001, for which direct density quadrature is dominated by an endpoint
+inverse-gamma family this remains stable for shapes as small as 0.001,
+for which direct density quadrature is dominated by an endpoint
 singularity.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">commensurate_prior_mixture</span><span class="op">(</span><span class="va">model</span>, n_tau <span class="op">=</span> <span class="fl">48L</span>, n_gamma <span class="op">=</span> <span class="fl">24L</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">commensurate_prior_mixture</span><span class="op">(</span><span class="va">model</span>, n_tau <span class="op">=</span> <span class="fl">48L</span>, n_gamma <span class="op">=</span> <span class="fl">12L</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -84,24 +84,36 @@ singularity.</p>
 
 
 <dl><dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p>A <a href="GaussianCommensuratePowerPrior.html">GaussianCommensuratePowerPrior</a> object.</p></dd>
+<dd><p>A <a href="GaussianCommensuratePowerPrior.html">GaussianCommensuratePowerPrior</a> or
+<a href="GaussianCommensuratePrior.html">GaussianCommensuratePrior</a> object. The latter fixes the power parameter
+at one, which collapses the second quadrature dimension: the mixture is
+then one normal component per <code>tau</code> node rather than <code>n_gamma</code> of them.</p></dd>
 
 
 <dt id="arg-n-tau">n_tau<a class="anchor" aria-label="anchor" href="#arg-n-tau"></a></dt>
 <dd><p>Number of quadrature nodes for the commensurability parameter.
-At the default every configured prior family agrees with a 1536-node rule
-to four significant figures, including the <code>inverse_gamma(0.001, 1)</code> prior,
-whose quantile function is the steepest of them.</p></dd>
+Two families multiply it, because their quantile functions are too steep
+for the default: an inverse gamma with a shape below 0.01 by four, and a
+log-Cauchy by <code>ceiling(scale / 10)</code>. With those, every configured prior's
+posterior summaries agree with a 3072-node rule to within 5e-5 over target
+estimates from 0 to 2.</p></dd>
 
 
 <dt id="arg-n-gamma">n_gamma<a class="anchor" aria-label="anchor" href="#arg-n-gamma"></a></dt>
-<dd><p>Number of conditional power-parameter nodes per <code>tau</code> node.</p></dd>
+<dd><p>Number of conditional power-parameter nodes per <code>tau</code> node.
+Ignored when the model does not borrow a power parameter. Against a rule
+twice as fine in both dimensions, 12 nodes keep every configured prior's
+posterior quantiles within 0.2% of a posterior standard deviation on the
+Botox, Belimumab, Mepolizumab and Teriflunomide designs, the same order as
+the error left by the <code>tau</code> rule; 24 nodes halve that difference at twice
+the cost of every replicate.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list containing normal-mixture <code>weights</code>, <code>means</code> and <code>sds</code>, plus
-the <code>tau</code> and <code>power_parameter</code> value represented by each component.</p>
+the <code>tau</code> and <code>power_parameter</code> value represented by each component.
+<code>power_parameter</code> is <code>NULL</code> when the model does not have one.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

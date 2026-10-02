@@ -92,13 +92,13 @@ Every exported function and R6 class, grouped by topic: data, methods, plots, ta
 </a>
 </div>
 <div class="col">
-<a href="#browser-based-interface" class="card h-100 text-decoration-none">
+<a href="https://github.com/TristanFauvel/BExTE-app" class="external-link card h-100 text-decoration-none">
 <div class="card-body">
 <h5 class="card-title">
 🖥️ Browser app
 </h5>
 <p class="card-text small text-muted">
-Configure, run, and analyze a simulation study from a Shiny app, without hand-editing config files.
+Configure, run, and analyze a simulation study from BExTE-app, a separate Shiny app, without hand-editing config files.
 </p>
 </div>
 </a>
@@ -167,27 +167,10 @@ Working from a source checkout
 <div class="section level3">
 <h3 id="browser-based-interface">Browser-based interface<a class="anchor" aria-label="anchor" href="#browser-based-interface"></a>
 </h3>
-<p>Instead of hand-editing config files and running the scripts above, you can configure, run, and analyze a simulation study from a browser:</p>
+<p>Instead of hand-editing config files and running the scripts above, you can configure, run, and analyze a simulation study from a browser with <a href="https://github.com/TristanFauvel/BExTE-app" class="external-link">BExTE-app</a>, a Shiny app built on this package:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation" class="external-link">BExTE</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/run_bexte_app.html">run_bexte_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The app works out of a <em>workspace</em> directory, where <code>results/</code>, <code>logs/</code> and <code>user_configs/</code> live. Launched from a source checkout it uses the checkout, so results land next to the ones <code>main.R</code> produces; installed from a release tarball it uses a per-user directory under <code>tools::R_user_dir("BExTE", "data")</code>. Either way the path is reported when the app starts, and <code><a href="reference/run_bexte_app.html">run_bexte_app()</a></code> takes an explicit one:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/run_bexte_app.html">run_bexte_app</a></span><span class="op">(</span>workspace <span class="op">=</span> <span class="st">"~/bexte-studies"</span><span class="op">)</span></span></code></pre></div>
-<p>On Linux, <code>install.R</code> also adds an <strong>BExTE</strong> entry to the application menu, so the app can be started without an R session. <code><a href="reference/create_bexte_shortcut.html">create_bexte_shortcut()</a></code> rewrites it, optionally pinned to a workspace:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/create_bexte_shortcut.html">create_bexte_shortcut</a></span><span class="op">(</span>workspace <span class="op">=</span> <span class="st">"~/bexte-studies"</span><span class="op">)</span></span></code></pre></div>
-<p>The entry opens a terminal, which is where the workspace path and the progress of a run appear, and where Ctrl+C stops the app.</p>
-<p>When developing against a checkout, <code><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">devtools::load_all()</a></code> replaces <code><a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation" class="external-link">library(BExTE)</a></code>.</p>
-<p>This opens a local Shiny app with three tabs:</p>
-<ul>
-<li>
-<strong>Configure</strong>: pick an existing case study or build a new one, choose methods and their parameter grids, and set scenario/MCMC settings. Saving writes a new environment under <code>user_configs/</code> (gitignored) without touching the package’s own <code>inst/conf/</code>.</li>
-<li>
-<strong>Run</strong>: launch a saved environment as a background process, with a live progress bar, log tail, and a cancel button.</li>
-<li>
-<strong>Analyze</strong>: browse any <code>results/&lt;env&gt;/</code> directory - including ones produced by <code>main.R</code>/HPC runs, not just ones launched from the app - filter it, render interactive plots, and browse/export the data as a table.</li>
-</ul>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"TristanFauvel/BExTE-app"</span><span class="op">)</span></span>
+<span><span class="fu">BExTEapp</span><span class="fu">::</span><span class="fu">run_bexte_app</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

@@ -63,7 +63,7 @@
 
       <h1>Data Generation : Botox case study (continuous endpoint)</h1>
             
-            <h4 data-toc-skip class="date">2026-09-15</h4>
+            <h4 data-toc-skip class="date">2026-10-02</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/vignettes/data_generation/Data_generation_botox.Rmd" class="external-link"><code>vignettes/data_generation/Data_generation_botox.Rmd</code></a></small>
       <div class="d-none name"><code>Data_generation_botox.Rmd</code></div>
@@ -287,9 +287,53 @@ Standard Error
 <span><span class="co">## 10                 100           1.382090</span></span></code></pre>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">target_data</span><span class="op">$</span><span class="fu">plot_sample</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Data_generation_botox_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="700">
-### Implementation details</p>
+<p><img src="Data_generation_botox_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="700"></p>
+</div>
+<div class="section level3">
+<h3 id="sampling-standard-deviation-and-the-known-variance-assumption">Sampling standard deviation and the known-variance assumption<a class="anchor" aria-label="anchor" href="#sampling-standard-deviation-and-the-known-variance-assumption"></a>
+</h3>
+<p>The target study’s sampling standard deviation is not set in the case
+study configuration. It is derived from the source study:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mi>T</mi></msub><mo>=</mo><mi>r</mi><mspace width="0.167em"></mspace><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow><mi>S</mi></msub><msqrt><msub><mi>n</mi><mi>S</mi></msub></msqrt><mo>,</mo></mrow><annotation encoding="application/x-tex">\sigma_T = r \, \mathrm{SE}_S \sqrt{n_S},</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow><mi>S</mi></msub><annotation encoding="application/x-tex">\mathrm{SE}_S</annotation></semantics></math>
+is the standard error of the source treatment effect,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>S</mi></msub><annotation encoding="application/x-tex">n_S</annotation></semantics></math>
+the source’s equivalent sample size per arm and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+the <code>target_to_source_std_ratio</code> (1 by default; a scenarios
+configuration can vary it through
+<code>target_to_source_std_ratio_range</code>). With
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">r = 1</annotation></semantics></math>,
+<strong>the target data are generated with the sample standard deviation
+of the source study, i.e. of the adults</strong>: the simulation assumes
+children’s outcomes are as variable as adults’.</p>
+<p><code>target_data$standard_deviation</code> holds this true value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\sigma_T</annotation></semantics></math>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">target_data</span><span class="op">$</span><span class="va">standard_deviation</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 1.529692</span></span></code></pre>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">source_data</span><span class="op">$</span><span class="va">standard_error</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">source_data</span><span class="op">$</span><span class="va">equivalent_source_sample_size_per_arm</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 1.529692</span></span></code></pre>
+<p>Each replicate carries its own estimate instead, drawn around
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\sigma_T</annotation></semantics></math>:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">standard_deviation</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
+<span><span class="co">##   1.136   1.452   1.525   1.526   1.601   1.932</span></span></code></pre>
+<p>The analysis methods only see these per-replicate estimates. The
+Bayesian methods use a normal likelihood whose variance is the
+replicate’s squared standard error, treated as if it were known exactly,
+so the uncertainty in the variance estimate is ignored. The true
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\sigma_T</annotation></semantics></math>
+is only used to generate data and for design-stage quantities such as
+the analytical power of the reference test.</p>
+</div>
+<div class="section level3">
+<h3 id="implementation-details">Implementation details<a class="anchor" aria-label="anchor" href="#implementation-details"></a>
+</h3>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">sample_aggregate_normal_data</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## sample_aggregate_normal_data &lt;- function (mean, variance, n_replicates, n_samples_per_arm) </span></span>
 <span><span class="co">## {</span></span>
@@ -307,7 +351,7 @@ Standard Error
 <span><span class="co">##         sample_size_per_arm = n_samples_per_arm, standard_deviation = sqrt(sample_variance))</span></span>
 <span><span class="co">##     return(samples)</span></span>
 <span><span class="co">## }</span></span></code></pre>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/sample_aggregate_normal_data.html">sample_aggregate_normal_data</a></span><span class="op">(</span></span>
 <span>  mean <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">treatment_effect</span>,</span>
 <span>  variance <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">standard_deviation</span><span class="op">^</span><span class="fl">2</span>,</span>
@@ -316,7 +360,7 @@ Standard Error
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">target_data</span><span class="op">$</span><span class="fu">plot_sample</span><span class="op">(</span><span class="va">samples</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Data_generation_botox_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="Data_generation_botox_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

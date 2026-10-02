@@ -17,7 +17,9 @@ export_paper_outputs(
   tables_dir,
   ids,
   case_studies_config_dir,
-  progress = NULL
+  progress = NULL,
+  numbered_dir = NULL,
+  workers = 1L
 )
 ```
 
@@ -47,6 +49,22 @@ export_paper_outputs(
 - progress:
 
   Optional `function(index, total, id)` progress callback.
+
+- numbered_dir:
+
+  Optional directory collecting a copy of every output produced, under
+  the generators' own filenames: figures as PDF, tables as both `.tex`
+  and `.pdf`. `manifest.csv` maps each file to its paper number. `NULL`
+  skips it.
+
+- workers:
+
+  Number of items to produce at once, each in a forked process. The
+  default, 1, produces them one after the other in this process. Forking
+  is unavailable on Windows, which always uses one. The files written
+  and the status returned are the same either way; with more than one
+  worker, `progress` is called as each item finishes rather than as it
+  starts.
 
 ## Value
 

@@ -48,8 +48,11 @@ plot_metric_vs_drift(
 
 - category:
 
-  The category to group the results by (either "parameters" or
-  "target_sample_size_per_arm")
+  The category to group the results by: "parameters",
+  "target_sample_size_per_arm", "source_denominator_change_factor",
+  "target_to_source_std_ratio", or one of the time-to-event design axes
+  "control_drift", "dropout_probability" and "event_time_distribution",
+  which hold the other two axes at their primary value.
 
 - control_drift:
 

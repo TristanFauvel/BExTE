@@ -58,8 +58,60 @@ print(data[1:10,])
 target_data$plot_sample(data)
 ```
 
-![](Data_generation_botox_files/figure-html/unnamed-chunk-4-1.png) \###
-Implementation details
+![](Data_generation_botox_files/figure-html/unnamed-chunk-4-1.png)
+
+### Sampling standard deviation and the known-variance assumption
+
+The target study’s sampling standard deviation is not set in the case
+study configuration. It is derived from the source study:
+
+``` math
+\sigma_T = r \, \mathrm{SE}_S \sqrt{n_S},
+```
+
+where $`\mathrm{SE}_S`$ is the standard error of the source treatment
+effect, $`n_S`$ the source’s equivalent sample size per arm and $`r`$
+the `target_to_source_std_ratio` (1 by default; a scenarios
+configuration can vary it through `target_to_source_std_ratio_range`).
+With $`r = 1`$, **the target data are generated with the sample standard
+deviation of the source study, i.e. of the adults**: the simulation
+assumes children’s outcomes are as variable as adults’.
+
+`target_data$standard_deviation` holds this true value $`\sigma_T`$:
+
+``` r
+
+target_data$standard_deviation
+```
+
+    ## [1] 1.529692
+
+``` r
+
+source_data$standard_error * sqrt(source_data$equivalent_source_sample_size_per_arm)
+```
+
+    ## [1] 1.529692
+
+Each replicate carries its own estimate instead, drawn around
+$`\sigma_T`$:
+
+``` r
+
+summary(data$standard_deviation)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   1.136   1.452   1.525   1.526   1.601   1.932
+
+The analysis methods only see these per-replicate estimates. The
+Bayesian methods use a normal likelihood whose variance is the
+replicate’s squared standard error, treated as if it were known exactly,
+so the uncertainty in the variance estimate is ignored. The true
+$`\sigma_T`$ is only used to generate data and for design-stage
+quantities such as the analytical power of the reference test.
+
+### Implementation details
 
 ``` r
 
@@ -95,4 +147,4 @@ samples <- sample_aggregate_normal_data(
 target_data$plot_sample(samples)
 ```
 
-![](Data_generation_botox_files/figure-html/unnamed-chunk-6-1.png)
+![](Data_generation_botox_files/figure-html/unnamed-chunk-8-1.png)

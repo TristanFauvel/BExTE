@@ -25,7 +25,10 @@ Creates a target data object based on the source data and configuration.
       control_drift = 0,
       treatment_drift,
       summary_measure_likelihood,
-      target_to_source_std_ratio = NULL
+      target_to_source_std_ratio = NULL,
+      dropout_probability = 0,
+      event_time_distribution = "exponential",
+      treatment_delay = 0
     )
 
 #### Arguments
@@ -57,6 +60,21 @@ Creates a target data object based on the source data and configuration.
 - `target_to_source_std_ratio`:
 
   Ratio between the target and source study sampling standard deviation
+
+- `dropout_probability`:
+
+  Probability that a patient is lost to follow-up over the maximum
+  follow-up time. Only used for the time-to-event endpoint.
+
+- `event_time_distribution`:
+
+  Distribution of the event times, either "exponential" or "weibull".
+  Only used for the time-to-event endpoint.
+
+- `treatment_delay`:
+
+  Time before the treatment effect starts, in years. Only used for the
+  time-to-event endpoint.
 
 #### Returns
 

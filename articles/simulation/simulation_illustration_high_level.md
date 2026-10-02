@@ -259,6 +259,7 @@ format_simulation_output_table(sim_outputs)
     ##       Posterior Mean  0.49364 [ 0.48992,  0.49736]
     ##     Posterior Median  0.48248 [ 0.47850,  0.48646]
     ##            Precision  0.32018 [ 0.31904,  0.32132]
+    ##       Interval Score  1.24516 [ 1.21256,  1.27777]
     ##    Credible Interval       NA [ 0.20253,  0.84289]
     ##           ESS Moment  5.97814 [ 4.95184,  7.00443]
     ##        ESS Precision  6.63423 [ 5.73947,  7.52898]

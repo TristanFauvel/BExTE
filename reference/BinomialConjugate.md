@@ -17,8 +17,10 @@ Beta(s_t + 1, n_t - s_t + 1)\$\$
 
 and the treatment effect is their difference. Moments are available
 analytically; the distribution function of the difference is obtained by
-one-dimensional quadrature and inverted numerically for quantiles, so no
-Monte Carlo error enters the operating characteristics.
+one-dimensional quadrature over the control rate - see
+[`beta_difference_expectation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/beta_difference_expectation.md) -
+and inverted numerically for quantiles, so no Monte Carlo error enters
+the operating characteristics.
 
 ## Super class
 
@@ -45,17 +47,20 @@ Monte Carlo error enters the operating characteristics.
 
 - `n_quadrature_nodes`:
 
-  Number of nodes used to integrate over the control rate.
+  Gauss-Legendre nodes per smooth piece of the integral over the control
+  rate.
 
-- `quadrature_control_rates`:
+- `interval_memo`:
 
-  Quadrature nodes on the control rate posterior.
+  Credible intervals of the current posterior, by level.
 
 ## Methods
 
 ### Public methods
 
 - [`BinomialConjugate$new()`](#method-BinomialConjugate-initialize)
+
+- [`BinomialConjugate$summary_rows()`](#method-BinomialConjugate-summary_rows)
 
 - [`BinomialConjugate$prepare_data()`](#method-BinomialConjugate-prepare_data)
 
@@ -77,6 +82,8 @@ Monte Carlo error enters the operating characteristics.
 
 - [`BinomialConjugate$sample_prior()`](#method-BinomialConjugate-sample_prior)
 
+- [`BinomialConjugate$prior_given_control_rate()`](#method-BinomialConjugate-prior_given_control_rate)
+
 - [`BinomialConjugate$prior_pdf()`](#method-BinomialConjugate-prior_pdf)
 
 - [`BinomialConjugate$prior_cdf()`](#method-BinomialConjugate-prior_cdf)
@@ -85,11 +92,13 @@ Monte Carlo error enters the operating characteristics.
 
 Inherited methods
 
+- [`Model$calibrate_for_design()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-calibrate_for_design)
 - [`Model$check_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-check_data)
 - [`Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
 - [`Model$empirical_bayes_update()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-empirical_bayes_update)
 - [`Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
 - [`Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$hypothesis_space_transformation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-hypothesis_space_transformation)
 - [`Model$inference()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-inference)
 - [`Model$inference_cache_scope()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-inference_cache_scope)
 - [`Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
@@ -98,6 +107,7 @@ Inherited methods
 - [`Model$posterior_beta_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_beta_mixture)
 - [`Model$posterior_mean()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_mean)
 - [`Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$print_model_summary()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-print_model_summary)
 - [`Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
 - [`Model$prior_elir_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_elir_ess)
 - [`Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
@@ -126,6 +136,21 @@ Initialize the BinomialConjugate object
 
   Unused, kept so that the model factory can build every binomial model
   with the same call.
+
+------------------------------------------------------------------------
+
+### `BinomialConjugate$summary_rows()`
+
+Rows of the model summary, with the shape parameters of the Beta
+posteriors on the two response rates
+
+#### Usage
+
+    BinomialConjugate$summary_rows()
+
+#### Returns
+
+A data frame with columns `Attribute` and `Value`.
 
 ------------------------------------------------------------------------
 
@@ -306,6 +331,32 @@ Draw samples from the prior
 - `n_samples`:
 
   Number of samples from the prior
+
+------------------------------------------------------------------------
+
+### `BinomialConjugate$prior_given_control_rate()`
+
+The prior of the treatment effect given the target control rate
+
+The marginal prior averages over a uniform control rate and spans (-1,
+1); a trial whose control rate is known can only have an effect in
+`(-control_rate, 1 - control_rate)`, and given the control rate the
+effect is uniform there.
+
+#### Usage
+
+    BinomialConjugate$prior_given_control_rate(control_rate)
+
+#### Arguments
+
+- `control_rate`:
+
+  The target control rate.
+
+#### Returns
+
+A list of three functions of the treatment effect: `cdf`, `pdf`, and
+`sample`, which takes the number of draws.
 
 ------------------------------------------------------------------------
 

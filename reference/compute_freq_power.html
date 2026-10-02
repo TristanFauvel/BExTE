@@ -57,7 +57,9 @@ This function computes the power of a test for a given significance level"></hea
 <span>  <span class="va">null_space</span>,</span>
 <span>  <span class="va">simulation_config</span>,</span>
 <span>  case_study <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_replicates <span class="op">=</span> <span class="fl">1000</span></span>
+<span>  n_replicates <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  p_values <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  null_p_values <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -95,6 +97,20 @@ This function computes the power of a test for a given significance level"></hea
 
 <dt id="arg-n-replicates">n_replicates<a class="anchor" aria-label="anchor" href="#arg-n-replicates"></a></dt>
 <dd><p>Number of Monte Carlo replicates for non-analytical power calculations.</p></dd>
+
+
+<dt id="arg-p-values">p_values<a class="anchor" aria-label="anchor" href="#arg-p-values"></a></dt>
+<dd><p>Optional p-values already simulated for this design by
+<code><a href="simulate_test_p_values.html">simulate_test_p_values()</a></code>, with the same seed and <code>n_replicates</code>. <code>NULL</code>
+simulates them. Ignored when the power has a closed form.</p></dd>
+
+
+<dt id="arg-null-p-values">null_p_values<a class="anchor" aria-label="anchor" href="#arg-null-p-values"></a></dt>
+<dd><p>Optional p-values of the same test on the trials of the
+design's null scenario. When given, the test rejects at the threshold its
+actual type I error there equals <code>alpha</code> at, rather than at <code>alpha</code>
+itself - see <code><a href="calibrated_levels.html">calibrated_levels()</a></code>. Ignored when the power has a closed
+form.</p></dd>
 
 </dl></div>
     <div class="section level2">

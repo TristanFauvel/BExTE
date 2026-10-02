@@ -117,12 +117,14 @@ and converting distributions to RBesT format.</p>
 <li><p><a href="#method-GaussianRMP_RBesT-posterior_to_RBesT"><code>GaussianRMP_RBesT$posterior_to_RBesT()</code></a></p></li>
 <li><p><a href="#method-GaussianRMP_RBesT-vectorised_prior_components"><code>GaussianRMP_RBesT$vectorised_prior_components()</code></a></p></li>
 <li><p><a href="#method-GaussianRMP_RBesT-vectorised_posterior_parameters"><code>GaussianRMP_RBesT$vectorised_posterior_parameters()</code></a></p></li>
-<li><p><a href="#method-GaussianRMP_RBesT-print_model_summary"><code>GaussianRMP_RBesT$print_model_summary()</code></a></p></li>
+<li><p><a href="#method-GaussianRMP_RBesT-summary_rows"><code>GaussianRMP_RBesT$summary_rows()</code></a></p></li>
 <li><p><a href="#method-GaussianRMP_RBesT-clone"><code>GaussianRMP_RBesT$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href="Model.html#method-check_data"><code>Model$check_data()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="calibrate_for_design"><a href="Model.html#method-calibrate_for_design"><code>Model$calibrate_for_design()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href="Model.html#method-check_data"><code>Model$check_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href="Model.html#method-create"><code>Model$create()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href="Model.html#method-estimate_bayesian_operating_characteristics"><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href="Model.html#method-estimate_frequentist_operating_characteristics"><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="hypothesis_space_transformation"><a href="Model.html#method-hypothesis_space_transformation"><code>Model$hypothesis_space_transformation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference"><a href="Model.html#method-inference"><code>Model$inference()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href="Model.html#method-inference_cache_scope"><code>Model$inference_cache_scope()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href="Model.html#method-plot_pdfs"><code>Model$plot_pdfs()</code></a></span></li>
@@ -131,6 +133,7 @@ and converting distributions to RBesT format.</p>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href="Model.html#method-posterior_beta_mixture"><code>Model$posterior_beta_mixture()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href="Model.html#method-posterior_ess"><code>Model$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href="Model.html#method-posterior_quantile"><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href="Model.html#method-print_model_summary"><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href="Model.html#method-prior_ESS"><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href="Model.html#method-prior_elir_ess"><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href="Model.html#method-prior_treatment_benefit"><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -278,20 +281,16 @@ component, which is 0 or 1 when the mixture has collapsed.</p><div class="sectio
 
 </div>
 
-<p></p><hr><a id="method-GaussianRMP_RBesT-print_model_summary"></a><div class="section">
-<h3 id="gaussianrmp-rbest-print-model-summary-"><code>GaussianRMP_RBesT$print_model_summary()</code><a class="anchor" aria-label="anchor" href="#gaussianrmp-rbest-print-model-summary-"></a></h3>
-<p>Print a summary of the model attributes</p>
-<p>This method creates and prints a formatted table of key model attributes.</p><div class="section">
+<p></p><hr><a id="method-GaussianRMP_RBesT-summary_rows"></a><div class="section">
+<h3 id="gaussianrmp-rbest-summary-rows-"><code>GaussianRMP_RBesT$summary_rows()</code><a class="anchor" aria-label="anchor" href="#gaussianrmp-rbest-summary-rows-"></a></h3>
+<p>Rows of the model summary, with the prior weight and the moments of the
+two posterior components. The posterior weight is among the
+<code>posterior_parameters</code> rows.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianRMP_RBesT</span><span class="op">$</span><span class="fu">print_model_summary</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianRMP_RBesT</span><span class="op">$</span><span class="fu">summary_rows</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>A printed data frame displaying the following model attributes:</p><ul><li><p>Posterior Weight</p></li>
-<li><p>Vague Posterior Mean</p></li>
-<li><p>Vague Posterior Variance</p></li>
-<li><p>Informative Posterior Mean</p></li>
-<li><p>Informative Posterior Variance</p></li>
-</ul><p>All numeric values are formatted to 6 decimal places.</p>
+<p>A data frame with columns <code>Attribute</code> and <code>Value</code>.</p>
 </div>
 
 </div>

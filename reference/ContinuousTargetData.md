@@ -2,6 +2,19 @@
 
 A class for continuous target data objects.
 
+## Details
+
+The target study's sampling standard deviation is derived from the
+source study rather than configured:
+`standard_deviation = target_to_source_std_ratio * source_data$standard_error * sqrt(source_data$equivalent_source_sample_size_per_arm)`.
+With the default ratio of 1 it equals the source study's standard
+deviation, i.e. the adults' in an extrapolation from adults to children.
+
+The variance is treated as known in the analysis: the Bayesian methods
+use a normal likelihood whose variance is the replicate's squared
+standard error, plugged in as if it were exact, so the uncertainty in
+the variance estimate is ignored.
+
 ## Super class
 
 [`TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)

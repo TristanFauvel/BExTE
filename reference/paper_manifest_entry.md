@@ -12,7 +12,7 @@ paper_manifest_entry(id)
 
 - id:
 
-  A manifest id, e.g. "1", "S20" or "TS7".
+  A manifest id, e.g. "1", "S20" or "TS3".
 
 ## Value
 

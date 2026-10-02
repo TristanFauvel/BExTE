@@ -174,10 +174,17 @@ model$print_model_summary()
 ```
 
     ##                       Attribute     Value
-    ##                Posterior Weight 0.8652719
-    ##            Vague Posterior Mean 0.3631976
-    ##        Vague Posterior Variance 0.1761321
-    ##      Informative Posterior Mean 0.4719559
+    ##                          Method       RMP
+    ##                      Prior Mean  0.240066
+    ##                  Prior Variance  4.171164
+    ##                  Posterior Mean  0.457303
+    ##              Posterior Variance  0.036794
+    ##                Posterior Median  0.467513
+    ##          Posterior prior weight  0.865272
+    ##                    Prior Weight  0.500000
+    ##            Vague Posterior Mean  0.363198
+    ##        Vague Posterior Variance  0.176132
+    ##      Informative Posterior Mean  0.471956
     ##  Informative Posterior Variance 0.0135045
 
 Now, let us see how this is implemented:
@@ -352,7 +359,7 @@ read_function_code(model$posterior_moments)
     ##     self$post_mean <- self$posterior_summary["mean"]
     ##     self$post_var <- unname(self$posterior_summary["standard_deviation"]^2)
     ##     self$post_median <- self$posterior_summary["median"]
-    ##     assertions::assert_number(self$post_mean)
+    ##     assert_single_number(self$post_mean)
     ## } model <- function (target_data) 
     ## {
     ##     self$RBesT_posterior <- RBesT::postmix(self$RBesT_prior, 
@@ -382,7 +389,7 @@ read_function_code(model$posterior_moments)
     ##     self$post_mean <- self$posterior_summary["mean"]
     ##     self$post_var <- unname(self$posterior_summary["standard_deviation"]^2)
     ##     self$post_median <- self$posterior_summary["median"]
-    ##     assertions::assert_number(self$post_mean)
+    ##     assert_single_number(self$post_mean)
     ## } posterior_moments <- function (target_data) 
     ## {
     ##     self$RBesT_posterior <- RBesT::postmix(self$RBesT_prior, 
@@ -412,7 +419,7 @@ read_function_code(model$posterior_moments)
     ##     self$post_mean <- self$posterior_summary["mean"]
     ##     self$post_var <- unname(self$posterior_summary["standard_deviation"]^2)
     ##     self$post_median <- self$posterior_summary["median"]
-    ##     assertions::assert_number(self$post_mean)
+    ##     assert_single_number(self$post_mean)
     ## }
 
 With :

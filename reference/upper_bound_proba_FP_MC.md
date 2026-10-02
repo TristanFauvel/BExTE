@@ -16,6 +16,9 @@ upper_bound_proba_FP_MC(
   target_sample_size_per_arm,
   case_study_config,
   target_to_source_std_ratio,
+  dropout_probability = 0,
+  event_time_distribution = "exponential",
+  treatment_delay = 0,
   n_replicates,
   confidence_level,
   null_space,
@@ -55,6 +58,21 @@ upper_bound_proba_FP_MC(
 - target_to_source_std_ratio:
 
   Ratio between target and source sampling standard deviations.
+
+- dropout_probability:
+
+  Probability of loss to follow-up over the maximum follow-up time. Only
+  used for the time-to-event endpoint.
+
+- event_time_distribution:
+
+  Distribution of the event times, either "exponential" or "weibull".
+  Only used for the time-to-event endpoint.
+
+- treatment_delay:
+
+  Time before the treatment effect starts, in years. Only used for the
+  time-to-event endpoint.
 
 - n_replicates:
 

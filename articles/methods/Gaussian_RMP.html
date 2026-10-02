@@ -63,7 +63,7 @@
 
       <h1>Implementation of the Robust Mixture Prior for normally distributed treatment effect</h1>
             
-            <h4 data-toc-skip class="date">2026-09-15</h4>
+            <h4 data-toc-skip class="date">2026-10-02</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/vignettes/methods/Gaussian_RMP.Rmd" class="external-link"><code>vignettes/methods/Gaussian_RMP.Rmd</code></a></small>
       <div class="d-none name"><code>Gaussian_RMP.Rmd</code></div>
@@ -227,10 +227,17 @@ together, specify the posterior distribution.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span><span class="op">$</span><span class="fu">print_model_summary</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                       Attribute     Value</span></span>
-<span><span class="co">##                Posterior Weight 0.8652719</span></span>
-<span><span class="co">##            Vague Posterior Mean 0.3631976</span></span>
-<span><span class="co">##        Vague Posterior Variance 0.1761321</span></span>
-<span><span class="co">##      Informative Posterior Mean 0.4719559</span></span>
+<span><span class="co">##                          Method       RMP</span></span>
+<span><span class="co">##                      Prior Mean  0.240066</span></span>
+<span><span class="co">##                  Prior Variance  4.171164</span></span>
+<span><span class="co">##                  Posterior Mean  0.457303</span></span>
+<span><span class="co">##              Posterior Variance  0.036794</span></span>
+<span><span class="co">##                Posterior Median  0.467513</span></span>
+<span><span class="co">##          Posterior prior weight  0.865272</span></span>
+<span><span class="co">##                    Prior Weight  0.500000</span></span>
+<span><span class="co">##            Vague Posterior Mean  0.363198</span></span>
+<span><span class="co">##        Vague Posterior Variance  0.176132</span></span>
+<span><span class="co">##      Informative Posterior Mean  0.471956</span></span>
 <span><span class="co">##  Informative Posterior Variance 0.0135045</span></span></code></pre>
 <p>Now, let us see how this is implemented:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
@@ -391,7 +398,7 @@ evaluated at
 <span><span class="co">##     self$post_mean &lt;- self$posterior_summary["mean"]</span></span>
 <span><span class="co">##     self$post_var &lt;- unname(self$posterior_summary["standard_deviation"]^2)</span></span>
 <span><span class="co">##     self$post_median &lt;- self$posterior_summary["median"]</span></span>
-<span><span class="co">##     assertions::assert_number(self$post_mean)</span></span>
+<span><span class="co">##     assert_single_number(self$post_mean)</span></span>
 <span><span class="co">## } model &lt;- function (target_data) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     self$RBesT_posterior &lt;- RBesT::postmix(self$RBesT_prior, </span></span>
@@ -421,7 +428,7 @@ evaluated at
 <span><span class="co">##     self$post_mean &lt;- self$posterior_summary["mean"]</span></span>
 <span><span class="co">##     self$post_var &lt;- unname(self$posterior_summary["standard_deviation"]^2)</span></span>
 <span><span class="co">##     self$post_median &lt;- self$posterior_summary["median"]</span></span>
-<span><span class="co">##     assertions::assert_number(self$post_mean)</span></span>
+<span><span class="co">##     assert_single_number(self$post_mean)</span></span>
 <span><span class="co">## } posterior_moments &lt;- function (target_data) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     self$RBesT_posterior &lt;- RBesT::postmix(self$RBesT_prior, </span></span>
@@ -451,7 +458,7 @@ evaluated at
 <span><span class="co">##     self$post_mean &lt;- self$posterior_summary["mean"]</span></span>
 <span><span class="co">##     self$post_var &lt;- unname(self$posterior_summary["standard_deviation"]^2)</span></span>
 <span><span class="co">##     self$post_median &lt;- self$posterior_summary["median"]</span></span>
-<span><span class="co">##     assertions::assert_number(self$post_mean)</span></span>
+<span><span class="co">##     assert_single_number(self$post_mean)</span></span>
 <span><span class="co">## }</span></span></code></pre>
 <p>With :</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">

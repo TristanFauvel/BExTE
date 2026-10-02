@@ -116,15 +116,18 @@
 <li><p><a href="#method-TestThenPool-sample_posterior"><code>TestThenPool$sample_posterior()</code></a></p></li>
 <li><p><a href="#method-TestThenPool-prior_to_RBesT"><code>TestThenPool$prior_to_RBesT()</code></a></p></li>
 <li><p><a href="#method-TestThenPool-posterior_ess"><code>TestThenPool$posterior_ess()</code></a></p></li>
+<li><p><a href="#method-TestThenPool-prior_elir_ess"><code>TestThenPool$prior_elir_ess()</code></a></p></li>
 <li><p><a href="#method-TestThenPool-posterior_to_RBesT"><code>TestThenPool$posterior_to_RBesT()</code></a></p></li>
 <li><p><a href="#method-TestThenPool-test_decision"><code>TestThenPool$test_decision()</code></a></p></li>
 <li><p><a href="#method-TestThenPool-plot_test_vs_drift"><code>TestThenPool$plot_test_vs_drift()</code></a></p></li>
 <li><p><a href="#method-TestThenPool-plot_test_pvalue_vs_drift"><code>TestThenPool$plot_test_pvalue_vs_drift()</code></a></p></li>
 <li><p><a href="#method-TestThenPool-clone"><code>TestThenPool$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href="Model.html#method-check_data"><code>Model$check_data()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="calibrate_for_design"><a href="Model.html#method-calibrate_for_design"><code>Model$calibrate_for_design()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href="Model.html#method-check_data"><code>Model$check_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href="Model.html#method-create"><code>Model$create()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href="Model.html#method-estimate_bayesian_operating_characteristics"><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href="Model.html#method-estimate_frequentist_operating_characteristics"><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="hypothesis_space_transformation"><a href="Model.html#method-hypothesis_space_transformation"><code>Model$hypothesis_space_transformation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href="Model.html#method-inference_cache_scope"><code>Model$inference_cache_scope()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href="Model.html#method-plot_pdfs"><code>Model$plot_pdfs()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href="Model.html#method-plot_posterior_pdf"><code>Model$plot_posterior_pdf()</code></a></span></li>
@@ -133,10 +136,11 @@
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_mean"><a href="Model.html#method-posterior_mean"><code>Model$posterior_mean()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href="Model.html#method-posterior_moments"><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href="Model.html#method-posterior_quantile"><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href="Model.html#method-print_model_summary"><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href="Model.html#method-prior_ESS"><code>Model$prior_ESS()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href="Model.html#method-prior_elir_ess"><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href="Model.html#method-prior_treatment_benefit"><code>Model$prior_treatment_benefit()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href="Model.html#method-simulation_for_given_treatment_effect"><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="summary_rows"><a href="Model.html#method-summary_rows"><code>Model$summary_rows()</code></a></span></li>
 </ul></details></p><hr><a id="method-TestThenPool-initialize"></a><div class="section">
 <h3 id="testthenpool-new-"><code>TestThenPool$new()</code><a class="anchor" aria-label="anchor" href="#testthenpool-new-"></a></h3>
 <p>Initializes a TestThenPool object.</p><div class="section">
@@ -488,13 +492,42 @@ in closed form.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-TestThenPool-prior_elir_ess"></a><div class="section">
+<h3 id="testthenpool-prior-elir-ess-"><code>TestThenPool$prior_elir_ess()</code><a class="anchor" aria-label="anchor" href="#testthenpool-prior-elir-ess-"></a></h3>
+<p>ELIR effective sample size of the current prior</p>
+<p>The prior is whichever component the test selected, and neither
+component's prior depends on the data, so each component reports its
+own, fitted once. The inherited route treats the method as empirical
+Bayes and refits a mixture to fresh prior draws for every replicate,
+although only two priors can ever come out of the test. On a binomial
+endpoint that refit was nine tenths of the method's run time.</p><div class="section">
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TestThenPool</span><span class="op">$</span><span class="fu">prior_elir_ess</span><span class="op">(</span><span class="va">target_data</span>, <span class="va">simulation_config</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>target_data</code></dt>
+<dd><p>Target study data, whose sampling standard deviation
+is the reference scale.</p></dd>
+
+      <dt><code>simulation_config</code></dt>
+<dd><p>Configuration of simulation study</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>The ELIR effective sample size.</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-TestThenPool-posterior_to_RBesT"></a><div class="section">
 <h3 id="testthenpool-posterior-to-rbest-"><code>TestThenPool$posterior_to_RBesT()</code><a class="anchor" aria-label="anchor" href="#testthenpool-posterior-to-rbest-"></a></h3>
 <p>Convert the posterior distribution to RBesT format</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TestThenPool</span><span class="op">$</span><span class="fu">posterior_to_RBesT</span><span class="op">(</span><span class="va">target_data</span>, <span class="va">simulation_config</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
+<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>target_data</code></dt>
 <dd><p>Target study data</p></dd>
 
@@ -510,7 +543,7 @@ in closed form.</p><div class="section">
 <p></p><hr><a id="method-TestThenPool-test_decision"></a><div class="section">
 <h3 id="testthenpool-test-decision-"><code>TestThenPool$test_decision()</code><a class="anchor" aria-label="anchor" href="#testthenpool-test-decision-"></a></h3>
 <p>Return the test decision based on the posterior distribution. The decision rule is: \(P(\theta_T &gt; \theta_0 \mid \mathbf{D}_S, \mathbf{D}_T) &gt; ) \eta\) (if null_space is right).</p><div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TestThenPool</span><span class="op">$</span><span class="fu">test_decision</span><span class="op">(</span></span>
 <span>  <span class="va">critical_value</span>,</span>
 <span>  <span class="va">theta_0</span>,</span>
@@ -518,7 +551,7 @@ in closed form.</p><div class="section">
 <span>  <span class="va">confidence_level</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
+<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>critical_value</code></dt>
 <dd><p>Critical value</p></dd>
 
@@ -540,45 +573,8 @@ in closed form.</p><div class="section">
 <p></p><hr><a id="method-TestThenPool-plot_test_vs_drift"></a><div class="section">
 <h3 id="testthenpool-plot-test-vs-drift-"><code>TestThenPool$plot_test_vs_drift()</code><a class="anchor" aria-label="anchor" href="#testthenpool-plot-test-vs-drift-"></a></h3>
 <p>Plot the pooling test decision as a function of drift in treatment effect</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TestThenPool</span><span class="op">$</span><span class="fu">plot_test_vs_drift</span><span class="op">(</span></span>
-<span>  <span class="va">source_treatment_effect_estimate</span>,</span>
-<span>  <span class="va">target_data</span>,</span>
-<span>  <span class="va">min_drift</span>,</span>
-<span>  <span class="va">max_drift</span>,</span>
-<span>  <span class="va">resolution</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>source_treatment_effect_estimate</code></dt>
-<dd><p>Treatment effect estimate in the source study</p></dd>
-
-      <dt><code>target_data</code></dt>
-<dd><p>Target study data</p></dd>
-
-      <dt><code>min_drift</code></dt>
-<dd><p>Minimum drift value</p></dd>
-
-      <dt><code>max_drift</code></dt>
-<dd><p>Maximum drift value</p></dd>
-
-      <dt><code>resolution</code></dt>
-<dd><p>Number of points on the drift grid.</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>The prior PDF.</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-TestThenPool-plot_test_pvalue_vs_drift"></a><div class="section">
-<h3 id="testthenpool-plot-test-pvalue-vs-drift-"><code>TestThenPool$plot_test_pvalue_vs_drift()</code><a class="anchor" aria-label="anchor" href="#testthenpool-plot-test-pvalue-vs-drift-"></a></h3>
-<p>Plot the pooling test p-value as a function of drift in treatment effect</p><div class="section">
 <h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TestThenPool</span><span class="op">$</span><span class="fu">plot_test_pvalue_vs_drift</span><span class="op">(</span></span>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TestThenPool</span><span class="op">$</span><span class="fu">plot_test_vs_drift</span><span class="op">(</span></span>
 <span>  <span class="va">source_treatment_effect_estimate</span>,</span>
 <span>  <span class="va">target_data</span>,</span>
 <span>  <span class="va">min_drift</span>,</span>
@@ -611,13 +607,50 @@ in closed form.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-TestThenPool-plot_test_pvalue_vs_drift"></a><div class="section">
+<h3 id="testthenpool-plot-test-pvalue-vs-drift-"><code>TestThenPool$plot_test_pvalue_vs_drift()</code><a class="anchor" aria-label="anchor" href="#testthenpool-plot-test-pvalue-vs-drift-"></a></h3>
+<p>Plot the pooling test p-value as a function of drift in treatment effect</p><div class="section">
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TestThenPool</span><span class="op">$</span><span class="fu">plot_test_pvalue_vs_drift</span><span class="op">(</span></span>
+<span>  <span class="va">source_treatment_effect_estimate</span>,</span>
+<span>  <span class="va">target_data</span>,</span>
+<span>  <span class="va">min_drift</span>,</span>
+<span>  <span class="va">max_drift</span>,</span>
+<span>  <span class="va">resolution</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>source_treatment_effect_estimate</code></dt>
+<dd><p>Treatment effect estimate in the source study</p></dd>
+
+      <dt><code>target_data</code></dt>
+<dd><p>Target study data</p></dd>
+
+      <dt><code>min_drift</code></dt>
+<dd><p>Minimum drift value</p></dd>
+
+      <dt><code>max_drift</code></dt>
+<dd><p>Maximum drift value</p></dd>
+
+      <dt><code>resolution</code></dt>
+<dd><p>Number of points on the drift grid.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>The prior PDF.</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-TestThenPool-clone"></a><div class="section">
 <h3 id="testthenpool-clone-"><code>TestThenPool$clone()</code><a class="anchor" aria-label="anchor" href="#testthenpool-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TestThenPool</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
+<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

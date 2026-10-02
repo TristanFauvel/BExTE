@@ -18,7 +18,8 @@ simulation_analysis(
     "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs"),
   methods = "all",
   case_studies_config_dir = NULL,
-  parallelization = NULL
+  parallelization = NULL,
+  n_replicates = NULL
 )
 ```
 
@@ -48,6 +49,12 @@ simulation_analysis(
   method names, in the same form as the `parallelization` entry of
   `scenarios_config.yml`. Defaults to that entry, read from
   `config_dir`.
+
+- n_replicates:
+
+  Number of Monte Carlo replicates the simulated power estimates are
+  built from. Defaults to the `n_replicates` entry of
+  `scenarios_config.yml`, read from `config_dir`.
 
 ## Value
 

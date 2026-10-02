@@ -83,16 +83,18 @@ and converting distributions to RBesT format.
 
 - [`GaussianRMP_RBesT$vectorised_posterior_parameters()`](#method-GaussianRMP_RBesT-vectorised_posterior_parameters)
 
-- [`GaussianRMP_RBesT$print_model_summary()`](#method-GaussianRMP_RBesT-print_model_summary)
+- [`GaussianRMP_RBesT$summary_rows()`](#method-GaussianRMP_RBesT-summary_rows)
 
 - [`GaussianRMP_RBesT$clone()`](#method-GaussianRMP_RBesT-clone)
 
 Inherited methods
 
+- [`Model$calibrate_for_design()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-calibrate_for_design)
 - [`Model$check_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-check_data)
 - [`Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
 - [`Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
 - [`Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$hypothesis_space_transformation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-hypothesis_space_transformation)
 - [`Model$inference()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-inference)
 - [`Model$inference_cache_scope()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-inference_cache_scope)
 - [`Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
@@ -101,6 +103,7 @@ Inherited methods
 - [`Model$posterior_beta_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_beta_mixture)
 - [`Model$posterior_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_ess)
 - [`Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
+- [`Model$print_model_summary()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-print_model_summary)
 - [`Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
 - [`Model$prior_elir_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_elir_ess)
 - [`Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
@@ -259,32 +262,19 @@ A data frame with one `prior_weight` column.
 
 ------------------------------------------------------------------------
 
-### `GaussianRMP_RBesT$print_model_summary()`
+### `GaussianRMP_RBesT$summary_rows()`
 
-Print a summary of the model attributes
-
-This method creates and prints a formatted table of key model
-attributes.
+Rows of the model summary, with the prior weight and the moments of the
+two posterior components. The posterior weight is among the
+`posterior_parameters` rows.
 
 #### Usage
 
-    GaussianRMP_RBesT$print_model_summary()
+    GaussianRMP_RBesT$summary_rows()
 
 #### Returns
 
-A printed data frame displaying the following model attributes:
-
-- Posterior Weight
-
-- Vague Posterior Mean
-
-- Vague Posterior Variance
-
-- Informative Posterior Mean
-
-- Informative Posterior Variance
-
-All numeric values are formatted to 6 decimal places.
+A data frame with columns `Attribute` and `Value`.
 
 ------------------------------------------------------------------------
 

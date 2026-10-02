@@ -67,7 +67,9 @@ with its error message and the run continues.</p>
 <span>  <span class="va">tables_dir</span>,</span>
 <span>  <span class="va">ids</span>,</span>
 <span>  <span class="va">case_studies_config_dir</span>,</span>
-<span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  progress <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  numbered_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  workers <span class="op">=</span> <span class="fl">1L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -98,6 +100,22 @@ the plot generators append their own <code>&lt;case_study&gt;/</code> below it.<
 
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>
 <dd><p>Optional <code>function(index, total, id)</code> progress callback.</p></dd>
+
+
+<dt id="arg-numbered-dir">numbered_dir<a class="anchor" aria-label="anchor" href="#arg-numbered-dir"></a></dt>
+<dd><p>Optional directory collecting a copy of every output
+produced, under the generators' own filenames: figures as PDF, tables as
+both <code>.tex</code> and <code>.pdf</code>. <code>manifest.csv</code> maps each file to its paper number.
+<code>NULL</code> skips it.</p></dd>
+
+
+<dt id="arg-workers">workers<a class="anchor" aria-label="anchor" href="#arg-workers"></a></dt>
+<dd><p>Number of items to produce at once, each in a forked
+process. The default, 1, produces them one after the other in this
+process. Forking is unavailable on Windows, which always uses one. The
+files written and the status returned are the same either way; with more
+than one worker, <code>progress</code> is called as each item finishes rather than
+as it starts.</p></dd>
 
 </dl></div>
     <div class="section level2">

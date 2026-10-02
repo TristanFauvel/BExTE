@@ -44,6 +44,8 @@ borrowing.
 
 - [`SourcePosteriorDesignPrior$cdf()`](#method-SourcePosteriorDesignPrior-cdf)
 
+- [`SourcePosteriorDesignPrior$given_control_rate()`](#method-SourcePosteriorDesignPrior-given_control_rate)
+
 - [`SourcePosteriorDesignPrior$pdf()`](#method-SourcePosteriorDesignPrior-pdf)
 
 - [`SourcePosteriorDesignPrior$clone()`](#method-SourcePosteriorDesignPrior-clone)
@@ -117,6 +119,32 @@ posterior design prior.
 - `x`:
 
   The value at which to evaluate the CDF.
+
+------------------------------------------------------------------------
+
+### `SourcePosteriorDesignPrior$given_control_rate()`
+
+The source posterior given the target control rate
+
+Under a binomial likelihood the source posterior is independent Beta
+posteriors on the two arms' response rates, so given the control rate
+the effect is the treatment rate, from its source posterior, less that
+rate. Otherwise the inherited truncation applies.
+
+#### Usage
+
+    SourcePosteriorDesignPrior$given_control_rate(control_rate)
+
+#### Arguments
+
+- `control_rate`:
+
+  The target control rate.
+
+#### Returns
+
+A
+[FunctionalDesignPrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/FunctionalDesignPrior.md).
 
 ------------------------------------------------------------------------
 

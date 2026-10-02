@@ -18,6 +18,13 @@ inference, and calculating posterior moments.
 
   Parameters of the posterior distribution.
 
+- `quantile_summary_columns`:
+
+  Names of `posterior_parameters` columns that are also summarised by
+  their quantiles. A mean describes a quantity the model reports, but
+  not the spread of one it selects per replicate. Empty for every method
+  that does not select anything.
+
 - `post_mean`:
 
   Mean of the posterior distribution.
@@ -95,10 +102,21 @@ inference, and calculating posterior moments.
 
   AIC penalty parameter used for the mixture approximation
 
+- `empirical_bayes_from_sample`:
+
+  Whether the empirical Bayes quantities are a function of the
+  replicate's sample alone, so that a deterministic model may still
+  share an analysis between replicates with equal samples.
+
 - `n_nonestimable_replicates`:
 
   Replicates dropped by the last simulation because their target summary
   measure was undefined.
+
+- `estimable_replicates`:
+
+  Which rows of the last simulation's replicates were kept for analysis,
+  in the order they were generated.
 
 - `analysis_critical_value`:
 
@@ -107,9 +125,16 @@ inference, and calculating posterior moments.
   read it, so that they are tuned for the test that is actually
   performed.
 
+- `null_space`:
+
+  Null hypothesis space, `"left"` or `"right"` of `parameters$theta_0`.
+  Set by the methods that call `hypothesis_space_transformation()`.
+
 ## Methods
 
 ### Public methods
+
+- [`Model$hypothesis_space_transformation()`](#method-Model-hypothesis_space_transformation)
 
 - [`Model$new()`](#method-Model-initialize)
 
@@ -118,6 +143,8 @@ inference, and calculating posterior moments.
 - [`Model$inference()`](#method-Model-inference)
 
 - [`Model$vectorised_replicate_inference()`](#method-Model-vectorised_replicate_inference)
+
+- [`Model$calibrate_for_design()`](#method-Model-calibrate_for_design)
 
 - [`Model$inference_cache_scope()`](#method-Model-inference_cache_scope)
 
@@ -169,7 +196,39 @@ inference, and calculating posterior moments.
 
 - [`Model$plot_posterior_pdf()`](#method-Model-plot_posterior_pdf)
 
+- [`Model$summary_rows()`](#method-Model-summary_rows)
+
+- [`Model$print_model_summary()`](#method-Model-print_model_summary)
+
 - [`Model$clone()`](#method-Model-clone)
+
+------------------------------------------------------------------------
+
+### `Model$hypothesis_space_transformation()`
+
+Express treatment effects relative to the null hypothesis
+
+Translates the source estimate and the given target estimates by
+`parameters$theta_0` and, for a right null space, mirrors them, so that
+the null hypothesis is the half line below 0 whatever the case study's
+`theta_0` and `null_space`. Methods defined only for that case can then
+work on the result directly.
+
+#### Usage
+
+    Model$hypothesis_space_transformation(target_treatment_effect_estimate)
+
+#### Arguments
+
+- `target_treatment_effect_estimate`:
+
+  Target treatment effect estimate, or one per replicate.
+
+#### Returns
+
+A list with the transformed `source_treatment_effect_estimate` and
+`target_treatment_effect_estimate`, the latter the same length as the
+input.
 
 ------------------------------------------------------------------------
 
@@ -274,6 +333,33 @@ replicate loop.
 
 `NULL`, or a list shaped like the return value of
 `Model$simulation_for_given_treatment_effect()`.
+
+------------------------------------------------------------------------
+
+### `Model$calibrate_for_design()`
+
+Fix any hyperparameter that the scenario's design decides
+
+Most methods take their hyperparameters from the configuration grid, and
+for them this does nothing. A method that instead derives them from the
+target design - its sample size, and so the standard error it can
+expect - overrides this, and the drivers call it once per scenario,
+before any replicate is generated. Deriving them inside the replicate
+loop instead would make the prior a function of the data.
+
+#### Usage
+
+    Model$calibrate_for_design(target_data)
+
+#### Arguments
+
+- `target_data`:
+
+  Target study data for the scenario.
+
+#### Returns
+
+`NULL`, invisibly.
 
 ------------------------------------------------------------------------
 
@@ -621,7 +707,8 @@ Method to simulate for a given treatment effect
         "ess_elir", "fit_success", "mcmc_diagnostics"),
       verbose = 0,
       n_samples_quantiles_estimation,
-      simulation_config = NULL
+      simulation_config = NULL,
+      samples = NULL
     )
 
 #### Arguments
@@ -677,6 +764,13 @@ Method to simulate for a given treatment effect
   no vectorised fast path, since those outputs are computed via
   `posterior_to_RBesT()`/`prior_to_RBesT()`, which need
   `simulation_config$n_samples_mixture_approx`.
+
+- `samples`:
+
+  Optional replicate rows to analyse instead of generating
+  `n_replicates` of them, such as the trials of
+  `BinaryTargetData$enumerate_support()`. `n_replicates` must then be
+  their number.
 
 #### Returns
 
@@ -735,7 +829,9 @@ Method to estimate frequentist operating characteristics
       case_study,
       method,
       verbose = 0,
-      simulation_config = NULL
+      simulation_config = NULL,
+      exact_enumeration = FALSE,
+      enumeration_tail_mass = 1e-10
     )
 
 #### Arguments
@@ -787,6 +883,19 @@ Method to estimate frequentist operating characteristics
   `ess_precision` and `ess_elir` on methods without a vectorised fast
   path.
 
+- `exact_enumeration`:
+
+  Whether to compute the operating characteristics exactly, as sums over
+  every trial outcome weighted by its probability (see
+  `BinaryTargetData$enumerate_support()`), instead of averages over
+  `n_replicates` simulated trials. The intervals then collapse onto the
+  point estimates, since there is no Monte Carlo error.
+
+- `enumeration_tail_mass`:
+
+  Upper bound on the probability of the trial outcomes the enumeration
+  leaves out.
+
 #### Returns
 
 A list of estimated frequentist operating characteristics including
@@ -813,6 +922,9 @@ Method to estimate Bayesian operating characteristics
       target_sample_size_per_arm,
       case_study_config,
       target_to_source_std_ratio,
+      dropout_probability = 0,
+      event_time_distribution = "exponential",
+      treatment_delay = 0,
       simulation_config,
       case_study,
       method,
@@ -864,6 +976,21 @@ Method to estimate Bayesian operating characteristics
 - `target_to_source_std_ratio`:
 
   Ratio between the target and source study standard deviation
+
+- `dropout_probability`:
+
+  Probability of loss to follow-up over the maximum follow-up time. Only
+  used for the time-to-event endpoint.
+
+- `event_time_distribution`:
+
+  Distribution of the event times, either "exponential" or "weibull".
+  Only used for the time-to-event endpoint.
+
+- `treatment_delay`:
+
+  Time before the treatment effect starts, in years. Only used for the
+  time-to-event endpoint.
 
 - `simulation_config`:
 
@@ -1100,6 +1227,44 @@ Plot posterior probability density function (PDF).
 #### Returns
 
 A plot
+
+------------------------------------------------------------------------
+
+### `Model$summary_rows()`
+
+Rows of the model summary
+
+The rows shared by every model: the method name and the moments of the
+prior and of the posterior, then each method-specific entry of
+`posterior_parameters`. A quantity the model has not set, because
+inference has not run or the method does not compute it, gets no row.
+Subclasses add their own parameters by extending `super$summary_rows()`.
+
+#### Usage
+
+    Model$summary_rows()
+
+#### Returns
+
+A data frame with columns `Attribute` and `Value`, the values formatted
+as character.
+
+------------------------------------------------------------------------
+
+### `Model$print_model_summary()`
+
+Print a summary of the model attributes
+
+Prints the table returned by `summary_rows()`, numeric values formatted
+to 6 decimal places.
+
+#### Usage
+
+    Model$print_model_summary()
+
+#### Returns
+
+The summary data frame, invisibly.
 
 ------------------------------------------------------------------------
 

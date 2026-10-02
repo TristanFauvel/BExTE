@@ -70,7 +70,9 @@ not a frequentist confidence interval; they are stored under the existing
 <span>  <span class="va">simulation_config</span>,</span>
 <span>  case_study <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_replicates <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  n_samples <span class="op">=</span> <span class="fl">1000</span></span>
+<span>  n_samples <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  p_values <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  null_p_values <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -113,6 +115,22 @@ exact interval bounds, and its <code>mcse</code> or <code>n_replicates</code> wh
 
 <dt id="arg-n-samples">n_samples<a class="anchor" aria-label="anchor" href="#arg-n-samples"></a></dt>
 <dd><p>Number of draws of the type I error.</p></dd>
+
+
+<dt id="arg-p-values">p_values<a class="anchor" aria-label="anchor" href="#arg-p-values"></a></dt>
+<dd><p>Optional p-values of the separate analysis, already
+simulated for this design by <code><a href="simulate_test_p_values.html">simulate_test_p_values()</a></code>. They depend on the
+design alone, not on the borrowing method, so a caller pricing many rows of
+one design simulates them once and passes them here. <code>NULL</code> simulates them.
+Ignored when the power has a closed form.</p></dd>
+
+
+<dt id="arg-null-p-values">null_p_values<a class="anchor" aria-label="anchor" href="#arg-null-p-values"></a></dt>
+<dd><p>Optional p-values of the same test on the trials of the
+design's null scenario. When given, each sampled type I error is matched
+by the test's actual rejection rate there rather than by its nominal
+level - see <code><a href="calibrated_levels.html">calibrated_levels()</a></code>. Ignored when the power has a closed
+form.</p></dd>
 
 </dl></div>
     <div class="section level2">

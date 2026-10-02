@@ -63,7 +63,7 @@
 
       <h1>Data Generation : Teriflunomide case study (time-to-event endpoint)</h1>
             
-            <h4 data-toc-skip class="date">2026-09-15</h4>
+            <h4 data-toc-skip class="date">2026-10-02</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/vignettes/data_generation/Data_generation_teriflunomide.Rmd" class="external-link"><code>vignettes/data_generation/Data_generation_teriflunomide.Rmd</code></a></small>
       <div class="d-none name"><code>Data_generation_teriflunomide.Rmd</code></div>
@@ -76,16 +76,20 @@
 </h2>
 <p>Sources: <a href="https://jamanetwork.com/journals/jamaneurology/fullarticle/2793703" class="external-link">Bovis
 et al (2022)</a></p>
-<p>Table 4 in the TOWER paper by <a href="https://linkinghub.elsevier.com/retrieve/pii/S1474442213703089" class="external-link">Confavreux
-et al (2014)</a> contains a joint analysis of the TOWER and TEMSO
-studies. We focus on the 14mg Teriflunomide treatment.</p>
-<p>The treatment effect is defined as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>T</mi></msub><mo>=</mo><mi>l</mi><mi>o</mi><mi>g</mi><mo stretchy="false" form="prefix">(</mo><msubsup><mi>λ</mi><mi>T</mi><mi>T</mi></msubsup><mi>/</mi><msubsup><mi>λ</mi><mi>T</mi><mi>c</mi></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\theta_T =  log(\lambda_T^{T}/\lambda_T^{c})</annotation></semantics></math>,
-where the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>s
-are rate parameters of an exponential distribution. The standard error
-on the log rate ratio is approximately
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mfrac><mn>1</mn><msubsup><mi>N</mi><mi>T</mi><mi>t</mi></msubsup></mfrac><mo>+</mo><mfrac><mn>1</mn><msubsup><mi>N</mi><mi>T</mi><mi>c</mi></msubsup></mfrac></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{\frac{1}{N_T^{t}} + \frac{1}{N_T^{c}}}</annotation></semantics></math>.</p>
+<p>The source study is the pooled analysis of the adult TEMSO and TOWER
+trials of 14 mg teriflunomide; Table 4 of the TOWER paper by <a href="https://linkinghub.elsevier.com/retrieve/pii/S1474442213703089" class="external-link">Confavreux
+et al (2014)</a> reports it. The target study is a paediatric trial
+inspired by the TERIKIDS design. The endpoint is the time to first
+relapse.</p>
+<p>The source treatment effect is the pooled log hazard ratio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>S</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mover><mrow><mi>H</mi><mi>R</mi></mrow><mo accent="true">̂</mo></mover><mi>S</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>−</mi><mn>0.393</mn></mrow><annotation encoding="application/x-tex">\widehat{\theta}_S = \log(\widehat{HR}_S) = -0.393</annotation></semantics></math>,
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>σ</mi><mo accent="true">̂</mo></mover><msub><mi>θ</mi><mi>S</mi></msub></msub><mo>=</mo><mn>0.081</mn></mrow><annotation encoding="application/x-tex">\widehat{\sigma}_{\theta_S} = 0.081</annotation></semantics></math>.
+The target treatment effect is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>T</mi></msub><mo>=</mo><msub><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>S</mi></msub><mo>+</mo><mi>δ</mi></mrow><annotation encoding="application/x-tex">\theta_T = \widehat{\theta}_S + \delta</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+is the drift.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span></span>
@@ -161,10 +165,10 @@ right
 Sampling Approximation
 </td>
 <td style="text-align:left;">
-TRUE
+FALSE
 </td>
 </tr>
-<tr grouplength="6">
+<tr grouplength="10">
 <td colspan="2" style="border-bottom: 1px solid;">
 <strong>Target</strong>
 </td>
@@ -214,7 +218,39 @@ Standard Error (Target)
 Maximum follow-up time (Target)
 </td>
 <td style="text-align:left;">
-2
+1.846154
+</td>
+</tr>
+<tr>
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+Accrual period (Target)
+</td>
+<td style="text-align:left;">
+3.41
+</td>
+</tr>
+<tr>
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+Follow-up after recruitment (Target)
+</td>
+<td style="text-align:left;">
+0.923077
+</td>
+</tr>
+<tr>
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+Weibull shape (Target)
+</td>
+<td style="text-align:left;">
+0.72
+</td>
+</tr>
+<tr>
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+Weibull relapse-free probability (Target)
+</td>
+<td style="text-align:left;">
+0.442
 </td>
 </tr>
 <tr grouplength="6">
@@ -251,7 +287,7 @@ Total (Source)
 Treatment Effect (Source)
 </td>
 <td style="text-align:left;">
--0.4110989
+-0.393
 </td>
 </tr>
 <tr>
@@ -259,7 +295,7 @@ Treatment Effect (Source)
 Standard Error (Source)
 </td>
 <td style="text-align:left;">
-0.05194012
+0.081
 </td>
 </tr>
 <tr>
@@ -272,49 +308,102 @@ Maximum follow-up time (Source)
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">source_relapse_rate_control</span> <span class="op">&lt;-</span> <span class="fl">0.534</span> <span class="co"># Average number of relapses per year</span></span>
-<span><span class="va">source_relapse_rate_treatment</span> <span class="op">&lt;-</span> <span class="fl">0.354</span> <span class="co"># Average number of relapses per year</span></span>
-<span></span>
-<span><span class="co"># Calculate the log of the rate ratio</span></span>
-<span><span class="va">log_RR_source</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">source_relapse_rate_treatment</span> <span class="op">/</span> <span class="va">source_relapse_rate_control</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Observed logRR in the source study: "</span>, <span class="va">log_RR_source</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "Observed logRR in the source study:  -0.41109892582642"</span></span></code></pre>
 </div>
 <div class="section level2">
-<h2 id="initializing-a-timetoeventtargetdata-object-with-a-normal-treatment-effect-summary-measure-distribution">Initializing a TimeToEventTargetData object with a normal treatment
-effect summary measure distribution<a class="anchor" aria-label="anchor" href="#initializing-a-timetoeventtargetdata-object-with-a-normal-treatment-effect-summary-measure-distribution"></a>
+<h2 id="the-target-trial-design">The target trial design<a class="anchor" aria-label="anchor" href="#the-target-trial-design"></a>
 </h2>
-<div class="section level4">
-<h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
-</h4>
+<p>In the original TERIKIDS design every participant could be followed
+for up to 96 weeks, so accrual would not affect the follow-up
+distribution. To study the effect of staggered accrual we use a modified
+fixed-calendar design: the maximum individual follow-up stays at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>96</mn></mrow><annotation encoding="application/x-tex">L = 96</annotation></semantics></math>
+weeks, but the database is closed
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>=</mo><mn>48</mn></mrow><annotation encoding="application/x-tex">F = 48</annotation></semantics></math>
+weeks after the end of recruitment.</p>
+<p>Patients enter over an accrual period of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>=</mo><mn>3.41</mn></mrow><annotation encoding="application/x-tex">A = 3.41</annotation></semantics></math>
+years, with calendar entry times
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub><mo>∼</mo><mi>𝒰</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>A</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">R_i \sim \mathcal{U}(0, A)</annotation></semantics></math>.
+The database closes at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mi>A</mi><mo>+</mo><mi>F</mi></mrow><annotation encoding="application/x-tex">C = A + F</annotation></semantics></math>,
+so the administrative censoring time of patient
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>L</mi><mo>,</mo><mspace width="0.222em"></mspace><mi>A</mi><mo>+</mo><mi>F</mi><mo>−</mo><msub><mi>R</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">C_i = \min\{L,\ A + F - R_i\}.</annotation></semantics></math></p>
+<p>Control-arm heterogeneity is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msubsup><mi>λ</mi><mi>T</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>−</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msubsup><mi>λ</mi><mi>S</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">\kappa = \log \lambda_T^{(c)} - \log \lambda_S^{(c)}</annotation></semantics></math>,
+so that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>λ</mi><mi>T</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><msubsup><mi>λ</mi><mi>S</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><msup><mi>e</mi><mi>κ</mi></msup></mrow><annotation encoding="application/x-tex">\lambda_T^{(c)} = \lambda_S^{(c)} e^{\kappa}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>λ</mi><mi>T</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><msubsup><mi>λ</mi><mi>T</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><msup><mi>e</mi><msub><mi>θ</mi><mi>T</mi></msub></msup></mrow><annotation encoding="application/x-tex">\lambda_T^{(t)} = \lambda_T^{(c)} e^{\theta_T}</annotation></semantics></math>.
+In the package
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+is the <code>control_drift</code> of a scenario and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+is its <code>drift</code>.</p>
+<p>Independent loss to follow-up is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mi>i</mi></msub><mo>∼</mo><mrow><mi mathvariant="normal">Exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mi>D</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">D_i \sim \operatorname{Exp}(\lambda_D)</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>D</mi></msub><mo>=</mo><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mi>D</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>L</mi></mrow><annotation encoding="application/x-tex">\lambda_D = -\log(1 - p_D)/L</annotation></semantics></math>
+for a prespecified probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>D</mi></msub><annotation encoding="application/x-tex">p_D</annotation></semantics></math>
+of being lost over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>.
+The observed follow-up time and the event indicator are</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mi>i</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><msub><mi>D</mi><mi>i</mi></msub><mo>,</mo><msub><mi>C</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi mathvariant="normal">Δ</mi><mi>i</mi></msub><mo>=</mo><mn>𝟙</mn><mo stretchy="false" form="prefix">{</mo><msub><mi>T</mi><mi>i</mi></msub><mo>≤</mo><msub><mi>D</mi><mi>i</mi></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>T</mi><mi>i</mi></msub><mo>≤</mo><msub><mi>C</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">X_i = \min(T_i, D_i, C_i), \qquad \Delta_i = \mathbb{1}\{T_i \leq D_i,\ T_i \leq C_i\}.</annotation></semantics></math></p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="va">case_study_config</span><span class="op">$</span><span class="va">target</span></span>
+<span><span class="va">L</span> <span class="op">&lt;-</span> <span class="va">design</span><span class="op">$</span><span class="va">max_follow_up_time</span></span>
+<span><span class="va">A</span> <span class="op">&lt;-</span> <span class="va">design</span><span class="op">$</span><span class="va">accrual_period</span></span>
+<span><span class="va">Fu</span> <span class="op">&lt;-</span> <span class="va">design</span><span class="op">$</span><span class="va">final_follow_up</span></span>
+<span></span>
+<span><span class="co"># Only patients recruited before A + F - L are followed for the full L.</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>max_follow_up <span class="op">=</span> <span class="va">L</span>, accrual <span class="op">=</span> <span class="va">A</span>, final_follow_up <span class="op">=</span> <span class="va">Fu</span>,</span>
+<span>  proportion_with_full_follow_up <span class="op">=</span> <span class="op">(</span><span class="va">A</span> <span class="op">+</span> <span class="va">Fu</span> <span class="op">-</span> <span class="va">L</span><span class="op">)</span> <span class="op">/</span> <span class="va">A</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##                  max_follow_up                        accrual </span></span>
+<span><span class="co">##                      1.8461540                      3.4100000 </span></span>
+<span><span class="co">##                final_follow_up proportion_with_full_follow_up </span></span>
+<span><span class="co">##                      0.9230770                      0.7293029</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="creating-the-target-data">Creating the target data<a class="anchor" aria-label="anchor" href="#creating-the-target-data"></a>
+</h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">source_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/SourceData.html">SourceData</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">case_study_config</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">drift</span> <span class="op">&lt;-</span> <span class="fl">0.4</span></span>
-<span><span class="va">control_drift</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span><span class="va">drift</span> <span class="op">&lt;-</span> <span class="fl">0.2</span> <span class="co"># delta</span></span>
+<span><span class="va">control_drift</span> <span class="op">&lt;-</span> <span class="fl">0</span> <span class="co"># kappa</span></span>
 <span><span class="va">treatment_drift</span> <span class="op">&lt;-</span> <span class="va">drift</span> <span class="op">+</span> <span class="va">control_drift</span></span>
 <span></span>
-<span><span class="va">target_sample_size_per_arm</span> <span class="op">&lt;-</span> <span class="fl">100</span></span></code></pre></div>
+<span><span class="va">target_sample_size_per_arm</span> <span class="op">&lt;-</span> <span class="fl">185</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">target_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/TargetDataFactory.html">TargetDataFactory</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">target_data</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="fu">create</span><span class="op">(</span>source_data <span class="op">=</span> <span class="va">source_data</span>, case_study_config <span class="op">=</span> <span class="va">case_study_config</span>, target_sample_size_per_arm <span class="op">=</span> <span class="va">target_sample_size_per_arm</span>, treatment_drift <span class="op">=</span> <span class="va">drift</span>, summary_measure_likelihood <span class="op">=</span> <span class="va">source_data</span><span class="op">$</span><span class="va">summary_measure_likelihood</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<span><span class="va">target_data</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="fu">create</span><span class="op">(</span></span>
+<span>  source_data <span class="op">=</span> <span class="va">source_data</span>,</span>
+<span>  case_study_config <span class="op">=</span> <span class="va">case_study_config</span>,</span>
+<span>  target_sample_size_per_arm <span class="op">=</span> <span class="va">target_sample_size_per_arm</span>,</span>
+<span>  control_drift <span class="op">=</span> <span class="va">control_drift</span>,</span>
+<span>  treatment_drift <span class="op">=</span> <span class="va">treatment_drift</span>,</span>
+<span>  summary_measure_likelihood <span class="op">=</span> <span class="va">source_data</span><span class="op">$</span><span class="va">summary_measure_likelihood</span>,</span>
+<span>  dropout_probability <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  event_time_distribution <span class="op">=</span> <span class="st">"exponential"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>theta_T <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">treatment_effect</span>,</span>
+<span>  control_rate <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">control_rate</span>,</span>
+<span>  treatment_rate <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">treatment_rate</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##        theta_T   control_rate treatment_rate </span></span>
+<span><span class="co">##     -0.1930000      0.5340000      0.4402734</span></span></code></pre>
+<p>The arm rates follow from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\theta_T</annotation></semantics></math>:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../../reference/read_function_code.html">read_function_code</a></span><span class="op">(</span><span class="va">rate_from_drift_logRR</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## rate_from_drift_logRR &lt;- function (arm_drift, source_rate) </span></span>
 <span><span class="co">## {</span></span>
 <span><span class="co">##     return(source_rate * exp(arm_drift))</span></span>
 <span><span class="co">## }</span></span></code></pre>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">target_data</span><span class="op">$</span><span class="va">control_rate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/rate_from_drift_logRR.html">rate_from_drift_logRR</a></span><span class="op">(</span><span class="va">control_drift</span>, <span class="va">source_data</span><span class="op">$</span><span class="va">control_rate</span><span class="op">)</span></span>
-<span><span class="va">target_data</span><span class="op">$</span><span class="va">treatment_rate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/rate_from_drift_logRR.html">rate_from_drift_logRR</a></span><span class="op">(</span><span class="va">treatment_drift</span>, <span class="va">source_data</span><span class="op">$</span><span class="va">treatment_rate</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Estimation of the sampling standard deviation on the log(RR)</span></span>
-<span><span class="va">n_control_target</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="va">sample_size_per_arm</span></span>
-<span><span class="va">n_treatment_target</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="va">sample_size_per_arm</span></span>
-<span></span>
-<span><span class="va">target_data</span><span class="op">$</span><span class="va">standard_deviation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="va">target_data</span><span class="op">$</span><span class="va">control_rate</span> <span class="op">*</span> <span class="va">target_data</span><span class="op">$</span><span class="va">max_follow_up_time</span> <span class="op">*</span> <span class="va">n_control_target</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="va">target_data</span><span class="op">$</span><span class="va">treatment_rate</span> <span class="op">*</span> <span class="va">target_data</span><span class="op">$</span><span class="va">max_follow_up_time</span> <span class="op">*</span> <span class="va">n_treatment_target</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
 </div>
 <div class="section level2">
 <h2 id="aggregate-data-generation">Aggregate data generation<a class="anchor" aria-label="anchor" href="#aggregate-data-generation"></a>
@@ -323,134 +412,211 @@ effect summary measure distribution<a class="anchor" aria-label="anchor" href="#
 <h3 id="generation-of-aggregate-data-without-sampling-approximation">Generation of aggregate data without sampling approximation<a class="anchor" aria-label="anchor" href="#generation-of-aggregate-data-without-sampling-approximation"></a>
 </h3>
 <div class="section level4">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a>
+<h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h4>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">case_study_config</span><span class="op">$</span><span class="va">sampling_approximation</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span></span>
-<span><span class="va">target_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/TargetDataFactory.html">TargetDataFactory</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">target_data</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="fu">create</span><span class="op">(</span>source_data <span class="op">=</span> <span class="va">source_data</span>, case_study_config <span class="op">=</span> <span class="va">case_study_config</span>, target_sample_size_per_arm <span class="op">=</span> <span class="va">target_sample_size_per_arm</span>, treatment_drift <span class="op">=</span> <span class="va">drift</span>, summary_measure_likelihood <span class="op">=</span> <span class="va">source_data</span><span class="op">$</span><span class="va">summary_measure_likelihood</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">n_replicates</span> <span class="op">&lt;-</span> <span class="fl">10000</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n_replicates <span class="op">=</span> <span class="va">n_replicates</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">n_replicates</span> <span class="op">&lt;-</span> <span class="fl">2000</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n_replicates <span class="op">=</span> <span class="va">n_replicates</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##   treatment_effect_estimate treatment_effect_standard_error sample_size_per_arm</span></span>
+<span><span class="co">## 1                -0.3517472                       0.1432327                 185</span></span>
+<span><span class="co">## 2                -0.1546573                       0.1438881                 185</span></span>
+<span><span class="co">## 3                -0.2028978                       0.1417119                 185</span></span>
+<span><span class="co">## 4                -0.3259558                       0.1493049                 185</span></span>
+<span><span class="co">## 5                 0.1238848                       0.1392157                 185</span></span>
+<span><span class="co">## 6                -0.0580501                       0.1434024                 185</span></span>
+<span><span class="co">##   standard_deviation</span></span>
+<span><span class="co">## 1           1.948176</span></span>
+<span><span class="co">## 2           1.957089</span></span>
+<span><span class="co">## 3           1.927490</span></span>
+<span><span class="co">## 4           2.030767</span></span>
+<span><span class="co">## 5           1.893538</span></span>
+<span><span class="co">## 6           1.950483</span></span></code></pre>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">target_data</span><span class="op">$</span><span class="fu">plot_sample</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Data_generation_teriflunomide_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="Data_generation_teriflunomide_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="implementation-details">Implementation details<a class="anchor" aria-label="anchor" href="#implementation-details"></a>
 </h4>
-<p>We are interested in the time-to-first relapse. We will assume that
-relapse times follow a Poisson distribution. Therefore, the
-time-to-first relapse follows an exponential distribution, with
-arm-specific rates. The parameters of these exponential distribution
-correspond to the adjusted annualised relapse rates (0.534 in the
-control group and 0.354 in the treatment group).</p>
-<p>Now, we are interested in generating target data with various drift
-values with respect to the treatment effect (measured as the log rate
-ratio) and various control rates at constant treatment effect (the
-so-called control drift).</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Vector to store log rate ratios</span></span>
-<span><span class="va">log_rate_ratios</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="va">n_replicates</span><span class="op">)</span></span>
-<span><span class="va">se_log_rate_ratios</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="va">n_replicates</span><span class="op">)</span></span>
+<p>Under the primary proportional-hazards model the time to first
+relapse is exponential,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>Z</mi><mi>i</mi></msub><mo>=</mo><mi>a</mi><mo>∼</mo><mrow><mi mathvariant="normal">Exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>λ</mi><mi>T</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T_i \mid Z_i = a \sim \operatorname{Exp}(\lambda_T^{(a)})</annotation></semantics></math>.
+Each simulated trial is analysed with a Cox proportional-hazards model
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>h</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>β</mi><mn>𝟙</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">h_i(t) = h_0(t)\exp\{\beta \mathbb{1}(Z_i = t)\}</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>T</mi></msub><mo>=</mo><mover><mi>β</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">\widehat{\theta}_T = \widehat{\beta}</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>σ</mi><mo accent="true">̂</mo></mover><msub><mi>θ</mi><mi>T</mi></msub></msub><mo>=</mo><mrow><mi mathvariant="normal">SE</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mover><mi>β</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\widehat{\sigma}_{\theta_T} = \operatorname{SE}(\widehat{\beta})</annotation></semantics></math>
+are passed to the Bayesian borrowing procedures as in the other case
+studies.</p>
+<p>Fitting one <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code> per replicate would be far
+too slow for the simulation grid, so the package solves the two-sample
+Cox model directly. With a single binary covariate the risk set at an
+event time is described entirely by the numbers still at risk in each
+arm,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>n</mi><mn>0</mn></msub><mo>,</mo><msub><mi>n</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(n_0, n_1)</annotation></semantics></math>,
+so the score and observed information reduce to</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mo stretchy="false" form="prefix">(</mo><mi>β</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>d</mi><mn>1</mn></msub><mo>−</mo><munder><mo>∑</mo><mtext mathvariant="normal">events</mtext></munder><mfrac><mrow><msub><mi>n</mi><mn>1</mn></msub><msup><mi>e</mi><mi>β</mi></msup></mrow><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>+</mo><msub><mi>n</mi><mn>1</mn></msub><msup><mi>e</mi><mi>β</mi></msup></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>β</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mo>∑</mo><mtext mathvariant="normal">events</mtext></munder><mfrac><mrow><msub><mi>n</mi><mn>0</mn></msub><msub><mi>n</mi><mn>1</mn></msub><msup><mi>e</mi><mi>β</mi></msup></mrow><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>n</mi><mn>0</mn></msub><mo>+</mo><msub><mi>n</mi><mn>1</mn></msub><msup><mi>e</mi><mi>β</mi></msup><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">U(\beta) = d_1 - \sum_{\text{events}} \frac{n_1 e^{\beta}}{n_0 + n_1 e^{\beta}},
+\qquad
+I(\beta) = \sum_{\text{events}} \frac{n_0 n_1 e^{\beta}}{(n_0 + n_1 e^{\beta})^2},</annotation></semantics></math></p>
+<p>which a few Newton steps solve for every replicate at once. Event
+times are continuous, so ties have probability zero and this agrees with
+<code>coxph()</code> to machine precision. The patient-level version
+below is what the vectorised code computes:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">simulate_one_trial</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n_per_arm</span>, <span class="va">control_rate</span>, <span class="va">treatment_rate</span>,</span>
+<span>                               <span class="va">L</span>, <span class="va">A</span>, <span class="va">Fu</span>, <span class="va">dropout_rate</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">n_per_arm</span></span>
+<span>  <span class="va">arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, each <span class="op">=</span> <span class="va">n_per_arm</span><span class="op">)</span></span>
+<span>  <span class="va">rate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">arm</span> <span class="op">==</span> <span class="fl">0</span>, <span class="va">control_rate</span>, <span class="va">treatment_rate</span><span class="op">)</span></span>
 <span></span>
-<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">n_replicates</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Sample relapse times for control and treatment groups using an exponential distribution</span></span>
-<span>  <span class="va">control_relapse_times</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n_control_target</span>, rate <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">control_rate</span><span class="op">)</span> <span class="co"># target_data$control_rate is the relapse rate in the control arm</span></span>
+<span>  <span class="va">entry</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="va">A</span><span class="op">)</span></span>
+<span>  <span class="va">administrative</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="va">L</span>, <span class="va">A</span> <span class="op">+</span> <span class="va">Fu</span> <span class="op">-</span> <span class="va">entry</span><span class="op">)</span></span>
+<span>  <span class="va">event_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="va">rate</span><span class="op">)</span></span>
+<span>  <span class="va">dropout</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="va">dropout_rate</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="va">dropout_rate</span><span class="op">)</span> <span class="kw">else</span> <span class="cn">Inf</span></span>
 <span></span>
-<span>  <span class="va">treatment_relapse_times</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n_treatment_target</span>, rate <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">treatment_rate</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Filter out relapse times exceeding max_follow_up_time (right censoring)</span></span>
-<span>  <span class="va">control_event_status</span> <span class="op">&lt;-</span> <span class="va">control_relapse_times</span> <span class="op">&lt;=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">max_follow_up_time</span></span>
-<span>  <span class="va">treatment_event_status</span> <span class="op">&lt;-</span> <span class="va">treatment_relapse_times</span> <span class="op">&lt;=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">max_follow_up_time</span></span>
-<span></span>
-<span>  <span class="va">control_relapse_times_filtered</span> <span class="op">&lt;-</span> <span class="va">control_relapse_times</span><span class="op">[</span><span class="va">control_event_status</span><span class="op">]</span></span>
-<span>  <span class="va">treatment_relapse_times_filtered</span> <span class="op">&lt;-</span> <span class="va">treatment_relapse_times</span><span class="op">[</span><span class="va">treatment_event_status</span><span class="op">]</span></span>
-<span></span>
-<span></span>
-<span>  <span class="va">control_relapse_times</span><span class="op">[</span><span class="op">!</span><span class="va">control_event_status</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="va">max_follow_up_time</span></span>
-<span>  <span class="va">treatment_relapse_times</span><span class="op">[</span><span class="op">!</span><span class="va">treatment_event_status</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="va">max_follow_up_time</span></span>
-<span></span>
-<span>  <span class="va">control_event_status</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">control_event_status</span><span class="op">)</span></span>
-<span>  <span class="va">treatment_event_status</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">treatment_event_status</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Count the number of events</span></span>
-<span>  <span class="va">n_control_events</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">control_relapse_times_filtered</span><span class="op">)</span></span>
-<span>  <span class="va">n_treatment_events</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">treatment_relapse_times_filtered</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Perform survival analysis, assuming an exponential distribution of events times.</span></span>
-<span>  <span class="va">trt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">n_control_target</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n_treatment_target</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>    time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">control_relapse_times</span>, <span class="va">treatment_relapse_times</span><span class="op">)</span>,</span>
-<span>    trt <span class="op">=</span> <span class="va">trt</span>,</span>
-<span>    status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">control_event_status</span>, <span class="va">treatment_event_status</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>    time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="va">event_time</span>, <span class="va">dropout</span>, <span class="va">administrative</span><span class="op">)</span>,</span>
+<span>    status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">event_time</span> <span class="op">&lt;=</span> <span class="va">dropout</span> <span class="op">&amp;</span> <span class="va">event_time</span> <span class="op">&lt;=</span> <span class="va">administrative</span><span class="op">)</span>,</span>
+<span>    arm <span class="op">=</span> <span class="va">arm</span></span>
 <span>  <span class="op">)</span></span>
-<span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/survreg.html" class="external-link">survreg</a></span><span class="op">(</span><span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">trt</span>,</span>
-<span>    dist <span class="op">=</span> <span class="st">"exponential"</span>,</span>
-<span>    data <span class="op">=</span> <span class="va">df</span></span>
-<span>  <span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span>  <span class="va">estimated_rate_control</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">sample_rate_ratio</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">estimated_rate_treatment</span> <span class="op">&lt;-</span> <span class="va">sample_rate_ratio</span> <span class="op">*</span> <span class="va">estimated_rate_control</span></span>
-<span></span>
-<span>  <span class="va">log_rate_ratios</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">sample_rate_ratio</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Calculate the SE of the Log rate ratio</span></span>
-<span>  <span class="va">se_log_rate_ratios</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="va">n_control_events</span> <span class="op">+</span> <span class="fl">1</span> <span class="op">/</span> <span class="va">n_treatment_events</span><span class="op">)</span> <span class="co"># this can be shown using the delta method</span></span>
 <span><span class="op">}</span></span>
-<span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  treatment_effect_estimate <span class="op">=</span> <span class="va">log_rate_ratios</span>,</span>
-<span>  treatment_effect_standard_error <span class="op">=</span> <span class="va">se_log_rate_ratios</span>,</span>
-<span>  sample_size_per_arm <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">sample_size_per_arm</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span></span>
+<span><span class="va">dropout_rate</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log1p</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.05</span><span class="op">)</span> <span class="op">/</span> <span class="va">L</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">trial</span> <span class="op">&lt;-</span> <span class="fu">simulate_one_trial</span><span class="op">(</span></span>
+<span>  n_per_arm <span class="op">=</span> <span class="va">target_sample_size_per_arm</span>,</span>
+<span>  control_rate <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">control_rate</span>,</span>
+<span>  treatment_rate <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">treatment_rate</span>,</span>
+<span>  L <span class="op">=</span> <span class="va">L</span>, A <span class="op">=</span> <span class="va">A</span>, Fu <span class="op">=</span> <span class="va">Fu</span>, dropout_rate <span class="op">=</span> <span class="va">dropout_rate</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">arm</span>, data <span class="op">=</span> <span class="va">trial</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, standard_error <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##       estimate standard_error </span></span>
+<span><span class="co">##     -0.2119895      0.1411929</span></span></code></pre>
+<p>The package reproduces that fit exactly:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">vectorised</span> <span class="op">&lt;-</span> <span class="fu">BExTE</span><span class="fu">:::</span><span class="fu">fit_two_sample_cox</span><span class="op">(</span></span>
+<span>  time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">trial</span><span class="op">$</span><span class="va">time</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">trial</span><span class="op">$</span><span class="va">status</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  arm <span class="op">=</span> <span class="va">trial</span><span class="op">$</span><span class="va">arm</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>estimate <span class="op">=</span> <span class="va">vectorised</span><span class="op">$</span><span class="va">estimate</span>, standard_error <span class="op">=</span> <span class="va">vectorised</span><span class="op">$</span><span class="va">standard_error</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##       estimate standard_error </span></span>
+<span><span class="co">##     -0.2119895      0.1411929</span></span></code></pre>
+<p>Averaged over replicates, the estimates recover
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>T</mi></msub><annotation encoding="application/x-tex">\theta_T</annotation></semantics></math>
+and the reported standard errors match their spread:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>theta_T <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">treatment_effect</span>,</span>
+<span>  mean_estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">treatment_effect_estimate</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  mean_standard_error <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">treatment_effect_standard_error</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  observed_spread <span class="op">=</span> <span class="fu">sd</span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">treatment_effect_estimate</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##             theta_T       mean_estimate mean_standard_error     observed_spread </span></span>
+<span><span class="co">##          -0.1930000          -0.1924182           0.1407653           0.1340475</span></span></code></pre>
 </div>
+</div>
+<div class="section level3">
+<h3 id="weibull-sensitivity-analysis">Weibull sensitivity analysis<a class="anchor" aria-label="anchor" href="#weibull-sensitivity-analysis"></a>
+</h3>
+<p>As a sensitivity analysis, event times are generated from a Weibull
+proportional-hazards model with conditional survival function
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>∣</mo><msub><mi>Z</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mi>/</mi><msub><mi>b</mi><mi>c</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mi>q</mi></msup><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mi>T</mi></msub><msub><mi>Z</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">S(t \mid Z_i) = \exp\{-(t/b_c)^q \exp(\theta_T Z_i)\}</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+is the common shape parameter and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>c</mi></msub><annotation encoding="application/x-tex">b_c</annotation></semantics></math>
+the control-arm scale. This implies a hazard ratio of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mi>T</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\exp(\theta_T)</annotation></semantics></math>.
+We use
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><mn>0.72</mn></mrow><annotation encoding="application/x-tex">q = 0.72</annotation></semantics></math>,
+based on the aggregate TERIKIDS relapse-free probabilities. The control
+scale is calibrated to reproduce the reported 96-week relapse-free
+probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>L</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.442</mn></mrow><annotation encoding="application/x-tex">S_c(L) = 0.442</annotation></semantics></math>,
+giving</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>c</mi></msub><mo>=</mo><mi>L</mi><mi>/</mi><mo stretchy="false" form="prefix">[</mo><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">{</mo><msub><mi>S</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>L</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">}</mo><msup><mo stretchy="false" form="postfix">]</mo><mrow><mn>1</mn><mi>/</mi><mi>q</mi></mrow></msup><mo>=</mo><mn>2.45</mn><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> years</mtext></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">b_c = L / [-\log\{S_c(L)\}]^{1/q} = 2.45 \text{ years},</annotation></semantics></math></p>
+<p>and the treatment-arm scale is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>t</mi></msub><mo>=</mo><msub><mi>b</mi><mi>c</mi></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><msub><mi>θ</mi><mi>T</mi></msub><mi>/</mi><mi>q</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_t = b_c \exp(-\theta_T/q)</annotation></semantics></math>.
+The exponential model is recovered when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">q = 1</annotation></semantics></math>.</p>
+<p>Because
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>κ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\exp(\kappa)</annotation></semantics></math>
+multiplies the control hazard, and multiplying a Weibull hazard by a
+constant divides its scale by that constant raised to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>q</mi></mrow><annotation encoding="application/x-tex">1/q</annotation></semantics></math>,
+control heterogeneity enters as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>κ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mi>c</mi></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi>κ</mi><mi>/</mi><mi>q</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_c(\kappa) = b_c \exp(-\kappa/q)</annotation></semantics></math>.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">weibull_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/TargetDataFactory.html">TargetDataFactory</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">create</span><span class="op">(</span></span>
+<span>  source_data <span class="op">=</span> <span class="va">source_data</span>,</span>
+<span>  case_study_config <span class="op">=</span> <span class="va">case_study_config</span>,</span>
+<span>  target_sample_size_per_arm <span class="op">=</span> <span class="va">target_sample_size_per_arm</span>,</span>
+<span>  control_drift <span class="op">=</span> <span class="va">control_drift</span>,</span>
+<span>  treatment_drift <span class="op">=</span> <span class="va">treatment_drift</span>,</span>
+<span>  summary_measure_likelihood <span class="op">=</span> <span class="va">source_data</span><span class="op">$</span><span class="va">summary_measure_likelihood</span>,</span>
+<span>  dropout_probability <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  event_time_distribution <span class="op">=</span> <span class="st">"weibull"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="va">weibull_data</span><span class="op">$</span><span class="va">weibull_shape</span>,</span>
+<span>  control_scale <span class="op">=</span> <span class="va">weibull_data</span><span class="op">$</span><span class="va">weibull_scale</span>,</span>
+<span>  relapse_free_at_L <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Weibull.html" class="external-link">pweibull</a></span><span class="op">(</span><span class="va">L</span>, <span class="va">weibull_data</span><span class="op">$</span><span class="va">weibull_shape</span>,</span>
+<span>                                   <span class="va">weibull_data</span><span class="op">$</span><span class="va">weibull_scale</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##             shape     control_scale relapse_free_at_L </span></span>
+<span><span class="co">##           0.72000           2.44676           0.44200</span></span></code></pre>
+<p>Note that the two data-generating models are deliberately not nested:
+the exponential arm is calibrated on the source placebo relapse rate,
+the Weibull arm on the aggregate relapse-free probability, so they do
+not coincide at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">weibull_samples</span> <span class="op">&lt;-</span> <span class="va">weibull_data</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n_replicates <span class="op">=</span> <span class="va">n_replicates</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>theta_T <span class="op">=</span> <span class="va">weibull_data</span><span class="op">$</span><span class="va">treatment_effect</span>,</span>
+<span>  mean_estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">weibull_samples</span><span class="op">$</span><span class="va">treatment_effect_estimate</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##       theta_T mean_estimate </span></span>
+<span><span class="co">##    -0.1930000    -0.1876292</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="generation-of-aggregate-data-with-sampling-approximation">Generation of aggregate data with sampling approximation<a class="anchor" aria-label="anchor" href="#generation-of-aggregate-data-with-sampling-approximation"></a>
 </h3>
 <div class="section level4">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a>
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a>
 </h4>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">case_study_config</span><span class="op">$</span><span class="va">sampling_approximation</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
-<span><span class="va">target_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/TargetDataFactory.html">TargetDataFactory</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">target_data</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="fu">create</span><span class="op">(</span>source_data <span class="op">=</span> <span class="va">source_data</span>, case_study_config <span class="op">=</span> <span class="va">case_study_config</span>, target_sample_size_per_arm <span class="op">=</span> <span class="va">target_sample_size_per_arm</span>, treatment_drift <span class="op">=</span> <span class="va">drift</span>, summary_measure_likelihood <span class="op">=</span> <span class="va">source_data</span><span class="op">$</span><span class="va">summary_measure_likelihood</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">approximate_config</span> <span class="op">&lt;-</span> <span class="va">case_study_config</span></span>
+<span><span class="va">approximate_config</span><span class="op">$</span><span class="va">sampling_approximation</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
 <span></span>
-<span><span class="va">n_replicates</span> <span class="op">&lt;-</span> <span class="fl">10000</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">target_data</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n_replicates <span class="op">=</span> <span class="va">n_replicates</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">target_data</span><span class="op">$</span><span class="fu">plot_sample</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Data_generation_teriflunomide_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="700"></p>
+<span><span class="va">approximate_data</span> <span class="op">&lt;-</span> <span class="va"><a href="../../reference/TargetDataFactory.html">TargetDataFactory</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">create</span><span class="op">(</span></span>
+<span>  source_data <span class="op">=</span> <span class="va">source_data</span>,</span>
+<span>  case_study_config <span class="op">=</span> <span class="va">approximate_config</span>,</span>
+<span>  target_sample_size_per_arm <span class="op">=</span> <span class="va">target_sample_size_per_arm</span>,</span>
+<span>  control_drift <span class="op">=</span> <span class="va">control_drift</span>,</span>
+<span>  treatment_drift <span class="op">=</span> <span class="va">treatment_drift</span>,</span>
+<span>  summary_measure_likelihood <span class="op">=</span> <span class="va">source_data</span><span class="op">$</span><span class="va">summary_measure_likelihood</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="va">approximate_data</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n_replicates <span class="op">=</span> <span class="va">n_replicates</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">approximate_data</span><span class="op">$</span><span class="fu">plot_sample</span><span class="op">(</span><span class="va">samples</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Data_generation_teriflunomide_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="implementation-details-1">Implementation details<a class="anchor" aria-label="anchor" href="#implementation-details-1"></a>
 </h4>
 <p>It may be simpler for evaluating the OCs to sample the summary data
 from a normal distribution directly, instead of sampling data using the
-true data-generating process. Below, we compare this approximate
-sampling to the exact sampling approach :</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Sample number of events over the follow-up period in each arm according to a Poisson distributions.</span></span>
-<span><span class="va">n_control_events</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span></span>
-<span>  <span class="va">n_replicates</span>,</span>
-<span>  <span class="va">target_data</span><span class="op">$</span><span class="va">control_rate</span> <span class="op">*</span> <span class="va">target_data</span><span class="op">$</span><span class="va">max_follow_up_time</span> <span class="op">*</span> <span class="va">n_control_target</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">n_treatment_events</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span></span>
-<span>  <span class="va">n_replicates</span>,</span>
-<span>  <span class="va">target_data</span><span class="op">$</span><span class="va">treatment_rate</span> <span class="op">*</span> <span class="va">target_data</span><span class="op">$</span><span class="va">max_follow_up_time</span> <span class="op">*</span> <span class="va">n_treatment_target</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">SE_log_RR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="va">n_control_events</span> <span class="op">+</span> <span class="fl">1</span> <span class="op">/</span> <span class="va">n_treatment_events</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sampling_standard_deviation</span> <span class="op">&lt;-</span> <span class="va">SE_log_RR</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">target_data</span><span class="op">$</span><span class="va">sample_size_per_arm</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/sample_aggregate_normal_data.html">sample_aggregate_normal_data</a></span><span class="op">(</span></span>
-<span>  mean <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">treatment_effect</span>,</span>
-<span>  variance <span class="op">=</span> <span class="va">sampling_standard_deviation</span><span class="op">^</span><span class="fl">2</span>,</span>
-<span>  n_replicates <span class="op">=</span> <span class="va">n_replicates</span>,</span>
-<span>  n_samples_per_arm <span class="op">=</span> <span class="va">target_data</span><span class="op">$</span><span class="va">sample_size_per_arm</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+true data generating process. This branch keeps the simpler follow-up
+model in which every patient is observed for
+<code>max_follow_up_time</code>: it samples the number of events in each
+arm from a Poisson distribution, forms
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">SE</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>R</mi><mi>R</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msqrt><mrow><mn>1</mn><mi>/</mi><msub><mi>e</mi><mi>c</mi></msub><mo>+</mo><mn>1</mn><mi>/</mi><msub><mi>e</mi><mi>t</mi></msub></mrow></msqrt></mrow><annotation encoding="application/x-tex">\operatorname{SE}(\log RR) = \sqrt{1/e_c + 1/e_t}</annotation></semantics></math>,
+and draws the summary measure from a normal distribution. It therefore
+ignores the staggered accrual, the database lock and the loss to
+follow-up, and is not the design described above.</p>
 <p>See <a href="../doc/Data_generation_botox.html">Data_generation_botox</a> for
 details on aggregate normal data generation.</p>
 </div>

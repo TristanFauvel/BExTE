@@ -47,7 +47,16 @@ A base class for target data objects.
 
 - `standard_deviation`:
 
-  The target standard deviation value.
+  The true sampling standard deviation of the summary measure for one
+  patient per arm, i.e. the data-generating value: the true standard
+  error of the treatment-effect estimate is
+  `standard_deviation / sqrt(sample_size_per_arm)`. It belongs to the
+  scenario, not to a replicate. A replicate's estimate of it is
+  `sample$standard_deviation` (see
+  [`sample_aggregate_normal_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sample_aggregate_normal_data.md)),
+  which is what the analysis methods use; the true value is only used to
+  generate data and for design-stage quantities such as the analytical
+  power and the KL-NPP calibration.
 
 - `sample`:
 

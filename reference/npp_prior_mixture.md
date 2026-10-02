@@ -31,7 +31,7 @@ npp_prior_mixture(model, n_nodes = 60L)
 
 - model:
 
-  A `Gaussian_NPP` object.
+  A `GaussianNPP` object.
 
 - n_nodes:
 

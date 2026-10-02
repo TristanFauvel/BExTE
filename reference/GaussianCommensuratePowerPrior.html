@@ -59,6 +59,14 @@
 <dd><p>Heterogeneity prior family (half_normal, inverse_gamma)</p></dd>
 
 
+    <dt><code>borrows_power_parameter</code></dt>
+<dd><p>Whether the model samples a power parameter</p></dd>
+
+
+    <dt><code>stan_model_prefix</code></dt>
+<dd><p>Prefix of the compiled Stan model's name</p></dd>
+
+
     <dt><code>summary_variables</code></dt>
 <dd><p>Variables to summarise from the posterior draws</p></dd>
 
@@ -74,16 +82,19 @@
 <li><p><a href="#method-GaussianCommensuratePowerPrior-prepare_data"><code>GaussianCommensuratePowerPrior$prepare_data()</code></a></p></li>
 <li><p><a href="#method-GaussianCommensuratePowerPrior-vectorised_replicate_inference"><code>GaussianCommensuratePowerPrior$vectorised_replicate_inference()</code></a></p></li>
 <li><p><a href="#method-GaussianCommensuratePowerPrior-compute_posterior_parameters"><code>GaussianCommensuratePowerPrior$compute_posterior_parameters()</code></a></p></li>
+<li><p><a href="#method-GaussianCommensuratePowerPrior-tau_posterior_moments"><code>GaussianCommensuratePowerPrior$tau_posterior_moments()</code></a></p></li>
 <li><p><a href="#method-GaussianCommensuratePowerPrior-sample_prior"><code>GaussianCommensuratePowerPrior$sample_prior()</code></a></p></li>
 <li><p><a href="#method-GaussianCommensuratePowerPrior-joint_prior_pdf"><code>GaussianCommensuratePowerPrior$joint_prior_pdf()</code></a></p></li>
-<li><p><a href="#method-GaussianCommensuratePowerPrior-unnormalized_prior_pdf"><code>GaussianCommensuratePowerPrior$unnormalized_prior_pdf()</code></a></p></li>
 <li><p><a href="#method-GaussianCommensuratePowerPrior-prior_pdf"><code>GaussianCommensuratePowerPrior$prior_pdf()</code></a></p></li>
+<li><p><a href="#method-GaussianCommensuratePowerPrior-prior_cdf"><code>GaussianCommensuratePowerPrior$prior_cdf()</code></a></p></li>
 <li><p><a href="#method-GaussianCommensuratePowerPrior-clone"><code>GaussianCommensuratePowerPrior$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href="Model.html#method-check_data"><code>Model$check_data()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="calibrate_for_design"><a href="Model.html#method-calibrate_for_design"><code>Model$calibrate_for_design()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href="Model.html#method-check_data"><code>Model$check_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href="Model.html#method-create"><code>Model$create()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="empirical_bayes_update"><a href="Model.html#method-empirical_bayes_update"><code>Model$empirical_bayes_update()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href="Model.html#method-estimate_bayesian_operating_characteristics"><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href="Model.html#method-estimate_frequentist_operating_characteristics"><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="hypothesis_space_transformation"><a href="Model.html#method-hypothesis_space_transformation"><code>Model$hypothesis_space_transformation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href="Model.html#method-inference_cache_scope"><code>Model$inference_cache_scope()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href="Model.html#method-plot_pdfs"><code>Model$plot_pdfs()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href="Model.html#method-plot_posterior_pdf"><code>Model$plot_posterior_pdf()</code></a></span></li>
@@ -93,6 +104,7 @@
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href="Model.html#method-posterior_moments"><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href="Model.html#method-posterior_quantile"><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href="Model.html#method-posterior_to_RBesT"><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href="Model.html#method-print_model_summary"><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href="Model.html#method-prior_ESS"><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href="Model.html#method-prior_elir_ess"><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href="Model.html#method-prior_to_RBesT"><code>Model$prior_to_RBesT()</code></a></span></li>
@@ -107,8 +119,12 @@
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_ess"><a href="MCMCModel.html#method-posterior_ess"><code>MCMCModel$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_median"><a href="MCMCModel.html#method-posterior_median"><code>MCMCModel$posterior_median()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_pdf"><a href="MCMCModel.html#method-posterior_pdf"><code>MCMCModel$posterior_pdf()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_cdf"><a href="MCMCModel.html#method-prior_cdf"><code>MCMCModel$prior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_posterior"><a href="MCMCModel.html#method-quadrature_posterior"><code>MCMCModel$quadrature_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href="MCMCModel.html#method-quadrature_prior"><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href="MCMCModel.html#method-sample_posterior"><code>MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href="MCMCModel.html#method-stan_sampler"><code>MCMCModel$stan_sampler()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="summary_rows"><a href="MCMCModel.html#method-summary_rows"><code>MCMCModel$summary_rows()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href="MCMCModel.html#method-uses_quadrature"><code>MCMCModel$uses_quadrature()</code></a></span></li>
 </ul></details></p><hr><a id="method-GaussianCommensuratePowerPrior-initialize"></a><div class="section">
 <h3 id="gaussiancommensuratepowerprior-new-"><code>GaussianCommensuratePowerPrior$new()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-new-"></a></h3>
 <p>Initialize the GaussianCommensuratePowerPrior object</p><div class="section">
@@ -198,10 +214,24 @@ analyses.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-GaussianCommensuratePowerPrior-tau_posterior_moments"></a><div class="section">
+<h3 id="gaussiancommensuratepowerprior-tau-posterior-moments-"><code>GaussianCommensuratePowerPrior$tau_posterior_moments()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-tau-posterior-moments-"></a></h3>
+<p>Posterior mean and standard deviation of tau from the Stan
+draws, reported as <code>Inf</code> where the moment does not exist, exactly as
+the quadrature path reports them. A sample mean of such a moment would
+be finite and run-dependent, or <code>Inf</code> and <code>NaN</code> once a draw overflows.</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianCommensuratePowerPrior</span><span class="op">$</span><span class="fu">tau_posterior_moments</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-GaussianCommensuratePowerPrior-sample_prior"></a><div class="section">
 <h3 id="gaussiancommensuratepowerprior-sample-prior-"><code>GaussianCommensuratePowerPrior$sample_prior()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-sample-prior-"></a></h3>
-<p>Draw samples from the prior distribution. Based on equation 8 in Hobbs et al (2011).</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p>Draw samples from the prior distribution. Based on
+equation (8) in Hobbs et al (2011); the plain commensurate prior shares
+it, with the power parameter at one.</p><div class="section">
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianCommensuratePowerPrior</span><span class="op">$</span><span class="fu">sample_prior</span><span class="op">(</span><span class="va">n_samples</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
@@ -217,7 +247,7 @@ analyses.</p><div class="section">
 <p></p><hr><a id="method-GaussianCommensuratePowerPrior-joint_prior_pdf"></a><div class="section">
 <h3 id="gaussiancommensuratepowerprior-joint-prior-pdf-"><code>GaussianCommensuratePowerPrior$joint_prior_pdf()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-joint-prior-pdf-"></a></h3>
 <p>Joint prior p.d.f. Based on equation (8) in Hobbs et al (2011).</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianCommensuratePowerPrior</span><span class="op">$</span><span class="fu">joint_prior_pdf</span><span class="op">(</span><span class="va">treatment_effect</span>, <span class="va">gamma</span>, <span class="va">tau</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
@@ -236,11 +266,15 @@ analyses.</p><div class="section">
 
 </div>
 
-<p></p><hr><a id="method-GaussianCommensuratePowerPrior-unnormalized_prior_pdf"></a><div class="section">
-<h3 id="gaussiancommensuratepowerprior-unnormalized-prior-pdf-"><code>GaussianCommensuratePowerPrior$unnormalized_prior_pdf()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-unnormalized-prior-pdf-"></a></h3>
-<p>Integrate out gamma and tau to get the marginal PDF for treatment_effect</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianCommensuratePowerPrior</span><span class="op">$</span><span class="fu">unnormalized_prior_pdf</span><span class="op">(</span><span class="va">treatment_effect</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><hr><a id="method-GaussianCommensuratePowerPrior-prior_pdf"></a><div class="section">
+<h3 id="gaussiancommensuratepowerprior-prior-pdf-"><code>GaussianCommensuratePowerPrior$prior_pdf()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-prior-pdf-"></a></h3>
+<p>Prior p.d.f. of the treatment effect: the quadrature
+mixture the simulations use, which covers the whole prior. Integrating
+tau numerically over a finite window instead would drop most of the
+heavy-tailed priors: 0.001, 100 keeps 0.9% of inverse_gamma(1/1000, 1)
+and 12% of a Cauchy(0, 30) on log(tau).</p><div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianCommensuratePowerPrior</span><span class="op">$</span><span class="fu">prior_pdf</span><span class="op">(</span><span class="va">treatment_effect</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>treatment_effect</code></dt>
@@ -252,15 +286,21 @@ analyses.</p><div class="section">
 
 </div>
 
-<p></p><hr><a id="method-GaussianCommensuratePowerPrior-prior_pdf"></a><div class="section">
-<h3 id="gaussiancommensuratepowerprior-prior-pdf-"><code>GaussianCommensuratePowerPrior$prior_pdf()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-prior-pdf-"></a></h3>
-<p>Prior p.d.f. of the treatment effect</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianCommensuratePowerPrior</span><span class="op">$</span><span class="fu">prior_pdf</span><span class="op">(</span><span class="va">treatment_effect</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><hr><a id="method-GaussianCommensuratePowerPrior-prior_cdf"></a><div class="section">
+<h3 id="gaussiancommensuratepowerprior-prior-cdf-"><code>GaussianCommensuratePowerPrior$prior_cdf()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-prior-cdf-"></a></h3>
+<p>Prior c.d.f. of the treatment effect, from the same mixture
+as <code>prior_pdf()</code>. Without it the MCMC parent would take the empirical
+c.d.f. of prior draws.</p><div class="section">
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianCommensuratePowerPrior</span><span class="op">$</span><span class="fu">prior_cdf</span><span class="op">(</span><span class="va">treatment_effect</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>treatment_effect</code></dt>
 <dd><p>Treatment effect</p></dd>
+
+      <dt><code>...</code></dt>
+<dd><p>Unused; accepted for compatibility with the parent's
+sample-size argument.</p></dd>
 
 
 </dl><p></p></div>
@@ -271,7 +311,7 @@ analyses.</p><div class="section">
 <p></p><hr><a id="method-GaussianCommensuratePowerPrior-clone"></a><div class="section">
 <h3 id="gaussiancommensuratepowerprior-clone-"><code>GaussianCommensuratePowerPrior$clone()</code><a class="anchor" aria-label="anchor" href="#gaussiancommensuratepowerprior-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GaussianCommensuratePowerPrior</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>

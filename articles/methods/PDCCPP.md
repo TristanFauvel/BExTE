@@ -22,7 +22,7 @@ set.seed(42)
 config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
-config_path <- system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
+config_path <- system.file("conf/case_studies/belimumab.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 ```
 
@@ -41,31 +41,31 @@ print(source_data$to_dict())
 ```
 
     ## $source_treatment_effect_estimate
-    ## [1] 0.1315456
+    ## [1] 0.480132
     ## 
     ## $source_standard_error
-    ## [1] 0.04068993
+    ## [1] 0.1207175
     ## 
     ## $endpoint
     ## [1] "binary"
     ## 
     ## $summary_measure_likelihood
-    ## [1] "binomial"
+    ## [1] "normal"
     ## 
     ## $source_sample_size_control
-    ## [1] 293
+    ## [1] 562
     ## 
     ## $source_sample_size_treatment
-    ## [1] 280
+    ## [1] 563
     ## 
     ## $equivalent_source_sample_size_per_arm
-    ## [1] 286.3525
+    ## [1] 562.4996
     ## 
     ## $source_control_rate
-    ## [1] 0.5255973
+    ## [1] 0.3879004
     ## 
     ## $source_treatment_rate
-    ## [1] 0.6571429
+    ## [1] 0.5062167
 
 Set the observed target data (in the paediatrics population)
 
@@ -135,43 +135,29 @@ model$inference(target_data = target_data)
 
     ## [1] "Success"
 
-This inference steps set the following attributes which, taken together,
-specify the posterior distribution.
+This inference step sets the power parameter $`\gamma`$, which is the
+only parameter the PDCCPP estimates, and the moments of the posterior:
 
 ``` r
 
-print(model$wpost) # Posterior weight
+print(model$posterior_parameters$power_parameter) # Power parameter
 ```
 
-    ## NULL
+    ## [1] 0.0008223686
 
 ``` r
 
-print(model$vague_posterior_mean)
+print(model$post_mean) # Posterior mean
 ```
 
-    ## NULL
+    ## [1] 0.3722536
 
 ``` r
 
-print(model$vague_posterior_variance)
+print(model$post_var) # Posterior variance
 ```
 
-    ## NULL
-
-``` r
-
-print(model$info_posterior_mean)
-```
-
-    ## NULL
-
-``` r
-
-print(model$info_posterior_variance)
-```
-
-    ## NULL
+    ## [1] 0.1781825
 
 Now, let us see how this is implemented:
 
@@ -194,19 +180,10 @@ read_function_code(model$inference)
     ##     return(super$inference(target_data))
     ## }
 
-The first step in inference is to update the prior based on target_data
-if needed, in case where the method uses empirical Bayes. With empirical
-Bayes, some parameters of the prior are set based on observed target
-data. The second step is to compute the moments of the treatment effect
-posterior distribution. Note that we use the same inference function for
-all methods/scenarios combinations that do not require MCMC (in which
-case we need samples from the posterior and not only the parameters of
-the posterior).
-
-In the study protocol, we specified that the variance of the vague
-component of the RMP should be such that this prior corresponds to the
-information provided by a single subject per arm in the target study.
-This is a form of empirical Bayes:
+The first step updates the prior based on the target data. For the
+PDCCPP this is where the power parameter is chosen: it is a function of
+the observed target estimate, which makes the PDCCPP an empirical Bayes
+method.
 
 ``` r
 
@@ -254,17 +231,150 @@ read_function_code(model$empirical_bayes_update)
     ##     }
     ## }
 
-The posterior is given by :
+The power parameter is set by the calibration of Nikolakopoulos et
+al. (2018): it borrows as much as possible while keeping the type I
+error of the resulting test at `desired_tie`.
 
-``` math
-p(\theta_T | \boldsymbol{y}_S, \boldsymbol{y}_T) = \widetilde{w}\mathcal{N}\left(\theta_T \bigg| \frac{\mu_v}{N_T\frac{\sigma^2_v}{\sigma^2_T} + 1} + \frac{\overline{y}_T}{\frac{\sigma^2_T}{N_T\sigma_v^2} + 1}, \left(\sigma_v^{-2} + \frac{N_T}{\sigma^2_T} \right)^{-1}\right) + (1- \widetilde{w})\mathcal{N}\left(\theta_T \bigg| \frac{\overline{y}_S}{N_T\frac{\nu^2_S}{\sigma^2_T} + 1} + \frac{\overline{y}_T}{\frac{\sigma^2_T}{N_T\nu_S^2} + 1}, \left(\nu_S^{-2} + \frac{N_T}{\sigma^2_T} \right)^{-1}\right),
+``` r
+
+read_function_code(model$power_parameter_estimation)
 ```
 
-where $`\mathcal{N}(\theta_T | \mu, \sigma^2)`$ denotes the probability
-density function of a normal distribution with mean $`\mu`$ and variance
-$`\sigma^2`$, evaluated at $`\theta_T`$.
+    ## $ <- function (target_data) 
+    ## {
+    ##     transformed_treatment_effects <- self$hypothesis_space_transformation(target_data$sample$treatment_effect_estimate)
+    ##     source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
+    ##     target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
+    ##     target_data_sampling_variance <- target_data$sample$treatment_effect_standard_error^2 * 
+    ##         target_data$sample_size_per_arm
+    ##     calibration_parameter <- self$calibration_parameter(target_data_sampling_variance = target_data_sampling_variance, 
+    ##         target_sample_size_per_arm = target_data$sample_size_per_arm, 
+    ##         source_treatment_effect_estimate = source_treatment_effect_estimate)
+    ##     assert_single_number(calibration_parameter)
+    ##     power_parameter <- self$power_parameter_from_calibration(target_treatment_effect_estimate = target_treatment_effect_estimate, 
+    ##         source_treatment_effect_estimate = source_treatment_effect_estimate, 
+    ##         target_data_sampling_variance = target_data_sampling_variance, 
+    ##         target_sample_size_per_arm = target_data$sample_size_per_arm, 
+    ##         calibration_parameter = calibration_parameter)
+    ##     if (is.null(power_parameter) || is.na(power_parameter)) {
+    ##         stop("Variable is NULL or NA. Execution stopped.")
+    ##     }
+    ##     return(power_parameter)
+    ## } model <- function (target_data) 
+    ## {
+    ##     transformed_treatment_effects <- self$hypothesis_space_transformation(target_data$sample$treatment_effect_estimate)
+    ##     source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
+    ##     target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
+    ##     target_data_sampling_variance <- target_data$sample$treatment_effect_standard_error^2 * 
+    ##         target_data$sample_size_per_arm
+    ##     calibration_parameter <- self$calibration_parameter(target_data_sampling_variance = target_data_sampling_variance, 
+    ##         target_sample_size_per_arm = target_data$sample_size_per_arm, 
+    ##         source_treatment_effect_estimate = source_treatment_effect_estimate)
+    ##     assert_single_number(calibration_parameter)
+    ##     power_parameter <- self$power_parameter_from_calibration(target_treatment_effect_estimate = target_treatment_effect_estimate, 
+    ##         source_treatment_effect_estimate = source_treatment_effect_estimate, 
+    ##         target_data_sampling_variance = target_data_sampling_variance, 
+    ##         target_sample_size_per_arm = target_data$sample_size_per_arm, 
+    ##         calibration_parameter = calibration_parameter)
+    ##     if (is.null(power_parameter) || is.na(power_parameter)) {
+    ##         stop("Variable is NULL or NA. Execution stopped.")
+    ##     }
+    ##     return(power_parameter)
+    ## } power_parameter_estimation <- function (target_data) 
+    ## {
+    ##     transformed_treatment_effects <- self$hypothesis_space_transformation(target_data$sample$treatment_effect_estimate)
+    ##     source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
+    ##     target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
+    ##     target_data_sampling_variance <- target_data$sample$treatment_effect_standard_error^2 * 
+    ##         target_data$sample_size_per_arm
+    ##     calibration_parameter <- self$calibration_parameter(target_data_sampling_variance = target_data_sampling_variance, 
+    ##         target_sample_size_per_arm = target_data$sample_size_per_arm, 
+    ##         source_treatment_effect_estimate = source_treatment_effect_estimate)
+    ##     assert_single_number(calibration_parameter)
+    ##     power_parameter <- self$power_parameter_from_calibration(target_treatment_effect_estimate = target_treatment_effect_estimate, 
+    ##         source_treatment_effect_estimate = source_treatment_effect_estimate, 
+    ##         target_data_sampling_variance = target_data_sampling_variance, 
+    ##         target_sample_size_per_arm = target_data$sample_size_per_arm, 
+    ##         calibration_parameter = calibration_parameter)
+    ##     if (is.null(power_parameter) || is.na(power_parameter)) {
+    ##         stop("Variable is NULL or NA. Execution stopped.")
+    ##     }
+    ##     return(power_parameter)
+    ## }
 
-The code to compute the posterior moments is the following :
+``` r
+
+read_function_code(model$power_parameter_from_calibration)
+```
+
+    ## $ <- function (target_treatment_effect_estimate, source_treatment_effect_estimate, 
+    ##     target_data_sampling_variance, target_sample_size_per_arm, 
+    ##     calibration_parameter) 
+    ## {
+    ##     n0 <- self$prior$source$equivalent_source_sample_size_per_arm * 
+    ##         target_data_sampling_variance/(self$prior$source$equivalent_source_sample_size_per_arm * 
+    ##         self$prior$source$standard_error^2)
+    ##     standard_deviation_predictive <- sqrt(target_data_sampling_variance/n0 + 
+    ##         target_data_sampling_variance/target_sample_size_per_arm)
+    ##     ifelse(((target_treatment_effect_estimate > (source_treatment_effect_estimate + 
+    ##         standard_deviation_predictive * calibration_parameter))) | 
+    ##         ((target_treatment_effect_estimate < (source_treatment_effect_estimate - 
+    ##             standard_deviation_predictive * calibration_parameter))), 
+    ##         ((target_data_sampling_variance/n0)/(((target_treatment_effect_estimate - 
+    ##             source_treatment_effect_estimate)/calibration_parameter)^2 - 
+    ##             target_data_sampling_variance/target_sample_size_per_arm)), 
+    ##         1)
+    ## } model <- function (target_treatment_effect_estimate, source_treatment_effect_estimate, 
+    ##     target_data_sampling_variance, target_sample_size_per_arm, 
+    ##     calibration_parameter) 
+    ## {
+    ##     n0 <- self$prior$source$equivalent_source_sample_size_per_arm * 
+    ##         target_data_sampling_variance/(self$prior$source$equivalent_source_sample_size_per_arm * 
+    ##         self$prior$source$standard_error^2)
+    ##     standard_deviation_predictive <- sqrt(target_data_sampling_variance/n0 + 
+    ##         target_data_sampling_variance/target_sample_size_per_arm)
+    ##     ifelse(((target_treatment_effect_estimate > (source_treatment_effect_estimate + 
+    ##         standard_deviation_predictive * calibration_parameter))) | 
+    ##         ((target_treatment_effect_estimate < (source_treatment_effect_estimate - 
+    ##             standard_deviation_predictive * calibration_parameter))), 
+    ##         ((target_data_sampling_variance/n0)/(((target_treatment_effect_estimate - 
+    ##             source_treatment_effect_estimate)/calibration_parameter)^2 - 
+    ##             target_data_sampling_variance/target_sample_size_per_arm)), 
+    ##         1)
+    ## } power_parameter_from_calibration <- function (target_treatment_effect_estimate, source_treatment_effect_estimate, 
+    ##     target_data_sampling_variance, target_sample_size_per_arm, 
+    ##     calibration_parameter) 
+    ## {
+    ##     n0 <- self$prior$source$equivalent_source_sample_size_per_arm * 
+    ##         target_data_sampling_variance/(self$prior$source$equivalent_source_sample_size_per_arm * 
+    ##         self$prior$source$standard_error^2)
+    ##     standard_deviation_predictive <- sqrt(target_data_sampling_variance/n0 + 
+    ##         target_data_sampling_variance/target_sample_size_per_arm)
+    ##     ifelse(((target_treatment_effect_estimate > (source_treatment_effect_estimate + 
+    ##         standard_deviation_predictive * calibration_parameter))) | 
+    ##         ((target_treatment_effect_estimate < (source_treatment_effect_estimate - 
+    ##             standard_deviation_predictive * calibration_parameter))), 
+    ##         ((target_data_sampling_variance/n0)/(((target_treatment_effect_estimate - 
+    ##             source_treatment_effect_estimate)/calibration_parameter)^2 - 
+    ##             target_data_sampling_variance/target_sample_size_per_arm)), 
+    ##         1)
+    ## }
+
+Given $`\gamma`$, the prior is the source posterior raised to the power
+$`\gamma`$, $`\mathcal{N}\left(\overline{y}_S, \nu_S^2/\gamma\right)`$,
+where $`\nu_S`$ is the standard error of the source estimate. With a
+normal likelihood of known variance for the target estimate,
+$`\mathcal{N}\left(\overline{y}_T, \nu_T^2\right)`$, the posterior is
+normal:
+
+``` math
+p(\theta_T \mid \boldsymbol{y}_S, \boldsymbol{y}_T) =
+\mathcal{N}\left(\theta_T \,\middle|\,
+\frac{\gamma\,\overline{y}_S/\nu_S^2 + \overline{y}_T/\nu_T^2}{\gamma/\nu_S^2 + 1/\nu_T^2},
+\left(\gamma/\nu_S^2 + 1/\nu_T^2\right)^{-1}\right).
+```
+
+The code to compute the posterior moments is the following:
 
 ``` r
 
@@ -285,7 +395,7 @@ read_function_code(model$posterior_moments)
     ##     self$post_var <- self$posterior_variance(target_data)
     ## }
 
-With :
+With:
 
 ``` r
 
@@ -297,25 +407,25 @@ read_function_code(model$posterior_mean)
     ##     post_mean <- (self$prior_mean/(self$prior_var/target_data$sample$treatment_effect_standard_error^2 + 
     ##         1)) + (target_data$sample$treatment_effect_estimate/(1 + 
     ##         target_data$sample$treatment_effect_standard_error^2/self$prior_var))
-    ##     assertions::assert_number(post_mean)
+    ##     assert_single_number(post_mean)
     ##     return(post_mean)
     ## } model <- function (target_data) 
     ## {
     ##     post_mean <- (self$prior_mean/(self$prior_var/target_data$sample$treatment_effect_standard_error^2 + 
     ##         1)) + (target_data$sample$treatment_effect_estimate/(1 + 
     ##         target_data$sample$treatment_effect_standard_error^2/self$prior_var))
-    ##     assertions::assert_number(post_mean)
+    ##     assert_single_number(post_mean)
     ##     return(post_mean)
     ## } posterior_mean <- function (target_data) 
     ## {
     ##     post_mean <- (self$prior_mean/(self$prior_var/target_data$sample$treatment_effect_standard_error^2 + 
     ##         1)) + (target_data$sample$treatment_effect_estimate/(1 + 
     ##         target_data$sample$treatment_effect_standard_error^2/self$prior_var))
-    ##     assertions::assert_number(post_mean)
+    ##     assert_single_number(post_mean)
     ##     return(post_mean)
     ## }
 
-and :
+and:
 
 ``` r
 
@@ -333,34 +443,7 @@ read_function_code(model$posterior_variance)
     ##     return(1/(1/self$prior_var + 1/target_data$sample$treatment_effect_standard_error^2))
     ## }
 
-The variance of a mixture of two distributions is given by :
-
-``` r
-
-read_function_code(model$mixture_variance)
-```
-
-    ## $ <- NULL model <- NULL mixture_variance <- NULL
-
-A crucial aspect of this inference step is the computation of the
-posterior mixture weights:
-
-The posterior weight of the vague component $`\widetilde{w}`$ is given
-by:
-
-``` math
-    \tilde{w} = \frac{wC_v}{wC_v + (1-w)C_S}
-```
-Where $`C_v`$ and $`C_S`$ are proportional to the marginal likelihood
-(or prior predictive probability) of the aggregate data for each
-Gaussian component:
-``` math
-C_v =  \frac{1}{\sqrt{\sigma_v^2 + \sigma^2_T/N_T}}\exp\left(-\frac{1}{2}\frac{(\overline{y}_T - \mu_v)^2}{\sqrt{\sigma_v^2 + \sigma^2_T/N_T}}\right)
-```
-and :
-``` math
-C_S =  \frac{1}{\sqrt{\nu_S^2 + \sigma^2_T/N_T}}\exp\left(-\frac{1}{2}\frac{(\overline{y}_T - \overline{y}_S)^2}{\sqrt{\nu_S^2 + \sigma^2_T/N_T}}\right)
-```
+The posterior pdf and cdf are those of this normal distribution:
 
 ``` r
 
@@ -420,13 +503,13 @@ ggplot2::ggplot(df, ggplot2::aes(x = x)) +
   scale_color_manual(values = c("blue", "red")) +
   guides(color = guide_legend(title = NULL)) +
   scale_fill_manual(
-    name = "PDF of the robust mixture of Gaussians",
+    name = NULL,
     labels = c("Prior pdf", "Posterior pdf"),
     values = c("blue", "red")
   )
 ```
 
-![](PDCCPP_files/figure-html/unnamed-chunk-15-1.png)
+![](PDCCPP_files/figure-html/unnamed-chunk-16-1.png)
 
 Being able to sample from the posterior is crucial for estimating
 quantiles, we use the following:.
@@ -455,4 +538,4 @@ samples <- model$sample_posterior(10000)
 hist(samples, breaks = 60, col = "skyblue", main = "Samples from the posterior distribution of the treatment effect", xlab = "Treatment effect", ylab = "Number of samples")
 ```
 
-![](PDCCPP_files/figure-html/unnamed-chunk-17-1.png)
+![](PDCCPP_files/figure-html/unnamed-chunk-18-1.png)
