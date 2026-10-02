@@ -63,6 +63,7 @@ replicate's sample alone.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -91,6 +92,7 @@ replicate's sample alone.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="components"><a href='../../BExTE/html/BinomialRMP.html#method-BinomialRMP-components'><code>BinomialRMP$components()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="kernel_key"><a href='../../BExTE/html/BinomialRMP.html#method-BinomialRMP-kernel_key'><code>BinomialRMP$kernel_key()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="kernels"><a href='../../BExTE/html/BinomialRMP.html#method-BinomialRMP-kernels'><code>BinomialRMP$kernels()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="summary_rows"><a href='../../BExTE/html/BinomialRMP.html#method-BinomialRMP-summary_rows'><code>BinomialRMP$summary_rows()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

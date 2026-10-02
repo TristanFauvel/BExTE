@@ -1836,9 +1836,78 @@ Model <- R6::R6Class(
           values = c("red")
         )
       return(plt)
+    },
+
+    #' @description
+    #' Rows of the model summary
+    #'
+    #' The rows shared by every model: the method name and the moments of the
+    #' prior and of the posterior, then each method-specific entry of
+    #' `posterior_parameters`. A quantity the model has not set, because
+    #' inference has not run or the method does not compute it, gets no row.
+    #' Subclasses add their own parameters by extending
+    #' `super$summary_rows()`.
+    #'
+    #' @return A data frame with columns `Attribute` and `Value`, the values
+    #'   formatted as character.
+    summary_rows = function() {
+      parameter_rows <- lapply(names(self$posterior_parameters), function(name) {
+        summary_row(
+          paste("Posterior", gsub("_", " ", name)),
+          self$posterior_parameters[[name]]
+        )
+      })
+      do.call(rbind, c(
+        list(
+          summary_row("Method", self$method),
+          summary_row("Prior Mean", self$prior_mean),
+          summary_row("Prior Variance", self$prior_var),
+          summary_row("Posterior Mean", self$post_mean),
+          summary_row("Posterior Variance", self$post_var),
+          summary_row("Posterior Median", self$post_median),
+          empty_summary_rows()
+        ),
+        parameter_rows
+      ))
+    },
+
+    #' @description
+    #' Print a summary of the model attributes
+    #'
+    #' Prints the table returned by `summary_rows()`, numeric values formatted
+    #' to 6 decimal places.
+    #'
+    #' @return The summary data frame, invisibly.
+    print_model_summary = function() {
+      summary <- self$summary_rows()
+      print(summary, row.names = FALSE)
+      invisible(summary)
     }
   )
 )
+
+#' One row of a model summary
+#'
+#' @param attribute Label of the row.
+#' @param value A single value. `NULL`, or anything that is not a single value,
+#'   such as a per-replicate vector, gives no row.
+#' @return A one-row data frame, or an empty one.
+#' @keywords internal
+#' @noRd
+summary_row <- function(attribute, value) {
+  if (length(value) != 1) {
+    return(empty_summary_rows())
+  }
+  value <- unname(value)
+  if (is.numeric(value)) {
+    value <- format(value, digits = 6, nsmall = 6)
+  }
+  data.frame(Attribute = attribute, Value = as.character(value))
+}
+
+empty_summary_rows <- function() {
+  data.frame(Attribute = character(0), Value = character(0))
+}
 
 
 #' ConjugateGaussian class
@@ -2107,6 +2176,16 @@ StaticBorrowingGaussian <- R6::R6Class(
       } else {
         self$prior_var <- 1000 # Vague prior
       }
+    },
+
+    #' @description
+    #' Rows of the model summary, with the power parameter
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rbind(
+        super$summary_rows(),
+        summary_row("Power Parameter", self$power_parameter)
+      )
     },
 
     #' @description Prior variance for each replicate
@@ -2642,6 +2721,25 @@ MCMCModel <- R6::R6Class(
         stop("engine must be either \"quadrature\" or \"stan\", but it is ",
              format(mcmc_config$engine), ".", call. = FALSE)
       }
+    },
+
+    #' @description
+    #' Rows of the model summary, with the MCMC diagnostics of the last fit
+    #'
+    #' The diagnostics are left out when the posterior is computed by
+    #' quadrature.
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rows <- super$summary_rows()
+      if (self$uses_quadrature()) {
+        return(rows)
+      }
+      rbind(
+        rows,
+        summary_row("MCMC ESS", self$mcmc_ess),
+        summary_row("R-hat", self$rhat),
+        summary_row("Divergences", self$n_divergences)
+      )
     },
 
     #' @description Prepare the data for inference.

@@ -40,6 +40,7 @@ It inherits from the Model class.
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
+    \item \href{#method-Gaussian_NPP-summary_rows}{\code{Gaussian_NPP$summary_rows()}}
     \item \href{#method-Gaussian_NPP-initialize}{\code{Gaussian_NPP$new()}}
     \item \href{#method-Gaussian_NPP-unnormalized_posterior_power_parameter_pdf}{\code{Gaussian_NPP$unnormalized_posterior_power_parameter_pdf()}}
     \item \href{#method-Gaussian_NPP-power_parameter_posterior_pdf}{\code{Gaussian_NPP$power_parameter_posterior_pdf()}}
@@ -76,6 +77,7 @@ It inherits from the Model class.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_cdf"><a href='../../BExTE/html/Model.html#method-Model-prior_cdf'><code>Model$prior_cdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
@@ -85,6 +87,21 @@ It inherits from the Model class.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
 </ul>
 </details>}}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Gaussian_NPP-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-Gaussian_NPP-summary_rows}{}}}
+\subsection{\code{Gaussian_NPP$summary_rows()}}{
+  Rows of the model summary, with the prior on the power parameter
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Gaussian_NPP$summary_rows()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with columns \code{Attribute} and \code{Value}.
+  }
+}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Gaussian_NPP-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-Gaussian_NPP-initialize}{}}}

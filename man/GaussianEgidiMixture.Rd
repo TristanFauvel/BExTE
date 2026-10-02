@@ -81,6 +81,7 @@ quantile, which for this method is the selected weight.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -98,8 +99,8 @@ quantile, which for this method is the selected weight.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="sample_prior"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-sample_prior'><code>Model_RBesT$sample_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-vectorised_replicate_inference'><code>Model_RBesT$vectorised_replicate_inference()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianRMP_RBesT" data-id="posterior_to_RBesT"><a href='../../BExTE/html/GaussianRMP_RBesT.html#method-GaussianRMP_RBesT-posterior_to_RBesT'><code>GaussianRMP_RBesT$posterior_to_RBesT()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianRMP_RBesT" data-id="print_model_summary"><a href='../../BExTE/html/GaussianRMP_RBesT.html#method-GaussianRMP_RBesT-print_model_summary'><code>GaussianRMP_RBesT$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianRMP_RBesT" data-id="prior_to_RBesT"><a href='../../BExTE/html/GaussianRMP_RBesT.html#method-GaussianRMP_RBesT-prior_to_RBesT'><code>GaussianRMP_RBesT$prior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianRMP_RBesT" data-id="summary_rows"><a href='../../BExTE/html/GaussianRMP_RBesT.html#method-GaussianRMP_RBesT-summary_rows'><code>GaussianRMP_RBesT$summary_rows()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

@@ -55,6 +55,7 @@ replicate's sample alone.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -79,6 +80,7 @@ replicate's sample alone.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="prepare_data"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-prepare_data'><code>BinomialCPP$prepare_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="prior_given_control_rate"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-prior_given_control_rate'><code>BinomialCPP$prior_given_control_rate()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="quadrature_prior"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-quadrature_prior'><code>BinomialCPP$quadrature_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialCPP" data-id="summary_rows"><a href='../../BExTE/html/BinomialCPP.html#method-BinomialCPP-summary_rows'><code>BinomialCPP$summary_rows()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

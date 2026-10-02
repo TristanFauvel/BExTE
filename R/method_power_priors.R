@@ -54,6 +54,22 @@ BinomialCPP <- R6::R6Class(
         }
         ",
 
+    #' @description
+    #' Rows of the model summary, with the power parameter
+    #'
+    #' A power parameter set from each replicate's data is already among the
+    #' `posterior_parameters` rows, so it is only added when it is fixed.
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      if (!isTRUE(self$fixed_power_parameter)) {
+        return(super$summary_rows())
+      }
+      rbind(
+        super$summary_rows(),
+        summary_row("Power Parameter", self$power_parameter)
+      )
+    },
+
     #' @description Initialize an instance of the BinomialCPP class.
     #' @param prior The prior object
     #' @param mcmc_config The MCMC configuration parameters
@@ -295,6 +311,17 @@ Gaussian_NPP <- R6::R6Class(
     # Max of the pdf
     method = "NPP",
     summary_measure_likelihood = "normal",
+
+    #' @description
+    #' Rows of the model summary, with the prior on the power parameter
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rbind(
+        super$summary_rows(),
+        summary_row("Prior Power Parameter Mean", self$power_parameter_mean),
+        summary_row("Prior Power Parameter SD", self$power_parameter_std)
+      )
+    },
 
     #' @description Initialize a new Gaussian_NPP object.
     #' @param prior Prior object containing method parameters.

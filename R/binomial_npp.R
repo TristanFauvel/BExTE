@@ -633,6 +633,17 @@ BinomialNPP <- R6::R6Class(
     q = NULL,
     method = "NPP",
 
+    #' @description
+    #' Rows of the model summary, with the prior on the power parameter
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rbind(
+        super$summary_rows(),
+        summary_row("Prior Power Parameter Mean", self$power_parameter_mean),
+        summary_row("Prior Power Parameter SD", self$power_parameter_std)
+      )
+    },
+
     #' @description Initialize a BinomialNPP model.
     #' @param prior The prior object, with `power_parameter_mean` and
     #'   `power_parameter_std` among its method parameters.

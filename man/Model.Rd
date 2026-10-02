@@ -109,6 +109,8 @@ the test that is actually performed.}
     \item \href{#method-Model-plot_pdfs}{\code{Model$plot_pdfs()}}
     \item \href{#method-Model-plot_prior_pdf}{\code{Model$plot_prior_pdf()}}
     \item \href{#method-Model-plot_posterior_pdf}{\code{Model$plot_posterior_pdf()}}
+    \item \href{#method-Model-summary_rows}{\code{Model$summary_rows()}}
+    \item \href{#method-Model-print_model_summary}{\code{Model$print_model_summary()}}
     \item \href{#method-Model-clone}{\code{Model$clone()}}
   }
 }
@@ -943,6 +945,47 @@ whereas \code{posterior_to_RBesT()} runs once per replicate.
   }
   \subsection{Returns}{
     A plot
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Model-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-Model-summary_rows}{}}}
+\subsection{\code{Model$summary_rows()}}{
+  Rows of the model summary
+
+The rows shared by every model: the method name and the moments of the
+prior and of the posterior, then each method-specific entry of
+\code{posterior_parameters}. A quantity the model has not set, because
+inference has not run or the method does not compute it, gets no row.
+Subclasses add their own parameters by extending
+\code{super$summary_rows()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model$summary_rows()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with columns \code{Attribute} and \code{Value}, the values
+formatted as character.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Model-print_model_summary"></a>}}
+\if{latex}{\out{\hypertarget{method-Model-print_model_summary}{}}}
+\subsection{\code{Model$print_model_summary()}}{
+  Print a summary of the model attributes
+
+Prints the table returned by \code{summary_rows()}, numeric values formatted
+to 6 decimal places.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model$print_model_summary()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The summary data frame, invisibly.
   }
 }
 

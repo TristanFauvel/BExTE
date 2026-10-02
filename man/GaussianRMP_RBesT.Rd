@@ -54,7 +54,7 @@ and converting distributions to RBesT format.
     \item \href{#method-GaussianRMP_RBesT-posterior_to_RBesT}{\code{GaussianRMP_RBesT$posterior_to_RBesT()}}
     \item \href{#method-GaussianRMP_RBesT-vectorised_prior_components}{\code{GaussianRMP_RBesT$vectorised_prior_components()}}
     \item \href{#method-GaussianRMP_RBesT-vectorised_posterior_parameters}{\code{GaussianRMP_RBesT$vectorised_posterior_parameters()}}
-    \item \href{#method-GaussianRMP_RBesT-print_model_summary}{\code{GaussianRMP_RBesT$print_model_summary()}}
+    \item \href{#method-GaussianRMP_RBesT-summary_rows}{\code{GaussianRMP_RBesT$summary_rows()}}
     \item \href{#method-GaussianRMP_RBesT-clone}{\code{GaussianRMP_RBesT$clone()}}
   }
 }
@@ -73,6 +73,7 @@ and converting distributions to RBesT format.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -243,27 +244,19 @@ component, which is 0 or 1 when the mixture has collapsed.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianRMP_RBesT-print_model_summary"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianRMP_RBesT-print_model_summary}{}}}
-\subsection{\code{GaussianRMP_RBesT$print_model_summary()}}{
-  Print a summary of the model attributes
-
-This method creates and prints a formatted table of key model attributes.
+\if{html}{\out{<a id="method-GaussianRMP_RBesT-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-GaussianRMP_RBesT-summary_rows}{}}}
+\subsection{\code{GaussianRMP_RBesT$summary_rows()}}{
+  Rows of the model summary, with the prior weight and the moments of the
+two posterior components. The posterior weight is among the
+\code{posterior_parameters} rows.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianRMP_RBesT$print_model_summary()}
+    \preformatted{GaussianRMP_RBesT$summary_rows()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A printed data frame displaying the following model attributes:
-\itemize{
-\item Posterior Weight
-\item Vague Posterior Mean
-\item Vague Posterior Variance
-\item Informative Posterior Mean
-\item Informative Posterior Variance
-}
-All numeric values are formatted to 6 decimal places.
+    A data frame with columns \code{Attribute} and \code{Value}.
   }
 }
 
