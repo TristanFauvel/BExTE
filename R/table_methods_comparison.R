@@ -3,9 +3,9 @@
 #' This function generates a comparison table for different methods and treatment effects.
 #'
 #' @param results_df A dataframe containing the results to be compared.
-#' @param case_study The case study to filter the results.
-#' @param target_sample_size_per_arm The target sample size per arm to filter the results.
 #' @param x_metric The metric to be used for comparison.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return A kable object representing the comparison table.
 #'

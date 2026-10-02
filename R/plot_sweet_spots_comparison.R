@@ -4,7 +4,6 @@
 #'
 #' @param data The data for creating the forest plot.
 #' @param title The title of the forest plot.
-#' @param ylabel A logical value indicating whether to display the y-axis label.
 #' @param x_metric_name Name of the metric on the x-axis
 #' @param sweet_spot_lower Lower limit of the metric on the x-axis
 #' @param sweet_spot_upper Upper limit of the metric on the x-axis
@@ -140,8 +139,6 @@ forest_subplot_sweet_spot <- function(data,
 #' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
 #'
 #' @param results_freq_df The results dataframe.
-#' @param selected_case_study The selected case study.
-#' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
 #'
 #' @return None
@@ -581,7 +578,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
 #' @description This function generates plots for the operating characteristics of different methods.
 #'
 #' @param sweet_spot_df The data frame containing the results and metrics.
-#' @param metrics A list of metrics to be plotted.
+#' @param sweet_spots_metrics A list of metrics to be plotted.
 #'
 #' @return None
 #'

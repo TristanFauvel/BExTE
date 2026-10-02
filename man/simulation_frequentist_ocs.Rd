@@ -21,11 +21,15 @@ simulation_frequentist_ocs(
 
 \item{simulation_config}{Simulation configuration}
 
+\item{scenarios_config}{Configuration for the simulation.}
+
 \item{analysis_config}{Analysis configuration}
 
 \item{config_dir}{Configuration directory}
 
 \item{case_studies_config_dir}{Case studies configuration directory}
+
+\item{logging_file_path}{Currently unused.}
 
 \item{frequentist_metrics}{List of frequentist metrics, as defined by
 sourcing \code{metrics_config.R}.}

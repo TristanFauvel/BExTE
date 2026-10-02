@@ -9,6 +9,8 @@
 #' @param treatment_effect Character string specifying the treatment effect: "consistent", "partially_consistent", or "no_effect".
 #' @param power_difference Logical; if TRUE, calculate power difference instead of power.
 #' @param metrics A vector of metric names (not used in the current implementation).
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return This function doesn't return a value but generates and saves tables in various formats (HTML, PDF, LaTeX).
 #'

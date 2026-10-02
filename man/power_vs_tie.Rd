@@ -27,6 +27,10 @@ power_vs_tie(
 \item{power_difference}{Logical indicating whether to calculate power difference}
 
 \item{metrics}{The metrics to include in the plot}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 None

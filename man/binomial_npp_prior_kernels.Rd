@@ -32,7 +32,7 @@ of the source log likelihood are tabulated before interpolation.}
 A list with \code{n_lattice}, the \code{rates}, and the N x (2N - 1) matrices
 \code{kernel}, \code{kernel_gamma} and \code{kernel_gamma_squared}, indexed by the target
 control rate and the risk difference k / N, k = -(N - 1), ..., N - 1. They
-are zero where the target treatment rate would leave \link{0, 1}.
+are zero where the target treatment rate would leave \eqn{[0, 1]}.
 }
 \description{
 Computes, on the rate lattice, the normalized power prior

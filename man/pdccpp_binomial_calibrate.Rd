@@ -25,7 +25,7 @@ A list with the \code{calibration_parameter} and its exact \code{type_I_error}.
 \description{
 The largest calibration parameter Z whose exact type I error
 does not exceed \code{desired_tie}. The type I error is a step function of Z,
-so Z is located on a logarithmic grid over \link{1e-3, 1e3} and refined by
+so Z is located on a logarithmic grid over \eqn{[1e-3, 1e3]} and refined by
 bisection at the last grid step that stays within \code{desired_tie}. If even
 the largest Z does, borrowing is never discounted for conflict and Z is
 the top of the grid; if even the smallest does not, Z is its bottom.

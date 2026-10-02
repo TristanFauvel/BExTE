@@ -25,6 +25,17 @@ plot_metric_vs_sample_size_methods(
 \item{case_study}{The case study to plot the metric for.}
 
 \item{theta_0}{Boundary of the null hypothesis space.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{dodging}{Currently unused.}
+
+\item{join_points}{Whether to join the point with a line or not.}
+
+\item{target_treatment_effect}{Which of the three main treatment effects to keep:
+"No effect", "Partially consistent effect" or "Consistent effect".}
 }
 \value{
 None

@@ -19,6 +19,10 @@ forest_plot(
 
 \item{x_metric}{Metric on the x-axis}
 
+\item{panels}{If TRUE, draw one panel per treatment effect (no effect,
+partially consistent, consistent); otherwise draw the three in a
+single combined plot.}
+
 \item{palette}{A colour scheme from bexte_palette() for BExTE-app's
 dark mode, or NULL for the publication figure.}
 
@@ -32,10 +36,6 @@ plots of the same slice under different time-to-event designs (figures
 S45-S47), which would otherwise share one file.}
 
 \item{subtitle}{Optional line drawn above the panels.}
-
-\item{selected_case_study}{The selected case study.}
-
-\item{selected_target_sample_size_per_arm}{The selected target sample size per arm.}
 }
 \value{
 None

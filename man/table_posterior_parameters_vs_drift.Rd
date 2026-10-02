@@ -27,6 +27,10 @@ table_posterior_parameters_vs_drift(
 \item{control_drift}{A logical value indicating whether to control for drift.}
 
 \item{xvars}{A list containing the x-variable configurations.}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 This function does not return a value. It creates and saves tables in HTML, PDF, and LaTeX formats.

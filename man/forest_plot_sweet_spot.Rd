@@ -10,10 +10,6 @@ forest_plot_sweet_spot(results_freq_df, x_metric)
 \item{results_freq_df}{The results dataframe.}
 
 \item{x_metric}{Metric on the x-axis}
-
-\item{selected_case_study}{The selected case study.}
-
-\item{selected_target_sample_size_per_arm}{The selected target sample size per arm.}
 }
 \value{
 None

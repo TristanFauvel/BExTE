@@ -312,13 +312,13 @@ Model <- R6::R6Class(
     #' output with vector arithmetic instead of one inference per replicate.
     #' Subclasses that can do so override this method; returning `NULL` means
     #' "no fast path available", and
-    #' [Model$simulation_for_given_treatment_effect()] falls back to the
+    #' `Model$simulation_for_given_treatment_effect()` falls back to the
     #' replicate loop.
     #'
     #' @param ... Arguments describing the simulation, passed through by
-    #'   [Model$simulation_for_given_treatment_effect()].
+    #'   `Model$simulation_for_given_treatment_effect()`.
     #' @return `NULL`, or a list shaped like the return value of
-    #'   [Model$simulation_for_given_treatment_effect()].
+    #'   `Model$simulation_for_given_treatment_effect()`.
     vectorised_replicate_inference = function(...) {
       NULL
     },
@@ -1698,7 +1698,7 @@ Model <- R6::R6Class(
     #' @description Beta mixture approximation to the posterior response rate
     #'
     #' The unit information design prior rescales the shape parameters of a Beta
-    #' mixture, so it needs the fit on the [0, 1] rate scale rather than the one
+    #' mixture, so it needs the fit on the \eqn{[0, 1]} rate scale rather than the one
     #' on the treatment effect scale that `posterior_to_RBesT()` produces. It is
     #' built here on request because that construction runs once per case study,
     #' whereas `posterior_to_RBesT()` runs once per replicate.

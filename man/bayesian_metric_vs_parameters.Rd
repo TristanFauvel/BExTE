@@ -30,6 +30,10 @@ bayesian_metric_vs_parameters(
 \item{theta_0}{Boundary of the null hypothesis space.}
 
 \item{add_baselines}{A logical value indicating whether to add baselines to the plot.}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 None

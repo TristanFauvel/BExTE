@@ -92,8 +92,8 @@ A class for binary target data objects.
 \if{latex}{\out{\hypertarget{method-BinaryTargetData-samples_from_counts}{}}}
 \subsection{\code{BinaryTargetData$samples_from_counts()}}{
   The replicate rows a trial with the given responder counts
-is analysed from. \code{\link[=generate]{generate()}} draws the counts and
-\code{\link[=enumerate_support]{enumerate_support()}} lists them, and both build their rows here, so
+is analysed from. \code{generate()} draws the counts and
+\code{enumerate_support()} lists them, and both build their rows here, so
 the two cannot disagree on what a trial looks like to the analysis.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -141,7 +141,7 @@ the two binomial probabilities, are renormalised over the pairs kept.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list: \code{samples}, the replicate rows as \code{\link[=generate]{generate()}} builds
+    A list: \code{samples}, the replicate rows as \code{generate()} builds
 them; \code{weights}, their probabilities, summing to 1; and
 \code{omitted_mass}, the probability of the trials left out.
   }

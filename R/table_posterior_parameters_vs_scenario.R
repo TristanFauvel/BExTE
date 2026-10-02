@@ -8,6 +8,8 @@
 #' @param target_sample_size_per_arm The target sample size per arm to filter the results by.
 #' @param control_drift A logical value indicating whether to control for drift.
 #' @param xvars A list containing the x-variable configurations.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return This function does not return a value. It creates and saves tables in HTML, PDF, and LaTeX formats.
 #'

@@ -191,7 +191,7 @@ rate
 
 The kernel's row for the lattice cell that contains \code{control_rate},
 which confines the treatment effect to the differences that keep the
-target treatment rate in \link{0, 1}.
+target treatment rate in \eqn{[0, 1]}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BinomialLatticePrior$prior_given_control_rate(control_rate)}

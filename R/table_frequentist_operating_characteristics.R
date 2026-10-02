@@ -10,6 +10,10 @@
 #' @param target_sample_size_per_arm The target sample size per arm
 #' @param parameters_combinations The combinations of parameters
 #' @param xvars A list containing x-axis variable information
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
+#' @param wide_table Whether to pivot the table so that each parameter
+#'   combination gets its own column.
 #'
 #' @return Generates and saves tables in HTML, PDF, and LaTeX formats
 #' @export
@@ -355,6 +359,8 @@ table_metric_vs_drift <- function(metric,
 #' @param method The method being used
 #' @param target_sample_size_per_arm The target sample size per arm
 #' @param theta_0 The null hypothesis value
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return Generates and saves tables in HTML, PDF, and LaTeX formats
 #' @export
@@ -539,8 +545,11 @@ table_metric_vs_parameters <- function(results_metrics_df,
 #' @param results_metrics_df A dataframe containing the results metrics
 #' @param case_study The case study being analyzed
 #' @param method The method being used
-#' @param parameters_combinations The combinations of parameters
 #' @param theta_0 The null hypothesis value
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
+#' @param wide_table Whether to pivot the table so that each parameter
+#'   combination gets its own column.
 #'
 #' @return Generates and saves tables in HTML, PDF, and LaTeX formats
 #' @export

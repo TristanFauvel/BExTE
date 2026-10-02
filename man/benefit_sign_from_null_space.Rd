@@ -19,6 +19,6 @@ the half line below \code{theta_0}, so the trial succeeds when the effect is
 large, and \code{"right"} is its mirror. The maximum tolerable discrepancy has to
 be taken on the side that moves the target towards the null, so it needs that
 direction as a sign. The same mapping is written as an alternative hypothesis
-by \code{\link[=alternative_from_null_space]{alternative_from_null_space()}}.
+by \code{alternative_from_null_space()}.
 }
 \keyword{internal}

@@ -6,6 +6,8 @@
 #' @param treatment_effect The treatment effect type ("consistent", "no_effect", "partially_consistent")
 #' @param power_difference Logical indicating whether to calculate power difference
 #' @param metrics The metrics to include in the plot
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return None
 #'

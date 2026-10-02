@@ -81,7 +81,7 @@ combine_replicate_results <- function(pieces) {
 #' @param mcmc Whether the calling model samples when it is not on this fast
 #'   path, which decides what the MCMC diagnostics report.
 #' @return A list shaped like the return value of
-#'   [Model$simulation_for_given_treatment_effect()].
+#'   `Model$simulation_for_given_treatment_effect()`.
 #' @keywords internal
 vectorised_normal_mixture_simulation <- function(weights, means, sds,
                                                  samples, target_data,
@@ -187,7 +187,7 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
 #' Test decision for every replicate at once
 #'
 #' @description Compares the posterior probability of the alternative
-#' hypothesis with `critical_value`, matching [Model$test_decision()].
+#' hypothesis with `critical_value`, matching `Model$test_decision()`.
 #'
 #' @param posterior_weights `n_replicates x n_components` posterior weights.
 #' @param posterior_means `n_replicates x n_components` posterior means.

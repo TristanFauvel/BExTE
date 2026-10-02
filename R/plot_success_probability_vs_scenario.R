@@ -155,7 +155,10 @@ plot_success_proba_vs_xvar <- function(plt,
 #' @param parameters_combinations The combinations of parameters to filter the results by
 #' @param xvars A list of x-variables for control drift and treatment drift
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
 #' @param join_points Whether to join the point with a line or not.
+#' @param baseline_success_proba Which baselines to overlay: any of "at_equivalent_TIE"
+#'   and "at_nominal_TIE".
 #'
 #' @return None
 #'

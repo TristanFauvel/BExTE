@@ -193,7 +193,7 @@ model's own.}
   The prior of the treatment effect given the target control
 rate
 
-The power prior of \code{\link[=quadrature_prior]{quadrature_prior()}} with the target control rate
+The power prior of \code{quadrature_prior()} with the target control rate
 fixed rather than integrated out, so the effect is confined to the
 range that rate leaves it.
   \subsection{Usage}{

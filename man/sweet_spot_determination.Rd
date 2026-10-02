@@ -18,6 +18,12 @@ sweet_spot_determination(
 \item{y_values}{A numeric vector of y values.}
 
 \item{reference_value}{A numeric reference value to determine the crossing points.}
+
+\item{larger_is_better}{Whether larger \code{y_values} are better. If FALSE, the sign
+of the comparison with \code{reference_value} is reversed.}
+
+\item{return_NA_at_boundaries}{If TRUE, a sweet spot bound that falls on the edge
+of \code{x_values} is reported as NA rather than as that edge.}
 }
 \value{
 A list containing:

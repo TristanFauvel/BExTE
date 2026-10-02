@@ -11,9 +11,12 @@ bayesian_operating_characteristics_vs_tie_plots(
 )
 }
 \arguments{
-\item{results_metrics_df}{The data frame containing the results and metrics.}
+\item{results_bayes_df}{The Bayesian results data frame.}
 
-\item{metrics}{A list of metrics to be plotted.}
+\item{results_freq_df}{The frequentist results data frame, from which the type I error rates are read.}
+
+\item{bayesian_metrics}{List of Bayesian metrics, as defined by sourcing
+\code{metrics_config.R}.}
 }
 \value{
 None

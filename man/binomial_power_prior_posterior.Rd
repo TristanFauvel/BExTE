@@ -19,7 +19,7 @@ binomial_power_prior_posterior(
 )
 }
 \arguments{
-\item{power_parameter}{The power parameter gamma, in \link{0, 1}.}
+\item{power_parameter}{The power parameter gamma, in \eqn{[0, 1]}.}
 
 \item{n_control_source, n_successes_control_source}{Source control arm.}
 
@@ -34,7 +34,7 @@ binomial_power_prior_posterior(
 \item{control_rate}{Target control rate to condition on, or \code{NULL} to
 integrate it out. Conditioning puts the target control rate's whole mass
 on the lattice cell that contains it, which confines the treatment effect
-to the differences that keep the target treatment rate in \link{0, 1}.}
+to the differences that keep the target treatment rate in \eqn{[0, 1]}.}
 }
 \value{
 A \code{\link[=grid_posterior]{grid_posterior()}} list.
@@ -47,7 +47,7 @@ has density 1 / (1 - |u - v|), and the source likelihood raised to the
 power gamma.
 
 The rates are discretised on the lattice of \code{\link[=binomial_npp_prior_kernels]{binomial_npp_prior_kernels()}}:
-the midpoints of N equal cells of \link{0, 1}, with the treatment effect on the
+the midpoints of N equal cells of \eqn{[0, 1]}, with the treatment effect on the
 multiples of the cell width, so that every treatment rate is a lattice
 point. The lattice covers the whole unit square, so it follows the
 posterior wherever the target data move it, including far into the tails

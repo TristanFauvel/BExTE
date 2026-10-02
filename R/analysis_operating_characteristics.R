@@ -875,6 +875,8 @@ equivalent_tie_design_p_values <- function(design_rows,
 #'
 #' @param results The results data frame.
 #' @param analysis_config The analysis configuration.
+#' @param simulation_config The simulation configuration.
+#' @param parallelization Whether to simulate the designs in parallel.
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
@@ -1256,7 +1258,7 @@ nominal_tie_design_key <- function(design) {
 #' @param analysis_config The analysis configuration.
 #' @param simulation_config The simulation configuration.
 #' @param parallelization Whether the caller asked for parallelism, as
-#'   [analysis_runs_in_parallel()] resolves it. A design costs seconds here -
+#'   `analysis_runs_in_parallel()` resolves it. A design costs seconds here -
 #'   two power computations, either of which may be a simulation - so a run
 #'   with many of them is worth spreading over a cluster.
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
