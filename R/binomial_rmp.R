@@ -112,8 +112,8 @@ binomial_rmp_predictive_tables <- function(components, source_counts, n_control,
 #'
 #' @description The robust mixture prior for a binary endpoint, with the
 #'   binomial likelihoods of both arms and an exact binomial informative
-#'   component; see the comment at the top of `R/binomial_rmp.R`. Replaces
-#'   [TruncatedGaussianRMP], whose informative component is the normal
+#'   component; see the comment at the top of `R/binomial_rmp.R`. It replaced
+#'   a truncated normal mixture whose informative component was the normal
 #'   approximation of the source posterior.
 #'
 #' @field w Prior weight of the informative component.

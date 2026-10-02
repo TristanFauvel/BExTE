@@ -69,7 +69,7 @@ An R6 class representing a Bayesian model using RBesT.
 \if{html}{\out{<a id="method-Model_RBesT-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-initialize}{}}}
 \subsection{\code{Model_RBesT$new()}}{
-  Initializes the GaussianRMP object
+  Initializes the Model_RBesT object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Model_RBesT$new(prior)}

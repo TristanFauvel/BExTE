@@ -1,4 +1,8 @@
 # BExTE 0.0.2
+* Removed `TruncatedGaussianRMP`, `TruncatedEgidiMixture` and the internal
+  `GaussianRMP`, which `Model$create()` no longer built since `BinomialRMP`
+  and `BinomialEgidiMixture` replaced them, together with the helpers only
+  they used, among them the exported `truncated_normal_mixture_elir()`.
 * Table S5 (`table_precision_ecp()`) adds the interval score beside precision
   and coverage, and shows a column's estimate alone when its operating
   characteristics are exact, rather than a zero-width interval.

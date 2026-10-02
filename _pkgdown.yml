@@ -88,7 +88,6 @@ reference:
 - title: Methods
 - contents:
   - BinomialPooling
-  - TruncatedGaussianRMP
   - BinomialSeparate
   - ConjugateGaussian
   - PDCCPP
@@ -99,7 +98,6 @@ reference:
   - TestThenPool
   - TestThenPoolDifference
   - TestThenPoolEquivalence
-  - GaussianRMP
   - Gaussian_empirical_Bayes_PP
   - Gaussian_Gravestock_EBPP
   - Gaussian_NPP
@@ -117,7 +115,6 @@ reference:
   - GaussianCommensuratePowerPrior
   - GaussianCommensuratePrior
   - GaussianEgidiMixture
-  - TruncatedEgidiMixture
   - GaussianRMP_RBesT
   - Model_RBesT
   - PoolGaussian_RBesT
@@ -132,7 +129,6 @@ reference:
   desc: Exact posteriors of a difference in response rates for the binomial
     borrowing models, computed on a grid instead of sampled
 - contents:
-  - truncated_normal_mixture_binomial_posterior
   - binomial_power_prior_posterior
   - binomial_effect_grid
   - beta_quadrature_nodes
@@ -229,7 +225,6 @@ reference:
   - compute_freq_power_pooling
   - prior_ess_elir
   - normal_reference_ess
-  - truncated_normal_mixture_elir
   - adaptive_power_prior_type_I_error
   - log_grid_interpolation
   - compute_binomial_credible_interval

@@ -258,9 +258,11 @@ weak component to explain than one overshooting it by the same amount.
 ## The binary endpoint
 
 For the Aprepitant case study the target statistic is the pair of responder
-counts $(y_c, y_t)$, and the analysis model is the RMP's: a normal mixture on the
-rate difference, each component truncated to the range the control rate leaves
-it, observed through two binomial arms.
+counts $(y_c, y_t)$, and the analysis model is the binomial RMP's. Its
+informative component is the source posterior of the rate difference carried to
+the target, i.e. the conditional power prior with full borrowing; its weak
+component gives both target response rates independent uniform priors. Both are
+observed through two binomial arms.
 
 The sample space is finite, so the conflict $p$-value is computed exactly by
 enumeration rather than by substituting a different statistic. For each component
@@ -269,7 +271,8 @@ $$ m_j(y_c, y_t) = \int p(y_c, y_t \mid \theta_T, p_c)\, j(\theta_T, p_c)\,
    d\theta_T\, dp_c, $$
 
 which is tabulated over $y_c = 0, \ldots, N_T^{(c)}$ and
-$y_t = 0, \ldots, N_T^{(t)}$, and
+$y_t = 0, \ldots, N_T^{(t)}$. Under the weak component every pair of counts is
+equally likely, so its table is exactly uniform. Then
 
 $$
 P_\psi(y_c^{\mathrm{obs}}, y_t^{\mathrm{obs}})
@@ -278,12 +281,16 @@ P_\psi(y_c^{\mathrm{obs}}, y_t^{\mathrm{obs}})
 $$
 
 ```{r}
-informative_table <- egidi_binomial_predictive_table(
-  mu = 0.1315456, sd = 0.03505291, n_control = 52, n_treatment = 55
+source_counts <- list(
+  n_control_source = 280L, n_successes_control_source = 154L,
+  n_treatment_source = 293L, n_successes_treatment_source = 184L
 )
-weak_table <- egidi_binomial_predictive_table(
-  mu = 0, sd = 0.6, n_control = 52, n_treatment = 55
+components <- binomial_rmp_components(source_counts)
+tables <- binomial_rmp_predictive_tables(
+  components, source_counts, n_control = 52, n_treatment = 55
 )
+informative_table <- tables$informative
+weak_table <- tables$weak
 
 # The tables enumerate the whole sample space, so they sum to one.
 c(informative = sum(informative_table), weak = sum(weak_table))

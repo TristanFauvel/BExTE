@@ -15,7 +15,7 @@ egidi_binomial_conflict_pvalue(
 }
 \arguments{
 \item{table_informative, table_weak}{Component tables from
-\code{\link[=egidi_binomial_predictive_table]{egidi_binomial_predictive_table()}}.}
+\code{\link[=binomial_rmp_predictive_tables]{binomial_rmp_predictive_tables()}}.}
 
 \item{psi}{Weight on the weak component, one value.}
 

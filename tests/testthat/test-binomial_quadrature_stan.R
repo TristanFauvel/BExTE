@@ -98,39 +98,6 @@ expect_quadrature_matches_stan <- function(stan_model, quadrature_model, target_
 }
 
 
-test_that("the robust mixture prior quadrature agrees with Stan", {
-  skip_without_cmdstan()
-
-  prior <- list(
-    source = list(
-      treatment_effect_estimate = 0.078,
-      standard_error = 0.041,
-      equivalent_source_sample_size_per_arm = 286
-    ),
-    vague_mean = 0,
-    method_parameters = list(
-      prior_weight = list(0.5),
-      initial_prior = list("noninformative"),
-      empirical_bayes = list(TRUE)
-    )
-  )
-  build <- function(engine) {
-    model <- TruncatedGaussianRMP$new(prior = prior, mcmc_config = agreement_mcmc_config(engine))
-    model$prior <- prior
-    model
-  }
-
-  # One dataset consistent with the source, one in conflict with it.
-  for (counts in list(c(80, 92), c(80, 70))) {
-    target_data <- agreement_target_data(counts[[1]], counts[[2]], n = 143)
-    stan <- build("stan")
-    # The empirical Bayes vague component must be set before prepare_data().
-    stan$empirical_bayes_update(target_data)
-    expect_quadrature_matches_stan(stan, build("quadrature"), target_data)
-  }
-})
-
-
 test_that("the conditional power prior quadrature agrees with Stan", {
   skip_without_cmdstan()
 
