@@ -300,7 +300,10 @@ paper_manifest_figures_unnumbered <- function() {
     manifest_forest("X4", "Interval score of the 95% credible interval, which combines its width with the penalty for excluding the true treatment effect, for the three principal treatment-effect scenarios in the Teriflunomide case study, with 123 participants per arm. Smaller is better.", "teriflunomide", 6, "interval_score"),
     manifest_vs_tie("X5", "Interval score of the 95% credible interval versus type I error rate in the Dapagliflozin case study, with 66 participants per arm, no treatment effect, and a target-to-source standard-deviation ratio of 1. Smaller is better.", "dapagliflozin", 2, "interval_score", "no_effect"),
     manifest_vs_tie("X6", "Interval score of the 95% credible interval versus type I error rate in the Belimumab case study, with 140 participants per arm and no treatment effect. Smaller is better.", "belimumab", 4, "interval_score", "no_effect"),
-    manifest_vs_tie("X7", "Interval score of the 95% credible interval versus type I error rate in the Aprepitant case study, with 143 participants per arm and no treatment effect. Smaller is better.", "aprepitant", 2, "interval_score", "no_effect")
+    manifest_vs_tie("X7", "Interval score of the 95% credible interval versus type I error rate in the Aprepitant case study, with 143 participants per arm and no treatment effect. Smaller is better.", "aprepitant", 2, "interval_score", "no_effect"),
+    ## The Botox forest plot on the slice of S42 and of the MSE and bias
+    ## forest plots, 117 per arm.
+    manifest_forest("X8", "Interval score of the 95% credible interval, which combines its width with the penalty for excluding the true treatment effect, for the three principal treatment-effect scenarios in the Botox case study, with 117 participants per arm. Smaller is better.", "botox", 2, "interval_score")
   )
 }
 

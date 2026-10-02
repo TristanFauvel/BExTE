@@ -1,8 +1,9 @@
 # BExTE 0.0.2
-* The paper manifest produces the four interval-score figures the supplement
-  includes without a figure number (X4-X7): the Teriflunomide forest plot at
+* The paper manifest produces the five interval-score figures the supplement
+  includes without a figure number (X4-X8): the Teriflunomide forest plot at
   123 per arm, and the versus-type-I-error figures for Dapagliflozin (66),
-  Belimumab (140) and Aprepitant (143).
+  Belimumab (140) and Aprepitant (143), and the Botox forest plot at 117 per
+  arm (X8).
 * `export_paper_outputs()` copies figures into `paper_outputs/` as PDF, the
   vector format the manuscript includes, rather than PNG, and removes PNG
   copies an earlier export left there.
