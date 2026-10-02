@@ -228,7 +228,7 @@ not.
 
 ```{r, fig.width = 7, fig.height = 4}
 estimates <- seq(-1.5, 2, length.out = 400)
-selection <- egidi_select_weak_weight(
+selection <- BExTE:::egidi_select_weak_weight(
   t_obs = estimates,
   s_target = standard_error,
   mu_p = informative$mean, tau_p = informative$sd,
@@ -285,8 +285,8 @@ source_counts <- list(
   n_control_source = 280L, n_successes_control_source = 154L,
   n_treatment_source = 293L, n_successes_treatment_source = 184L
 )
-components <- binomial_rmp_components(source_counts)
-tables <- binomial_rmp_predictive_tables(
+components <- BExTE:::binomial_rmp_components(source_counts)
+tables <- BExTE:::binomial_rmp_predictive_tables(
   components, source_counts, n_control = 52, n_treatment = 55
 )
 informative_table <- tables$informative
@@ -297,7 +297,7 @@ c(informative = sum(informative_table), weak = sum(weak_table))
 ```
 
 ```{r}
-egidi_select_weak_weight_binomial(
+BExTE:::egidi_select_weak_weight_binomial(
   table_informative = informative_table,
   table_weak = weak_table,
   y_control = 42, y_treatment = 48,

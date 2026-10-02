@@ -138,7 +138,7 @@ calibration <- calibrate_npp_kl(
   se_source = source_data$standard_error,
   se_target_expected = se_target_expected,
   theta_null = case_study_config$theta_0,
-  benefit_sign = benefit_sign_from_null_space(case_study_config$null_space)
+  benefit_sign = BExTE:::benefit_sign_from_null_space(case_study_config$null_space)
 )
 
 data.frame(
@@ -168,7 +168,7 @@ sweep <- do.call(rbind, lapply(lambda_values, function(lambda) {
     se_source = source_data$standard_error,
     se_target_expected = se_target_expected,
     theta_null = case_study_config$theta_0,
-    benefit_sign = benefit_sign_from_null_space(case_study_config$null_space),
+    benefit_sign = BExTE:::benefit_sign_from_null_space(case_study_config$null_space),
     lambda_kl = lambda
   )
   data.frame(

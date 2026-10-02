@@ -51,7 +51,6 @@ articles:
   - methods/Gaussian_RMP
   - methods/NPP
   - methods/NPP_KL
-  - methods/Truncated_Gaussian_RMP
   - methods/PDCCPP
   - methods/Pooling
   - methods/Pooling_study
