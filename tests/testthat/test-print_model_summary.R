@@ -47,8 +47,11 @@ test_that("the Gaussian RMP still shows its mixture components", {
                              prior_weight = list(0.5),
                              empirical_bayes = list(FALSE))
   )
-  model <- GaussianRMP$new(prior = prior)
-  model$inference(gaussian_target())
+  model <- GaussianRMP_RBesT$new(prior = prior)
+  target_data <- gaussian_target()
+  # RBesT takes its reference scale from the sample standard deviation.
+  target_data$sample$standard_deviation <- 0.15 * sqrt(50)
+  model$inference(target_data)
 
   expect_contains(summary_attributes(model), c(
     "Posterior Mean", "Posterior Variance", "Prior Weight",

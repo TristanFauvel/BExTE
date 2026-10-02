@@ -36,6 +36,14 @@ rmp_target <- function(control, treatment, n = 71) {
 }
 
 
+# The informative and weak prior-predictive tables of the binomial RMP, which
+# Egidi's conflict p-value and weight selection read.
+rmp_predictive_tables <- function(n_control, n_treatment) {
+  components <- binomial_rmp_components(rmp_source, n_lattice = 500L)
+  binomial_rmp_predictive_tables(components, rmp_source, n_control, n_treatment)
+}
+
+
 test_that("the weak component alone is the separate analysis", {
   withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
   components <- binomial_rmp_components(rmp_source, n_lattice = 500L)
@@ -100,4 +108,97 @@ test_that("Egidi's weight discounts the source only under conflict", {
   expect_identical(model$inference(rmp_target(39, 20)), "Success")
   expect_gt(model$selection$psi_weak, 0)
   expect_true(is.finite(model$posterior_parameters$prior_weight))
+})
+
+
+test_that("the conflict p-value path matches the p-value at each weight", {
+  withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
+  tables <- rmp_predictive_tables(20L, 20L)
+  informative <- tables$informative
+  weak <- tables$weak
+  psi <- seq(0, 1, by = 0.01)
+
+  for (counts in list(c(3L, 17L), c(10L, 12L), c(0L, 20L), c(15L, 2L))) {
+    direct <- vapply(psi, function(p) {
+      egidi_binomial_conflict_pvalue(informative, weak, p, counts[1], counts[2])
+    }, numeric(1))
+    path <- egidi_binomial_conflict_pvalue_path(informative, weak, psi, counts[1], counts[2])
+    expect_equal(path, direct, tolerance = 1e-10)
+  }
+})
+
+
+test_that("the weight selected through the path is the scan's", {
+  withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
+  tables <- rmp_predictive_tables(20L, 20L)
+  informative <- tables$informative
+  weak <- tables$weak
+
+  # The scan as it was, one weight at a time.
+  scan <- function(y_control, y_treatment) {
+    for (candidate in seq(0.001, 1, by = 0.001)) {
+      pvalue <- egidi_binomial_conflict_pvalue(informative, weak, candidate, y_control, y_treatment)
+      if (pvalue >= 0.05) return(candidate)
+    }
+    1
+  }
+
+  for (y_control in c(0L, 5L, 10L, 20L)) for (y_treatment in c(0L, 3L, 12L, 20L)) {
+    selection <- egidi_select_weak_weight_binomial(informative, weak, y_control, y_treatment)
+    if (isTRUE(selection$initial_conflict) && !isTRUE(selection$conflict_unresolved)) {
+      expect_equal(selection$psi_weak, scan(y_control, y_treatment))
+    }
+  }
+})
+
+
+test_that("the discrete conflict p-value sums the right cells", {
+  withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
+  tables <- rmp_predictive_tables(20L, 20L)
+  informative <- tables$informative
+  weak <- tables$weak
+  psi <- 0.3
+  mixture <- (1 - psi) * informative + psi * weak
+
+  modal <- which(mixture == max(mixture), arr.ind = TRUE)[1, ]
+  ## At the most probable cell nothing else is less probable, so the whole
+  ## sample space conflicts at least as much and the p-value is one.
+  expect_equal(
+    egidi_binomial_conflict_pvalue(informative, weak, psi,
+                                   modal[1] - 1L, modal[2] - 1L),
+    1, tolerance = 1e-8
+  )
+
+  ## At an arbitrary cell it is the mass at or below that cell's, computed here
+  ## directly from the table.
+  observed <- mixture[6, 15]
+  expect_equal(
+    egidi_binomial_conflict_pvalue(informative, weak, psi, 5L, 14L),
+    sum(mixture[mixture <= observed * (1 + 1e-9)]) / sum(mixture),
+    tolerance = 1e-12
+  )
+})
+
+
+test_that("the binomial selection rule behaves at both ends", {
+  withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
+  tables <- rmp_predictive_tables(20L, 20L)
+  informative <- tables$informative
+  weak <- tables$weak
+
+  modal <- which(((1 - 0) * informative) == max(informative), arr.ind = TRUE)[1, ]
+  agreeing <- egidi_select_weak_weight_binomial(
+    informative, weak, modal[1] - 1L, modal[2] - 1L
+  )
+  expect_equal(agreeing$psi_weak, 0)
+  expect_false(agreeing$initial_conflict)
+
+  ## Every responder in the control arm and none in the treatment arm is as far
+  ## from the source as this sample space reaches: only the weak component
+  ## alone accepts it. That component is exactly uniform over the pairs of
+  ## counts, so at psi = 1 every cell has p-value one and the conflict resolves.
+  extreme <- egidi_select_weak_weight_binomial(informative, weak, 20L, 0L)
+  expect_true(extreme$initial_conflict)
+  expect_equal(extreme$psi_weak, 1)
+  expect_false(extreme$conflict_unresolved)
 })

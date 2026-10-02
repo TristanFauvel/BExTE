@@ -6,8 +6,8 @@
 \description{
 The robust mixture prior for a binary endpoint, with the
 binomial likelihoods of both arms and an exact binomial informative
-component; see the comment at the top of \code{R/binomial_rmp.R}. Replaces
-\link{TruncatedGaussianRMP}, whose informative component is the normal
+component; see the comment at the top of \code{R/binomial_rmp.R}. It replaced
+a truncated normal mixture whose informative component was the normal
 approximation of the source posterior.
 }
 \section{Super classes}{

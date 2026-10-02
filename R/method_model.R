@@ -2284,7 +2284,7 @@ Model_RBesT <- R6::R6Class(
   public = list(
     posterior_summary = NULL,
 
-    #' @description Initializes the GaussianRMP object
+    #' @description Initializes the Model_RBesT object
     #'
     #' @param prior The prior information for the analysis.
     initialize = function(prior) {

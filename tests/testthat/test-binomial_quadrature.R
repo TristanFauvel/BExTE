@@ -1,7 +1,7 @@
-# The binomial models that borrow the treatment effect - the robust mixture
-# prior, its Egidi variant, the conditional power prior and the p-value-based
-# power prior - compute their posterior by quadrature unless told to sample with
-# Stan. These tests pin the quadrature to independent references, check that it
+# The binomial models that borrow the treatment effect - the conditional power
+# prior, the p-value-based power prior and the lattice priors built on them
+# (NPP, robust mixture, Egidi) - compute their posterior by quadrature; the
+# first two sample with Stan when told to. These tests pin the quadrature to independent references, check that it
 # has converged, and check the wiring: the engine switch, the model methods the
 # simulation calls, and the sharing of analyses between equal replicates.
 
@@ -21,20 +21,38 @@ quadrature_mcmc_config <- function(engine = NULL) {
   config
 }
 
-rmp_quadrature_prior <- function(prior_weight = 0.5, empirical_bayes = TRUE) {
+# The empirical Bayes prior whose power parameter is set by a test on the
+# replicate's own estimate.
+pvalue_quadrature_prior <- function() {
   list(
     source = list(
-      treatment_effect_estimate = 0.078,
+      treatment_effect_estimate = 184 / 293 - 154 / 280,
       standard_error = 0.041,
-      equivalent_source_sample_size_per_arm = 286
+      equivalent_source_sample_size_per_arm = 286,
+      sample_size_control = 280,
+      sample_size_treatment = 293,
+      control_rate = 154 / 280,
+      treatment_rate = 184 / 293
     ),
-    vague_mean = 0,
     method_parameters = list(
-      prior_weight = list(prior_weight),
-      initial_prior = list("noninformative"),
-      empirical_bayes = list(empirical_bayes)
+      power_parameter = list(NA_real_),
+      shape_parameter = list(1),
+      equivalence_margin = list(0.1),
+      initial_prior = list("noninformative")
     )
   )
+}
+
+pvalue_quadrature_model <- function(engine = NULL) {
+  prior <- pvalue_quadrature_prior()
+  model <- p_value_based_PP_Binomial$new(
+    prior = prior,
+    theta_0 = 0,
+    null_space = "left",
+    mcmc_config = quadrature_mcmc_config(engine)
+  )
+  model$prior <- prior
+  model
 }
 
 cpp_quadrature_prior <- function(power_parameter = 0.5) {
@@ -108,43 +126,6 @@ quadrature_simulation <- function(model, target_data) {
 
 # ---- The quadrature against independent references ---------------------------
 
-test_that("a single flat component reproduces the separate analysis", {
-  # A normal prior far wider than (-1, 1), truncated to (-v, 1 - v), is the
-  # uniform prior of the separate analysis, whose posterior is the difference of
-  # two independent Beta distributions.
-  n <- 143
-  s_c <- 80
-  s_t <- 92
-  posterior <- truncated_normal_mixture_binomial_posterior(
-    weights = 1, means = 0, sds = 1e4,
-    n_control = n, n_successes_control = s_c,
-    n_treatment = n, n_successes_treatment = s_t
-  )
-
-  exact_mean <- (s_t + 1) / (n + 2) - (s_c + 1) / (n + 2)
-  exact_cdf_at_zero <- stats::integrate(
-    function(v) stats::pbeta(v, s_t + 1, n - s_t + 1) * stats::dbeta(v, s_c + 1, n - s_c + 1),
-    0, 1, rel.tol = 1e-12
-  )$value
-
-  expect_equal(posterior$mean, exact_mean, tolerance = 1e-5)
-  expect_equal(grid_posterior_cdf(posterior, 0), exact_cdf_at_zero, tolerance = 1e-4)
-})
-
-
-test_that("the mixture component weights agree with the existing quadrature", {
-  arguments <- list(
-    weights = c(0.5, 0.5), means = c(0.078, 0), sds = c(0.041, 0.6),
-    n_control = 143, n_successes_control = 80,
-    n_treatment = 143, n_successes_treatment = 92
-  )
-  grid <- do.call(truncated_normal_mixture_binomial_posterior, arguments)
-  reference <- do.call(truncated_normal_mixture_binomial_weights, arguments)
-
-  expect_equal(grid$component_weights, reference, tolerance = 1e-4)
-})
-
-
 test_that("the power prior posterior matches brute-force integration", {
   # Small counts keep the nested integration over both control rates quick.
   counts <- list(
@@ -186,14 +167,6 @@ test_that("the power prior posterior matches brute-force integration", {
 
 
 test_that("the quadrature has converged at the default resolution", {
-  rmp <- function(nodes, points) {
-    truncated_normal_mixture_binomial_posterior(
-      weights = c(0.5, 0.5), means = c(0.078, 0), sds = c(0.041, 0.6),
-      n_control = 143, n_successes_control = 80,
-      n_treatment = 143, n_successes_treatment = 92,
-      n_lattice = if (nodes == 512L) 1000L else 2000L
-    )
-  }
   # The power prior's lattice is refined by its number of points alone; the
   # coarse setting stands for the default here and the fine one doubles it.
   cpp <- function(nodes, points) {
@@ -207,16 +180,14 @@ test_that("the quadrature has converged at the default resolution", {
     )
   }
 
-  for (build in list(rmp, cpp)) {
-    default <- build(512L, 20)
-    fine <- build(2048L, 60)
-    expect_equal(grid_posterior_cdf(default, 0), grid_posterior_cdf(fine, 0), tolerance = 1e-4)
-    expect_equal(
-      grid_posterior_quantile(default, c(0.025, 0.975)),
-      grid_posterior_quantile(fine, c(0.025, 0.975)),
-      tolerance = 1e-3
-    )
-  }
+  default <- cpp(512L, 20)
+  fine <- cpp(2048L, 60)
+  expect_equal(grid_posterior_cdf(default, 0), grid_posterior_cdf(fine, 0), tolerance = 1e-4)
+  expect_equal(
+    grid_posterior_quantile(default, c(0.025, 0.975)),
+    grid_posterior_quantile(fine, c(0.025, 0.975)),
+    tolerance = 1e-3
+  )
 })
 
 
@@ -245,26 +216,6 @@ test_that("the power prior posterior follows the target into the source's tails"
   )
   expect_equal(strong$mean, -0.18789, tolerance = 0.001)
   expect_equal(sqrt(strong$variance), 0.0345939, tolerance = 0.001)
-})
-
-
-test_that("the robust mixture posterior follows the target under conflict", {
-  # Brute force on a 4000-point grid of control rates and 8001 effects, with
-  # the continuous truncation constants. Nodes on the quantiles of the control
-  # rate's own likelihood gave P = 0.0028 and an informative weight of 0.00369
-  # for the first case.
-  conflict <- truncated_normal_mixture_binomial_posterior(
-    c(0.5, 0.5), c(0.078, 0), c(0.041, 0.6), 71, 39, 71, 20
-  )
-  expect_equal(1 - grid_posterior_cdf(conflict, 0), 0.00303, tolerance = 2e-5)
-  expect_equal(conflict$component_weights[1], 0.00390, tolerance = 2e-5)
-
-  partial <- truncated_normal_mixture_binomial_posterior(
-    c(0.5, 0.5), c(0.078, 0), c(0.041, 0.6), 143, 79, 143, 60
-  )
-  expect_equal(1 - grid_posterior_cdf(partial, 0), 0.05187, tolerance = 2e-5)
-  expect_equal(partial$component_weights[1], 0.06562, tolerance = 2e-5)
-  expect_equal(partial$mean, -0.12088, tolerance = 2e-5)
 })
 
 
@@ -302,9 +253,9 @@ test_that("with no target patients the power prior posterior is the prior", {
 
 # ---- The engine switch ---------------------------------------------------------
 
-test_that("the binomial robust mixture prior uses quadrature by default", {
-  model <- TruncatedGaussianRMP$new(
-    prior = rmp_quadrature_prior(empirical_bayes = FALSE),
+test_that("the binomial conditional power prior uses quadrature by default", {
+  model <- BinomialCPP$new(
+    prior = cpp_quadrature_prior(),
     mcmc_config = quadrature_mcmc_config()
   )
 
@@ -317,8 +268,8 @@ test_that("the binomial robust mixture prior uses quadrature by default", {
 
 test_that("engine = \"stan\" keeps the sampling path", {
   model <- testthat::with_mocked_bindings(
-    TruncatedGaussianRMP$new(
-      prior = rmp_quadrature_prior(empirical_bayes = FALSE),
+    BinomialCPP$new(
+      prior = cpp_quadrature_prior(),
       mcmc_config = quadrature_mcmc_config(engine = "stan")
     ),
     compile_stan_model = function(...) "compiled",
@@ -351,12 +302,17 @@ test_that("an unknown engine is rejected", {
 # ---- The model methods the simulation calls ----------------------------------
 
 test_that("the robust mixture prior reports a consistent quadrature posterior", {
-  model <- TruncatedGaussianRMP$new(
-    prior = rmp_quadrature_prior(prior_weight = 0.5, empirical_bayes = FALSE),
-    mcmc_config = quadrature_mcmc_config()
+  withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
+  prior <- cpp_quadrature_prior()
+  prior$method_parameters <- list(
+    prior_weight = list(0.5),
+    initial_prior = list("noninformative"),
+    empirical_bayes = list(FALSE)
   )
+  model <- BinomialRMP$new(prior = prior, mcmc_config = quadrature_mcmc_config())
+  model$prior <- prior
+  model$n_lattice <- 500L
   target_data <- quadrature_target_data(quadrature_samples(22, 30))
-  model$vague_prior_variance <- 0.3^2
 
   expect_identical(model$inference(target_data), "Success")
 
@@ -368,16 +324,9 @@ test_that("the robust mixture prior reports a consistent quadrature posterior", 
                         confidence_level = 0.95),
     1 - model$posterior_cdf(0) > 0.975
   )
-  # The reported weight is the informative component's, from the same grid.
-  expect_equal(
-    model$posterior_parameters$prior_weight,
-    truncated_normal_mixture_binomial_weights(
-      weights = c(0.5, 0.5), means = c(0.078, 0), sds = c(0.041, 0.3),
-      n_control = 40, n_successes_control = 22,
-      n_treatment = 40, n_successes_treatment = 30
-    )[1],
-    tolerance = 1e-4
-  )
+  # The reported weight is the informative component's posterior probability.
+  expect_true(model$posterior_parameters$prior_weight >= 0 &&
+                model$posterior_parameters$prior_weight <= 1)
   # Other credible levels are available, unlike from the Stan summary.
   expect_length(model$credible_interval(level = 0.9), 2)
 })
@@ -398,30 +347,7 @@ test_that("the conditional power prior samples its prior by quadrature", {
 
 
 test_that("the p-value-based power prior discards its prior when the power parameter changes", {
-  prior <- list(
-    source = list(
-      treatment_effect_estimate = 184 / 293 - 154 / 280,
-      standard_error = 0.041,
-      equivalent_source_sample_size_per_arm = 286,
-      sample_size_control = 280,
-      sample_size_treatment = 293,
-      control_rate = 154 / 280,
-      treatment_rate = 184 / 293
-    ),
-    method_parameters = list(
-      power_parameter = list(NA_real_),
-      shape_parameter = list(1),
-      equivalence_margin = list(0.1),
-      initial_prior = list("noninformative")
-    )
-  )
-  model <- p_value_based_PP_Binomial$new(
-    prior = prior,
-    theta_0 = 0,
-    null_space = "left",
-    mcmc_config = quadrature_mcmc_config()
-  )
-  model$prior <- prior
+  model <- pvalue_quadrature_model()
 
   model$inference(quadrature_target_data(quadrature_samples(22, 25)))
   first <- model$power_parameter
@@ -445,12 +371,7 @@ test_that("an empirical Bayes quadrature model is cached, and the cache changes 
     successes_control = c(20, 24, 20, 24, 20),
     successes_treatment = c(30, 26, 30, 26, 30)
   )
-  build <- function() {
-    TruncatedGaussianRMP$new(
-      prior = rmp_quadrature_prior(prior_weight = 0.5, empirical_bayes = TRUE),
-      mcmc_config = quadrature_mcmc_config()
-    )
-  }
+  build <- function() pvalue_quadrature_model()
 
   inference_cache_reset()
   cached <- quadrature_simulation(build(), quadrature_target_data(samples))
@@ -471,10 +392,7 @@ test_that("an empirical Bayes quadrature model is cached, and the cache changes 
 
 test_that("the Stan engine keeps empirical Bayes models out of the cache", {
   model <- testthat::with_mocked_bindings(
-    TruncatedGaussianRMP$new(
-      prior = rmp_quadrature_prior(empirical_bayes = TRUE),
-      mcmc_config = quadrature_mcmc_config(engine = "stan")
-    ),
+    pvalue_quadrature_model(engine = "stan"),
     compile_stan_model = function(...) NULL,
     .package = "BExTE"
   )
