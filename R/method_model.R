@@ -71,8 +71,41 @@ Model <- R6::R6Class(
     #'   tuning depends on the decision rule read it, so that they are tuned for
     #'   the test that is actually performed.
     analysis_critical_value = NULL,
+    #' @field null_space Null hypothesis space, `"left"` or `"right"` of
+    #'   `parameters$theta_0`. Set by the methods that call
+    #'   `hypothesis_space_transformation()`.
+    null_space = NULL,
     n_components_mixture_approx = seq(1, 4),
     aic_penalty_parameter_mixture_approx = 6,
+
+    #' @description Express treatment effects relative to the null hypothesis
+    #'
+    #' Translates the source estimate and the given target estimates by
+    #' `parameters$theta_0` and, for a right null space, mirrors them, so that
+    #' the null hypothesis is the half line below 0 whatever the case study's
+    #' `theta_0` and `null_space`. Methods defined only for that case can then
+    #' work on the result directly.
+    #'
+    #' @param target_treatment_effect_estimate Target treatment effect
+    #'   estimate, or one per replicate.
+    #' @return A list with the transformed `source_treatment_effect_estimate`
+    #'   and `target_treatment_effect_estimate`, the latter the same length as
+    #'   the input.
+    hypothesis_space_transformation = function(target_treatment_effect_estimate) {
+      # theta_0 is transformed locally and never written back: negating
+      # self$parameters$theta_0 in place flipped its sign on every call, so
+      # consecutive replicates were transformed differently.
+      theta_0 <- self$parameters$theta_0
+      assert_single_number(theta_0)
+      sign <- benefit_sign_from_null_space(self$null_space)
+
+      list(
+        source_treatment_effect_estimate =
+          sign * (self$prior$source$treatment_effect_estimate - theta_0),
+        target_treatment_effect_estimate =
+          sign * (target_treatment_effect_estimate - theta_0)
+      )
+    },
     # Penalty parameter for AIC calculation (default 6)
 
     #' @description Initialize the Model object

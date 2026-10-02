@@ -29,12 +29,10 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Gaussian_empirical_Bayes_PP-initialize}{\code{Gaussian_empirical_Bayes_PP$new()}}
-    \item \href{#method-Gaussian_empirical_Bayes_PP-hypothesis_space_transformation}{\code{Gaussian_empirical_Bayes_PP$hypothesis_space_transformation()}}
     \item \href{#method-Gaussian_empirical_Bayes_PP-empirical_bayes_update}{\code{Gaussian_empirical_Bayes_PP$empirical_bayes_update()}}
     \item \href{#method-Gaussian_empirical_Bayes_PP-inference}{\code{Gaussian_empirical_Bayes_PP$inference()}}
     \item \href{#method-Gaussian_empirical_Bayes_PP-power_parameter_estimation}{\code{Gaussian_empirical_Bayes_PP$power_parameter_estimation()}}
     \item \href{#method-Gaussian_empirical_Bayes_PP-vectorised_power_parameter}{\code{Gaussian_empirical_Bayes_PP$vectorised_power_parameter()}}
-    \item \href{#method-Gaussian_empirical_Bayes_PP-vectorised_hypothesis_space_transformation}{\code{Gaussian_empirical_Bayes_PP$vectorised_hypothesis_space_transformation()}}
     \item \href{#method-Gaussian_empirical_Bayes_PP-vectorised_prior_variance}{\code{Gaussian_empirical_Bayes_PP$vectorised_prior_variance()}}
     \item \href{#method-Gaussian_empirical_Bayes_PP-vectorised_posterior_parameters}{\code{Gaussian_empirical_Bayes_PP$vectorised_posterior_parameters()}}
     \item \href{#method-Gaussian_empirical_Bayes_PP-prior_pdf}{\code{Gaussian_empirical_Bayes_PP$prior_pdf()}}
@@ -49,6 +47,7 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="hypothesis_space_transformation"><a href='../../BExTE/html/Model.html#method-Model-hypothesis_space_transformation'><code>Model$hypothesis_space_transformation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
@@ -99,28 +98,6 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
   }
   \subsection{Returns}{
     NULL
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Gaussian_empirical_Bayes_PP-hypothesis_space_transformation"></a>}}
-\if{latex}{\out{\hypertarget{method-Gaussian_empirical_Bayes_PP-hypothesis_space_transformation}{}}}
-\subsection{\code{Gaussian_empirical_Bayes_PP$hypothesis_space_transformation()}}{
-  Transform the hypothesis space.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Gaussian_empirical_Bayes_PP$hypothesis_space_transformation(target_data)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{target_data}}{The target data.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list containing transformed treatment effect estimates.
   }
 }
 
@@ -207,31 +184,6 @@ means "no fast path", which keeps subclasses with an iterative estimator
   }
   \subsection{Returns}{
     A vector of power parameters, or \code{NULL}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Gaussian_empirical_Bayes_PP-vectorised_hypothesis_space_transformation"></a>}}
-\if{latex}{\out{\hypertarget{method-Gaussian_empirical_Bayes_PP-vectorised_hypothesis_space_transformation}{}}}
-\subsection{\code{Gaussian_empirical_Bayes_PP$vectorised_hypothesis_space_transformation()}}{
-  Transform the hypothesis space for every replicate at once
-
-Vectorised counterpart of \code{hypothesis_space_transformation()}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Gaussian_empirical_Bayes_PP$vectorised_hypothesis_space_transformation(samples)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{samples}}{Data frame of generated replicates.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of transformed source and target treatment effect
-estimates.
   }
 }
 

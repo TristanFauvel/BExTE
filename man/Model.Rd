@@ -73,12 +73,17 @@ replicates were kept for analysis, in the order they were generated.}
 analysis decides at, recorded when a simulation starts. Methods whose
 tuning depends on the decision rule read it, so that they are tuned for
 the test that is actually performed.}
+
+    \item{\code{null_space}}{Null hypothesis space, \code{"left"} or \code{"right"} of
+\code{parameters$theta_0}. Set by the methods that call
+\code{hypothesis_space_transformation()}.}
   }
   \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
+    \item \href{#method-Model-hypothesis_space_transformation}{\code{Model$hypothesis_space_transformation()}}
     \item \href{#method-Model-initialize}{\code{Model$new()}}
     \item \href{#method-Model-create}{\code{Model$create()}}
     \item \href{#method-Model-inference}{\code{Model$inference()}}
@@ -114,6 +119,37 @@ the test that is actually performed.}
     \item \href{#method-Model-clone}{\code{Model$clone()}}
   }
 }
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Model-hypothesis_space_transformation"></a>}}
+\if{latex}{\out{\hypertarget{method-Model-hypothesis_space_transformation}{}}}
+\subsection{\code{Model$hypothesis_space_transformation()}}{
+  Express treatment effects relative to the null hypothesis
+
+Translates the source estimate and the given target estimates by
+\code{parameters$theta_0} and, for a right null space, mirrors them, so that
+the null hypothesis is the half line below 0 whatever the case study's
+\code{theta_0} and \code{null_space}. Methods defined only for that case can then
+work on the result directly.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model$hypothesis_space_transformation(target_treatment_effect_estimate)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect_estimate}}{Target treatment effect
+estimate, or one per replicate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with the transformed \code{source_treatment_effect_estimate}
+and \code{target_treatment_effect_estimate}, the latter the same length as
+the input.
+  }
+}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-Model-initialize}{}}}
