@@ -30,7 +30,7 @@ the plot generators append their own \verb{<case_study>/} below it.}
 \item{progress}{Optional \verb{function(index, total, id)} progress callback.}
 
 \item{numbered_dir}{Optional directory collecting a copy of every output
-produced, under the generators' own filenames: figures as PNG, tables as
+produced, under the generators' own filenames: figures as PDF, tables as
 both \code{.tex} and \code{.pdf}. \code{manifest.csv} maps each file to its paper number.
 \code{NULL} skips it.}
 

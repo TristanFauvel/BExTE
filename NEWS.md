@@ -1,4 +1,7 @@
 # BExTE 0.0.2
+* `export_paper_outputs()` copies figures into `paper_outputs/` as PDF, the
+  vector format the manuscript includes, rather than PNG, and removes PNG
+  copies an earlier export left there.
 * Every method now analyses a binary endpoint with a binomial likelihood
   (Aprepitant) through the binomial likelihoods of both arms, rather than a
   normal approximation of the risk difference. New, on the lattice of

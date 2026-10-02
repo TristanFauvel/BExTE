@@ -41,11 +41,12 @@ test_that("a copy of each produced output is written under its own name", {
       basename(trimws(strsplit(status$outputs[status$id == id], ";", fixed = TRUE)[[1]]))
     }
 
-    ## Figures are wanted as PNG - the format that drops straight into a
-    ## document or a slide - not as the PDF the generators also write.
+    ## Figures are wanted as PDF - the vector format the manuscript includes -
+    ## not as the PNG the generators also write.
     figure <- written("1")
-    expect_true(all(grep("\\.png$", figure, value = TRUE) %in% produced))
-    expect_false(any(grep("\\.pdf$", figure, value = TRUE) %in% produced))
+    expect_true(any(grepl("\\.pdf$", figure)))
+    expect_true(all(grep("\\.pdf$", figure, value = TRUE) %in% produced))
+    expect_false(any(grep("\\.png$", figure, value = TRUE) %in% produced))
 
     ## Tables keep both: the .tex is what the manuscript includes, the .pdf is
     ## what you look at.
@@ -57,6 +58,19 @@ test_that("a copy of each produced output is written under its own name", {
 
     ## The copies are real files, not empty placeholders.
     expect_true(all(file.info(file.path(numbered_dir, produced))$size > 0))
+  })
+})
+
+test_that("PNG copies left by an earlier export are removed", {
+  withr::with_tempdir({
+    numbered_dir <- file.path(getwd(), "by_paper_number")
+    dir.create(numbered_dir)
+    file.create(file.path(numbered_dir, c("old_figure.png", "kept_table.tex")))
+    paper_write_numbered_copies(
+      status = data.frame(kind = character(0), status = character(0), outputs = character(0)),
+      entries = list(), numbered_dir = numbered_dir
+    )
+    expect_identical(list.files(numbered_dir), "kept_table.tex")
   })
 })
 
