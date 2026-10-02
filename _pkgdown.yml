@@ -181,6 +181,7 @@ reference:
   - bayesian_metric_vs_sample_size
   - bayesian_ocs_plots
   - frequentist_power_at_equivalent_tie
+  - frequentist_power_at_nominal_tie
   - plot_metric_vs_drift
   - plot_metric_vs_parameters
   - plot_metric_vs_sample_size
