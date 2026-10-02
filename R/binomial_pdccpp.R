@@ -301,7 +301,7 @@ pdccpp_binomial_calibrate <- function(table, desired_tie, source_estimate,
 
 #' BinomialPDCCPP class
 #'
-#' @description The calibrated power prior of [PDCCPP] for a binary endpoint:
+#' @description The calibrated power prior of [GaussianPDCCPP] for a binary endpoint:
 #'   the power parameter is given by the same rule, applied to the estimated
 #'   risk differences and their standard errors, the target data are analysed
 #'   with the binomial conditional power prior of [BinomialCPP] at that power

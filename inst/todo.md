@@ -25,5 +25,3 @@
 [] Generalize the code to allow for different sample sizes in the arms of the target study
    - sample_size_per_arm appears ~600 times in R/; a deep refactor.
 
-[] Use consistent naming for methods (with Gaussian or Binomial as suffix)
-   - Names are currently mixed (SeparateGaussian, Gaussian_NPP, BinomialPooling, PoolGaussian). Renaming changes keys in configs, saved results and figure manifests; only do it alongside a full rerun.

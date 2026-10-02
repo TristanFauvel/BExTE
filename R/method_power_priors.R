@@ -277,7 +277,7 @@ BinomialCPP <- R6::R6Class(
   )
 )
 
-#' Gaussian_NPP class
+#' GaussianNPP class
 #'
 #' @description This class represents a Gaussian model using the NPP (Noninformative Power Prior) approach.
 #' It inherits from the Model class.
@@ -295,8 +295,8 @@ BinomialCPP <- R6::R6Class(
 #' @field summary_measure_likelihood Summary measure likelihood
 #'
 #' @export
-Gaussian_NPP <- R6::R6Class(
-  "Gaussian_NPP",
+GaussianNPP <- R6::R6Class(
+  "GaussianNPP",
   inherit = Model,
   public = list(
     power_parameter_mean = NULL,
@@ -323,9 +323,9 @@ Gaussian_NPP <- R6::R6Class(
       )
     },
 
-    #' @description Initialize a new Gaussian_NPP object.
+    #' @description Initialize a new GaussianNPP object.
     #' @param prior Prior object containing method parameters.
-    #' @return A new Gaussian_NPP object.
+    #' @return A new GaussianNPP object.
     initialize = function(prior) {
       super$initialize()
 
@@ -815,7 +815,7 @@ Gaussian_NPP <- R6::R6Class(
 )
 
 
-#' Gaussian_NPP_KL class
+#' GaussianNPP_KL class
 #'
 #' @description This class represents a normalised power prior whose `Beta`
 #' prior on the power parameter is calibrated rather than configured.
@@ -832,7 +832,7 @@ Gaussian_NPP <- R6::R6Class(
 #'
 #' Everything downstream of the prior is inherited unchanged: the joint and
 #' marginal posteriors, the quadrature mixture, the summaries and the effective
-#' sample sizes are the ones `Gaussian_NPP` already computes. Only where `p` and
+#' sample sizes are the ones `GaussianNPP` already computes. Only where `p` and
 #' `q` come from differs.
 #'
 #' The calibration reads the design, not the data, so it happens once per
@@ -847,9 +847,9 @@ Gaussian_NPP <- R6::R6Class(
 #' @field calibration The result of [calibrate_npp_kl()] for this scenario
 #' @field calibration_settings The criterion settings read from the method parameters
 #' @export
-Gaussian_NPP_KL <- R6::R6Class(
-  "Gaussian_NPP_KL",
-  inherit = Gaussian_NPP,
+GaussianNPP_KL <- R6::R6Class(
+  "GaussianNPP_KL",
+  inherit = GaussianNPP,
   public = list(
     method = "NPP_KL",
     theta_0 = NULL,
@@ -857,11 +857,11 @@ Gaussian_NPP_KL <- R6::R6Class(
     calibration = NULL,
     calibration_settings = NULL,
 
-    #' @description Initialize a new Gaussian_NPP_KL object.
+    #' @description Initialize a new GaussianNPP_KL object.
     #' @param prior Prior object containing method parameters.
     #' @param theta_0 Value of the treatment effect under the null hypothesis.
     #' @param null_space The null hypothesis space, either "left" or "right".
-    #' @return A new Gaussian_NPP_KL object.
+    #' @return A new GaussianNPP_KL object.
     initialize = function(prior, theta_0, null_space) {
       # The parent validates and converts a mean and standard deviation into
       # shape parameters, and sets up the rest of the model. Neither is

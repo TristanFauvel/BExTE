@@ -1,4 +1,16 @@
 # BExTE 0.0.2
+* The method classes are named with the likelihood as a prefix, as the
+  binomial ones already were: `GaussianConjugate` (was `ConjugateGaussian`),
+  `GaussianStaticBorrowing` (`StaticBorrowingGaussian`), `GaussianSeparate`
+  and `GaussianSeparate_RBesT` (`SeparateGaussian*`), `GaussianPooling` and
+  `GaussianPooling_RBesT` (`PoolGaussian*`), `GaussianNPP` and
+  `GaussianNPP_KL` (`Gaussian_NPP*`), `GaussianEmpiricalBayesPP`
+  (`Gaussian_empirical_Bayes_PP`), `GaussianGravestockEBPP`
+  (`Gaussian_Gravestock_EBPP`), `GaussianPDCCPP` (`PDCCPP`),
+  `GaussianPValueBasedPP` and `BinomialPValueBasedPP`
+  (`p_value_based_PP_Gaussian`, `p_value_based_PP_Binomial`). Every class's
+  S3 class now matches its name. The method keys used in configurations and
+  results (`"separate"`, `"NPP"`, `"PDCCPP"`, ...) are unchanged.
 * Removed `TruncatedGaussianRMP`, `TruncatedEgidiMixture` and the internal
   `GaussianRMP`, which `Model$create()` no longer built since `BinomialRMP`
   and `BinomialEgidiMixture` replaced them, together with the helpers only

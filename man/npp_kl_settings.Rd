@@ -17,6 +17,6 @@ A list of settings.
 }
 \description{
 Read from the method parameters, with the defaults of
-\code{\link[=calibrate_npp_kl]{calibrate_npp_kl()}}. Shared by \link{Gaussian_NPP_KL} and \link{BinomialNPP_KL}.
+\code{\link[=calibrate_npp_kl]{calibrate_npp_kl()}}. Shared by \link{GaussianNPP_KL} and \link{BinomialNPP_KL}.
 }
 \keyword{internal}

@@ -45,7 +45,7 @@ pvalue_quadrature_prior <- function() {
 
 pvalue_quadrature_model <- function(engine = NULL) {
   prior <- pvalue_quadrature_prior()
-  model <- p_value_based_PP_Binomial$new(
+  model <- BinomialPValueBasedPP$new(
     prior = prior,
     theta_0 = 0,
     null_space = "left",

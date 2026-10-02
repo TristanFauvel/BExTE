@@ -146,7 +146,7 @@ test_that("findCalibrationParameter falls back to a cut-off of 1 below the refer
   # min_prior_mean, equivalently maxZ_1_m_c2 > 0, and their script fails below
   # it. A source estimate this far below theta_0 breaks that precondition, so
   # there is no calibrated answer to give and we fall back to the cut-off
-  # Gaussian_Gravestock_EBPP fixes. See test-pdccpp_admissible_cutoff.R.
+  # GaussianGravestockEBPP fixes. See test-pdccpp_admissible_cutoff.R.
   calibration <- findCalibrationParameter(
     source_sample_size_per_arm = 200,
     target_sample_size_per_arm = 50,

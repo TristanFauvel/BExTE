@@ -35,7 +35,7 @@ test_that("the vectorised NPP kernel reproduces the scalar kernel", {
   )
 
   scalar_class <- R6::R6Class(
-    "ScalarOnlyNPP", inherit = Gaussian_NPP,
+    "ScalarOnlyNPP", inherit = GaussianNPP,
     public = list(vectorised_replicate_inference = function(...) NULL)
   )
   reference <- scalar_class$new(prior = fixture$model$prior)

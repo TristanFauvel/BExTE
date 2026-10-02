@@ -158,7 +158,7 @@ Model <- R6::R6Class(
         }
       } else if (method == "separate") {
         if (case_study_config$summary_measure_likelihood == "normal") {
-          model <- SeparateGaussian_RBesT$new(prior = prior)
+          model <- GaussianSeparate_RBesT$new(prior = prior)
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- BinomialSeparate$new(prior = prior, mcmc_config = mcmc_config)
         } else {
@@ -166,7 +166,7 @@ Model <- R6::R6Class(
         }
       } else if (method == "pooling") {
         if (case_study_config$summary_measure_likelihood == "normal") {
-          model <- PoolGaussian_RBesT$new(prior = prior)
+          model <- GaussianPooling_RBesT$new(prior = prior)
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- BinomialPooling$new(prior = prior, mcmc_config = mcmc_config)
         } else {
@@ -174,7 +174,7 @@ Model <- R6::R6Class(
         }
       } else if (method == "conditional_power_prior") {
         if (case_study_config$summary_measure_likelihood == "normal") {
-          model <- StaticBorrowingGaussian$new(prior = prior)
+          model <- GaussianStaticBorrowing$new(prior = prior)
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- BinomialCPP$new(prior = prior, mcmc_config = mcmc_config)
         } else {
@@ -182,13 +182,13 @@ Model <- R6::R6Class(
         }
       } else if (method == "p_value_based_PP") {
         if (case_study_config$summary_measure_likelihood == "normal") {
-          model <- p_value_based_PP_Gaussian$new(
+          model <- GaussianPValueBasedPP$new(
             prior = prior,
             theta_0 = case_study_config$theta_0,
             null_space = null_space
           )
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
-          model <- p_value_based_PP_Binomial$new(
+          model <- BinomialPValueBasedPP$new(
             prior = prior,
             theta_0 = case_study_config$theta_0,
             null_space = null_space,
@@ -218,19 +218,19 @@ Model <- R6::R6Class(
             mcmc_config = mcmc_config
           )
         } else {
-          model <- PDCCPP$new(prior, theta_0 = case_study_config$theta_0, null_space = null_space)
+          model <- GaussianPDCCPP$new(prior, theta_0 = case_study_config$theta_0, null_space = null_space)
         }
       } else if (method == "EB_PP") {
         if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- BinomialGravestockEBPP$new(prior = prior, mcmc_config = mcmc_config)
         } else {
-          model <- Gaussian_Gravestock_EBPP$new(prior, null_space = null_space, theta_0 = case_study_config$theta_0)
+          model <- GaussianGravestockEBPP$new(prior, null_space = null_space, theta_0 = case_study_config$theta_0)
         }
       } else if (method == "NPP") {
         if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- BinomialNPP$new(prior = prior, mcmc_config = mcmc_config)
         } else {
-          model <- Gaussian_NPP$new(prior)
+          model <- GaussianNPP$new(prior)
         }
       } else if (method == "NPP_KL") {
         if (case_study_config$summary_measure_likelihood == "binomial") {
@@ -241,7 +241,7 @@ Model <- R6::R6Class(
             mcmc_config = mcmc_config
           )
         } else {
-          model <- Gaussian_NPP_KL$new(
+          model <- GaussianNPP_KL$new(
             prior,
             theta_0 = case_study_config$theta_0,
             null_space = null_space
@@ -1943,7 +1943,7 @@ empty_summary_rows <- function() {
 }
 
 
-#' ConjugateGaussian class
+#' GaussianConjugate class
 #'
 #' @description This class represents a conjugate Gaussian model (Gaussian prior and Gaussian likelihood)
 #'
@@ -1955,8 +1955,8 @@ empty_summary_rows <- function() {
 #' @field posterior_parameters Posterior parameters
 #'
 #' @export
-ConjugateGaussian <- R6::R6Class(
-  "ConjugateGaussian",
+GaussianConjugate <- R6::R6Class(
+  "GaussianConjugate",
   # Model corresponding to a Gaussian prior and a Gaussian likelihood
   inherit = Model,
   public = list(
@@ -1966,7 +1966,7 @@ ConjugateGaussian <- R6::R6Class(
     post_mean = NULL,
     post_var = NULL,
     posterior_parameters = NULL,
-    #' @description Initialize object from the ConjugateGaussian class
+    #' @description Initialize object from the GaussianConjugate class
     #' @param prior Prior
     initialize = function(prior) {
       if (!(prior$method_parameters$initial_prior[[1]] == "noninformative")) {
@@ -2170,17 +2170,17 @@ ConjugateGaussian <- R6::R6Class(
 )
 
 
-#' StaticBorrowingGaussian class
+#' GaussianStaticBorrowing class
 #'
-#' @description This class represents a model with a Gaussian prior derived from static borrowing, and a Gaussian likelihood. It inherits from the `ConjugateGaussian` class.
+#' @description This class represents a model with a Gaussian prior derived from static borrowing, and a Gaussian likelihood. It inherits from the `GaussianConjugate` class.
 #'
 #' @field power_parameter The power parameter for the model. A NULL value indicates no power parameter, whereas a non-zero value sets the prior variance based on the source's standard error and the power parameter.
 #' @field prior_var The variance of the prior. This is set based on the power parameter.
 #' @field method Method name
 #' @examples NA
-StaticBorrowingGaussian <- R6::R6Class(
-  "StaticBorrowingGaussian",
-  inherit = ConjugateGaussian,
+GaussianStaticBorrowing <- R6::R6Class(
+  "GaussianStaticBorrowing",
+  inherit = GaussianConjugate,
   public = list(
     power_parameter = NULL,
     prior_var = NULL,
@@ -2234,40 +2234,40 @@ StaticBorrowingGaussian <- R6::R6Class(
   )
 )
 
-#' SeparateGaussian class
+#' GaussianSeparate class
 #'
-#' @description This class represents a model with separate Gaussian components, inheriting from `StaticBorrowingGaussian`. The power parameter is set to 0.
+#' @description This class represents a model with separate Gaussian components, inheriting from `GaussianStaticBorrowing`. The power parameter is set to 0.
 #' @field method Method name
 #' @examples NA
-SeparateGaussian <- R6::R6Class(
-  "SeparateGaussian",
-  inherit = StaticBorrowingGaussian,
+GaussianSeparate <- R6::R6Class(
+  "GaussianSeparate",
+  inherit = GaussianStaticBorrowing,
   public = list(
     method = "separate",
     #' @param prior Prior
     #' @return A Model object.
     initialize = function(prior) {
-      # Set the power parameter to 0 for SeparateGaussian
+      # Set the power parameter to 0 for GaussianSeparate
       prior$method_parameters$power_parameter <- 0
       super$initialize(prior)
     }
   )
 )
 
-#' PoolGaussian class
+#' GaussianPooling class
 #'
-#' @description This class represents a model with pooled Gaussian components, inheriting from `StaticBorrowingGaussian`. The power parameter is set to 1.
+#' @description This class represents a model with pooled Gaussian components, inheriting from `GaussianStaticBorrowing`. The power parameter is set to 1.
 #' @field method Method name
 #' @examples NA
-PoolGaussian <- R6::R6Class(
-  "PoolGaussian",
-  inherit = StaticBorrowingGaussian,
+GaussianPooling <- R6::R6Class(
+  "GaussianPooling",
+  inherit = GaussianStaticBorrowing,
   public = list(
     method = "gaussian",
     #' @param prior Prior
     #' @return A Model object.
     initialize = function(prior) {
-      # Set the power parameter to 1 for PoolGaussian
+      # Set the power parameter to 1 for GaussianPooling
       prior$method_parameters$power_parameter <- 1
       super$initialize(prior)
     }
@@ -2503,18 +2503,18 @@ Model_RBesT <- R6::R6Class(
   )
 )
 
-#' @title SeparateGaussian_RBesT
+#' @title GaussianSeparate_RBesT
 #' @description An R6 class representing a separate Gaussian model using RBesT.
 #' @field method Method name
 #' @export
-SeparateGaussian_RBesT <- R6::R6Class(
-  "SeparateGaussian_RBesT",
+GaussianSeparate_RBesT <- R6::R6Class(
+  "GaussianSeparate_RBesT",
   inherit = Model_RBesT,
   public = list(
     method = "separate",
-    #' @description Initializes the SeparateGaussian_RBesT object.
+    #' @description Initializes the GaussianSeparate_RBesT object.
     #' @param prior Prior information for the analysis.
-    #' @return A new SeparateGaussian_RBesT object.
+    #' @return A new GaussianSeparate_RBesT object.
     initialize = function(prior) {
       super$initialize(prior)
       self$prior_mean <- prior$source$treatment_effect_estimate
@@ -2552,18 +2552,18 @@ SeparateGaussian_RBesT <- R6::R6Class(
   )
 )
 
-#' @title PoolGaussian_RBesT
+#' @title GaussianPooling_RBesT
 #' @description An R6 class representing a pooled Gaussian model using RBesT.
 #' @field method Method name
 #' @export
-PoolGaussian_RBesT <- R6::R6Class(
-  "PoolGaussian_RBesT",
+GaussianPooling_RBesT <- R6::R6Class(
+  "GaussianPooling_RBesT",
   inherit = Model_RBesT,
   public = list(
     method = "pooling",
-    #' @description Initializes the PoolGaussian_RBesT object.
+    #' @description Initializes the GaussianPooling_RBesT object.
     #' @param prior Prior information for the analysis.
-    #' @return A new PoolGaussian_RBesT object.
+    #' @return A new GaussianPooling_RBesT object.
     initialize = function(prior) {
       super$initialize(prior)
       self$prior_mean <- prior$source$treatment_effect_estimate

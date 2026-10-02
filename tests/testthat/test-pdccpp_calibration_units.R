@@ -7,7 +7,7 @@
 # with B = 2 * pnorm(-S), so the multiplier on the predictive standard
 # deviation sP is S itself -- the z-score of a two-sided (1 - c) prediction
 # interval around the source estimate. PDCCPP has to apply that same cut-off. The shared
-# estimator formula it borrows from Gaussian_Gravestock_EBPP is written in terms
+# estimator formula it borrows from GaussianGravestockEBPP is written in terms
 # of a tail probability instead -- Gravestock passes 2 * (1 - pnorm(1)), whose
 # qnorm(1 - . / 2) is 1 -- so handing it a z-score converts it a second time.
 # These tests pin the cut-off that is actually applied to the one calibrated.

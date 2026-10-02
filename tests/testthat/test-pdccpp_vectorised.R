@@ -7,7 +7,7 @@
 # The per-replicate path, reached by declining the vectorised one.
 PDCCPPPerReplicate <- R6::R6Class(
   "PDCCPPPerReplicate",
-  inherit = PDCCPP,
+  inherit = GaussianPDCCPP,
   public = list(vectorised_power_parameter = function(target_data, samples) NULL)
 )
 

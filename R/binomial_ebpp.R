@@ -286,7 +286,7 @@ binomial_cached_empirical_bayes <- function(n_control_source,
 #'   for a binary endpoint: the power parameter maximizes the marginal
 #'   likelihood of the target data under the binomial power prior of
 #'   [BinomialCPP], and the target data are analysed with that power prior.
-#'   Unlike [Gaussian_Gravestock_EBPP], which uses the closed form of a normal
+#'   Unlike [GaussianGravestockEBPP], which uses the closed form of a normal
 #'   likelihood, the marginal likelihood is that of the binomial likelihoods of
 #'   both arms, computed on the lattice of [binomial_power_prior_posterior()].
 #'

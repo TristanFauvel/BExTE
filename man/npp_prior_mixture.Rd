@@ -7,7 +7,7 @@
 npp_prior_mixture(model, n_nodes = 60L)
 }
 \arguments{
-\item{model}{A \code{Gaussian_NPP} object.}
+\item{model}{A \code{GaussianNPP} object.}
 
 \item{n_nodes}{Number of quadrature nodes.}
 }

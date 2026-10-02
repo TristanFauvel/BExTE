@@ -12,7 +12,7 @@
 # handed PDCCPP a cut-off that discounts everything, the opposite of the "no
 # discounting needed" case it stands for.
 #
-# The admissible cut-offs are (0, 1]. 1 is the cut-off Gaussian_Gravestock_EBPP
+# The admissible cut-offs are (0, 1]. 1 is the cut-off GaussianGravestockEBPP
 # fixes, and PDCCPP is that method with the cut-off calibrated downward.
 
 calibrate <- function(source_sample_size_per_arm,

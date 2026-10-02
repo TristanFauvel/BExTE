@@ -1,14 +1,14 @@
 # The vectorised path assumes a prior it can describe up front. A subclass that
 # re-derives its prior from each replicate must not inherit a fast path built
-# for a fixed one, so ConjugateGaussian declines by default and only subclasses
+# for a fixed one, so GaussianConjugate declines by default and only subclasses
 # that genuinely have a fixed prior opt in.
 
-test_that("ConjugateGaussian declines the vectorised path by default", {
+test_that("GaussianConjugate declines the vectorised path by default", {
   prior <- list(
     source = list(treatment_effect_estimate = 0.5, standard_error = 0.12),
     method_parameters = list(initial_prior = list("noninformative"))
   )
-  model <- ConjugateGaussian$new(prior = prior)
+  model <- GaussianConjugate$new(prior = prior)
 
   expect_null(model$vectorised_prior_variance(target_data = NULL, samples = NULL))
   expect_null(model$vectorised_replicate_inference(
@@ -18,13 +18,13 @@ test_that("ConjugateGaussian declines the vectorised path by default", {
   ))
 })
 
-test_that("StaticBorrowingGaussian opts in with its fixed prior variance", {
+test_that("GaussianStaticBorrowing opts in with its fixed prior variance", {
   prior <- list(
     source = list(treatment_effect_estimate = 0.5, standard_error = 0.12),
     method_parameters = list(initial_prior = list("noninformative"),
                              power_parameter = list(0.5))
   )
-  model <- StaticBorrowingGaussian$new(prior = prior)
+  model <- GaussianStaticBorrowing$new(prior = prior)
 
   expect_equal(
     model$vectorised_prior_variance(target_data = NULL, samples = NULL),
@@ -35,7 +35,7 @@ test_that("StaticBorrowingGaussian opts in with its fixed prior variance", {
 test_that("test-then-pool declines the vectorised path unless both branches are conjugate", {
   # TestThenPoolEquivalence and TestThenPoolDifference are shared between the
   # normal and binomial variants: the same class holds either a pair of
-  # ConjugateGaussian models or a pair of MCMC ones. Only the former has the
+  # GaussianConjugate models or a pair of MCMC ones. Only the former has the
   # prior variance the vectorised path needs.
   prior <- list(
     source = list(treatment_effect_estimate = 0.5, standard_error = 0.12,

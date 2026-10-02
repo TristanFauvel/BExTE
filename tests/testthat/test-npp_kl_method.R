@@ -1,4 +1,4 @@
-## Gaussian_NPP_KL is Gaussian_NPP with the Beta prior on the power parameter
+## GaussianNPP_KL is GaussianNPP with the Beta prior on the power parameter
 ## calibrated from the design instead of read off the configuration grid.
 ## Everything downstream of the prior is inherited, so what has to be pinned is
 ## the wiring: that the prior is fixed once per scenario and not per replicate,
@@ -77,8 +77,8 @@ test_that("the method is dispatched and starts out uncalibrated", {
   npp_kl_calibration_cache_reset()
   fixture <- npp_kl_model()
 
-  expect_s3_class(fixture$model, "Gaussian_NPP_KL")
-  expect_s3_class(fixture$model, "Gaussian_NPP")
+  expect_s3_class(fixture$model, "GaussianNPP_KL")
+  expect_s3_class(fixture$model, "GaussianNPP")
   expect_equal(fixture$model$method, "NPP_KL")
 
   ## The parent needed a mean and a standard deviation to construct at all, so a
@@ -164,8 +164,8 @@ test_that("a different target sample size is a different calibration", {
 
 test_that("the calibrated prior reproduces the ordinary NPP set to the same shapes", {
   ## The method is the normalised power prior with a different prior, nothing
-  ## else, so setting Gaussian_NPP to the calibrated shapes has to give the same
-  ## posterior replicate by replicate. Gaussian_NPP takes a mean and a standard
+  ## else, so setting GaussianNPP to the calibrated shapes has to give the same
+  ## posterior replicate by replicate. GaussianNPP takes a mean and a standard
   ## deviation rather than shapes, and converts them back, which is the round
   ## trip this also checks.
   npp_kl_calibration_cache_reset()
