@@ -346,11 +346,11 @@ GaussianNPP <- R6::R6Class(
       }
 
 
-      if (self$power_parameter_std > 0.5 | self$power_parameter_std <= 0){
+      if (self$power_parameter_std > 0.5 || self$power_parameter_std <= 0){
         stop("The standard deviation of a Beta distribution is between 0 and 0.5.")
       }
 
-      if (self$power_parameter_mean > 1 | self$power_parameter_mean < 0){
+      if (self$power_parameter_mean > 1 || self$power_parameter_mean < 0){
         stop("The mean of a Beta distribution is between 0 and 1.")
       }
       xi <- self$power_parameter_mean
@@ -367,7 +367,7 @@ GaussianNPP <- R6::R6Class(
         self$q <- 1
       }
 
-      if (self$p <=0 | self$q <= 0){
+      if (self$p <=0 || self$q <= 0){
         stop("Parameters p and q of the Beta distribution must be >0.")
       }
       self$n_components_mixture_approx <- seq(1, 2)
@@ -397,7 +397,7 @@ GaussianNPP <- R6::R6Class(
             shape2 = self$q
           )
       }
-      if (any(is.na(pdf))){
+      if (anyNA(pdf)){
         stop("Unnormalized posterior PDF of the power parameter is evaluated to NA.")
       }
       return(pdf)
@@ -414,7 +414,7 @@ GaussianNPP <- R6::R6Class(
 
       norm_pdf <- pdf / normconst
 
-      if (any(is.na(norm_pdf))){
+      if (anyNA(norm_pdf)){
         stop("Normalized posterior PDF of the power parameter is evaluated to NA.")
       }
 
@@ -753,7 +753,7 @@ GaussianNPP <- R6::R6Class(
     plot_power_parameter_posterior_pdf = function(target_data) {
       x_values <- seq(0, 1, length.out = 100)
 
-      posterior_pdf <- model$power_parameter_posterior_pdf(x_values, target_data)
+      posterior_pdf <- self$power_parameter_posterior_pdf(x_values, target_data)
 
       df <- data.frame(x = x_values, posterior_pdf = posterior_pdf)
 

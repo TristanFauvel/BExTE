@@ -407,7 +407,7 @@ forest_subplot <- function(data,
              x_metric_name == "ess_precision" ||
              x_metric_name == "ess_elir") {
     if (is.null(data$equivalent_source_sample_size_per_arm) ||
-        any(is.na(data$equivalent_source_sample_size_per_arm))) {
+        anyNA(data$equivalent_source_sample_size_per_arm)) {
       equivalent_source_sample_size_per_arm <- 2 * data$source_sample_size_control * data$source_sample_size_treatment / (data$source_sample_size_control + data$source_sample_size_treatment)
     } else {
       equivalent_source_sample_size_per_arm <- data$equivalent_source_sample_size_per_arm
@@ -649,7 +649,7 @@ forest_combined_plot <- function(data,
   } else if (x_metric_name %in% c("ess_moment", "ess_precision", "ess_elir")) {
     target_sample_size_per_arm <- unique(data$target_sample_size_per_arm)
     equivalent_source_sample_size_per_arm <- ifelse(
-      is.null(data$equivalent_source_sample_size_per_arm) | any(is.na(data$equivalent_source_sample_size_per_arm)),
+      is.null(data$equivalent_source_sample_size_per_arm) | anyNA(data$equivalent_source_sample_size_per_arm),
       2 * data$source_sample_size_control * data$source_sample_size_treatment / (data$source_sample_size_control + data$source_sample_size_treatment),
       data$equivalent_source_sample_size_per_arm
     )

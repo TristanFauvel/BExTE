@@ -188,7 +188,7 @@ test_that("the nominal-TIE step reads the trials the equivalent-TIE step cached"
 
   expect_equal(counter$draws, 2)
   expect_length(handed$p_values, 2)
-  expect_true(all(vapply(handed$p_values, length, integer(1)) == 200))
+  expect_true(all(lengths(handed$p_values) == 200))
   # The pooled power reads the very same trials.
   expect_length(handed$trials, 2)
   expect_true(all(vapply(handed$trials, nrow, integer(1)) == 200))

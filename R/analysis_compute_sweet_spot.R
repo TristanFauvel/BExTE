@@ -205,11 +205,11 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
 
   # Loop through each unique combination to calculate sweet spots
   for (case_study in unique(results_freq_df$case_study)) {
-      results_freq_df1 = results_freq_df[results_freq_df$case_study == case_study, ]
+      results_freq_df1 <- results_freq_df[results_freq_df$case_study == case_study, ]
       for (target_sample_size_per_arm in unique(results_freq_df1$target_sample_size_per_arm)) {
-        results_freq_df2 = results_freq_df1[results_freq_df1$target_sample_size_per_arm == target_sample_size_per_arm, ]
+        results_freq_df2 <- results_freq_df1[results_freq_df1$target_sample_size_per_arm == target_sample_size_per_arm, ]
         for (source_denominator_change_factor in unique(results_freq_df2$source_denominator_change_factor)) {
-          results_freq_df3 = results_freq_df2[results_freq_df2$source_denominator_change_factor == source_denominator_change_factor, ]
+          results_freq_df3 <- results_freq_df2[results_freq_df2$source_denominator_change_factor == source_denominator_change_factor, ]
           for (target_to_source_std_ratio in unique(results_freq_df3$target_to_source_std_ratio)){
             results_freq_df4 <- results_freq_df3 %>%
               dplyr::filter(

@@ -411,7 +411,7 @@ plot_success_proba_vs_scenario <- function(results_metrics_df, metrics) {
       metric <- "success_proba"
 
       for (sample_size in target_sample_sizes) {
-        for (i in 1:nrow(parameters_combinations)) {
+        for (i in seq_len(nrow(parameters_combinations))) {
           for (source_denominator_change_factor in unique(filtered_results_metrics_df$source_denominator_change_factor)) {
             for (target_to_source_std_ratio in unique(filtered_results_metrics_df$target_to_source_std_ratio)) {
               plot_success_proba_vs_drift(

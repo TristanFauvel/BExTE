@@ -327,7 +327,7 @@ UnitInformationDesignPrior <- R6::R6Class(
 
 
         # Create the new mixture of Beta distributions with adjusted parameters
-        components_new <- lapply(1:length(weights), function(i) {
+        components_new <- lapply(seq_along(weights), function(i) {
           c(weights[i], a_params_new[i], b_params_new[i])
         })
 
@@ -514,7 +514,7 @@ SourcePosteriorDesignPrior <- R6::R6Class(
         return(dnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
         # PDF for each arm
-        result <- sapply(x, function(x) {
+        return(sapply(x, function(x) {
           binomial_product_integral(
             x,
             alpha_control = 1 + self$n_successes_control,
@@ -522,7 +522,7 @@ SourcePosteriorDesignPrior <- R6::R6Class(
             alpha_treatment = 1 + self$n_successes_treatment,
             beta_treatment = 1 + self$n_treatment - self$n_successes_treatment
           )
-        })
+        }))
       } else {
         stop("Not implemented for other distributions.")
       }
