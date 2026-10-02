@@ -13,10 +13,8 @@ Imports:
     readr,
     parallel,
     yaml,
-    zeallot,
     purrr,
     jsonlite,
-    tidyverse, 
     foreach,
     doParallel,
     progress,
@@ -25,10 +23,8 @@ Imports:
     extrafont,
     latex2exp,
     truncnorm,
-    roxygen2, 
     RBesT,
     R6,
-    MASS, 
     HDInterval,
     pwr,
     ggnewscale,
@@ -39,22 +35,20 @@ Imports:
     Bolstad2,
     grid,
     gridExtra,
-    binom, 
     rlang,
     kableExtra,
     bayesplot,
     posterior,
     BSDA,
-    scModels,
     extraDistr,
-    pracma,
     futile.logger,
     ParallelLogger,
     Hmisc,
     knitr,
     statmod,
     tinytex,
-    tools
+    tools,
+    withr
 License: GPL-3 | file LICENSE
 Additional_repositories: https://stan-dev.r-universe.dev/
 LazyData: true
@@ -73,7 +67,8 @@ Suggests:
     ragg,
     tikzDevice,
     devtools,
-    callr
+    callr,
+    tidyverse
 VignetteBuilder: knitr
 SystemRequirements: GNU make, pandoc (>= 1.12.3), pngquant, C++17
 Encoding: UTF-8

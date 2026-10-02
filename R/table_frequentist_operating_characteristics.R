@@ -132,7 +132,7 @@ table_metric_vs_drift <- function(metric,
 
   if (nrow(results_df) == 0) {
     warning("Dataframe is empty")
-    next
+    return()
   }
 
   xvar_name <- rlang::sym(xvar$name)
@@ -382,7 +382,7 @@ table_metric_vs_parameters <- function(results_metrics_df,
 
   if (nrow(results_df) == 0) {
     warning("Dataframe is empty")
-    next
+    return()
   }
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
@@ -810,7 +810,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
 
   if (nrow(results_df) == 0) {
     warning("Dataframe is empty")
-    next
+    return()
   }
 
   xvar_name <- rlang::sym(xvar$name)

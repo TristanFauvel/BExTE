@@ -409,7 +409,7 @@ plot_metric_vs_drift <- function(metric,
 
   if (nrow(results_df) == 0) {
     warning("Dataframe is empty")
-    next
+    return()
   }
 
   # Calculate the range of the x-axis
@@ -983,7 +983,7 @@ plot_metric_vs_sample_size <- function(metric,
 
   if (nrow(results_df) == 0) {
     warning("Dataframe is empty")
-    next
+    return()
   }
   # Format the parameters (from the json string)
   results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))

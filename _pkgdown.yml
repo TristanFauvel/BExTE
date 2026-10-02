@@ -72,14 +72,11 @@ articles:
 reference:
 - title: Data generation
 - contents:
-  - generate_binary_data_from_rate
   - sample_aggregate_binary_data
   - sample_aggregate_normal_data
   - sample_log_odds_ratios
-  - sample_rate_ratios
   - compute_ORs
   - compute_log_odds_ratio_from_counts
-  - compute_log_odds_ratio_from_rates
   - rate_from_drift_logOR
   - rate_from_drift_logRR
   - standard_error_log_odds_ratio
@@ -151,7 +148,6 @@ reference:
   - npp_prior_mixture
   - calibrate_npp_kl
   - summary_t_test_p_value
-  - summary_z_test_p_value
 
 - title: Plots
 - contents:
@@ -170,7 +166,6 @@ reference:
   - style_tuple_key
   - plot_metric_vs_scenario
   - forest_plot
-  - format_uncertainty
   - estimate_bayesian_ocs
   - set_size
   - nominal_tie_breaks
@@ -227,7 +222,6 @@ reference:
   - normal_reference_ess
   - adaptive_power_prior_type_I_error
   - log_grid_interpolation
-  - compute_binomial_credible_interval
   - interval_score
   - compute_power_with_tie_ci
 
@@ -332,12 +326,10 @@ reference:
   - hellinger_distance
   - important_drift_values
   - make_labels_from_parameters
-  - markers
   - negative_binomial_regression
   - findCalibrationParameter
   - get_parameters
   - remove_columns_from_df
-  - concatenate_simulation_logs
   - generate_comparison_table
   - read_function_code
   - format_simulation_output_table

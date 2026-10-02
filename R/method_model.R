@@ -548,11 +548,6 @@ Model <- R6::R6Class(
       return(ci)
     },
 
-    #' @description Method to calculate the effective sample size of the prior distribution
-    prior_ESS = function() {
-      stop("Not implemented", call. = FALSE)
-    },
-
     #' @description Method to sample from the prior distribution
     #' @param n_samples Number of samples to draw from the prior distribution
     sample_prior = function(n_samples) {
@@ -1010,18 +1005,6 @@ Model <- R6::R6Class(
           n_divergences = n_divergences
         )
       )
-    },
-
-    #' @description Method to calculate the prior probability of treatment benefit
-    #' @param theta_0 Null hypothesis value
-    #' @param null_space The null space for hypothesis testing
-    #' @param n_prior_samples Number of prior samples
-    #' @param tuning_length Tuning parameter length
-    prior_treatment_benefit = function(theta_0,
-                                       null_space,
-                                       n_prior_samples,
-                                       tuning_length) {
-      stop("Not implemented", call. = FALSE)
     },
 
     #' @description Method to estimate frequentist operating characteristics
