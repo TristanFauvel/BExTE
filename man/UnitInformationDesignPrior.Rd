@@ -31,6 +31,7 @@ A class representing the unit information design prior for Bayesian borrowing.
 \if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="DesignPrior" data-id="create"><a href='../../BExTE/html/DesignPrior.html#method-DesignPrior-create'><code>DesignPrior$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="DesignPrior" data-id="given_control_rate"><a href='../../BExTE/html/DesignPrior.html#method-DesignPrior-given_control_rate'><code>DesignPrior$given_control_rate()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
