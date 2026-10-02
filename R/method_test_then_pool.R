@@ -437,7 +437,6 @@ TestThenPool <- R6::R6Class(
 #' @description This class extends the TestThenPool class to implement the Test-Then-Pool framework for equivalence trials.
 #' @details The TestThenPoolEquivalence class provides methods for testing and inference in equivalence trials using the Test-Then-Pool framework.
 #' @field significance_level Significance level for the test
-#' @field equivalence_margin Equivalence margin for the test
 #' @field method Method name
 #' @export
 TestThenPoolEquivalence <- R6::R6Class(
@@ -445,7 +444,6 @@ TestThenPoolEquivalence <- R6::R6Class(
   inherit = TestThenPool,
   public = list(
     significance_level = NULL,
-    equivalence_margin = NULL,
     method = "test_then_pool_equivalence",
     #' @description Initializes a TestThenPoolEquivalence object.
     #' @param prior The prior distribution for the treatment effect.
@@ -453,13 +451,13 @@ TestThenPoolEquivalence <- R6::R6Class(
     initialize = function(prior, mcmc_config = NULL) {
       super$initialize(prior = prior, mcmc_config = mcmc_config)
       self$significance_level <- unlist(prior$method_parameters$significance_level)
-      self$equivalence_margin <- unlist(prior$method_parameters$equivalence_margin)
+      self$parameters$equivalence_margin <- unlist(prior$method_parameters$equivalence_margin)
 
       if (is.null(self$significance_level)) {
         stop("Significance level is not defined.")
       }
 
-      if (is.null(self$equivalence_margin)) {
+      if (is.null(self$parameters$equivalence_margin)) {
         stop("Equivalence margin is not defined.")
       }
     },
@@ -484,7 +482,7 @@ TestThenPoolEquivalence <- R6::R6Class(
         left <- BSDA::zsum.test(
           mean.x = self$prior$source$treatment_effect_estimate,
           mean.y = target_data$sample$treatment_effect_estimate,
-          mu = self$equivalence_margin,
+          mu = self$parameters$equivalence_margin,
           alternative = "less",
           sigma.x = self$prior$source$standard_error * sqrt(
             self$prior$source$equivalent_source_sample_size_per_arm
@@ -496,7 +494,7 @@ TestThenPoolEquivalence <- R6::R6Class(
 
         # Equivalent to :
         # z_left <- (
-        #   self$source_treatment_effect_estimate - target_data$sample$treatment_effect_estimate - self$equivalence_margin
+        #   self$source_treatment_effect_estimate - target_data$sample$treatment_effect_estimate - self$parameters$equivalence_margin
         # ) / std
         # p_left <- pnorm(z_left, lower.tail = TRUE)
         #
@@ -509,7 +507,7 @@ TestThenPoolEquivalence <- R6::R6Class(
         right <- BSDA::zsum.test(
           mean.x = self$prior$source$treatment_effect_estimate,
           mean.y = target_data$sample$treatment_effect_estimate,
-          mu = -self$equivalence_margin,
+          mu = -self$parameters$equivalence_margin,
           alternative = "greater",
           sigma.x = self$prior$source$standard_error * sqrt(
             self$prior$source$equivalent_source_sample_size_per_arm
@@ -521,7 +519,7 @@ TestThenPoolEquivalence <- R6::R6Class(
 
         # Equivalent to :
         # z_right <- (
-        #   self$source_treatment_effect_estimate - target_data$sample$treatment_effect_estimate + self$equivalence_margin
+        #   self$source_treatment_effect_estimate - target_data$sample$treatment_effect_estimate + self$parameters$equivalence_margin
         # ) / std
         # p_right <- pnorm(z_right, lower.tail = FALSE)
       } else if (test_type == "t-test") {
@@ -529,7 +527,7 @@ TestThenPoolEquivalence <- R6::R6Class(
         left <- BSDA::tsum.test(
           mean.x = self$prior$source$treatment_effect_estimate,
           mean.y = target_data$sample$treatment_effect_estimate,
-          mu = self$equivalence_margin,
+          mu = self$parameters$equivalence_margin,
           alternative = "less",
           s.x = self$prior$source$standard_error * sqrt(
             self$prior$source$equivalent_source_sample_size_per_arm
@@ -543,7 +541,7 @@ TestThenPoolEquivalence <- R6::R6Class(
         right <- BSDA::tsum.test(
           mean.x = self$prior$source$treatment_effect_estimate,
           mean.y = target_data$sample$treatment_effect_estimate,
-          mu = -self$equivalence_margin,
+          mu = -self$parameters$equivalence_margin,
           alternative = "greater",
           s.x = self$prior$source$standard_error * sqrt(
             self$prior$source$equivalent_source_sample_size_per_arm
@@ -607,8 +605,8 @@ TestThenPoolEquivalence <- R6::R6Class(
 
       # H0a: theta_S - theta_T > margin, and H0b: theta_S - theta_T < -margin.
       pmax(
-        one_sided(self$equivalence_margin, "less"),
-        one_sided(-self$equivalence_margin, "greater")
+        one_sided(self$parameters$equivalence_margin, "less"),
+        one_sided(-self$parameters$equivalence_margin, "greater")
       )
     },
 

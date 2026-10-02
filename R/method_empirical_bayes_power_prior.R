@@ -816,7 +816,6 @@ PDCCPP <- R6::R6Class(
 #' It inherits from the Gaussian_empirical_Bayes_PP class.
 #'
 #' @field shape_parameter The shape parameter for the method.
-#' @field equivalence_margin The equivalence margin for the method.
 #' @field method Method name
 #' @export
 p_value_based_PP_Gaussian <- R6::R6Class(
@@ -824,7 +823,6 @@ p_value_based_PP_Gaussian <- R6::R6Class(
   inherit = Gaussian_empirical_Bayes_PP,
   public = list(
     shape_parameter = NULL,
-    equivalence_margin = NULL,
     method = "p_value_based_PP",
     #' @description Initialize the p_value_based_PP object.
     #'
@@ -1000,7 +998,6 @@ p_value_based_PP_Gaussian <- R6::R6Class(
 #' @field null_space Null hypothesis space.
 #' @field empirical_bayes Boolean indicating if empirical Bayes is used.
 #' @field shape_parameter Shape parameter
-#' @field equivalence_margin Equivalence margin for the test
 #' @field method Method name
 #' @field prior_var Prior variance
 #' @field mcmc_config MCMC configuration
@@ -1019,7 +1016,6 @@ p_value_based_PP_Binomial <- R6::R6Class(
     # ... and differs between them, so no prior kernel is shared.
     fixed_power_parameter = FALSE,
     shape_parameter = NULL,
-    equivalence_margin = NULL,
     method = "p_value_based_PP",
     prior_var = NULL,
     mcmc_config = NULL,

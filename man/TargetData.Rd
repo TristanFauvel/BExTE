@@ -29,7 +29,15 @@ A base class for target data objects.
 
     \item{\code{sampling_approximation}}{The flag indicating if sampling approximation is used.}
 
-    \item{\code{standard_deviation}}{The target standard deviation value.}
+    \item{\code{standard_deviation}}{The true sampling standard deviation of the
+summary measure for one patient per arm, i.e. the data-generating value:
+the true standard error of the treatment-effect estimate is
+\code{standard_deviation / sqrt(sample_size_per_arm)}. It belongs to the
+scenario, not to a replicate. A replicate's estimate of it is
+\code{sample$standard_deviation} (see \code{sample_aggregate_normal_data()}), which
+is what the analysis methods use; the true value is only used to generate
+data and for design-stage quantities such as the analytical power and the
+KL-NPP calibration.}
 
     \item{\code{sample}}{The sample data.}
   }

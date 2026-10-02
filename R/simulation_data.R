@@ -252,7 +252,11 @@ sample_rate_ratios <- function(control_rate,
 #' @param n_replicates Number of replicates to sample
 #' @param n_samples_per_arm Number of samples per replicate
 #'
-#' @return A list containing the sample mean and sample standard error for each replicate
+#' @return A data frame with one row per replicate: the treatment-effect
+#'   estimate, its standard error, the sample size per arm and the sample
+#'   standard deviation. The standard error and standard deviation are the
+#'   replicate's own estimates, drawn around the true `variance`, not the true
+#'   values themselves.
 #' @export
 sample_aggregate_normal_data <- function(mean,
                                          variance,
@@ -629,7 +633,15 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
 #' @field sample_size_treatment The target sample size for the treatment group.
 #' @field treatment_effect The target treatment effect value.
 #' @field sampling_approximation The flag indicating if sampling approximation is used.
-#' @field standard_deviation The target standard deviation value.
+#' @field standard_deviation The true sampling standard deviation of the
+#'   summary measure for one patient per arm, i.e. the data-generating value:
+#'   the true standard error of the treatment-effect estimate is
+#'   `standard_deviation / sqrt(sample_size_per_arm)`. It belongs to the
+#'   scenario, not to a replicate. A replicate's estimate of it is
+#'   `sample$standard_deviation` (see `sample_aggregate_normal_data()`), which
+#'   is what the analysis methods use; the true value is only used to generate
+#'   data and for design-stage quantities such as the analytical power and the
+#'   KL-NPP calibration.
 #' @field sample The sample data.
 #' @export
 TargetData <- R6::R6Class(
@@ -750,6 +762,17 @@ TargetData <- R6::R6Class(
 
 #' @title ContinuousTargetData class
 #' @description A class for continuous target data objects.
+#' @details The target study's sampling standard deviation is derived from the
+#'   source study rather than configured:
+#'   `standard_deviation = target_to_source_std_ratio * source_data$standard_error *
+#'   sqrt(source_data$equivalent_source_sample_size_per_arm)`. With the default
+#'   ratio of 1 it equals the source study's standard deviation, i.e. the
+#'   adults' in an extrapolation from adults to children.
+#'
+#'   The variance is treated as known in the analysis: the Bayesian methods use
+#'   a normal likelihood whose variance is the replicate's squared standard
+#'   error, plugged in as if it were exact, so the uncertainty in the variance
+#'   estimate is ignored.
 #' @export
 ContinuousTargetData <- R6::R6Class(
   "ContinuousTargetData",

@@ -16,7 +16,11 @@ sample_aggregate_normal_data(mean, variance, n_replicates, n_samples_per_arm)
 \item{n_samples_per_arm}{Number of samples per replicate}
 }
 \value{
-A list containing the sample mean and sample standard error for each replicate
+A data frame with one row per replicate: the treatment-effect
+estimate, its standard error, the sample size per arm and the sample
+standard deviation. The standard error and standard deviation are the
+replicate's own estimates, drawn around the true \code{variance}, not the true
+values themselves.
 }
 \description{
 This function samples aggregate normal data based on the mean and variance.
