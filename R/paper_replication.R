@@ -567,14 +567,17 @@ paper_numbered_label <- function(entry) {
 ##
 ## The files keep the names their generators gave them, which say what each
 ## plots; manifest.csv maps each one to its paper number. Figures are copied
-## as PNG, the format that drops straight into a document; tables keep both
-## the .tex the manuscript includes and the .pdf you look at. An item that
+## as PDF, the vector format the manuscript includes; tables keep both the
+## .tex the manuscript includes and the .pdf you look at. An item that
 ## produced nothing is skipped, so the folder never holds a figure that was
 ## not drawn. Two different files with the same name - from different case
 ## study folders - are told apart by prefixing the second with its folder
 ## name, rather than one silently overwriting the other.
 paper_write_numbered_copies <- function(status, entries, numbered_dir) {
   dir.create(numbered_dir, showWarnings = FALSE, recursive = TRUE)
+  ## Earlier exports copied figures as PNG; drop those so a re-export does not
+  ## leave both formats side by side.
+  unlink(list.files(numbered_dir, pattern = "\\.png$", full.names = TRUE))
   copied_from <- character(0)
 
   for (index in seq_len(nrow(status))) {
@@ -587,7 +590,7 @@ paper_write_numbered_copies <- function(status, entries, numbered_dir) {
     wanted <- if (identical(row$kind, "table")) {
       produced[grepl("\\.(tex|pdf)$", produced)]
     } else {
-      produced[grepl("\\.png$", produced)]
+      produced[grepl("\\.pdf$", produced)]
     }
 
     for (path in wanted) {
@@ -720,7 +723,7 @@ paper_export_in_parallel <- function(entries, run_generator, figures_dir,
 #' @param case_studies_config_dir Directory holding the case study YAMLs.
 #' @param progress Optional `function(index, total, id)` progress callback.
 #' @param numbered_dir Optional directory collecting a copy of every output
-#'   produced, under the generators' own filenames: figures as PNG, tables as
+#'   produced, under the generators' own filenames: figures as PDF, tables as
 #'   both `.tex` and `.pdf`. `manifest.csv` maps each file to its paper number.
 #'   `NULL` skips it.
 #' @param workers Number of items to produce at once, each in a forked
@@ -908,7 +911,7 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
         "No numbered copies were requested for this export."
       } else {
         paste0("Copies of every paper output, under the same filenames ",
-               "(figures as PNG, tables as .tex and .pdf), are in ",
+               "(figures as PDF, tables as .tex and .pdf), are in ",
                numbered_dir, ".")
       },
       "",
