@@ -23,7 +23,8 @@ each replicate, so its table is cached against a rounded scale: the weak
 component is a deliberately diffuse unit-information prior whose scale is a
 modelling choice, and rounding it by a fraction of a percent cannot move the
 selected weight, while rebuilding the table for every replicate would dominate
-the run.
+the run. The tables do not depend on the drift, so the cache is shared by
+every scenario a worker runs - see \code{\link[=egidi_cached_predictive_table]{egidi_cached_predictive_table()}}.
 }
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:TruncatedGaussianRMP]{TruncatedGaussianRMP}} -> \code{TruncatedEgidiMixture}
@@ -74,6 +75,7 @@ quantile, which for this method is the selected weight.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -92,12 +94,13 @@ quantile, which for this method is the selected weight.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_pdf'><code>MCMCModel$prior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_prior'><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-stan_sampler'><code>MCMCModel$stan_sampler()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="prepare_data"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-prepare_data'><code>TruncatedGaussianRMP$prepare_data()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="print_model_summary"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-print_model_summary'><code>TruncatedGaussianRMP$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="prior_elir_ess"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-prior_elir_ess'><code>TruncatedGaussianRMP$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="quadrature_posterior"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-quadrature_posterior'><code>TruncatedGaussianRMP$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="sample_prior"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-sample_prior'><code>TruncatedGaussianRMP$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TruncatedGaussianRMP" data-id="summary_rows"><a href='../../BExTE/html/TruncatedGaussianRMP.html#method-TruncatedGaussianRMP-summary_rows'><code>TruncatedGaussianRMP$summary_rows()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

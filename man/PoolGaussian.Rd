@@ -42,6 +42,7 @@ NA
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -62,6 +63,7 @@ NA
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="sample_prior"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-sample_prior'><code>ConjugateGaussian$sample_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-vectorised_posterior_parameters'><code>ConjugateGaussian$vectorised_posterior_parameters()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-vectorised_replicate_inference'><code>ConjugateGaussian$vectorised_replicate_inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="StaticBorrowingGaussian" data-id="summary_rows"><a href='../../BExTE/html/StaticBorrowingGaussian.html#method-StaticBorrowingGaussian-summary_rows'><code>StaticBorrowingGaussian$summary_rows()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="StaticBorrowingGaussian" data-id="vectorised_prior_variance"><a href='../../BExTE/html/StaticBorrowingGaussian.html#method-StaticBorrowingGaussian-vectorised_prior_variance'><code>StaticBorrowingGaussian$vectorised_prior_variance()</code></a></span></li>
 </ul>
 </details>}}

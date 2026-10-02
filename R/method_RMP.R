@@ -444,43 +444,19 @@ GaussianRMP_RBesT <- R6::R6Class(
 
 
     #' @description
-    #' Print a summary of the model attributes
-    #'
-    #' This method creates and prints a formatted table of key model attributes.
-    #'
-    #' @return A printed data frame displaying the following model attributes:
-    #'   \itemize{
-    #'     \item Posterior Weight
-    #'     \item Vague Posterior Mean
-    #'     \item Vague Posterior Variance
-    #'     \item Informative Posterior Mean
-    #'     \item Informative Posterior Variance
-    #'   }
-    #'   All numeric values are formatted to 6 decimal places.
-    print_model_summary = function() {
-      # Create a data frame with the model attributes
-      df <- data.frame(
-        Attribute = c(
-          "Posterior Weight",
-          "Vague Posterior Mean",
-          "Vague Posterior Variance",
-          "Informative Posterior Mean",
-          "Informative Posterior Variance"
-        ),
-        Value = c(
-          self$wpost,
-          self$vague_posterior_mean,
-          self$vague_posterior_variance,
-          self$info_posterior_mean,
-          self$info_posterior_variance
-        )
+    #' Rows of the model summary, with the prior weight and the moments of the
+    #' two posterior components. The posterior weight is among the
+    #' `posterior_parameters` rows.
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rbind(
+        super$summary_rows(),
+        summary_row("Prior Weight", self$w),
+        summary_row("Vague Posterior Mean", self$vague_posterior_mean),
+        summary_row("Vague Posterior Variance", self$vague_posterior_variance),
+        summary_row("Informative Posterior Mean", self$info_posterior_mean),
+        summary_row("Informative Posterior Variance", self$info_posterior_variance)
       )
-
-      # Format the values to 6 decimal places
-      df$Value <- format(df$Value, digits = 6, nsmall = 6)
-
-      # Print the table
-      print(df, row.names = FALSE)
     }
   )
 )
@@ -889,43 +865,19 @@ GaussianRMP <- R6::R6Class(
     },
 
     #' @description
-    #' Print a summary of the model attributes
-    #'
-    #' This method creates and prints a formatted table of key model attributes.
-    #'
-    #' @return A printed data frame displaying the following model attributes:
-    #'   \itemize{
-    #'     \item Posterior Weight
-    #'     \item Vague Posterior Mean
-    #'     \item Vague Posterior Variance
-    #'     \item Informative Posterior Mean
-    #'     \item Informative Posterior Variance
-    #'   }
-    #'   All numeric values are formatted to 6 decimal places.
-    print_model_summary = function() {
-      # Create a data frame with the model attributes
-      df <- data.frame(
-        Attribute = c(
-          "Posterior Weight",
-          "Vague Posterior Mean",
-          "Vague Posterior Variance",
-          "Informative Posterior Mean",
-          "Informative Posterior Variance"
-        ),
-        Value = c(
-          self$wpost,
-          self$vague_posterior_mean,
-          self$vague_posterior_variance,
-          self$info_posterior_mean,
-          self$info_posterior_variance
-        )
+    #' Rows of the model summary, with the prior weight and the moments of the
+    #' two posterior components. The posterior weight is among the
+    #' `posterior_parameters` rows.
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rbind(
+        super$summary_rows(),
+        summary_row("Prior Weight", self$w),
+        summary_row("Vague Posterior Mean", self$vague_posterior_mean),
+        summary_row("Vague Posterior Variance", self$vague_posterior_variance),
+        summary_row("Informative Posterior Mean", self$info_posterior_mean),
+        summary_row("Informative Posterior Variance", self$info_posterior_variance)
       )
-
-      # Format the values to 6 decimal places
-      df$Value <- format(df$Value, digits = 6, nsmall = 6)
-
-      # Print the table
-      print(df, row.names = FALSE)
     }
   )
 )
@@ -1240,43 +1192,19 @@ TruncatedGaussianRMP <- R6::R6Class(
     },
 
     #' @description
-    #' Print a summary of the model attributes
-    #'
-    #' This method creates and prints a formatted table of key model attributes.
-    #'
-    #' @return A printed data frame displaying the following model attributes:
-    #'   \itemize{
-    #'     \item Posterior Weight
-    #'     \item Vague Posterior Mean
-    #'     \item Vague Posterior Variance
-    #'     \item Informative Posterior Mean
-    #'     \item Informative Posterior Variance
-    #'   }
-    #'   All numeric values are formatted to 6 decimal places.
-    print_model_summary = function() {
-      # Create a data frame with the model attributes
-      df <- data.frame(
-        Attribute = c(
-          "Posterior Weight",
-          "Vague Posterior Mean",
-          "Vague Posterior Variance",
-          "Informative Posterior Mean",
-          "Informative Posterior Variance"
-        ),
-        Value = c(
-          self$wpost,
-          self$vague_posterior_mean,
-          self$vague_posterior_variance,
-          self$info_posterior_mean,
-          self$info_posterior_variance
-        )
+    #' Rows of the model summary, with the prior weight and the moments of the
+    #' two posterior components. The posterior weight is among the
+    #' `posterior_parameters` rows.
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rbind(
+        super$summary_rows(),
+        summary_row("Prior Weight", self$w),
+        summary_row("Vague Posterior Mean", self$vague_posterior_mean),
+        summary_row("Vague Posterior Variance", self$vague_posterior_variance),
+        summary_row("Informative Posterior Mean", self$info_posterior_mean),
+        summary_row("Informative Posterior Variance", self$info_posterior_variance)
       )
-
-      # Format the values to 6 decimal places
-      df$Value <- format(df$Value, digits = 6, nsmall = 6)
-
-      # Print the table
-      print(df, row.names = FALSE)
     }
   )
 )

@@ -76,6 +76,7 @@ in for them.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_cdf"><a href='../../BExTE/html/Model.html#method-Model-prior_cdf'><code>Model$prior_cdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
@@ -92,6 +93,7 @@ in for them.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_NPP" data-id="posterior_pdf"><a href='../../BExTE/html/Gaussian_NPP.html#method-Gaussian_NPP-posterior_pdf'><code>Gaussian_NPP$posterior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_NPP" data-id="power_parameter_posterior_pdf"><a href='../../BExTE/html/Gaussian_NPP.html#method-Gaussian_NPP-power_parameter_posterior_pdf'><code>Gaussian_NPP$power_parameter_posterior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_NPP" data-id="sample_posterior"><a href='../../BExTE/html/Gaussian_NPP.html#method-Gaussian_NPP-sample_posterior'><code>Gaussian_NPP$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_NPP" data-id="summary_rows"><a href='../../BExTE/html/Gaussian_NPP.html#method-Gaussian_NPP-summary_rows'><code>Gaussian_NPP$summary_rows()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_NPP" data-id="unnormalized_posterior_power_parameter_pdf"><a href='../../BExTE/html/Gaussian_NPP.html#method-Gaussian_NPP-unnormalized_posterior_power_parameter_pdf'><code>Gaussian_NPP$unnormalized_posterior_power_parameter_pdf()</code></a></span></li>
 </ul>
 </details>}}

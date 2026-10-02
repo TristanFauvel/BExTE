@@ -28,6 +28,7 @@ every replicate, so that the posterior is read off a cached prior kernel.}
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
+    \item \href{#method-BinomialCPP-summary_rows}{\code{BinomialCPP$summary_rows()}}
     \item \href{#method-BinomialCPP-initialize}{\code{BinomialCPP$new()}}
     \item \href{#method-BinomialCPP-prepare_data}{\code{BinomialCPP$prepare_data()}}
     \item \href{#method-BinomialCPP-quadrature_posterior}{\code{BinomialCPP$quadrature_posterior()}}
@@ -54,6 +55,7 @@ every replicate, so that the posterior is read off a cached prior kernel.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
@@ -77,6 +79,24 @@ every replicate, so that the posterior is read off a cached prior kernel.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
 </ul>
 </details>}}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinomialCPP-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialCPP-summary_rows}{}}}
+\subsection{\code{BinomialCPP$summary_rows()}}{
+  Rows of the model summary, with the power parameter
+
+A power parameter set from each replicate's data is already among the
+\code{posterior_parameters} rows, so it is only added when it is fixed.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialCPP$summary_rows()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with columns \code{Attribute} and \code{Value}.
+  }
+}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BinomialCPP-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-BinomialCPP-initialize}{}}}

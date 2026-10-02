@@ -62,7 +62,7 @@ and sampling from prior and posterior distributions.
     \item \href{#method-GaussianRMP-posterior_variance}{\code{GaussianRMP$posterior_variance()}}
     \item \href{#method-GaussianRMP-prior_to_RBesT}{\code{GaussianRMP$prior_to_RBesT()}}
     \item \href{#method-GaussianRMP-posterior_to_RBesT}{\code{GaussianRMP$posterior_to_RBesT()}}
-    \item \href{#method-GaussianRMP-print_model_summary}{\code{GaussianRMP$print_model_summary()}}
+    \item \href{#method-GaussianRMP-summary_rows}{\code{GaussianRMP$summary_rows()}}
     \item \href{#method-GaussianRMP-clone}{\code{GaussianRMP$clone()}}
   }
 }
@@ -83,6 +83,7 @@ and sampling from prior and posterior distributions.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_median"><a href='../../BExTE/html/Model.html#method-Model-posterior_median'><code>Model$posterior_median()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -372,27 +373,19 @@ and sampling from prior and posterior distributions.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianRMP-print_model_summary"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianRMP-print_model_summary}{}}}
-\subsection{\code{GaussianRMP$print_model_summary()}}{
-  Print a summary of the model attributes
-
-This method creates and prints a formatted table of key model attributes.
+\if{html}{\out{<a id="method-GaussianRMP-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-GaussianRMP-summary_rows}{}}}
+\subsection{\code{GaussianRMP$summary_rows()}}{
+  Rows of the model summary, with the prior weight and the moments of the
+two posterior components. The posterior weight is among the
+\code{posterior_parameters} rows.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianRMP$print_model_summary()}
+    \preformatted{GaussianRMP$summary_rows()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A printed data frame displaying the following model attributes:
-\itemize{
-\item Posterior Weight
-\item Vague Posterior Mean
-\item Vague Posterior Variance
-\item Informative Posterior Mean
-\item Informative Posterior Variance
-}
-All numeric values are formatted to 6 decimal places.
+    A data frame with columns \code{Attribute} and \code{Value}.
   }
 }
 

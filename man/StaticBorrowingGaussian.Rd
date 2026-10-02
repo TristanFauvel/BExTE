@@ -27,6 +27,7 @@ NA
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-StaticBorrowingGaussian-initialize}{\code{StaticBorrowingGaussian$new()}}
+    \item \href{#method-StaticBorrowingGaussian-summary_rows}{\code{StaticBorrowingGaussian$summary_rows()}}
     \item \href{#method-StaticBorrowingGaussian-vectorised_prior_variance}{\code{StaticBorrowingGaussian$vectorised_prior_variance()}}
     \item \href{#method-StaticBorrowingGaussian-clone}{\code{StaticBorrowingGaussian$clone()}}
   }
@@ -47,6 +48,7 @@ NA
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -87,6 +89,21 @@ NA
   }
   \subsection{Returns}{
     A Model object.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-StaticBorrowingGaussian-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-StaticBorrowingGaussian-summary_rows}{}}}
+\subsection{\code{StaticBorrowingGaussian$summary_rows()}}{
+  Rows of the model summary, with the power parameter
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{StaticBorrowingGaussian$summary_rows()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with columns \code{Attribute} and \code{Value}.
   }
 }
 

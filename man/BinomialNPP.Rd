@@ -33,6 +33,7 @@ lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
+    \item \href{#method-BinomialNPP-summary_rows}{\code{BinomialNPP$summary_rows()}}
     \item \href{#method-BinomialNPP-initialize}{\code{BinomialNPP$new()}}
     \item \href{#method-BinomialNPP-kernels}{\code{BinomialNPP$kernels()}}
     \item \href{#method-BinomialNPP-kernel_key}{\code{BinomialNPP$kernel_key()}}
@@ -57,6 +58,7 @@ lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -85,6 +87,21 @@ lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="source_counts"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-source_counts'><code>BinomialLatticePrior$source_counts()</code></a></span></li>
 </ul>
 </details>}}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinomialNPP-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialNPP-summary_rows}{}}}
+\subsection{\code{BinomialNPP$summary_rows()}}{
+  Rows of the model summary, with the prior on the power parameter
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialNPP$summary_rows()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with columns \code{Attribute} and \code{Value}.
+  }
+}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BinomialNPP-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-BinomialNPP-initialize}{}}}

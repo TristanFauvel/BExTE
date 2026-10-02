@@ -56,6 +56,7 @@ and the target data are analysed with the binomial normalized power prior,
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -84,6 +85,7 @@ and the target data are analysed with the binomial normalized power prior,
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="source_counts"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-source_counts'><code>BinomialLatticePrior$source_counts()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialNPP" data-id="kernel_key"><a href='../../BExTE/html/BinomialNPP.html#method-BinomialNPP-kernel_key'><code>BinomialNPP$kernel_key()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialNPP" data-id="kernels"><a href='../../BExTE/html/BinomialNPP.html#method-BinomialNPP-kernels'><code>BinomialNPP$kernels()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialNPP" data-id="summary_rows"><a href='../../BExTE/html/BinomialNPP.html#method-BinomialNPP-summary_rows'><code>BinomialNPP$summary_rows()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

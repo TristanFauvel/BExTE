@@ -137,6 +137,16 @@ BinomialRMP <- R6::R6Class(
       self$posterior_parameters <- list(prior_weight = NA_real_)
     },
 
+    #' @description
+    #' Rows of the model summary, with the prior weight
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rbind(
+        super$summary_rows(),
+        summary_row("Prior Weight", self$w)
+      )
+    },
+
     #' @description The two components, computed once per worker and shared.
     #' @return The output of [binomial_rmp_components()].
     components = function() {

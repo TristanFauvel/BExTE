@@ -21,8 +21,9 @@ independent Beta distributions:
 
 and the treatment effect is their difference. Moments are available
 analytically; the distribution function of the difference is obtained by
-one-dimensional quadrature and inverted numerically for quantiles, so no
-Monte Carlo error enters the operating characteristics.
+one-dimensional quadrature over the control rate - see
+\code{\link[=beta_difference_expectation]{beta_difference_expectation()}} - and inverted numerically for quantiles, so
+no Monte Carlo error enters the operating characteristics.
 }
 \section{Super class}{
 \code{\link[BExTE:Model]{Model}} -> \code{BinomialConjugate}
@@ -38,9 +39,10 @@ Monte Carlo error enters the operating characteristics.
 
     \item{\code{treatment_shape2}}{Second shape parameter of the treatment rate posterior.}
 
-    \item{\code{n_quadrature_nodes}}{Number of nodes used to integrate over the control rate.}
+    \item{\code{n_quadrature_nodes}}{Gauss-Legendre nodes per smooth piece of the
+integral over the control rate.}
 
-    \item{\code{quadrature_control_rates}}{Quadrature nodes on the control rate posterior.}
+    \item{\code{interval_memo}}{Credible intervals of the current posterior, by level.}
   }
   \if{html}{\out{</div>}}
 }
@@ -48,6 +50,7 @@ Monte Carlo error enters the operating characteristics.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-BinomialConjugate-initialize}{\code{BinomialConjugate$new()}}
+    \item \href{#method-BinomialConjugate-summary_rows}{\code{BinomialConjugate$summary_rows()}}
     \item \href{#method-BinomialConjugate-prepare_data}{\code{BinomialConjugate$prepare_data()}}
     \item \href{#method-BinomialConjugate-posterior_moments}{\code{BinomialConjugate$posterior_moments()}}
     \item \href{#method-BinomialConjugate-posterior_cdf}{\code{BinomialConjugate$posterior_cdf()}}
@@ -58,6 +61,7 @@ Monte Carlo error enters the operating characteristics.
     \item \href{#method-BinomialConjugate-posterior_ess}{\code{BinomialConjugate$posterior_ess()}}
     \item \href{#method-BinomialConjugate-sample_posterior}{\code{BinomialConjugate$sample_posterior()}}
     \item \href{#method-BinomialConjugate-sample_prior}{\code{BinomialConjugate$sample_prior()}}
+    \item \href{#method-BinomialConjugate-prior_given_control_rate}{\code{BinomialConjugate$prior_given_control_rate()}}
     \item \href{#method-BinomialConjugate-prior_pdf}{\code{BinomialConjugate$prior_pdf()}}
     \item \href{#method-BinomialConjugate-prior_cdf}{\code{BinomialConjugate$prior_cdf()}}
     \item \href{#method-BinomialConjugate-clone}{\code{BinomialConjugate$clone()}}
@@ -79,6 +83,7 @@ Monte Carlo error enters the operating characteristics.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_mean"><a href='../../BExTE/html/Model.html#method-Model-posterior_mean'><code>Model$posterior_mean()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
@@ -106,6 +111,22 @@ Monte Carlo error enters the operating characteristics.
 binomial model with the same call.}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinomialConjugate-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialConjugate-summary_rows}{}}}
+\subsection{\code{BinomialConjugate$summary_rows()}}{
+  Rows of the model summary, with the shape parameters of the Beta
+posteriors on the two response rates
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialConjugate$summary_rows()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with columns \code{Attribute} and \code{Value}.
   }
 }
 
@@ -312,6 +333,35 @@ same way.}
       \item{\code{n_samples}}{Number of samples from the prior}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinomialConjugate-prior_given_control_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialConjugate-prior_given_control_rate}{}}}
+\subsection{\code{BinomialConjugate$prior_given_control_rate()}}{
+  The prior of the treatment effect given the target control
+rate
+
+The marginal prior averages over a uniform control rate and spans
+(-1, 1); a trial whose control rate is known can only have an effect in
+\verb{(-control_rate, 1 - control_rate)}, and given the control rate the
+effect is uniform there.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialConjugate$prior_given_control_rate(control_rate)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{control_rate}}{The target control rate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of three functions of the treatment effect: \code{cdf}, \code{pdf},
+and \code{sample}, which takes the number of draws.
   }
 }
 

@@ -17,6 +17,9 @@ It inherits from the Model class.
 
     \item{\code{stan_model}}{The compiled Stan model}
 
+    \item{\code{stan_model_name}}{Name the Stan model is compiled under, for models
+that compile it only when they first sample}
+
     \item{\code{summary_variables}}{Variables to summarise from the posterior draws}
 
     \item{\code{fit}}{The MCMC fit object}
@@ -55,10 +58,12 @@ It inherits from the Model class.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-MCMCModel-initialize}{\code{MCMCModel$new()}}
+    \item \href{#method-MCMCModel-stan_sampler}{\code{MCMCModel$stan_sampler()}}
     \item \href{#method-MCMCModel-uses_quadrature}{\code{MCMCModel$uses_quadrature()}}
     \item \href{#method-MCMCModel-quadrature_posterior}{\code{MCMCModel$quadrature_posterior()}}
     \item \href{#method-MCMCModel-quadrature_prior}{\code{MCMCModel$quadrature_prior()}}
     \item \href{#method-MCMCModel-check_mcmc_config}{\code{MCMCModel$check_mcmc_config()}}
+    \item \href{#method-MCMCModel-summary_rows}{\code{MCMCModel$summary_rows()}}
     \item \href{#method-MCMCModel-prepare_data}{\code{MCMCModel$prepare_data()}}
     \item \href{#method-MCMCModel-inference}{\code{MCMCModel$inference()}}
     \item \href{#method-MCMCModel-credible_interval}{\code{MCMCModel$credible_interval()}}
@@ -92,6 +97,7 @@ It inherits from the Model class.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
@@ -124,6 +130,26 @@ with Stan whatever the setting.
       \item{\code{mcmc_config}}{The MCMC configuration parameters}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-MCMCModel-stan_sampler"></a>}}
+\if{latex}{\out{\hypertarget{method-MCMCModel-stan_sampler}{}}}
+\subsection{\code{MCMCModel$stan_sampler()}}{
+  The compiled Stan model, compiled on first use
+
+A model that names its Stan program in \code{stan_model_name} rather than
+compiling it in \code{initialize()} is compiled here, the first time it
+samples. Models whose simulations never sample, because their replicates
+go through a quadrature path, therefore never compile at all.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MCMCModel$stan_sampler()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The compiled Stan model.
   }
 }
 
@@ -197,6 +223,24 @@ needed by subclasses that sample their prior with Stan otherwise.
       \item{\code{mcmc_config}}{MCMC configuration}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-MCMCModel-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-MCMCModel-summary_rows}{}}}
+\subsection{\code{MCMCModel$summary_rows()}}{
+  Rows of the model summary, with the MCMC diagnostics of the last fit
+
+The diagnostics are left out when the posterior is computed by
+quadrature.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MCMCModel$summary_rows()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with columns \code{Attribute} and \code{Value}.
   }
 }
 

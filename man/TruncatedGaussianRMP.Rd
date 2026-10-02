@@ -53,7 +53,7 @@ model may still share an analysis between replicates with equal samples.}
     \item \href{#method-TruncatedGaussianRMP-quadrature_posterior}{\code{TruncatedGaussianRMP$quadrature_posterior()}}
     \item \href{#method-TruncatedGaussianRMP-sample_prior}{\code{TruncatedGaussianRMP$sample_prior()}}
     \item \href{#method-TruncatedGaussianRMP-inference}{\code{TruncatedGaussianRMP$inference()}}
-    \item \href{#method-TruncatedGaussianRMP-print_model_summary}{\code{TruncatedGaussianRMP$print_model_summary()}}
+    \item \href{#method-TruncatedGaussianRMP-summary_rows}{\code{TruncatedGaussianRMP$summary_rows()}}
     \item \href{#method-TruncatedGaussianRMP-clone}{\code{TruncatedGaussianRMP$clone()}}
   }
 }
@@ -73,6 +73,7 @@ model may still share an analysis between replicates with equal samples.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
@@ -91,6 +92,7 @@ model may still share an analysis between replicates with equal samples.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_pdf'><code>MCMCModel$prior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_prior'><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-stan_sampler'><code>MCMCModel$stan_sampler()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
 </ul>
 </details>}}
@@ -268,27 +270,19 @@ case the truncation leaves no closed form to fall back on.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-TruncatedGaussianRMP-print_model_summary"></a>}}
-\if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-print_model_summary}{}}}
-\subsection{\code{TruncatedGaussianRMP$print_model_summary()}}{
-  Print a summary of the model attributes
-
-This method creates and prints a formatted table of key model attributes.
+\if{html}{\out{<a id="method-TruncatedGaussianRMP-summary_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-summary_rows}{}}}
+\subsection{\code{TruncatedGaussianRMP$summary_rows()}}{
+  Rows of the model summary, with the prior weight and the moments of the
+two posterior components. The posterior weight is among the
+\code{posterior_parameters} rows.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{TruncatedGaussianRMP$print_model_summary()}
+    \preformatted{TruncatedGaussianRMP$summary_rows()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A printed data frame displaying the following model attributes:
-\itemize{
-\item Posterior Weight
-\item Vague Posterior Mean
-\item Vague Posterior Variance
-\item Informative Posterior Mean
-\item Informative Posterior Variance
-}
-All numeric values are formatted to 6 decimal places.
+    A data frame with columns \code{Attribute} and \code{Value}.
   }
 }
 

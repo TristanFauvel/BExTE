@@ -61,6 +61,20 @@ BinomialConjugate <- R6::R6Class(
       self$mcmc <- FALSE
     },
 
+    #' @description
+    #' Rows of the model summary, with the shape parameters of the Beta
+    #' posteriors on the two response rates
+    #' @return A data frame with columns `Attribute` and `Value`.
+    summary_rows = function() {
+      rbind(
+        super$summary_rows(),
+        summary_row("Control Rate Shape 1", self$control_shape1),
+        summary_row("Control Rate Shape 2", self$control_shape2),
+        summary_row("Treatment Rate Shape 1", self$treatment_shape1),
+        summary_row("Treatment Rate Shape 2", self$treatment_shape2)
+      )
+    },
+
     #' @description Assemble the event counts the posterior conditions on.
     #' Subclasses must implement the 'prepare_data' method.
     #' @param target_data The target data for inference

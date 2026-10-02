@@ -56,6 +56,7 @@ The TestThenPool class provides methods for testing and inference with the Test-
     \item \href{#method-TestThenPool-sample_posterior}{\code{TestThenPool$sample_posterior()}}
     \item \href{#method-TestThenPool-prior_to_RBesT}{\code{TestThenPool$prior_to_RBesT()}}
     \item \href{#method-TestThenPool-posterior_ess}{\code{TestThenPool$posterior_ess()}}
+    \item \href{#method-TestThenPool-prior_elir_ess}{\code{TestThenPool$prior_elir_ess()}}
     \item \href{#method-TestThenPool-posterior_to_RBesT}{\code{TestThenPool$posterior_to_RBesT()}}
     \item \href{#method-TestThenPool-test_decision}{\code{TestThenPool$test_decision()}}
     \item \href{#method-TestThenPool-plot_test_vs_drift}{\code{TestThenPool$plot_test_vs_drift()}}
@@ -78,10 +79,11 @@ The TestThenPool class provides methods for testing and inference with the Test-
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_mean"><a href='../../BExTE/html/Model.html#method-Model-posterior_mean'><code>Model$posterior_mean()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="summary_rows"><a href='../../BExTE/html/Model.html#method-Model-summary_rows'><code>Model$summary_rows()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -472,6 +474,37 @@ in closed form.
   }
   \subsection{Returns}{
     A list with the \code{moment} and \code{precision} effective sample sizes.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-TestThenPool-prior_elir_ess"></a>}}
+\if{latex}{\out{\hypertarget{method-TestThenPool-prior_elir_ess}{}}}
+\subsection{\code{TestThenPool$prior_elir_ess()}}{
+  ELIR effective sample size of the current prior
+
+The prior is whichever component the test selected, and neither
+component's prior depends on the data, so each component reports its
+own, fitted once. The inherited route treats the method as empirical
+Bayes and refits a mixture to fresh prior draws for every replicate,
+although only two priors can ever come out of the test. On a binomial
+endpoint that refit was nine tenths of the method's run time.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestThenPool$prior_elir_ess(target_data, simulation_config)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data, whose sampling standard deviation
+is the reference scale.}
+      \item{\code{simulation_config}}{Configuration of simulation study}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The ELIR effective sample size.
   }
 }
 
