@@ -1,4 +1,7 @@
 # BExTE 0.0.2
+* Table S5 (`table_precision_ecp()`) adds the interval score beside precision
+  and coverage, and shows a column's estimate alone when its operating
+  characteristics are exact, rather than a zero-width interval.
 * The paper manifest produces the five interval-score figures the supplement
   includes without a figure number (X4-X8): the Teriflunomide forest plot at
   123 per arm, and the versus-type-I-error figures for Dapagliflozin (66),

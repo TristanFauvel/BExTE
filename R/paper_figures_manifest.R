@@ -624,7 +624,7 @@ paper_manifest_tables <- function() {
     ),
     list(
       id = "TS5", kind = "table",
-      caption = "Precision and empirical coverage probability for the three principal treatment-effect scenarios in the Belimumab case study, with 140 participants per arm.",
+      caption = "Precision, empirical coverage probability and interval score of the 95% credible interval for the three principal treatment-effect scenarios in the Belimumab case study, with 140 participants per arm.",
       case_study = "belimumab", sample_size_factor = 4, metric = "precision_ecp",
       needs = "frequentist", methods = "all",
       generator = function(ctx) {

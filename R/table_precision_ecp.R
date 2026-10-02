@@ -1,12 +1,15 @@
-## Table S5 combines the two interval diagnostics for the same three
-## treatment-effect scenarios used by the Belimumab forest plots.
+## Table S5 combines the interval diagnostics - precision, coverage and the
+## interval score, which charges an interval for its width and for excluding
+## the true effect in one number - for the same three treatment-effect
+## scenarios used by the Belimumab forest plots.
 table_precision_ecp <- function(results_df, tables_dir) {
   required <- c(
     "case_study", "target_sample_size_per_arm", "method", "parameters",
     "target_to_source_std_ratio", "source_denominator_change_factor",
     "source_treatment_effect_estimate", "target_treatment_effect",
     "precision", "conf_int_precision_lower", "conf_int_precision_upper",
-    "coverage", "conf_int_coverage_lower", "conf_int_coverage_upper"
+    "coverage", "conf_int_coverage_lower", "conf_int_coverage_upper",
+    "interval_score", "conf_int_interval_score_lower", "conf_int_interval_score_upper"
   )
   missing <- setdiff(required, names(results_df))
   if (length(missing)) {
@@ -31,9 +34,10 @@ table_precision_ecp <- function(results_df, tables_dir) {
   }
 
   rows <- results_df[results_df$target_treatment_effect %in% selected, , drop = FALSE]
-  if (anyNA(rows[, c("precision", "coverage",
+  if (anyNA(rows[, c("precision", "coverage", "interval_score",
                      "conf_int_precision_lower", "conf_int_precision_upper",
-                     "conf_int_coverage_lower", "conf_int_coverage_upper")])) {
+                     "conf_int_coverage_lower", "conf_int_coverage_upper",
+                     "conf_int_interval_score_lower", "conf_int_interval_score_upper")])) {
     stop("Precision/ECP table has missing estimates or confidence limits.")
   }
   scenario <- match(rows$target_treatment_effect, selected)
@@ -41,16 +45,25 @@ table_precision_ecp <- function(results_df, tables_dir) {
   table_data <- data.frame(
     Method = format_results_df_parameters(rows),
     `Treatment effect` = effect_labels[scenario],
-    `Precision (95% CI)` = sprintf(
-      "%.3f [%.3f, %.3f]", rows$precision,
-      rows$conf_int_precision_lower, rows$conf_int_precision_upper
-    ),
-    `ECP (95% CI)` = sprintf(
-      "%.3f [%.3f, %.3f]", rows$coverage,
-      rows$conf_int_coverage_lower, rows$conf_int_coverage_upper
-    ),
     check.names = FALSE
   )
+  ## Operating characteristics computed exactly have intervals of zero width,
+  ## which would only repeat the estimate twice; such a column shows the
+  ## estimate alone, which also keeps the table within the page.
+  add_column <- function(name, estimate, lower, upper) {
+    exact <- all(sprintf("%.3f", lower) == sprintf("%.3f", upper))
+    if (exact) {
+      table_data[[name]] <<- sprintf("%.3f", estimate)
+    } else {
+      table_data[[paste(name, "(95% CI)")]] <<- sprintf("%.3f [%.3f, %.3f]", estimate, lower, upper)
+    }
+  }
+  add_column("Precision", rows$precision,
+             rows$conf_int_precision_lower, rows$conf_int_precision_upper)
+  add_column("ECP", rows$coverage,
+             rows$conf_int_coverage_lower, rows$conf_int_coverage_upper)
+  add_column("Interval score", rows$interval_score,
+             rows$conf_int_interval_score_lower, rows$conf_int_interval_score_upper)
   table_data <- table_data[order(table_data$Method, scenario), , drop = FALSE]
   rownames(table_data) <- NULL
 
@@ -67,8 +80,9 @@ table_precision_ecp <- function(results_df, tables_dir) {
   )
   file_path <- file.path(directory, filename)
   title <- paste0(
-    "Belimumab: mean half-width of the 95% credible interval (precision) ",
-    "and empirical coverage probability (ECP), $N_T/2 = ", sample_size, "$"
+    "Belimumab: mean half-width of the 95% credible interval (precision), ",
+    "empirical coverage probability (ECP) and interval score, $N_T/2 = ",
+    sample_size, "$"
   )
   export_table(table_data, ncollapses = 0, title = title, file_path = file_path)
   invisible(file_path)
