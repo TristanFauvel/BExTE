@@ -18,7 +18,7 @@ binomial_cpp_cached_kernel(
 
 \item{n_treatment_source, n_successes_treatment_source}{Source treatment arm.}
 
-\item{power_parameter}{The power parameter, in \link{0, 1}.}
+\item{power_parameter}{The power parameter, in \eqn{[0, 1]}.}
 
 \item{n_lattice}{Number of lattice points N on the rates.}
 }

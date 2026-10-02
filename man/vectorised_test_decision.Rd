@@ -32,6 +32,6 @@ Logical vector of decisions.
 }
 \description{
 Compares the posterior probability of the alternative
-hypothesis with \code{critical_value}, matching \code{\link[=Model$test_decision]{Model$test_decision()}}.
+hypothesis with \code{critical_value}, matching \code{Model$test_decision()}.
 }
 \keyword{internal}

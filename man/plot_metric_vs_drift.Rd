@@ -52,6 +52,10 @@ which hold the other two axes at their primary value.}
 \item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 
 \item{join_points}{Whether to join the point with a line or not.}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{analysis_config}{The analysis configuration.}
 }
 \value{
 None

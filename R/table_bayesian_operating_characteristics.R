@@ -3,6 +3,9 @@
 #'
 #' @param results_metrics_df A data frame containing the results and metrics.
 #' @param case_study Character string specifying the case study.
+#' @param target_sample_size_per_arm The target sample size per arm.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #' @return This function doesn't return a value but saves the generated tables as HTML, PDF, and LaTeX files.
 #'
 #' @import dplyr
@@ -259,6 +262,8 @@ table_bayesian_metrics_across_case_studies <- function(results_metrics_df) {
 #'
 #' @param results_metrics_df A data frame containing the results and metrics.
 #' @param metrics A vector of metric names to include in the tables.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return This function doesn't return a value but calls other functions to generate and save tables.
 #'

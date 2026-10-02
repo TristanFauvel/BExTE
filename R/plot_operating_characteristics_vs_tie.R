@@ -1,15 +1,3 @@
-#' Function to generate an operating characteristic vs tie plot
-#'
-#' @param results_metrics_df The dataframe containing the results and metrics
-#' @param case_study The case study name
-#' @param target_sample_size_per_arm The target sample size per arm
-#' @param treatment_effect The treatment effect type ("consistent", "no_effect", "partially_consistent")
-#' @param operating_characteristic The operating characteristic to plot (e.g., "power", "type_1_error")
-#' @param power_difference Logical indicating whether to calculate difference for the operating characteristic
-#'
-#' @return None
-#'
-#' @export
 ## Read title/label text through ggplot's nested title grobs.
 vs_tie_legend_text <- function(grob) {
   if (!is.null(grob$label)) {
@@ -887,9 +875,11 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
 #'
 #' @description OCs vs TIE.
 #'
-#' @param results_metrics_df The data frame containing the results and metrics.
-#' @param metrics A list of metrics to be plotted.
 #'
+#' @param results_bayes_df The Bayesian results data frame.
+#' @param results_freq_df The frequentist results data frame, from which the type I error rates are read.
+#' @param bayesian_metrics List of Bayesian metrics, as defined by sourcing
+#'   `metrics_config.R`.
 #' @return None
 #'
 #' @examples NA

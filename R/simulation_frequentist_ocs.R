@@ -4,6 +4,7 @@
 #'
 #' @param scenario The scenario to simulate.
 #' @param simulation_config Simulation configuration
+#' @param scenarios_config Configuration for the simulation.
 #' @param freq_filename File name for the frequentist OCs
 #' @param config_dir Configuration files directory
 #' @param case_studies_config_dir Case studies configurations directory
@@ -268,9 +269,11 @@ case_study_n_replicates <- function(scenarios_config, case_study) {
 #'
 #' @param env The environment to run the simulations in
 #' @param simulation_config Simulation configuration
+#' @param scenarios_config Configuration for the simulation.
 #' @param analysis_config Analysis configuration
 #' @param config_dir Configuration directory
 #' @param case_studies_config_dir Case studies configuration directory
+#' @param logging_file_path Currently unused.
 #' @param frequentist_metrics List of frequentist metrics, as defined by
 #'   sourcing `metrics_config.R`.
 #' @param inference_metrics List of inference metrics, as defined by sourcing

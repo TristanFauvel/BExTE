@@ -27,6 +27,10 @@ plot_posterior_parameters_vs_drift(
 \item{control_drift}{A logical value indicating whether to filter the data based on control drift.}
 
 \item{xvars}{Variable on the x axis}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 None

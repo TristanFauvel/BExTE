@@ -14,7 +14,7 @@ npp_gamma_rule(p, q, t_limit = 30, t_step = 0.05)
 \item{t_step}{Spacing on the logit scale.}
 }
 \value{
-A list with \code{nodes} in \link{0, 1} and \code{weights} summing to one.
+A list with \code{nodes} in \eqn{[0, 1]} and \code{weights} summing to one.
 }
 \description{
 Integrates on the logit scale, gamma = plogis(t), where the

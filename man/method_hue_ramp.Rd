@@ -14,7 +14,7 @@ method_hue_ramp(hue, light_weight = 0.75, dark_weight = 0.45)
 \item{dark_weight}{How far towards black the dark end sits.}
 }
 \value{
-A function mapping positions in \link{0, 1} to hex colours.
+A function mapping positions in \eqn{[0, 1]} to hex colours.
 }
 \description{
 A light-to-dark ramp through a method's hue

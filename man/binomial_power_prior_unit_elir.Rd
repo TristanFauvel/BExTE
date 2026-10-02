@@ -16,7 +16,7 @@ binomial_power_prior_unit_elir(
 \item{model}{A binomial power prior model, whose \code{quadrature_prior()} takes
 the power parameter.}
 
-\item{power_parameter}{The power parameter, in \link{0, 1}.}
+\item{power_parameter}{The power parameter, in \eqn{[0, 1]}.}
 
 \item{n_samples}{Draws per mixture fit.}
 

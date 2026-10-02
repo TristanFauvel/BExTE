@@ -9,7 +9,7 @@ plot_sweet_spot_width_vs_scenario(sweet_spot_df, sweet_spots_metrics)
 \arguments{
 \item{sweet_spot_df}{The data frame containing the results and metrics.}
 
-\item{metrics}{A list of metrics to be plotted.}
+\item{sweet_spots_metrics}{A list of metrics to be plotted.}
 }
 \value{
 None

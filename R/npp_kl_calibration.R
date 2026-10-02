@@ -35,7 +35,7 @@ NPP_KL_DEFAULT_BOUNDS <- c(0.05, 100)
 #' large, and `"right"` is its mirror. The maximum tolerable discrepancy has to
 #' be taken on the side that moves the target towards the null, so it needs that
 #' direction as a sign. The same mapping is written as an alternative hypothesis
-#' by [alternative_from_null_space()].
+#' by `alternative_from_null_space()`.
 #'
 #' @param null_space Either `"left"` or `"right"`.
 #' @return `1` when larger treatment effects are beneficial, `-1` otherwise.

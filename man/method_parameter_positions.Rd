@@ -14,7 +14,7 @@ method_parameter_positions(key, parameter_labels, dict)
 \item{dict}{The run's methods configuration.}
 }
 \value{
-A numeric vector of positions in \link{0, 1}.
+A numeric vector of positions in \eqn{[0, 1]}.
 }
 \description{
 Anchored on the range the configuration declares rather than on

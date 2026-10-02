@@ -40,6 +40,13 @@ table_metric_vs_drift(
 \item{parameters_combinations}{The combinations of parameters}
 
 \item{xvars}{A list containing x-axis variable information}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
+
+\item{wide_table}{Whether to pivot the table so that each parameter
+combination gets its own column.}
 }
 \value{
 Generates and saves tables in HTML, PDF, and LaTeX formats

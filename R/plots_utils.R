@@ -742,7 +742,7 @@ style_blend <- function(color, towards, weight) {
 #' @param hue The method's base colour, which sits at the middle of the ramp.
 #' @param light_weight How far towards white the light end sits.
 #' @param dark_weight How far towards black the dark end sits.
-#' @return A function mapping positions in [0, 1] to hex colours.
+#' @return A function mapping positions in \eqn{[0, 1]} to hex colours.
 #' @keywords internal
 method_hue_ramp <- function(hue, light_weight = 0.75, dark_weight = 0.45) {
   ramp <- grDevices::colorRamp(c(
@@ -845,7 +845,7 @@ style_tuple_key <- function(values) {
 #' @param key The method key.
 #' @param parameter_labels The labels to place, as plain text.
 #' @param dict The run's methods configuration.
-#' @return A numeric vector of positions in [0, 1].
+#' @return A numeric vector of positions in \eqn{[0, 1]}.
 #' @keywords internal
 method_parameter_positions <- function(key, parameter_labels, dict) {
   values <- lapply(parameter_labels, style_label_numbers)

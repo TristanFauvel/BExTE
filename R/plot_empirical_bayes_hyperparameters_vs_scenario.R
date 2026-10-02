@@ -6,6 +6,9 @@
 #' @param case_study The case study to plot the parameters for.
 #' @param control_drift A logical value indicating whether to filter the data based on control drift.
 #' @param xvars Variable on the x axis
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
+#' @param parameters_combinations The combinations of parameters to filter the results by
 #'
 #' @return None
 #' @export

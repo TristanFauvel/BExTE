@@ -14,7 +14,7 @@ The power parameter.
 }
 \description{
 The maximizer of \code{\link[=binomial_power_prior_log_marginal]{binomial_power_prior_log_marginal()}} over
-\link{0, 1}: the best of 21 equally spaced values, refined by Brent's method
+\eqn{[0, 1]}: the best of 21 equally spaced values, refined by Brent's method
 between its neighbours, with the end points kept as candidates.
 }
 \keyword{internal}

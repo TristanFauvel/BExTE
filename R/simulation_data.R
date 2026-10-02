@@ -921,8 +921,8 @@ BinaryTargetData <- R6::R6Class(
     },
 
     #' @description The replicate rows a trial with the given responder counts
-    #'   is analysed from. [generate()] draws the counts and
-    #'   [enumerate_support()] lists them, and both build their rows here, so
+    #'   is analysed from. `generate()` draws the counts and
+    #'   `enumerate_support()` lists them, and both build their rows here, so
     #'   the two cannot disagree on what a trial looks like to the analysis.
     #' @param n_control_responders Integer vector of control-arm responders.
     #' @param n_treatment_responders Integer vector of treatment-arm
@@ -981,7 +981,7 @@ BinaryTargetData <- R6::R6Class(
     #'   out across both arms, and the weights, the product of
     #'   the two binomial probabilities, are renormalised over the pairs kept.
     #' @param tail_mass Upper bound on the probability of the trials left out.
-    #' @return A list: `samples`, the replicate rows as [generate()] builds
+    #' @return A list: `samples`, the replicate rows as `generate()` builds
     #'   them; `weights`, their probabilities, summing to 1; and
     #'   `omitted_mass`, the probability of the trials left out.
     enumerate_support = function(tail_mass = 1e-10) {

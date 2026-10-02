@@ -9,7 +9,7 @@ binomial_power_prior_terms_posterior(terms, power_parameter)
 \arguments{
 \item{terms}{Output of \code{\link[=binomial_power_prior_target_terms]{binomial_power_prior_target_terms()}}.}
 
-\item{power_parameter}{The power parameter, in \link{0, 1}.}
+\item{power_parameter}{The power parameter, in \eqn{[0, 1]}.}
 }
 \value{
 A \code{\link[=grid_posterior]{grid_posterior()}} list, the same as

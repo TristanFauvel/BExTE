@@ -112,7 +112,7 @@ grid_prior_unit_elir <- function(prior_grid, n_samples, n_fits,
 #'
 #' @param model A binomial power prior model, whose `quadrature_prior()` takes
 #'   the power parameter.
-#' @param power_parameter The power parameter, in [0, 1].
+#' @param power_parameter The power parameter, in \eqn{[0, 1]}.
 #' @param n_samples Draws per mixture fit.
 #' @param step Spacing of the power parameter grid.
 #' @param n_fits Number of mixture fits averaged per node.

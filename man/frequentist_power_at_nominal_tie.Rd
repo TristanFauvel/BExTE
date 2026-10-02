@@ -22,7 +22,7 @@ frequentist_power_at_nominal_tie(
 \item{simulation_config}{The simulation configuration.}
 
 \item{parallelization}{Whether the caller asked for parallelism, as
-\code{\link[=analysis_runs_in_parallel]{analysis_runs_in_parallel()}} resolves it. A design costs seconds here -
+\code{analysis_runs_in_parallel()} resolves it. A design costs seconds here -
 two power computations, either of which may be a simulation - so a run
 with many of them is worth spreading over a cluster.}
 

@@ -12,6 +12,10 @@ sweet_spot(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie = NULL)
 
 \item{metrics}{A list of metrics to evaluate. Each metric should have a \code{name} attribute.}
 
+\item{based_on_CI}{Whether to compare each method with the separate analysis
+through the confidence intervals of the metric rather than its
+point estimates.}
+
 \item{nominal_tie}{The nominal type-I error threshold. Required when \code{metrics}
 includes \code{success_proba}.}
 }

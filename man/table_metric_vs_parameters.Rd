@@ -27,6 +27,10 @@ table_metric_vs_parameters(
 \item{target_sample_size_per_arm}{The target sample size per arm}
 
 \item{theta_0}{The null hypothesis value}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 Generates and saves tables in HTML, PDF, and LaTeX formats
