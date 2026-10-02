@@ -329,38 +329,6 @@ compute_freq_power <- function(alpha,
   return(list(power = power, conf_int_power = conf_int_power))
 }
 
-#' Compute a binomial credible interval
-#'
-#' @description Computes the Clopper-Pearson (exact) confidence interval for a
-#'   binomial proportion estimated from 0/1 samples, along with the overall
-#'   mean of the samples.
-#'
-#' @param samples A vector of 0/1 samples, or a matrix whose rows each contain
-#'   a separate set of 0/1 samples.
-#' @param confidence_level The confidence level of the interval.
-#'
-#' @return A list with `mean` (the overall mean of `samples`) and `conf_int`
-#'   (a data frame with one row per group, containing `lower` and `upper`
-#'   bounds).
-#'
-#' @export
-compute_binomial_credible_interval <- function(samples, confidence_level = 0.95) {
-  if (is.matrix(samples)) {
-    successes <- rowSums(samples)
-    trials <- ncol(samples)
-  } else {
-    successes <- sum(samples)
-    trials <- length(samples)
-  }
-
-  conf_int <- binom::binom.confint(successes, trials, conf.level = confidence_level, methods = "exact")
-
-  list(
-    mean = mean(samples),
-    conf_int = conf_int[, c("lower", "upper")]
-  )
-}
-
 #' Interval score of a credible interval
 #'
 #' @description The interval score (Winkler 1972; Gneiting and Raftery 2007)
@@ -907,6 +875,8 @@ equivalent_tie_design_p_values <- function(design_rows,
 #'
 #' @param results The results data frame.
 #' @param analysis_config The analysis configuration.
+#' @param simulation_config The simulation configuration.
+#' @param parallelization Whether to simulate the designs in parallel.
 #' @param n_replicates Number of Monte Carlo replicates the simulated power
 #'   estimates are built from, for the case studies analytical_power() cannot
 #'   be used for.
@@ -1288,7 +1258,7 @@ nominal_tie_design_key <- function(design) {
 #' @param analysis_config The analysis configuration.
 #' @param simulation_config The simulation configuration.
 #' @param parallelization Whether the caller asked for parallelism, as
-#'   [analysis_runs_in_parallel()] resolves it. A design costs seconds here -
+#'   `analysis_runs_in_parallel()` resolves it. A design costs seconds here -
 #'   two power computations, either of which may be a simulation - so a run
 #'   with many of them is worth spreading over a cluster.
 #' @param n_replicates Number of Monte Carlo replicates the simulated power

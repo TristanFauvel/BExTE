@@ -15,6 +15,10 @@ table_bayesian_ocs(
 \item{results_metrics_df}{A data frame containing the results and metrics.}
 
 \item{metrics}{A vector of metric names to include in the tables.}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 This function doesn't return a value but calls other functions to generate and save tables.

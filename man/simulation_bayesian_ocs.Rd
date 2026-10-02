@@ -18,6 +18,8 @@ simulation_bayesian_ocs(
 
 \item{simulation_config}{Simulation configuration}
 
+\item{scenarios_config}{Configuration for the simulation.}
+
 \item{analysis_config}{Analysis configuration}
 
 \item{config_dir}{Configuration directory}

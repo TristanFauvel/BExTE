@@ -3,9 +3,11 @@
 #' @param results_metrics_df A data frame containing the results metrics.
 #' @param method The method to filter the results by.
 #' @param case_study The case study to filter the results by.
-#' @param target_sample_size_per_arm The target sample size per arm to filter the results by.
 #' @param control_drift A logical value indicating whether to control for drift.
 #' @param xvars A list containing the x-variable configurations.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
+#' @param parameters_combinations The combinations of parameters to filter the results by
 #'
 #' @return This function does not return a value. It creates and saves tables in HTML, PDF, and LaTeX formats.
 #'

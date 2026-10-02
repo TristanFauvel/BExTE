@@ -98,12 +98,10 @@ the test that is actually performed.}
     \item \href{#method-Model-posterior_quantile}{\code{Model$posterior_quantile()}}
     \item \href{#method-Model-posterior_median}{\code{Model$posterior_median()}}
     \item \href{#method-Model-credible_interval}{\code{Model$credible_interval()}}
-    \item \href{#method-Model-prior_ESS}{\code{Model$prior_ESS()}}
     \item \href{#method-Model-sample_prior}{\code{Model$sample_prior()}}
     \item \href{#method-Model-sample_posterior}{\code{Model$sample_posterior()}}
     \item \href{#method-Model-test_decision}{\code{Model$test_decision()}}
     \item \href{#method-Model-simulation_for_given_treatment_effect}{\code{Model$simulation_for_given_treatment_effect()}}
-    \item \href{#method-Model-prior_treatment_benefit}{\code{Model$prior_treatment_benefit()}}
     \item \href{#method-Model-estimate_frequentist_operating_characteristics}{\code{Model$estimate_frequentist_operating_characteristics()}}
     \item \href{#method-Model-estimate_bayesian_operating_characteristics}{\code{Model$estimate_bayesian_operating_characteristics()}}
     \item \href{#method-Model-prior_to_RBesT}{\code{Model$prior_to_RBesT()}}
@@ -228,7 +226,7 @@ Methods with a closed-form posterior can produce the whole simulation
 output with vector arithmetic instead of one inference per replicate.
 Subclasses that can do so override this method; returning \code{NULL} means
 "no fast path available", and
-\code{\link[=Model$simulation_for_given_treatment_effect]{Model$simulation_for_given_treatment_effect()}} falls back to the
+\code{Model$simulation_for_given_treatment_effect()} falls back to the
 replicate loop.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -239,13 +237,13 @@ replicate loop.
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{...}}{Arguments describing the simulation, passed through by
-\code{\link[=Model$simulation_for_given_treatment_effect]{Model$simulation_for_given_treatment_effect()}}.}
+\code{Model$simulation_for_given_treatment_effect()}.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
     \code{NULL}, or a list shaped like the return value of
-\code{\link[=Model$simulation_for_given_treatment_effect]{Model$simulation_for_given_treatment_effect()}}.
+\code{Model$simulation_for_given_treatment_effect()}.
   }
 }
 
@@ -511,18 +509,6 @@ Calculates the credible interval of the posterior distribution for a given level
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Model-prior_ESS"></a>}}
-\if{latex}{\out{\hypertarget{method-Model-prior_ESS}{}}}
-\subsection{\code{Model$prior_ESS()}}{
-  Method to calculate the effective sample size of the prior distribution
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Model$prior_ESS()}
-    \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model-sample_prior"></a>}}
 \if{latex}{\out{\hypertarget{method-Model-sample_prior}{}}}
 \subsection{\code{Model$sample_prior()}}{
@@ -639,33 +625,6 @@ their number.}
   }
   \subsection{Returns}{
     A list of simulation results including test decisions, posterior means, medians, credible intervals, and posterior parameters
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Model-prior_treatment_benefit"></a>}}
-\if{latex}{\out{\hypertarget{method-Model-prior_treatment_benefit}{}}}
-\subsection{\code{Model$prior_treatment_benefit()}}{
-  Method to calculate the prior probability of treatment benefit
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Model$prior_treatment_benefit(
-  theta_0,
-  null_space,
-  n_prior_samples,
-  tuning_length
-)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{theta_0}}{Null hypothesis value}
-      \item{\code{null_space}}{The null space for hypothesis testing}
-      \item{\code{n_prior_samples}}{Number of prior samples}
-      \item{\code{tuning_length}}{Tuning parameter length}
-    }
-    \if{html}{\out{</div>}}
   }
 }
 
@@ -889,7 +848,7 @@ credible interval override this and evaluate the definitions directly.
   Beta mixture approximation to the posterior response rate
 
 The unit information design prior rescales the shape parameters of a Beta
-mixture, so it needs the fit on the \link{0, 1} rate scale rather than the one
+mixture, so it needs the fit on the \eqn{[0, 1]} rate scale rather than the one
 on the treatment effect scale that \code{posterior_to_RBesT()} produces. It is
 built here on request because that construction runs once per case study,
 whereas \code{posterior_to_RBesT()} runs once per replicate.

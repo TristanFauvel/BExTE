@@ -30,8 +30,6 @@ forest_subplot_sweet_spot(
 \item{x_metric_label}{Label of the metric on the x-axis}
 
 \item{x_metric_name}{Name of the metric on the x-axis}
-
-\item{ylabel}{A logical value indicating whether to display the y-axis label.}
 }
 \value{
 A ggplot2 object representing the forest plot.

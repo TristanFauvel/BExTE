@@ -34,7 +34,7 @@ the manuscript. Must be positive.}
 \item{theta_0}{Value of the treatment effect under the null hypothesis}
 }
 \value{
-The type I error rate, a single number in \link{0, 1}.
+The type I error rate, a single number in \eqn{[0, 1]}.
 }
 \description{
 The adaptive power prior of Nikolakopoulos et al. (2018) discounts the source

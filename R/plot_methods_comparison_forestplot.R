@@ -127,23 +127,6 @@ scale_by_separate <- function(df, metric_columns) {
 }
 
 
-#' Create a forest plot
-#'
-#' @description This function creates a forest plot using the provided data.
-#'
-#' @param data The data for creating the forest plot.
-#' @param title The title of the forest plot.
-#' @param ylabel A logical value indicating whether to display the y-axis label.
-#' @param x_metric_name Name of the metric on the x-axis
-#' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
-#' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
-#' @param x_metric_label Label of the metric on the x-axis
-#' @param palette A colour scheme from bexte_palette() for BExTE-app's
-#'   dark mode, or NULL for the publication figure.
-#' @param reference_line x position of a dotted vertical reference line, or NULL for none.
-#'
-#' @return A ggplot2::ggplot( object representing the forest plot.
-#' @keywords internal
 ## Half the source study's equivalent per-arm sample size: the value the
 ## moment-based ESS colour scale is centred on. White therefore means
 ## borrowing half of what the source study is worth, blue less and red more,
@@ -305,6 +288,35 @@ forest_panel_widths <- function(grobs, available_in) {
   grid::unit(overheads + panel_share, "in")
 }
 
+#' Create a forest plot
+#'
+#' @description This function creates a forest plot using the provided data.
+#'
+#' @param data The data for creating the forest plot.
+#' @param title The title of the forest plot.
+#' @param ylabel A logical value indicating whether to display the y-axis label.
+#' @param x_metric_name Name of the metric on the x-axis
+#' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
+#' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
+#' @param x_metric_label Label of the metric on the x-axis
+#' @param methods_labels Display labels of the methods, as defined by sourcing
+#'   `methods_plots_config.R`.
+#' @param legend Whether to draw a legend for the reference lines.
+#' @param sort_by `"methods_parameters"` to order each method's rows by its
+#'   parameter values, `"value"` to order the rows by the metric, or FALSE to
+#'   keep the input order.
+#' @param palette A colour scheme from bexte_palette() for BExTE-app's
+#'   dark mode, or NULL for the publication figure.
+#' @param reference_line x position of a dotted vertical reference line, or NULL for none.
+#' @param ess_limits Limits of the moment-based ESS fill scale, so that several
+#'   panels can share one scale, or NULL for the range of `data`.
+#' @param ess_midpoint Midpoint of the ESS fill scale, or NULL for
+#'   `forest_ess_midpoint(data)`.
+#' @param nominal_tie_line x position of a dashed line marking the nominal type
+#'   I error rate, or NULL for none.
+#'
+#' @return A ggplot object representing the forest plot.
+#' @keywords internal
 forest_subplot <- function(data,
                            title,
                            ylabel,
@@ -503,8 +515,6 @@ forest_subplot <- function(data,
 #' @param title The title of the forest plot.
 #' @param ylabel A logical value indicating whether to display the y-axis label.
 #' @param x_metric_name Name of the metric on the x-axis
-#' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
-#' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
 #' @param x_metric_label Label of the metric on the x-axis
 #' @param palette A colour scheme from bexte_palette() for BExTE-app's
 #'   dark mode, or NULL for the publication figure.
@@ -669,9 +679,10 @@ forest_combined_plot <- function(data,
 #' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
 #'
 #' @param results_freq_df The results dataframe.
-#' @param selected_case_study The selected case study.
-#' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
+#' @param panels If TRUE, draw one panel per treatment effect (no effect,
+#'   partially consistent, consistent); otherwise draw the three in a
+#'   single combined plot.
 #' @param palette A colour scheme from bexte_palette() for BExTE-app's
 #'   dark mode, or NULL for the publication figure.
 #' @param relative_to_separate When TRUE, divide the metric and its confidence
@@ -1101,8 +1112,6 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
 #' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
 #'
 #' @param results_bayes_df The results dataframe.
-#' @param selected_case_study The selected case study.
-#' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
 #' @param palette A colour scheme from bexte_palette() for BExTE-app's
 #'   dark mode, or NULL for the publication figure.

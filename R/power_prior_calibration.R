@@ -24,7 +24,7 @@
 #' @param target_data_sampling_variance Sampling variance of the target study data
 #' @param source_data_sampling_variance Sampling variance of the source study data
 #' @param theta_0 Value of the treatment effect under the null hypothesis
-#' @return The type I error rate, a single number in [0, 1].
+#' @return The type I error rate, a single number in \eqn{[0, 1]}.
 #' @export
 adaptive_power_prior_type_I_error <- function(calibration_parameter,
                                               source_sample_size_per_arm,

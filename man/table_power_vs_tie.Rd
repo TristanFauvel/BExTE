@@ -27,6 +27,10 @@ table_power_vs_tie(
 \item{power_difference}{Logical; if TRUE, calculate power difference instead of power.}
 
 \item{metrics}{A vector of metric names (not used in the current implementation).}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 This function doesn't return a value but generates and saves tables in various formats (HTML, PDF, LaTeX).

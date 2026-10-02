@@ -16,6 +16,12 @@ table_bayesian_metrics(
 \item{results_metrics_df}{A data frame containing the results and metrics.}
 
 \item{case_study}{Character string specifying the case study.}
+
+\item{target_sample_size_per_arm}{The target sample size per arm.}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 This function doesn't return a value but saves the generated tables as HTML, PDF, and LaTeX files.

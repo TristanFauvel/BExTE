@@ -31,7 +31,7 @@ binomial_power_prior_target_terms(
 A list with \code{n_lattice}, the risk \code{differences} (in lattice units)
 the target data reach, the N x K matrices \code{target} (T) and
 \code{source_log_likelihood} (l, \code{-Inf} where the source treatment rate leaves
-\link{0, 1}), and the source arms' log likelihoods on the lattice,
+\eqn{[0, 1]}), and the source arms' log likelihoods on the lattice,
 \code{source_control_log_likelihood} and \code{source_treatment_log_likelihood}.
 }
 \description{

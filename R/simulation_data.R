@@ -39,23 +39,6 @@ standard_error_log_odds_ratio <- function(n_control_nonresponders,
 }
 
 
-#' Generate binary data from a given rate
-#'
-#' @description This function generates binary data (0s and 1s) based on a given rate and sample size.
-#'
-#' @param rate The rate of success (1s) in the generated data
-#' @param sample_size The total sample size
-#'
-#' @return A vector of binary data
-#'
-#' @export
-generate_binary_data_from_rate <- function(rate, sample_size) {
-  n_successes <- round(sample_size * rate)
-  n_failures <- sample_size - n_successes
-
-  return(c(rep(0, times = n_failures), rep(1, times = n_successes)))
-}
-
 #' Calculate the success rate in the target study arm from the drift on the log odds ratio scale
 #'
 #' @description This function calculates the success rate in the target study arm based on the drift (defined on the log scale) and the success rate in the arm of interest in the source study.
@@ -149,21 +132,6 @@ compute_ORs <- function(n_control,
   return(odds_ratio_dict)
 }
 
-#' Compute the log odds ratio based on two rates
-#'
-#' @description This function computes the log odds ratio based on two rates.
-#'
-#' @param rate1 The rate in the first group
-#' @param rate2 The rate in the second group
-#'
-#' @return The log odds ratio
-#' @keywords internal
-compute_log_odds_ratio_from_rates <- function(rate1, rate2) {
-  odds_ratio <- (rate1 / (1 - rate1)) / (rate2 / (1 - rate2))
-  log_odds_ratio <- log(odds_ratio)
-  return(log_odds_ratio)
-}
-
 #' Compute the log odds ratio from count data
 #'
 #' @param n_control_responders Number of responders in the control arm
@@ -218,29 +186,6 @@ sample_log_odds_ratios <- function(n_control,
       n_treatment_responders
     )
   )
-}
-
-#' Sample rate ratios based on the rates in the control and treatment arms
-#'
-#' @description This function samples rate ratios based on the rates in the control and treatment arms.
-#'
-#' @param control_rate The rate in the control arm
-#' @param treatment_rate The rate in the treatment arm
-#' @param n_replicates Number of replicates to sample
-#' @param n_control Number of participants in the control arm
-#' @param n_treatment Number of participants in the treatment arm
-#'
-#' @return A vector of sampled rate ratios
-#' @export
-sample_rate_ratios <- function(control_rate,
-                               treatment_rate,
-                               n_replicates,
-                               n_control,
-                               n_treatment) {
-  sample_treatment_rate <- sample_aggregate_binary_data(treatment_rate, n_treatment, n_replicates)
-  sample_control_rate <- sample_aggregate_binary_data(control_rate, n_control, n_replicates)
-
-  return(sample_treatment_rate / sample_control_rate)
 }
 
 #' Sample aggregate normal data based on the mean and variance
@@ -976,8 +921,8 @@ BinaryTargetData <- R6::R6Class(
     },
 
     #' @description The replicate rows a trial with the given responder counts
-    #'   is analysed from. [generate()] draws the counts and
-    #'   [enumerate_support()] lists them, and both build their rows here, so
+    #'   is analysed from. `generate()` draws the counts and
+    #'   `enumerate_support()` lists them, and both build their rows here, so
     #'   the two cannot disagree on what a trial looks like to the analysis.
     #' @param n_control_responders Integer vector of control-arm responders.
     #' @param n_treatment_responders Integer vector of treatment-arm
@@ -1036,7 +981,7 @@ BinaryTargetData <- R6::R6Class(
     #'   out across both arms, and the weights, the product of
     #'   the two binomial probabilities, are renormalised over the pairs kept.
     #' @param tail_mass Upper bound on the probability of the trials left out.
-    #' @return A list: `samples`, the replicate rows as [generate()] builds
+    #' @return A list: `samples`, the replicate rows as `generate()` builds
     #'   them; `weights`, their probabilities, summing to 1; and
     #'   `omitted_mass`, the probability of the trials left out.
     enumerate_support = function(tail_mass = 1e-10) {

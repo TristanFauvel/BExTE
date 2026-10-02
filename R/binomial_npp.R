@@ -95,7 +95,7 @@ npp_beta_shapes <- function(mean, std) {
 #' @param p,q Shape parameters of the Beta prior.
 #' @param t_limit Half-width of the logit range.
 #' @param t_step Spacing on the logit scale.
-#' @return A list with `nodes` in [0, 1] and `weights` summing to one.
+#' @return A list with `nodes` in \eqn{[0, 1]} and `weights` summing to one.
 #' @keywords internal
 npp_gamma_rule <- function(p, q, t_limit = 30, t_step = 0.05) {
   t <- seq(-t_limit, t_limit, by = t_step)
@@ -145,7 +145,7 @@ row_log_sum_exp <- function(x) {
 #' @return A list with `n_lattice`, the `rates`, and the N x (2N - 1) matrices
 #'   `kernel`, `kernel_gamma` and `kernel_gamma_squared`, indexed by the target
 #'   control rate and the risk difference k / N, k = -(N - 1), ..., N - 1. They
-#'   are zero where the target treatment rate would leave [0, 1].
+#'   are zero where the target treatment rate would leave \eqn{[0, 1]}.
 #' @keywords internal
 binomial_npp_prior_kernels <- function(n_control_source,
                                        n_successes_control_source,
@@ -313,7 +313,7 @@ lattice_kernel_cached <- function(key, compute, limit = 6L) {
 #'   give the same posterior.
 #'
 #' @inheritParams binomial_npp_prior_kernels
-#' @param power_parameter The power parameter, in [0, 1].
+#' @param power_parameter The power parameter, in \eqn{[0, 1]}.
 #' @return A list with `n_lattice`, `rates`, `differences` and `kernel`, as
 #'   [binomial_npp_prior_kernels()] returns but without the power parameter's
 #'   moments.
@@ -551,7 +551,7 @@ BinomialLatticePrior <- R6::R6Class(
     #'
     #' The kernel's row for the lattice cell that contains `control_rate`,
     #' which confines the treatment effect to the differences that keep the
-    #' target treatment rate in [0, 1].
+    #' target treatment rate in \eqn{[0, 1]}.
     #'
     #' @param control_rate The target control rate.
     #' @return A list of three functions of the treatment effect: `cdf`, `pdf`,

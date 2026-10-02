@@ -206,6 +206,8 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 #' @param target_sample_size_per_arm The sample size to plot the parameters for.
 #' @param control_drift A logical value indicating whether to filter the data based on control drift.
 #' @param xvars Variable on the x axis
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return None
 #'

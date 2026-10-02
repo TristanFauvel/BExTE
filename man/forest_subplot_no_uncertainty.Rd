@@ -29,10 +29,6 @@ forest_subplot_no_uncertainty(
 
 \item{palette}{A colour scheme from bexte_palette() for BExTE-app's
 dark mode, or NULL for the publication figure.}
-
-\item{x_metric_uncertainty_lower}{Lower limit of the metric on the x-axis}
-
-\item{x_metric_uncertainty_upper}{Upper limit of the metric on the x-axis}
 }
 \value{
 A ggplot2::ggplot( object representing the forest plot.

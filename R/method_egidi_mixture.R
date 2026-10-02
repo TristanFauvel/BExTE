@@ -4,7 +4,7 @@
 #' report, so the two cannot describe the same run differently.
 #'
 #' @details
-#' The summariser in [Model$estimate_frequentist_operating_characteristics()]
+#' The summariser in `Model$estimate_frequentist_operating_characteristics()`
 #' averages each column, so the quantities that are proportions are reported as
 #' indicators whose mean is the proportion. The spread of the selected weight,
 #' which no mean can give, comes from `quantile_summary_columns` instead.

@@ -9,6 +9,8 @@
 #' @param target_sample_size_per_arm The target sample size per arm to plot the metric for.
 #' @param theta_0 Boundary of the null hypothesis space.
 #' @param add_baselines A logical value indicating whether to add baselines to the plot.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return None
 #'
@@ -253,13 +255,15 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
 #' @description This function plots a metric against the sample size for a given method, case study, and parameters combinations.
 #'
 #' @param metric The metric to plot.
-#' @param results_metrics_df The data frame containing the results and metrics.
+#' @param input_df The data frame containing the results and metrics.
 #' @param case_study The case study to plot the metric for.
 #' @param method The method to plot the metric for.
 #' @param parameters_combinations The parameter combinations to filter the data on.
 #' @param theta_0 Boundary of the null hypothesis space.
 #' @param add_baselines A logical value indicating whether to add baselines to the plot.
 #' @param target_to_source_std_ratio Ratio between the sampling standard deviation in the source study and in the target study.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param design_prior Currently unused.
 #'
 #' @return None
 #'

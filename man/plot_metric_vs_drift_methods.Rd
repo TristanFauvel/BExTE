@@ -34,11 +34,7 @@ plot_metric_vs_drift_methods(
 
 \item{join_points}{Whether to join the point with a line or not.}
 
-\item{method}{The method name}
-
-\item{category}{The category to group the results by (either "parameters" or "target_sample_size_per_arm")}
-
-\item{parameters_combinations}{The combinations of parameters to filter the results by}
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
 }
 \value{
 None

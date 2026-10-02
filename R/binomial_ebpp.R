@@ -92,7 +92,7 @@ binomial_lattice_source_mass <- function(n_lattice) {
 #' @return A list with `n_lattice`, the risk `differences` (in lattice units)
 #'   the target data reach, the N x K matrices `target` (T) and
 #'   `source_log_likelihood` (l, `-Inf` where the source treatment rate leaves
-#'   [0, 1]), and the source arms' log likelihoods on the lattice,
+#'   \eqn{[0, 1]}), and the source arms' log likelihoods on the lattice,
 #'   `source_control_log_likelihood` and `source_treatment_log_likelihood`.
 #' @keywords internal
 binomial_power_prior_target_terms <- function(n_control_source,
@@ -149,7 +149,7 @@ binomial_power_prior_target_terms <- function(n_control_source,
 #'   multiplies the numerator and Z_S(gamma) alike, so it cancels.
 #'
 #' @param terms Output of [binomial_power_prior_target_terms()].
-#' @param power_parameter Power parameters in [0, 1].
+#' @param power_parameter Power parameters in \eqn{[0, 1]}.
 #' @return One log marginal likelihood per power parameter.
 #' @keywords internal
 binomial_power_prior_log_marginal <- function(terms, power_parameter,
@@ -202,7 +202,7 @@ binomial_power_prior_bilinear <- function(terms) {
 #' Empirical Bayes power parameter of the binomial power prior
 #'
 #' @description The maximizer of [binomial_power_prior_log_marginal()] over
-#'   [0, 1]: the best of 21 equally spaced values, refined by Brent's method
+#'   \eqn{[0, 1]}: the best of 21 equally spaced values, refined by Brent's method
 #'   between its neighbours, with the end points kept as candidates.
 #'
 #' @param terms Output of [binomial_power_prior_target_terms()].
@@ -226,7 +226,7 @@ binomial_power_prior_empirical_bayes <- function(terms) {
 #' Posterior of the risk difference from the target terms
 #'
 #' @param terms Output of [binomial_power_prior_target_terms()].
-#' @param power_parameter The power parameter, in [0, 1].
+#' @param power_parameter The power parameter, in \eqn{[0, 1]}.
 #' @return A [grid_posterior()] list, the same as
 #'   [binomial_power_prior_posterior()] gives.
 #' @keywords internal

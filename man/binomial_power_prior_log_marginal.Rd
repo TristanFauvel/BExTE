@@ -13,7 +13,7 @@ binomial_power_prior_log_marginal(
 \arguments{
 \item{terms}{Output of \code{\link[=binomial_power_prior_target_terms]{binomial_power_prior_target_terms()}}.}
 
-\item{power_parameter}{Power parameters in \link{0, 1}.}
+\item{power_parameter}{Power parameters in \eqn{[0, 1]}.}
 }
 \value{
 One log marginal likelihood per power parameter.

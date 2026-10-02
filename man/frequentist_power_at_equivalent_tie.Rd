@@ -19,6 +19,10 @@ frequentist_power_at_equivalent_tie(
 
 \item{analysis_config}{The analysis configuration.}
 
+\item{simulation_config}{The simulation configuration.}
+
+\item{parallelization}{Whether to simulate the designs in parallel.}
+
 \item{n_replicates}{Number of Monte Carlo replicates the simulated power
 estimates are built from, for the case studies analytical_power() cannot
 be used for.}

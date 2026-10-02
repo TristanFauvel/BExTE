@@ -128,13 +128,11 @@ plot_element_metric_vs_xvar_methods <- function(plt,
 #' @param results_metrics_df The dataframe containing the results and metrics
 #' @param theta_0 The true treatment effect
 #' @param case_study The case study name
-#' @param method The method name
-#' @param category The category to group the results by (either "parameters" or "target_sample_size_per_arm")
 #' @param target_sample_size_per_arm The target sample size per arm
-#' @param parameters_combinations The combinations of parameters to filter the results by
 #' @param xvars A list of x-variables for control drift and treatment drift
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #' @param join_points Whether to join the point with a line or not.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
 #'
 #' @return None
 #'
@@ -336,6 +334,12 @@ plot_metric_vs_drift_methods <- function(metric,
 #' @param results_metrics_df The data frame containing the results and metrics.
 #' @param case_study The case study to plot the metric for.
 #' @param theta_0 Boundary of the null hypothesis space.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param dodging Currently unused.
+#' @param join_points Whether to join the point with a line or not.
+#' @param target_treatment_effect Which of the three main treatment effects to keep:
+#'   "No effect", "Partially consistent effect" or "Consistent effect".
 #'
 #' @return None
 #'

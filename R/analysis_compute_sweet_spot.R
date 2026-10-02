@@ -6,6 +6,10 @@
 #' @param x_values A numeric vector of x values.
 #' @param y_values A numeric vector of y values.
 #' @param reference_value A numeric reference value to determine the crossing points.
+#' @param larger_is_better Whether larger `y_values` are better. If FALSE, the sign
+#'   of the comparison with `reference_value` is reversed.
+#' @param return_NA_at_boundaries If TRUE, a sweet spot bound that falls on the edge
+#'   of `x_values` is reported as NA rather than as that edge.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -150,6 +154,9 @@ collapse_sweet_spots <- function(sweet_spot) {
 #' @param results_freq_df A dataframe containing the results frequency data with columns
 #' "case_study", "method", "source_denominator_change_factor", "control_drift", and "target_sample_size_per_arm".
 #' @param metrics A list of metrics to evaluate. Each metric should have a `name` attribute.
+#' @param based_on_CI Whether to compare each method with the separate analysis
+#'   through the confidence intervals of the metric rather than its
+#'   point estimates.
 #' @param nominal_tie The nominal type-I error threshold. Required when `metrics`
 #' includes `success_proba`.
 #'

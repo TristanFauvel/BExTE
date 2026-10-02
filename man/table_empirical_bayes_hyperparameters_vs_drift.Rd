@@ -27,7 +27,11 @@ table_empirical_bayes_hyperparameters_vs_drift(
 
 \item{xvars}{A list containing the x-variable configurations.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm to filter the results by.}
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
+
+\item{parameters_combinations}{The combinations of parameters to filter the results by}
 }
 \value{
 This function does not return a value. It creates and saves tables in HTML, PDF, and LaTeX formats.

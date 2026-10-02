@@ -55,7 +55,7 @@ path, which decides what the MCMC diagnostics report.}
 }
 \value{
 A list shaped like the return value of
-\code{\link[=Model$simulation_for_given_treatment_effect]{Model$simulation_for_given_treatment_effect()}}.
+\code{Model$simulation_for_given_treatment_effect()}.
 }
 \description{
 Shared implementation behind the vectorised fast path. Given the

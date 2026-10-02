@@ -16,9 +16,9 @@ generate_comparison_table(
 
 \item{x_metric}{The metric to be used for comparison.}
 
-\item{case_study}{The case study to filter the results.}
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm to filter the results.}
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 }
 \value{
 A kable object representing the comparison table.

@@ -204,7 +204,10 @@ plot_metric_vs_ess <- function(results_metrics_df,
 #' @description This function generates plots for the operating characteristics of different methods.
 #'
 #' @param results_metrics_df The data frame containing the results and metrics.
-#' @param metrics A list of metrics to be plotted.
+#' @param frequentist_metrics List of frequentist metrics, as defined by
+#'   sourcing `metrics_config.R`.
+#' @param inference_metrics List of inference metrics, as defined by sourcing
+#'   `metrics_config.R`.
 #'
 #' @return None
 #'

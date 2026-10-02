@@ -8,6 +8,12 @@
 #' @param analysis_config A list containing the analysis configuration parameters.
 #' @param config_dir A character string specifying the directory containing the configuration files.
 #' @param frequentist_metrics List of frequentist metrics.
+#' @param case_studies Case studies to analyse, or "all".
+#' @param to_compute Which analyses to run: any of
+#'   "frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie",
+#'   "sweet_spot" and "bayesian_ocs".
+#' @param methods Methods to analyse, or "all".
+#' @param case_studies_config_dir Directory holding the case study YAMLs.
 #' @param parallelization Whether the analysis runs in parallel: a single
 #'   logical, or a list of method names, in the same form as the
 #'   `parallelization` entry of `scenarios_config.yml`. Defaults to that

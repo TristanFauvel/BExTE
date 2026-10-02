@@ -302,6 +302,7 @@ estimate_bayesian_ocs <- function(scenario,
 #'
 #' @param env The environment to run the simulations in
 #' @param simulation_config Simulation configuration
+#' @param scenarios_config Configuration for the simulation.
 #' @param analysis_config Analysis configuration
 #' @param config_dir Configuration directory
 #' @param case_studies_config_dir Case studies configuration directory

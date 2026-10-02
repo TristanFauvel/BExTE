@@ -75,16 +75,6 @@ has_other_parameters <- function(other_parameters) {
 }
 
 
-#' Function to return markers from a list
-#'
-#' @param i The index of the marker to return.
-#' @param markers_list A list of markers.
-#' @return The marker at the specified index.
-#' @keywords internal
-markers <- function(i, markers_list) {
-  return(markers_list[i %% length(markers_list)])
-}
-
 #' Function to set figure dimensions
 #'
 #' @param width The desired width of the figure (in pts).
@@ -117,38 +107,6 @@ set_size <- function(width,
   fig_dim <- c(fig_width_in, fig_height_in)
 
   return(fig_dim)
-}
-
-
-#' Function to format uncertainty
-#'
-#' @param yerr_input The input uncertainty values.
-#' @param y The central values.
-#' @param metric The metric information.
-#' @return The formatted uncertainty.
-#' @keywords internal
-format_uncertainty <- function(yerr_input, y, metric) {
-  # Check if metric uncertainty is a 95% CI or a MCSE
-  if (grepl("conf_int|credible_interval", metric$metric_uncertainty)) {
-    stopifnot(ncol(yerr_input) == 2)
-
-    # Convert CI into error for error bars
-    yerr <- yerr_input - y
-
-    yerr[, 1] <- -yerr[, 1]
-
-    # Check for negative errors and replace with 0
-    close_to_zero <- abs(yerr) < 1e-15
-    yerr[close_to_zero] <- 0
-
-    # Check for negative errors
-    if (any(yerr[, 1] < 0) || any(yerr[, 2] < 0)) {
-      stop("yerr bounds are negative")
-    }
-  }
-
-  # Return formatted uncertainty
-  return(yerr)
 }
 
 
@@ -784,7 +742,7 @@ style_blend <- function(color, towards, weight) {
 #' @param hue The method's base colour, which sits at the middle of the ramp.
 #' @param light_weight How far towards white the light end sits.
 #' @param dark_weight How far towards black the dark end sits.
-#' @return A function mapping positions in [0, 1] to hex colours.
+#' @return A function mapping positions in \eqn{[0, 1]} to hex colours.
 #' @keywords internal
 method_hue_ramp <- function(hue, light_weight = 0.75, dark_weight = 0.45) {
   ramp <- grDevices::colorRamp(c(
@@ -887,7 +845,7 @@ style_tuple_key <- function(values) {
 #' @param key The method key.
 #' @param parameter_labels The labels to place, as plain text.
 #' @param dict The run's methods configuration.
-#' @return A numeric vector of positions in [0, 1].
+#' @return A numeric vector of positions in \eqn{[0, 1]}.
 #' @keywords internal
 method_parameter_positions <- function(key, parameter_labels, dict) {
   values <- lapply(parameter_labels, style_label_numbers)

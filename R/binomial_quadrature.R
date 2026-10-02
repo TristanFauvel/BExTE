@@ -61,7 +61,7 @@ beta_quadrature_nodes <- function(shape1, shape2, n_nodes) {
 #' @description The posterior of the difference in response rates only has mass
 #'   where the treatment arm likelihood does, i.e. where theta + v falls in the
 #'   bulk of Beta(treatment_shape1, treatment_shape2) for some control rate node
-#'   v. The grid spans that region, clipped to [-1, 1], with a spacing fine
+#'   v. The grid spans that region, clipped to \eqn{[-1, 1]}, with a spacing fine
 #'   enough to resolve the narrowest of `scales`.
 #'
 #' @param treatment_shape1,treatment_shape2 Shape parameters of the treatment
@@ -282,7 +282,7 @@ grid_distribution <- function(posterior) {
 #'   power gamma.
 #'
 #'   The rates are discretised on the lattice of [binomial_npp_prior_kernels()]:
-#'   the midpoints of N equal cells of [0, 1], with the treatment effect on the
+#'   the midpoints of N equal cells of \eqn{[0, 1]}, with the treatment effect on the
 #'   multiples of the cell width, so that every treatment rate is a lattice
 #'   point. The lattice covers the whole unit square, so it follows the
 #'   posterior wherever the target data move it, including far into the tails
@@ -300,7 +300,7 @@ grid_distribution <- function(posterior) {
 #'   With no target patients the target counts are zero and the result is the
 #'   prior.
 #'
-#' @param power_parameter The power parameter gamma, in [0, 1].
+#' @param power_parameter The power parameter gamma, in \eqn{[0, 1]}.
 #' @param n_control_source,n_successes_control_source Source control arm.
 #' @param n_treatment_source,n_successes_treatment_source Source treatment arm.
 #' @param n_control,n_successes_control Target control arm.
@@ -309,7 +309,7 @@ grid_distribution <- function(posterior) {
 #' @param control_rate Target control rate to condition on, or `NULL` to
 #'   integrate it out. Conditioning puts the target control rate's whole mass
 #'   on the lattice cell that contains it, which confines the treatment effect
-#'   to the differences that keep the target treatment rate in [0, 1].
+#'   to the differences that keep the target treatment rate in \eqn{[0, 1]}.
 #' @return A [grid_posterior()] list.
 #' @keywords internal
 binomial_power_prior_posterior <- function(power_parameter,

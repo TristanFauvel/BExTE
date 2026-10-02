@@ -58,10 +58,8 @@ This class represents a Gaussian Commensurate Power Prior model.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href='../../BExTE/html/Model.html#method-Model-print_model_summary'><code>Model$print_model_summary()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="check_mcmc_config"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-check_mcmc_config'><code>MCMCModel$check_mcmc_config()</code></a></span></li>
@@ -231,7 +229,7 @@ it, with the power parameter at one.
   Prior p.d.f. of the treatment effect: the quadrature
 mixture the simulations use, which covers the whole prior. Integrating
 tau numerically over a finite window instead would drop most of the
-heavy-tailed priors: \link{0.001, 100} keeps 0.9\% of inverse_gamma(1/1000, 1)
+heavy-tailed priors: \eqn{[0.001, 100]} keeps 0.9\% of inverse_gamma(1/1000, 1)
 and 12\% of a Cauchy(0, 30) on log(tau).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -252,7 +250,7 @@ and 12\% of a Cauchy(0, 30) on log(tau).
 \if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-prior_cdf}{}}}
 \subsection{\code{GaussianCommensuratePowerPrior$prior_cdf()}}{
   Prior c.d.f. of the treatment effect, from the same mixture
-as \code{\link[=prior_pdf]{prior_pdf()}}. Without it the MCMC parent would take the empirical
+as \code{prior_pdf()}. Without it the MCMC parent would take the empirical
 c.d.f. of prior draws.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}

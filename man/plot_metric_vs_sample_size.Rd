@@ -31,6 +31,12 @@ plot_metric_vs_sample_size(
 \item{theta_0}{Boundary of the null hypothesis space.}
 
 \item{add_baselines}{A logical value indicating whether to add baselines to the plot.}
+
+\item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
+
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{analysis_config}{The analysis configuration.}
 }
 \value{
 None

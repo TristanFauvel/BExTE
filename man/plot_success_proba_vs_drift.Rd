@@ -34,11 +34,16 @@ plot_success_proba_vs_drift(
 
 \item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
 \item{parameters_combinations}{The combinations of parameters to filter the results by}
 
 \item{xvars}{A list of x-variables for control drift and treatment drift}
 
 \item{join_points}{Whether to join the point with a line or not.}
+
+\item{baseline_success_proba}{Which baselines to overlay: any of "at_equivalent_TIE"
+and "at_nominal_TIE".}
 }
 \value{
 None

@@ -9,7 +9,11 @@ plot_metrics_vs_ess(results_metrics_df, frequentist_metrics, inference_metrics)
 \arguments{
 \item{results_metrics_df}{The data frame containing the results and metrics.}
 
-\item{metrics}{A list of metrics to be plotted.}
+\item{frequentist_metrics}{List of frequentist metrics, as defined by
+sourcing \code{metrics_config.R}.}
+
+\item{inference_metrics}{List of inference metrics, as defined by sourcing
+\code{metrics_config.R}.}
 }
 \value{
 None

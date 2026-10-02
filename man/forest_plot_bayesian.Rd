@@ -13,10 +13,6 @@ forest_plot_bayesian(results_bayes_df, x_metric, palette = NULL)
 
 \item{palette}{A colour scheme from bexte_palette() for BExTE-app's
 dark mode, or NULL for the publication figure.}
-
-\item{selected_case_study}{The selected case study.}
-
-\item{selected_target_sample_size_per_arm}{The selected target sample size per arm.}
 }
 \value{
 None

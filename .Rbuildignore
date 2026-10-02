@@ -8,6 +8,7 @@
 ^\.claude$
 ^\.git$
 ^\.github$
+^\.lintr$
 ^_pkgdown\.yml$
 ^docs$
 ^figures$

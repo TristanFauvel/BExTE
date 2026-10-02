@@ -221,7 +221,7 @@ BinomialCPP <- R6::R6Class(
     #' @description The prior of the treatment effect given the target control
     #' rate
     #'
-    #' The power prior of [quadrature_prior()] with the target control rate
+    #' The power prior of `quadrature_prior()` with the target control rate
     #' fixed rather than integrated out, so the effect is confined to the
     #' range that rate leaves it.
     #'
@@ -1046,7 +1046,7 @@ commensurate_stan_code <- function(with_power_parameter) {
     return("
                                       functions {
                                         real g_function(real log_tau) {
-                                          return fmax(log_tau, 1); // Define g(τ)
+                                          return fmax(log_tau, 1); // Define g(tau)
                                         }
                                       }
 
@@ -1568,7 +1568,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
     #' @description Prior p.d.f. of the treatment effect: the quadrature
     #' mixture the simulations use, which covers the whole prior. Integrating
     #' tau numerically over a finite window instead would drop most of the
-    #' heavy-tailed priors: [0.001, 100] keeps 0.9% of inverse_gamma(1/1000, 1)
+    #' heavy-tailed priors: \eqn{[0.001, 100]} keeps 0.9% of inverse_gamma(1/1000, 1)
     #' and 12% of a Cauchy(0, 30) on log(tau).
     #' @param treatment_effect Treatment effect
     prior_pdf = function(treatment_effect) {
@@ -1583,7 +1583,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
       drop(matrix(densities, nrow = length(treatment_effect)) %*% mixture$weights)
     },
     #' @description Prior c.d.f. of the treatment effect, from the same mixture
-    #' as [prior_pdf()]. Without it the MCMC parent would take the empirical
+    #' as `prior_pdf()`. Without it the MCMC parent would take the empirical
     #' c.d.f. of prior draws.
     #' @param treatment_effect Treatment effect
     #' @param ... Unused; accepted for compatibility with the parent's

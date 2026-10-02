@@ -192,6 +192,8 @@ plot_element_metric_vs_xvar <- function(plt,
 #' @param add_baselines Logical indicating whether to add baselines to the plot
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #' @param join_points Whether to join the point with a line or not.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param analysis_config The analysis configuration.
 #'
 #' @return None
 #'
@@ -409,7 +411,7 @@ plot_metric_vs_drift <- function(metric,
 
   if (nrow(results_df) == 0) {
     warning("Dataframe is empty")
-    next
+    return()
   }
 
   # Calculate the range of the x-axis
@@ -688,6 +690,9 @@ plot_metric_vs_drift <- function(metric,
 #' @param target_sample_size_per_arm The target sample size per arm to plot the metric for.
 #' @param theta_0 Boundary of the null hypothesis space.
 #' @param add_baselines A logical value indicating whether to add baselines to the plot.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param analysis_config The analysis configuration.
 #'
 #' @return None
 #'
@@ -949,6 +954,9 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 #' @param parameters_combinations The parameter combinations to filter the data on.
 #' @param theta_0 Boundary of the null hypothesis space.
 #' @param add_baselines A logical value indicating whether to add baselines to the plot.
+#' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
+#' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
+#' @param analysis_config The analysis configuration.
 #'
 #' @return None
 #'
@@ -983,7 +991,7 @@ plot_metric_vs_sample_size <- function(metric,
 
   if (nrow(results_df) == 0) {
     warning("Dataframe is empty")
-    next
+    return()
   }
   # Format the parameters (from the json string)
   results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))

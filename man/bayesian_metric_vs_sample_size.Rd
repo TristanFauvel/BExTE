@@ -20,6 +20,8 @@ bayesian_metric_vs_sample_size(
 \arguments{
 \item{metric}{The metric to plot.}
 
+\item{input_df}{The data frame containing the results and metrics.}
+
 \item{case_study}{The case study to plot the metric for.}
 
 \item{method}{The method to plot the metric for.}
@@ -32,7 +34,9 @@ bayesian_metric_vs_sample_size(
 
 \item{target_to_source_std_ratio}{Ratio between the sampling standard deviation in the source study and in the target study.}
 
-\item{results_metrics_df}{The data frame containing the results and metrics.}
+\item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
+
+\item{design_prior}{Currently unused.}
 }
 \value{
 None

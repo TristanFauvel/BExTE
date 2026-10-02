@@ -27,6 +27,16 @@ simulation_analysis(
 
 \item{frequentist_metrics}{List of frequentist metrics.}
 
+\item{case_studies}{Case studies to analyse, or "all".}
+
+\item{to_compute}{Which analyses to run: any of
+"frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie",
+"sweet_spot" and "bayesian_ocs".}
+
+\item{methods}{Methods to analyse, or "all".}
+
+\item{case_studies_config_dir}{Directory holding the case study YAMLs.}
+
 \item{parallelization}{Whether the analysis runs in parallel: a single
 logical, or a list of method names, in the same form as the
 \code{parallelization} entry of \code{scenarios_config.yml}. Defaults to that

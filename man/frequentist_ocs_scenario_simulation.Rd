@@ -20,6 +20,8 @@ frequentist_ocs_scenario_simulation(
 
 \item{simulation_config}{Simulation configuration}
 
+\item{scenarios_config}{Configuration for the simulation.}
+
 \item{freq_filename}{File name for the frequentist OCs}
 
 \item{config_dir}{Configuration files directory}
