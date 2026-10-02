@@ -292,7 +292,15 @@ paper_manifest_figures_unnumbered <- function() {
   list(
     manifest_vs_tie("X1", "Coverage versus type I error rate in the Botox case study, with 117 participants per arm and a partially consistent treatment effect.", "botox", 2, "coverage", "partially_consistent"),
     manifest_vs_tie("X2", "Coverage versus type I error rate in the Mepolizumab case study, with 68 participants per arm and a partially consistent treatment effect.", "mepolizumab", 4, "coverage", "partially_consistent"),
-    manifest_forest("X3", "Coverage probability for the three principal treatment-effect scenarios in the Teriflunomide case study, with 123 participants per arm.", "teriflunomide", 6, "coverage")
+    manifest_forest("X3", "Coverage probability for the three principal treatment-effect scenarios in the Teriflunomide case study, with 123 participants per arm.", "teriflunomide", 6, "coverage"),
+    ## The interval-score counterparts the supplement places beside the
+    ## coverage and precision figures that S38-S44 do not cover: the
+    ## Teriflunomide forest plot of X3's slice, and the versus-type-I-error
+    ## figures on the slices of S38, S39 and S41.
+    manifest_forest("X4", "Interval score of the 95% credible interval, which combines its width with the penalty for excluding the true treatment effect, for the three principal treatment-effect scenarios in the Teriflunomide case study, with 123 participants per arm. Smaller is better.", "teriflunomide", 6, "interval_score"),
+    manifest_vs_tie("X5", "Interval score of the 95% credible interval versus type I error rate in the Dapagliflozin case study, with 66 participants per arm, no treatment effect, and a target-to-source standard-deviation ratio of 1. Smaller is better.", "dapagliflozin", 2, "interval_score", "no_effect"),
+    manifest_vs_tie("X6", "Interval score of the 95% credible interval versus type I error rate in the Belimumab case study, with 140 participants per arm and no treatment effect. Smaller is better.", "belimumab", 4, "interval_score", "no_effect"),
+    manifest_vs_tie("X7", "Interval score of the 95% credible interval versus type I error rate in the Aprepitant case study, with 143 participants per arm and no treatment effect. Smaller is better.", "aprepitant", 2, "interval_score", "no_effect")
   )
 }
 

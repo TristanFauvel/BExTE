@@ -6,8 +6,8 @@
 test_that("the manifest covers every paper item exactly once", {
   ids <- paper_manifest_ids()
 
-  expect_length(ids, 64)
-  expect_length(unique(ids), 64)
+  expect_length(ids, 68)
+  expect_length(unique(ids), 68)
   expect_true(all(c("1", "2", "3", "4") %in% ids))
   expect_true(all(paste0("S", 3:37) %in% ids))
   ## S38-S44 are the interval-score figures added in revision.
@@ -20,7 +20,7 @@ test_that("the manifest covers every paper item exactly once", {
   ## Tables S2 and S4 are hand-authored in the manuscript.
   expect_true(all(c("TS1", "TS3", "TS5") %in% ids))
   expect_false(any(c("TS2", "TS4", "TS7", "TS8") %in% ids))
-  expect_true(all(c("X1", "X2", "X3") %in% ids))
+  expect_true(all(paste0("X", 1:7) %in% ids))
   expect_true("S8" %in% ids)
 })
 
@@ -122,7 +122,11 @@ test_that("unnumbered manuscript figures use their requested scenarios", {
   expected <- list(
     X1 = list(case_study = "botox", sample_size_factor = 2, metric = "coverage"),
     X2 = list(case_study = "mepolizumab", sample_size_factor = 4, metric = "coverage"),
-    X3 = list(case_study = "teriflunomide", sample_size_factor = 6, metric = "coverage")
+    X3 = list(case_study = "teriflunomide", sample_size_factor = 6, metric = "coverage"),
+    X4 = list(case_study = "teriflunomide", sample_size_factor = 6, metric = "interval_score"),
+    X5 = list(case_study = "dapagliflozin", sample_size_factor = 2, metric = "interval_score"),
+    X6 = list(case_study = "belimumab", sample_size_factor = 4, metric = "interval_score"),
+    X7 = list(case_study = "aprepitant", sample_size_factor = 2, metric = "interval_score")
   )
   for (id in names(expected)) {
     entry <- paper_manifest_entry(id)
