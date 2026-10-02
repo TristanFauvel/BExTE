@@ -67,6 +67,71 @@ binomial_rmp_kernels <- function(components, weight) {
 }
 
 
+#' Posterior of the binomial robust mixture prior with a given weight
+#'
+#' @description The posterior [binomial_npp_posterior()] gives for the kernels
+#'   of [binomial_rmp_kernels()], computed without forming them: the mixture
+#'   kernel is linear in the weight, so the posterior mass at each risk
+#'   difference is `weight` times that of the informative component plus
+#'   `1 - weight` times that of the weak one, and the posterior weight of the
+#'   informative component is the former's share of the total. The component
+#'   masses are read off the components' kernels, which do not depend on the
+#'   weight, in a single weighted sum each; the lattice points visited are
+#'   those of [binomial_npp_posterior()].
+#'
+#' @param components Output of [binomial_rmp_components()].
+#' @param weight Prior weight of the informative component.
+#' @inheritParams binomial_npp_posterior
+#' @return The list [binomial_npp_posterior()] returns for
+#'   `binomial_rmp_kernels(components, weight)`.
+#' @keywords internal
+binomial_rmp_posterior <- function(components, weight, n_control, n_successes_control,
+                                   n_treatment, n_successes_treatment) {
+  N <- components$n_lattice
+  rates <- components$rates
+  arm_likelihood <- function(n, successes) {
+    log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
+    exp(log_likelihood - max(log_likelihood))
+  }
+  control <- arm_likelihood(n_control, n_successes_control)
+  treatment <- arm_likelihood(n_treatment, n_successes_treatment)
+  control_points <- which(control > 1e-20)
+  treatment_points <- which(treatment > 1e-20)
+  control[-control_points] <- 0
+  treatment[-treatment_points] <- 0
+
+  lowest <- min(treatment_points) - max(control_points)
+  highest <- max(treatment_points) - min(control_points)
+  differences <- seq(lowest, highest)
+  rows <- range(control_points)
+  index <- rows[1]:rows[2]
+  # J x K: the target likelihood at the lattice points visited, zero elsewhere.
+  likelihood <- control[index] *
+    lattice_hankel(treatment, rows[1], length(index), lowest, length(differences))
+  informative <- weight *
+    colSums(components$informative[index, differences + N, drop = FALSE] * likelihood)
+  # The weak component is 1 / N^2 wherever the target treatment rate is on the
+  # lattice, and the likelihood is zero wherever it is not.
+  weak <- (1 - weight) * colSums(likelihood) / N^2
+  mass <- informative + weak
+
+  total <- sum(mass)
+  if (!is.finite(total) || total <= 0) {
+    stop("The normalized power prior posterior has no mass on the lattice.", call. = FALSE)
+  }
+  support <- seq(lowest - 1L, highest + 1L)
+  posterior <- grid_posterior(support / N, c(0, mass, 0))
+  posterior$power_parameter_mean <- NA_real_
+  posterior$power_parameter_std <- NA_real_
+  # Given the component, the informative one's indicator is 0 or 1, so its
+  # first and second moments are the same.
+  share <- sum(informative) / total
+  posterior$prior_weight_mean <- share
+  posterior$prior_weight_std <- sqrt(max(0, share - share^2))
+  posterior
+}
+
+
 #' Prior-predictive tables of the binomial robust mixture components
 #'
 #' @description The prior-predictive probability of every pair of target
@@ -252,6 +317,26 @@ BinomialEgidiMixture <- R6::R6Class(
       self$prior_grid <- NULL
       self$prior_elir_unit_information <- NULL
       invisible(NULL)
+    },
+
+    #' @description The posterior on a grid, from the two components' kernels
+    #' and the weight, without forming the mixture kernel; see
+    #' [binomial_rmp_posterior()].
+    #' @param target_data The target study data.
+    #' @return The list [binomial_npp_posterior()] returns.
+    quadrature_posterior = function(target_data) {
+      binomial_rmp_posterior(
+        self$components(),
+        weight = self$w,
+        n_control = as.integer(target_data$sample_size_control),
+        n_successes_control = counts_from_rate(
+          target_data$sample$sample_control_rate, target_data$sample_size_control
+        ),
+        n_treatment = as.integer(target_data$sample_size_treatment),
+        n_successes_treatment = counts_from_rate(
+          target_data$sample$sample_treatment_rate, target_data$sample_size_treatment
+        )
+      )
     },
 
     #' @description Record the posterior weight and the selection.

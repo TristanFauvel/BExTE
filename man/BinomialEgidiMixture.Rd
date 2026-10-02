@@ -42,6 +42,7 @@ replicate's sample alone.}
   \itemize{
     \item \href{#method-BinomialEgidiMixture-initialize}{\code{BinomialEgidiMixture$new()}}
     \item \href{#method-BinomialEgidiMixture-empirical_bayes_update}{\code{BinomialEgidiMixture$empirical_bayes_update()}}
+    \item \href{#method-BinomialEgidiMixture-quadrature_posterior}{\code{BinomialEgidiMixture$quadrature_posterior()}}
     \item \href{#method-BinomialEgidiMixture-compute_posterior_parameters}{\code{BinomialEgidiMixture$compute_posterior_parameters()}}
     \item \href{#method-BinomialEgidiMixture-prior_elir_ess}{\code{BinomialEgidiMixture$prior_elir_ess()}}
     \item \href{#method-BinomialEgidiMixture-clone}{\code{BinomialEgidiMixture$clone()}}
@@ -85,7 +86,6 @@ replicate's sample alone.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-stan_sampler'><code>MCMCModel$stan_sampler()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="prior_given_control_rate"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-prior_given_control_rate'><code>BinomialLatticePrior$prior_given_control_rate()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="quadrature_posterior"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-quadrature_posterior'><code>BinomialLatticePrior$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="quadrature_prior"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-quadrature_prior'><code>BinomialLatticePrior$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="source_counts"><a href='../../BExTE/html/BinomialLatticePrior.html#method-BinomialLatticePrior-source_counts'><code>BinomialLatticePrior$source_counts()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="components"><a href='../../BExTE/html/BinomialRMP.html#method-BinomialRMP-components'><code>BinomialRMP$components()</code></a></span></li>
@@ -131,6 +131,30 @@ supported.}
       \item{\code{target_data}}{Target study data.}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BinomialEgidiMixture-quadrature_posterior"></a>}}
+\if{latex}{\out{\hypertarget{method-BinomialEgidiMixture-quadrature_posterior}{}}}
+\subsection{\code{BinomialEgidiMixture$quadrature_posterior()}}{
+  The posterior on a grid, from the two components' kernels
+and the weight, without forming the mixture kernel; see
+\code{\link[=binomial_rmp_posterior]{binomial_rmp_posterior()}}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialEgidiMixture$quadrature_posterior(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target study data.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The list \code{\link[=binomial_npp_posterior]{binomial_npp_posterior()}} returns.
   }
 }
 
