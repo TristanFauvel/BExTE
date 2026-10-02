@@ -39,7 +39,7 @@ set.seed(42)
 config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
-config_path <- system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
+config_path <- system.file("conf/case_studies/belimumab.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 ```
  
@@ -112,13 +112,13 @@ To perform inference, we would simply use:
 model$inference(target_data = target_data)
 ```  
 
-This inference steps set the following attributes which, taken together, specify the posterior distribution.
+This inference step sets the power parameter $\gamma$, which is the only
+parameter the PDCCPP estimates, and the moments of the posterior:
+
 ```{r}
-print(model$wpost) # Posterior weight
-print(model$vague_posterior_mean)
-print(model$vague_posterior_variance)
-print(model$info_posterior_mean)
-print(model$info_posterior_variance)
+print(model$posterior_parameters$power_parameter) # Power parameter
+print(model$post_mean) # Posterior mean
+print(model$post_var) # Posterior variance
 ```
 
 Now, let us see how this is implemented:
@@ -127,60 +127,58 @@ Now, let us see how this is implemented:
 read_function_code(model$inference)
 ```
 
-The first step in inference is to update the prior based on target_data if needed, in case where the method uses empirical Bayes. With empirical Bayes, some parameters of the prior are set based on observed target data. 
-The second step is to compute the moments of the treatment effect posterior distribution. Note that we use the same inference function for all methods/scenarios combinations that do not require MCMC (in which case we need samples from the posterior and not only the parameters of the posterior). 
-
-
-In the study protocol, we specified that the variance of the vague component of the RMP should be such that this prior corresponds to the information provided by a single subject per arm in the target study. This is a form of empirical Bayes:   
+The first step updates the prior based on the target data. For the PDCCPP this
+is where the power parameter is chosen: it is a function of the observed target
+estimate, which makes the PDCCPP an empirical Bayes method.
 
 ```{r}
 read_function_code(model$empirical_bayes_update)
 ```
- 
 
-The posterior is given by : 
- 
-$$p(\theta_T | \boldsymbol{y}_S, \boldsymbol{y}_T) = \widetilde{w}\mathcal{N}\left(\theta_T \bigg| \frac{\mu_v}{N_T\frac{\sigma^2_v}{\sigma^2_T} + 1} + \frac{\overline{y}_T}{\frac{\sigma^2_T}{N_T\sigma_v^2} + 1}, \left(\sigma_v^{-2} + \frac{N_T}{\sigma^2_T} \right)^{-1}\right) + (1- \widetilde{w})\mathcal{N}\left(\theta_T \bigg| \frac{\overline{y}_S}{N_T\frac{\nu^2_S}{\sigma^2_T} + 1} + \frac{\overline{y}_T}{\frac{\sigma^2_T}{N_T\nu_S^2} + 1}, \left(\nu_S^{-2} + \frac{N_T}{\sigma^2_T} \right)^{-1}\right),
+The power parameter is set by the calibration of Nikolakopoulos et al. (2018):
+it borrows as much as possible while keeping the type I error of the resulting
+test at `desired_tie`.
+
+```{r}
+read_function_code(model$power_parameter_estimation)
+```
+
+```{r}
+read_function_code(model$power_parameter_from_calibration)
+```
+
+Given $\gamma$, the prior is the source posterior raised to the power $\gamma$,
+$\mathcal{N}\left(\overline{y}_S, \nu_S^2/\gamma\right)$, where $\nu_S$ is the
+standard error of the source estimate. With a normal likelihood of known
+variance for the target estimate, $\mathcal{N}\left(\overline{y}_T, \nu_T^2\right)$,
+the posterior is normal:
+
+$$
+p(\theta_T \mid \boldsymbol{y}_S, \boldsymbol{y}_T) =
+\mathcal{N}\left(\theta_T \,\middle|\,
+\frac{\gamma\,\overline{y}_S/\nu_S^2 + \overline{y}_T/\nu_T^2}{\gamma/\nu_S^2 + 1/\nu_T^2},
+\left(\gamma/\nu_S^2 + 1/\nu_T^2\right)^{-1}\right).
 $$
 
-where $\mathcal{N}(\theta_T | \mu, \sigma^2)$ denotes the probability density function of a normal distribution with mean $\mu$ and variance $\sigma^2$, evaluated at $\theta_T$.
-
-
-The code to compute the posterior moments is the following : 
+The code to compute the posterior moments is the following:
 
 ```{r}
 read_function_code(model$posterior_moments)
 ```
- 
-With :
+
+With:
 
 ```{r}
 read_function_code(model$posterior_mean)
 ```
 
-and :  
+and:
+
 ```{r}
 read_function_code(model$posterior_variance)
 ```
 
-The variance of a mixture of two distributions is given by : 
-
-```{r}
-read_function_code(model$mixture_variance)
-```
-
-A crucial aspect of this inference step is the computation of the posterior mixture weights:
-
-The posterior weight of the vague component $\widetilde{w}$ is given by:
-
-$$
-    \tilde{w} = \frac{wC_v}{wC_v + (1-w)C_S}
-$$
-Where $C_v$ and $C_S$ are proportional to the marginal likelihood (or prior predictive probability) of the aggregate data for each Gaussian component:
-$$C_v =  \frac{1}{\sqrt{\sigma_v^2 + \sigma^2_T/N_T}}\exp\left(-\frac{1}{2}\frac{(\overline{y}_T - \mu_v)^2}{\sqrt{\sigma_v^2 + \sigma^2_T/N_T}}\right)$$
-and : 
-$$C_S =  \frac{1}{\sqrt{\nu_S^2 + \sigma^2_T/N_T}}\exp\left(-\frac{1}{2}\frac{(\overline{y}_T - \overline{y}_S)^2}{\sqrt{\nu_S^2 + \sigma^2_T/N_T}}\right)$$
- 
+The posterior pdf and cdf are those of this normal distribution:
 
 ```{r}
 read_function_code(model$posterior_pdf)
@@ -217,7 +215,7 @@ ggplot2::ggplot(df, ggplot2::aes(x = x)) +
   scale_color_manual(values = c("blue", "red")) +
   guides(color = guide_legend(title = NULL)) +
   scale_fill_manual(
-    name = "PDF of the robust mixture of Gaussians",
+    name = NULL,
     labels = c("Prior pdf", "Posterior pdf"),
     values = c("blue", "red")
   )
