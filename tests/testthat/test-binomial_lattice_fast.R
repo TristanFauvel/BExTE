@@ -309,7 +309,10 @@ test_that("the data-driven binomial methods decide as before on every outcome at
   skip_if_not(identical(Sys.getenv("BEXTE_SLOW_TESTS"), "true"),
               "Set BEXTE_SLOW_TESTS=true for the full grid of outcomes (about an hour).")
   grid <- expand.grid(control = 0:47, treatment = 0:47)
-  for (method in names(lattice_fast_method_parameters)) {
+  # BEXTE_SLOW_METHODS, a comma-separated list, splits the work between processes.
+  methods <- strsplit(Sys.getenv("BEXTE_SLOW_METHODS",
+                                 paste(names(lattice_fast_method_parameters), collapse = ",")), ",")[[1]]
+  for (method in methods) {
     expect_same_analyses(method, 47, grid)
   }
 })
