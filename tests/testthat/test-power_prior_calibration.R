@@ -350,7 +350,9 @@ test_that("the search reproduces the reference implementation from the paper", {
     sP <- sqrt(sR / n0 + sR / n1)
     As <- -(((-(sqrt(sR) * sqrt(n0 + n1) * qnorm(sig) + n0 * m0)) / (n1 * sP)) - m0 / sP)
     X <- rnorm(R, mR, sqrt(sR / n1))
-    uL <- min(As, 1); lL <- 0; S <- min(As, 1)
+    uL <- min(As, 1)
+    lL <- 0
+    S <- min(As, 1)
     t1 <- pnorm((sqrt(sR) * sqrt(n0 + n1) * qnorm(sig) + n0 * m0) / sqrt(sR * n1))
     t2 <- 0
     borrowing <- function(S) {
@@ -363,14 +365,18 @@ test_that("the search reproduces the reference implementation from the paper", {
     if (t1 < aD) {
       S <- As
     } else {
-      while ((abs(t1 - t2) > tol) & (abs(uL - lL) > tol)) {
+      while ((abs(t1 - t2) > tol) && (abs(uL - lL) > tol)) {
         if (t2 != 0) t1 <- t2
-        while ((t1 > aD) & (abs(uL - lL) > tol)) {
-          uL <- S; S <- mean(c(lL, uL)); t1 <- borrowing(S)
+        while ((t1 > aD) && (abs(uL - lL) > tol)) {
+          uL <- S
+          S <- mean(c(lL, uL))
+          t1 <- borrowing(S)
         }
         if (t1 < pnorm((sqrt(n0 + n1) * qnorm(sig) + n0 * m0) / sqrt(sR * n1))) t2 <- t1
-        while ((t2 < aD) & (abs(uL - lL) > tol)) {
-          lL <- S; S <- mean(c(lL, uL)); t2 <- borrowing(S)
+        while ((t2 < aD) && (abs(uL - lL) > tol)) {
+          lL <- S
+          S <- mean(c(lL, uL))
+          t2 <- borrowing(S)
         }
       }
     }

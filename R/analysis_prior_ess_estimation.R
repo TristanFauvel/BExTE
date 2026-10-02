@@ -151,5 +151,3 @@ normal_reference_ess <- function(reference_scale,
     precision = reference_scale^2 / implied_sd^2 - sample_size_per_arm
   ))
 }
-
-

@@ -843,7 +843,7 @@ Model <- R6::R6Class(
         invisible(NULL)
       }
 
-      for (r in 1:nrow(target_data_samples)) {
+      for (r in seq_len(nrow(target_data_samples))) {
         # drop = FALSE keeps a single-column sample a data frame, so that
         # downstream `$` access keeps working.
         target_data$sample <- target_data_samples[r, , drop = FALSE]
@@ -1122,7 +1122,6 @@ Model <- R6::R6Class(
       # not the number that survived to be analysed.
       n_nonestimable <- self$n_nonestimable_replicates
       n_total_replicates <- length(fit_success) + n_nonestimable
-      n_failed_replicates <- n_diagnostic_failures + n_nonestimable
 
       # Under exact enumeration each replicate is a distinct trial outcome and
       # every average below is a sum weighted by its probability. Outcomes
@@ -2322,10 +2321,6 @@ Model_RBesT <- R6::R6Class(
     #' @param target_data The target data for the analysis.
     #' @return None
     posterior_moments = function(target_data) {
-      sample_mean <- target_data$sample$treatment_effect_estimate
-      standard_error <- target_data$sample$treatment_effect_standard_error
-      target_sample_size_per_arm <- target_data$target_sample_size_per_arm
-
       self$RBesT_posterior <- RBesT::postmix(
         self$RBesT_prior,
         m = target_data$sample$treatment_effect_estimate,
@@ -2476,7 +2471,6 @@ Model_RBesT <- R6::R6Class(
         stop("Not implemented for other than 95% CrI")
       }
 
-      n_replicates <- nrow(samples)
       posterior <- normal_mixture_posterior(
         weights = prior$weights,
         means = prior$means,
@@ -2595,8 +2589,6 @@ GaussianPooling_RBesT <- R6::R6Class(
     posterior_to_RBesT = function(target_data, ...) {
       self$RBesT_posterior <- RBesT::mixnorm(c(1, self$post_mean, sqrt(self$post_var)), sigma =  target_data$sample$standard_deviation)
       self$RBesT_posterior_normix <- self$RBesT_posterior
-
-      smix <- summary(self$RBesT_posterior)
     },
 
     #' @description Prior mixture components for each replicate.
@@ -3035,7 +3027,6 @@ MCMCModel <- R6::R6Class(
         size = n_samples,
         replace = TRUE
       ))
-      return(samples)
     }
   )
 )

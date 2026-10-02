@@ -323,7 +323,7 @@ plot_metric_vs_drift <- function(metric,
     results_df$label <- results_df$target_sample_size_per_arm
     labels_title <- "Target sample size per arm"
   } else if (category == "parameters") {
-    parameters_labels <- unname(sapply(1:nrow(results_df), function(i) {
+    parameters_labels <- unname(sapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
     }))
 
@@ -781,7 +781,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 
   # Loop over the different parameters that take different values in the simulation study
   plots <- list()
-  for (i in 1:ncol(parameters_df)) {
+  for (i in seq_len(ncol(parameters_df))) {
     # Select the other parameters
     other_parameters <- unique(parameters_df[,-i])
 
@@ -822,7 +822,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 
       results_subdf$parameter_values <- parameter_values
 
-      plot_title =  sprintf(
+      plot_title <-  sprintf(
           "%s, %s, %s $N_T/2 = $ %s",
           str_to_title(case_study),
           methods_labels[[method]]$full_name,
@@ -1109,7 +1109,7 @@ plot_metric_vs_sample_size <- function(metric,
   params_str <- convert_params_to_str(methods_dict[[method]], parameters_combinations)
 
 
-  title = sprintf(
+  title <- sprintf(
       "%s, %s%s",
       str_to_title(case_study),
       methods_labels[[method]]$full_name,
@@ -1234,7 +1234,7 @@ plot_metric_vs_scenario <- function(results_metrics_df, metrics) {
 
         if (!(metric %in% c("tie"))){
           for (sample_size in target_sample_sizes) {
-            for (i in 1:nrow(parameters_combinations)) {
+            for (i in seq_len(nrow(parameters_combinations))) {
               # Run plot_metric_vs_drift function with control_drift equal to FALSE
               categories <- c("source_denominator_change_factor",
                               "target_to_source_std_ratio")
@@ -1278,7 +1278,7 @@ plot_metric_vs_scenario <- function(results_metrics_df, metrics) {
           }
         }
 
-        for (i in 1:nrow(parameters_combinations)) {
+        for (i in seq_len(nrow(parameters_combinations))) {
           if (!(metric %in% c("tie"))){
             plot_metric_vs_drift(
               metric = metric,

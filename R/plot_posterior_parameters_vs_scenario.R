@@ -45,7 +45,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
   for (key in names(methods_dict[[method]])) {
     k <- k+1
     # Check if the parameter is updated
-    if (!is_commensurate_method(method) & !key %in% colnames(posterior_parameters_df)) {
+    if (!is_commensurate_method(method) && !key %in% colnames(posterior_parameters_df)) {
       next
     }
 
@@ -101,7 +101,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
           prior_parameters <- prior_parameters_subdf[filter_df, ]
           filtered_results_metrics_df <- results_metrics_df[filter_df, ]
 
-          parameters_labels <- unname(sapply(1:nrow(filtered_results_metrics_df), function(i) {
+          parameters_labels <- unname(sapply(seq_len(nrow(filtered_results_metrics_df)), function(i) {
             process_method_parameters_label(filtered_results_metrics_df[i, ],
                                             methods_labels,
                                             method_name = FALSE)
@@ -279,7 +279,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
 
   for (key in parameters_names) {
     # Loop over the method's parameters
-    if (!is_commensurate_method(method) & !key %in% posterior_parameters_names) {
+    if (!is_commensurate_method(method) && !key %in% posterior_parameters_names) {
       next
     }
 
@@ -314,14 +314,14 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     prior_parameters_df <- get_parameters(results_metrics_subdf[, "parameters"])
 
     # Get the labels for the prior parameters
-    parameters_labels <- unname(sapply(1:nrow(results_metrics_subdf), function(i) {
+    parameters_labels <- unname(sapply(seq_len(nrow(results_metrics_subdf)), function(i) {
       process_method_parameters_label(results_metrics_subdf[i, ], methods_labels, method_name = FALSE)
     }))
     parameters_labels <- setNames(object = parameters_labels, nm = results_metrics_subdf$parameters)
 
     plot_data <- list()
     prior_param_labels <- list()
-    for (i in 1:nrow(parameters_combinations)) {
+    for (i in seq_len(nrow(parameters_combinations))) {
       prior_param <- parameters_combinations[i,]
 
       if (is_commensurate_method(method)){
@@ -361,7 +361,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     # Combine all plot data
     plot_data_df <- dplyr::bind_rows(plot_data)
 
-    parameters_labels <- unname(sapply(1:nrow(plot_data_df), function(i) {
+    parameters_labels <- unname(sapply(seq_len(nrow(plot_data_df)), function(i) {
       process_method_parameters_label(
         plot_data_df[i, ],
         methods_labels,

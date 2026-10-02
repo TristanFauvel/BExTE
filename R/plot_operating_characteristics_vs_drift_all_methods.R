@@ -86,7 +86,7 @@ plot_element_metric_vs_xvar_methods <- function(plt,
   }
 
   plt <- plt + labs(color = labels_title) + scale_color_viridis_d(labels = parameters_labels, guide = "legend") + scale_fill_viridis_d(labels = parameters_labels, guide = "legend") +
-    scale_shape_manual(values = 1:length(parameters_labels), labels = parameters_labels, guide = "legend") +
+    scale_shape_manual(values = seq_along(parameters_labels), labels = parameters_labels, guide = "legend") +
     guides(color = guide_legend(title = "Methods"), shape = guide_legend(title = "Methods"))
 
 
@@ -169,7 +169,7 @@ plot_metric_vs_drift_methods <- function(metric,
   for (method in unique(results_df$method)){
 
     parameters <- get_parameters(results_df[results_df$method == method, "parameters", drop = FALSE])
-    filter_per_method = rep(TRUE, nrow(parameters))
+    filter_per_method <- rep(TRUE, nrow(parameters))
     for (key in names(methods_dict[[method]])) {
       # Loop over the method's parameters
 
@@ -197,11 +197,11 @@ plot_metric_vs_drift_methods <- function(metric,
   results_df$rows <- seq(1, nrow(results_df))
 
   # Process the row of a results dataframe to create a Method + Parameters label
-  parameters_labels <- sapply(1:nrow(results_df), function(i) {
+  parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels)
   })
 
-  results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels)
   })
 
@@ -422,7 +422,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
   for (method in unique(results_df$method)){
 
     parameters <- get_parameters(results_df[results_df$method == method, "parameters", drop = FALSE])
-    filter_per_method = rep(TRUE, nrow(parameters))
+    filter_per_method <- rep(TRUE, nrow(parameters))
     for (key in names(methods_dict[[method]])) {
       # Loop over the method's parameters
 
@@ -447,21 +447,21 @@ plot_metric_vs_sample_size_methods <- function(metric,
 
 
   # Process the row of a results dataframe to create a Method + Parameters label
-  parameters_labels <- sapply(1:nrow(results_df), function(i) {
+  parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
   })
 
-  results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
   })
 
   ## The plotmath labels cannot be read back for the numbers they carry, and
   ## method_parameter_colors() needs those to place a value on its ramp.
-  results_df$parameters_labels_not_latex <- lapply(1:nrow(results_df), function(i) {
+  results_df$parameters_labels_not_latex <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
   })
 
-  results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
   })
 
@@ -603,7 +603,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
       ggplot2::scale_y_continuous(breaks = nominal_tie_breaks(analysis_config$nominal_tie))  # Add y-tick at y = 0.05
   }
 
-  plot_title = sprintf(
+  plot_title <- sprintf(
     "%s, %s",
     str_to_title(case_study),
     target_treatment_effect

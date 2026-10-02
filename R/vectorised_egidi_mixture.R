@@ -10,7 +10,7 @@
 #' @keywords internal
 egidi_recycle <- function(...) {
   arguments <- list(...)
-  n <- max(vapply(arguments, length, integer(1)))
+  n <- max(lengths(arguments))
   lapply(arguments, rep_len, length.out = n)
 }
 

@@ -48,7 +48,7 @@ forest_subplot_sweet_spot <- function(data,
 
   data <- data %>%
     mutate(
-      label = map_chr(seq_len(nrow(.)), function(i) {
+      label = purrr::map_chr(seq_len(nrow(.)), function(i) {
         as.character(process_method_parameters_label(data[i, ], methods_labels))
       })
     )
@@ -192,9 +192,9 @@ forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
     selected_target_sample_size_per_arm
   )
 
-  case_study = unique(results_freq_df$case_study)
-  target_to_source_std_ratio = unique(results_freq_df$target_to_source_std_ratio)
-  source_denominator_change_factor = unique(results_freq_df$source_denominator_change_factor)
+  case_study <- unique(results_freq_df$case_study)
+  target_to_source_std_ratio <- unique(results_freq_df$target_to_source_std_ratio)
+  source_denominator_change_factor <- unique(results_freq_df$source_denominator_change_factor)
 
   filename <- format_filename(
     filename = filename,
@@ -237,7 +237,7 @@ forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
 
   title <- format_title(title = title, case_study = unique(df$case_study), target_to_source_std_ratio = unique(df$target_to_source_std_ratio), source_denominator_change_factor = unique(df$source_denominator_change_factor))
 
-  x_range = c(unique(df[,paste0("drift_range_lower_", metric$name)]), unique(df[,paste0("drift_range_upper_", metric$name)]))
+  x_range <- c(unique(df[,paste0("drift_range_lower_", metric$name)]), unique(df[,paste0("drift_range_upper_", metric$name)]))
 
   plt <- forest_subplot_sweet_spot(
     df,
@@ -381,7 +381,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
     for (method in unique(results_df$method)){
 
       parameters <- get_parameters(results_df[results_df$method == method, "parameters", drop = FALSE])
-      filter_per_method = rep(TRUE, nrow(parameters))
+      filter_per_method <- rep(TRUE, nrow(parameters))
       for (key in names(methods_dict[[method]])) {
         # Loop over the method's parameters
 
@@ -404,21 +404,21 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
     results_df <- results_df[boolean_filter,]
 
     # Process the row of a results dataframe to create a Method + Parameters label
-    parameters_labels <- sapply(1:nrow(results_df), function(i) {
+    parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
     })
 
-    results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+    results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
     })
 
     ## The plotmath labels cannot be read back for the numbers they carry, and
     ## method_parameter_colors() needs those to place a value on its ramp.
-    results_df$parameters_labels_not_latex <- lapply(1:nrow(results_df), function(i) {
+    results_df$parameters_labels_not_latex <- lapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
     })
 
-    results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
+    results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
     })
 
@@ -457,7 +457,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
     shapes <- method_shape_map(unique_methods)
 
 
-    title = sprintf(
+    title <- sprintf(
       "%s",
       str_to_title(case_study)
     )
@@ -634,4 +634,3 @@ plot_sweet_spot_width_vs_scenario <- function(sweet_spot_df, sweet_spots_metrics
     }
   }
 }
-

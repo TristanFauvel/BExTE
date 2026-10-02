@@ -105,7 +105,7 @@ test_that("the widths are absolute, not unit arithmetic", {
   widths <- forest_panel_widths(list(forest_test_grob(TRUE), forest_test_grob(FALSE)), 6)
 
   expect_true(grid::is.unit(widths))
-  expect_false(any(is.na(as.numeric(widths))))
+  expect_false(anyNA(as.numeric(widths)))
   expect_length(widths, 2)
 })
 
