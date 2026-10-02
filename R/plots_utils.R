@@ -75,16 +75,6 @@ has_other_parameters <- function(other_parameters) {
 }
 
 
-#' Function to return markers from a list
-#'
-#' @param i The index of the marker to return.
-#' @param markers_list A list of markers.
-#' @return The marker at the specified index.
-#' @keywords internal
-markers <- function(i, markers_list) {
-  return(markers_list[i %% length(markers_list)])
-}
-
 #' Function to set figure dimensions
 #'
 #' @param width The desired width of the figure (in pts).
@@ -117,38 +107,6 @@ set_size <- function(width,
   fig_dim <- c(fig_width_in, fig_height_in)
 
   return(fig_dim)
-}
-
-
-#' Function to format uncertainty
-#'
-#' @param yerr_input The input uncertainty values.
-#' @param y The central values.
-#' @param metric The metric information.
-#' @return The formatted uncertainty.
-#' @keywords internal
-format_uncertainty <- function(yerr_input, y, metric) {
-  # Check if metric uncertainty is a 95% CI or a MCSE
-  if (grepl("conf_int|credible_interval", metric$metric_uncertainty)) {
-    stopifnot(ncol(yerr_input) == 2)
-
-    # Convert CI into error for error bars
-    yerr <- yerr_input - y
-
-    yerr[, 1] <- -yerr[, 1]
-
-    # Check for negative errors and replace with 0
-    close_to_zero <- abs(yerr) < 1e-15
-    yerr[close_to_zero] <- 0
-
-    # Check for negative errors
-    if (any(yerr[, 1] < 0) || any(yerr[, 2] < 0)) {
-      stop("yerr bounds are negative")
-    }
-  }
-
-  # Return formatted uncertainty
-  return(yerr)
 }
 
 

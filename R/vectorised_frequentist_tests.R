@@ -30,28 +30,6 @@ summary_t_test_p_value <- function(mean_x, sd_x, n_x, mean_y, sd_y, n_y,
   })
 }
 
-#' Two-sample z-test from summary statistics, across replicates
-#'
-#' @description Vectorised equivalent of [BSDA::zsum.test()].
-#'
-#' @param mean_x,sd_x,n_x Mean, known standard deviation and per-arm sample size
-#'   of the first sample.
-#' @param mean_y,sd_y,n_y Mean, known standard deviation and per-arm sample size
-#'   of the second sample. `mean_y` and `sd_y` may be vectors.
-#' @param mu Difference in means under the null hypothesis.
-#' @param alternative One of `"two.sided"`, `"less"` or `"greater"`.
-#' @return Vector of p-values.
-#' @export
-summary_z_test_p_value <- function(mean_x, sd_x, n_x, mean_y, sd_y, n_y,
-                                   mu = 0, alternative = "two.sided") {
-  standard_error <- sqrt(sd_x^2 / n_x + sd_y^2 / n_y)
-  statistic <- (mean_x - mean_y - mu) / standard_error
-
-  tail_probabilities(statistic, alternative, function(q, lower) {
-    stats::pnorm(q, lower.tail = lower)
-  })
-}
-
 #' Convert test statistics to p-values for a given alternative
 #'
 #' @param statistic Vector of test statistics.
