@@ -422,7 +422,7 @@ get_parameters <- function(parameters_df) {
   results_list <- results_list[!sapply(results_list, is.null)]
 
   # Get the number of columns for each element in the list
-  num_cols <- sapply(results_list, length)
+  num_cols <- lengths(results_list)
 
   # Check if all elements have the same number of columns
   if (length(results_list) != 0 && length(unique(num_cols)) != 1) {
@@ -464,7 +464,7 @@ get_parameters <- function(parameters_df) {
 # Define a function to convert strings to numeric or boolean if possible
 convert_if_possible <- function(x) {
   output <- vector("list", length(x)) # Initialize output as a list
-  for (i in seq(length(x))) {
+  for (i in seq_along(x)) {
     if (is.character(x[i])) {
       # Try to convert to numeric
       numeric_value <- suppressWarnings(as.numeric(x[i]))

@@ -110,7 +110,7 @@ test_that("the vectorised NPP effective sample sizes are deterministic", {
   expect_equal(first$ess_moments, second$ess_moments)
   expect_equal(first$ess_precisions, second$ess_precisions)
   expect_equal(first$ess_elir, second$ess_elir)
-  expect_false(any(is.na(first$ess_elir)))
+  expect_false(anyNA(first$ess_elir))
 })
 
 test_that("npp_prior_mixture integrates the Beta prior to one", {

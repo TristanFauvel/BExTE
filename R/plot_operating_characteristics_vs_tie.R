@@ -256,15 +256,15 @@ operating_characteristic_vs_tie <- function(
   }
 
   # Process the row of a results dataframe to create a Method + Parameters label
-  results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
   })
 
-  results_df$parameters_labels_not_latex <- lapply(1:nrow(results_df), function(i) {
+  results_df$parameters_labels_not_latex <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
   })
 
-  results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
   })
 
@@ -635,15 +635,15 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
   }
 
   # Process the rows to create parameter labels
-  results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
   })
 
-  results_df$parameters_labels_not_latex <- lapply(1:nrow(results_df), function(i) {
+  results_df$parameters_labels_not_latex <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
   })
 
-  results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
   })
 

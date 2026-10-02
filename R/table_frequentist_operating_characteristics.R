@@ -100,7 +100,7 @@ table_metric_vs_drift <- function(metric,
     results_df$label <- results_df$target_sample_size_per_arm
     labels_title <- "Target sample size per arm"
   } else if (category == "parameters") {
-    parameters_labels <- unname(sapply(1:nrow(results_df), function(i) {
+    parameters_labels <- unname(sapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
     }))
 
@@ -435,7 +435,7 @@ table_metric_vs_parameters <- function(results_metrics_df,
   selected_metric_uncertainty_upper <- rlang::sym(paste0(selected_metric$metric_uncertainty, "_upper"))
   selected_label <- selected_metric$label
 
-  for (i in 1:ncol(parameters_df)) {
+  for (i in seq_len(ncol(parameters_df))) {
     # Select the other parameters
     other_parameters <- unique(parameters_df[,-i])
 
@@ -778,7 +778,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     results_df$label <- results_df$target_sample_size_per_arm
     labels_title <- "Target sample size per arm"
   } else if (category == "parameters") {
-    parameters_labels <- unname(sapply(1:nrow(results_df), function(i) {
+    parameters_labels <- unname(sapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
     }))
 
@@ -1113,7 +1113,7 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
         for (source_denominator_change_factor in unique(filtered_results_metrics_df$source_denominator_change_factor)) {
           for (target_to_source_std_ratio in unique(filtered_results_metrics_df$target_to_source_std_ratio)) {
             for (sample_size in target_sample_sizes) {
-              for (i in 1:nrow(parameters_combinations)) {
+              for (i in seq_len(nrow(parameters_combinations))) {
                 table_metric_vs_drift(
                   metric = metric,
                   results_metrics_df = filtered_results_metrics_df,

@@ -241,7 +241,7 @@ empirical_bayes_parameters_plots <- function(results_metrics_df) {
           # Get the different parameters combinations studies for this method
           parameters_combinations <- unique(results_metrics_df5[results_metrics_df5$method == method, "parameters"])
 
-          for (i in 1:nrow(parameters_combinations)) {
+          for (i in seq_len(nrow(parameters_combinations))) {
             plot_empirical_bayes_hyperparameters_vs_drift(
               results_metrics_df5,
               method,

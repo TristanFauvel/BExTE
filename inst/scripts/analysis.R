@@ -7,7 +7,7 @@ devtools::load_all()
 # If the envs variable is not defined as an environment variable, define it.
 envs <- ifelse(Sys.getenv("envs") != "", Sys.getenv("envs"), c("fast_cases_config"))
 
-envs = c("combined")
+envs <- c("combined")
 
 options(readr.show_col_types = FALSE) #  FALSE : prevent the column specification message from appearing every time read_csv() is used.
 
@@ -81,7 +81,7 @@ for (env in envs) {
     options(error = global_error_handler)
   }
 
-  case_studies = c("dapagliflozin", "belimumab", "mepolizumab", "teriflunomide", "aprepitant")
+  case_studies <- c("dapagliflozin", "belimumab", "mepolizumab", "teriflunomide", "aprepitant")
   for (case_study in case_studies){
     print(case_study)
     simulation_analysis(env = env, analysis_config = analysis_config, config_dir = config_dir, frequentist_metrics = frequentist_metrics, case_studies = c(case_study),  to_compute = c( "frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie"), methods = c("all"))

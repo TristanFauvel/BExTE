@@ -95,7 +95,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
 
 
   plots <- list()
-  for (i in 1:ncol(parameters_df)) {
+  for (i in seq_len(ncol(parameters_df))) {
     # Select the other parameters
     other_parameters <- unique(parameters_df[,-i])
 
@@ -136,7 +136,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
 
       results_subdf$parameter_values <- parameter_values
 
-      plot_title =
+      plot_title <-
         sprintf(
           "%s, %s, %s $N_T/2 = $ %s",
           str_to_title(case_study),
@@ -443,11 +443,11 @@ bayesian_metric_vs_sample_size <- function(metric,
     results_df$rows <- seq(1, nrow(results_df))
 
     # Process the row of a results dataframe to create a Method + Parameters label
-    parameters_labels <- sapply(1:nrow(results_df), function(i) {
+    parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels)
     })
 
-    results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+    results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels)
     })
 
@@ -545,7 +545,7 @@ bayesian_metric_vs_sample_size <- function(metric,
                            labels = design_priors_names)
     }
   } else {
-    if (metric %in% c("prior_proba_benefit", "prior_proba_no_benefit") & (design_prior != "analysis_prior")){
+    if (metric %in% c("prior_proba_benefit", "prior_proba_no_benefit") && (design_prior != "analysis_prior")){
       return() # The prior proba of (no) benefit is only relevant for an analysis prior.
     }
     # Produce the plot
@@ -572,7 +572,7 @@ bayesian_metric_vs_sample_size <- function(metric,
       ggplot2::labs(color = "Methods") +
       scale_color_viridis_d(labels = parameters_labels, guide = "legend") +
       scale_fill_viridis_d(labels = parameters_labels, guide = "legend") +
-      scale_shape_manual(values = 1:length(parameters_labels), labels = parameters_labels, guide = "legend") +
+      scale_shape_manual(values = seq_along(parameters_labels), labels = parameters_labels, guide = "legend") +
       guides(color = guide_legend(title = "Methods"), shape = guide_legend(title = "Methods"))
   }
 
@@ -690,7 +690,7 @@ bayesian_ocs_plots <- function(results_metrics_df, metrics) {
               )
             }
 
-            for (i in 1:nrow(parameters_combinations)) {
+            for (i in seq_len(nrow(parameters_combinations))) {
               #Plot the results with different design priors on the same plot, for a single method
               bayesian_metric_vs_sample_size(
                 metric = metric,

@@ -1,7 +1,7 @@
 library(dplyr)
 library(ggplot2)
 
-plot_effect_denominator_change = function(results_df, metric, figures_dir, treatment_effect = NULL, design_prior = NULL){
+plot_effect_denominator_change <- function(results_df, metric, figures_dir, treatment_effect = NULL, design_prior = NULL){
 
   if (nrow(results_df)<2){
     return()
@@ -27,7 +27,7 @@ plot_effect_denominator_change = function(results_df, metric, figures_dir, treat
   for (method in unique(results_df$method)){
 
     parameters <- get_parameters(results_df[results_df$method == method, "parameters", drop = FALSE])
-    filter_per_method = rep(TRUE, nrow(parameters))
+    filter_per_method <- rep(TRUE, nrow(parameters))
     for (key in names(methods_dict[[method]])) {
       # Loop over the method's parameters
 
@@ -71,15 +71,15 @@ plot_effect_denominator_change = function(results_df, metric, figures_dir, treat
   }
 
   # Process the row of a results dataframe to create a Method + Parameters label
-  parameters_labels <- sapply(1:nrow(results_df), function(i) {
+  parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels)
   })
   # Process the rows to create parameter labels
-  results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE)
   })
 
-  results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
+  results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
   })
 
@@ -248,7 +248,7 @@ plot_effect_denominator_change = function(results_df, metric, figures_dir, treat
   return()
 }
 
-loop_plot_effect_denominator_change = function(results_df, metrics){
+loop_plot_effect_denominator_change <- function(results_df, metrics){
   # Define the columns that uniquely define a scenario
   scenario_vars <- c("target_sample_size_per_arm",
                      "drift", "case_study") #"method", "parameters",
@@ -285,7 +285,7 @@ loop_plot_effect_denominator_change = function(results_df, metrics){
     for (metric in metrics){
       if (metric %in% names(bayesian_metrics)){
         for (design_prior in c('analysis_prior', 'source_posterior', 'ui_design_prior')){
-          plot_effect_target_denominator_change(scenario_df, metric, figures_dir, design_prior = design_prior)
+          plot_effect_denominator_change(scenario_df, metric, figures_dir, design_prior = design_prior)
         }
       } else {
         for (treatment_effect in main_treatment_effects){
@@ -295,5 +295,3 @@ loop_plot_effect_denominator_change = function(results_df, metrics){
     }
   }
 }
-
-

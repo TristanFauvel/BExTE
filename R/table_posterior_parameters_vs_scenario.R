@@ -133,12 +133,12 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
 
   file_path <- file.path(directory, filename)
 
-  prior_params = ""
+  prior_params <- ""
   for (key in unique_prior_params){
     if (key == "initial_prior"){
       next
     }
-    prior_params = paste0(prior_params, sprintf("%s %s = %s", "Prior", methods_dict[[method]][[key]]$parameter_notation, unique(prior_parameters_df[key])))
+    prior_params <- paste0(prior_params, sprintf("%s %s = %s", "Prior", methods_dict[[method]][[key]]$parameter_notation, unique(prior_parameters_df[key])))
   }
 
 

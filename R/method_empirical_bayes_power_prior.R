@@ -134,12 +134,12 @@ findCalibrationParameter <- function(n_iter = 1e6,
     # deviation.
     Z_1_m_c2 <- widest_cutoff
   } else {
-    while ((abs(t1 - t2) > tolerance) &
+    while ((abs(t1 - t2) > tolerance) &&
            (abs(upper_limit - lower_limit) > tolerance)) {
       if (t2 != 0) {
         t1 <- t2
       }
-      while ((t1 > desired_tie) &
+      while ((t1 > desired_tie) &&
              (abs(upper_limit - lower_limit) > tolerance)) {
         upper_limit <- Z_1_m_c2
         Z_1_m_c2 <- mean(c(lower_limit, upper_limit))
@@ -153,7 +153,7 @@ findCalibrationParameter <- function(n_iter = 1e6,
       if (t1 < full_borrowing_type_I_error) {
         t2 <- t1
       }
-      while ((t2 < desired_tie) &
+      while ((t2 < desired_tie) &&
              (abs(upper_limit - lower_limit) > tolerance)) {
         lower_limit <- Z_1_m_c2
         Z_1_m_c2 <- mean(c(lower_limit, upper_limit))

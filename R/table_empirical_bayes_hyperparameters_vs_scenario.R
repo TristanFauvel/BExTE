@@ -91,7 +91,7 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
     conf_int_lower <- unlist(posterior_parameters_df[, paste0("conf_int_lower_", key)])
     conf_int_upper <- unlist(posterior_parameters_df[, paste0("conf_int_upper_", key)])
 
-    n_digits = 4
+    n_digits <- 4
     table_data <- data.frame(
       drift = format_num(drift, digits = n_digits),
       y = format_num(y, digits = n_digits),
@@ -233,7 +233,7 @@ table_empirical_bayes_hyperparameters_vs_scenario <- function(results_metrics_df
           # Get the different parameters combinations studies for this method
           parameters_combinations <- unique(results_metrics_df5[results_metrics_df5$method == method, "parameters"])
 
-          for (i in 1:nrow(parameters_combinations)) {
+          for (i in seq_len(nrow(parameters_combinations))) {
             table_empirical_bayes_hyperparameters_vs_drift(
               results_metrics_df,
               method,

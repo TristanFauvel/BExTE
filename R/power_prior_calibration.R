@@ -153,4 +153,3 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
   }
   probability
 }
-
