@@ -23,7 +23,7 @@ grid the current configs produce rather than whatever an older results
 directory happens to hold.
 
 The sample-size columns are the nominal totals \code{floor(N_S / k)}, as the
-paper prints them. The simulation puts \code{floor(N_S / (2k))} patients in
+paper prints them. The simulation puts \verb{floor(N_S / (2k))} patients in
 each arm, so the total it actually simulates can be one or two lower -
 see \code{\link[=paper_sample_size_per_arm]{paper_sample_size_per_arm()}}.
 

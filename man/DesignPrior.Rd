@@ -19,6 +19,7 @@ A class representing the design prior for Bayesian borrowing.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-DesignPrior-create}{\code{DesignPrior$create()}}
+    \item \href{#method-DesignPrior-given_control_rate}{\code{DesignPrior$given_control_rate()}}
     \item \href{#method-DesignPrior-sample}{\code{DesignPrior$sample()}}
     \item \href{#method-DesignPrior-cdf}{\code{DesignPrior$cdf()}}
     \item \href{#method-DesignPrior-pdf}{\code{DesignPrior$pdf()}}
@@ -39,7 +40,8 @@ A class representing the design prior for Bayesian borrowing.
   case_study_config,
   simulation_config,
   mcmc_config,
-  case_study
+  case_study,
+  target_control_rate = NULL
 )}
     \if{html}{\out{</div>}}
   }
@@ -53,11 +55,46 @@ A class representing the design prior for Bayesian borrowing.
       \item{\code{simulation_config}}{Simulation configuration}
       \item{\code{mcmc_config}}{MCMC configuration}
       \item{\code{case_study}}{Case study name}
+      \item{\code{target_control_rate}}{The control response rate of the simulated
+trials, or \code{NULL}. Under a binomial likelihood the treatment effect is a
+difference in response rates, and the simulated trials, whose control
+rate is fixed, can only have an effect in
+\verb{(-target_control_rate, 1 - target_control_rate)}; the design prior is
+then taken given that control rate - see \code{given_control_rate()}.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
     A new instance of DesignPrior.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DesignPrior-given_control_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-DesignPrior-given_control_rate}{}}}
+\subsection{\code{DesignPrior$given_control_rate()}}{
+  The design prior given the target control rate
+
+A difference in response rates is confined to
+\verb{(-control_rate, 1 - control_rate)} once the control rate is known. A
+design prior defined on the treatment effect alone has no joint
+distribution with the control rate to condition, so it is truncated to
+that range and renormalised. Subclasses that can condition exactly
+override this.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DesignPrior$given_control_rate(control_rate)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{control_rate}}{The target control rate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \link{FunctionalDesignPrior}.
   }
 }
 

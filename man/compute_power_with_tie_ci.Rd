@@ -14,7 +14,8 @@ compute_power_with_tie_ci(
   case_study = NULL,
   n_replicates = 1000,
   n_samples = 1000,
-  p_values = NULL
+  p_values = NULL,
+  null_p_values = NULL
 )
 }
 \arguments{
@@ -42,6 +43,12 @@ simulated for this design by \code{\link[=simulate_test_p_values]{simulate_test_
 design alone, not on the borrowing method, so a caller pricing many rows of
 one design simulates them once and passes them here. \code{NULL} simulates them.
 Ignored when the power has a closed form.}
+
+\item{null_p_values}{Optional p-values of the same test on the trials of the
+design's null scenario. When given, each sampled type I error is matched
+by the test's actual rejection rate there rather than by its nominal
+level - see \code{\link[=calibrated_levels]{calibrated_levels()}}. Ignored when the power has a closed
+form.}
 }
 \value{
 A list with the power, its interval, and the number of draws used.

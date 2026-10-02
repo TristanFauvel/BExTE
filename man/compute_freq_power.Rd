@@ -13,7 +13,8 @@ compute_freq_power(
   simulation_config,
   case_study = NULL,
   n_replicates = 1000,
-  p_values = NULL
+  p_values = NULL,
+  null_p_values = NULL
 )
 }
 \arguments{
@@ -36,6 +37,12 @@ compute_freq_power(
 \item{p_values}{Optional p-values already simulated for this design by
 \code{\link[=simulate_test_p_values]{simulate_test_p_values()}}, with the same seed and \code{n_replicates}. \code{NULL}
 simulates them. Ignored when the power has a closed form.}
+
+\item{null_p_values}{Optional p-values of the same test on the trials of the
+design's null scenario. When given, the test rejects at the threshold its
+actual type I error there equals \code{alpha} at, rather than at \code{alpha}
+itself - see \code{\link[=calibrated_levels]{calibrated_levels()}}. Ignored when the power has a closed
+form.}
 }
 \value{
 A list containing the power and its confidence interval.

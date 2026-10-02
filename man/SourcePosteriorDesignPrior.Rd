@@ -32,6 +32,7 @@ A class representing the source posterior design prior for Bayesian borrowing.
     \item \href{#method-SourcePosteriorDesignPrior-initialize}{\code{SourcePosteriorDesignPrior$new()}}
     \item \href{#method-SourcePosteriorDesignPrior-sample}{\code{SourcePosteriorDesignPrior$sample()}}
     \item \href{#method-SourcePosteriorDesignPrior-cdf}{\code{SourcePosteriorDesignPrior$cdf()}}
+    \item \href{#method-SourcePosteriorDesignPrior-given_control_rate}{\code{SourcePosteriorDesignPrior$given_control_rate()}}
     \item \href{#method-SourcePosteriorDesignPrior-pdf}{\code{SourcePosteriorDesignPrior$pdf()}}
     \item \href{#method-SourcePosteriorDesignPrior-clone}{\code{SourcePosteriorDesignPrior$clone()}}
   }
@@ -103,6 +104,33 @@ A class representing the source posterior design prior for Bayesian borrowing.
       \item{\code{x}}{The value at which to evaluate the CDF.}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SourcePosteriorDesignPrior-given_control_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-SourcePosteriorDesignPrior-given_control_rate}{}}}
+\subsection{\code{SourcePosteriorDesignPrior$given_control_rate()}}{
+  The source posterior given the target control rate
+
+Under a binomial likelihood the source posterior is independent Beta
+posteriors on the two arms' response rates, so given the control rate
+the effect is the treatment rate, from its source posterior, less that
+rate. Otherwise the inherited truncation applies.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SourcePosteriorDesignPrior$given_control_rate(control_rate)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{control_rate}}{The target control rate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \link{FunctionalDesignPrior}.
   }
 }
 

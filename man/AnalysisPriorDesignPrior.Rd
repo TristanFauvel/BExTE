@@ -21,6 +21,7 @@ A class representing the analysis prior design prior for Bayesian borrowing.
   \itemize{
     \item \href{#method-AnalysisPriorDesignPrior-initialize}{\code{AnalysisPriorDesignPrior$new()}}
     \item \href{#method-AnalysisPriorDesignPrior-sample}{\code{AnalysisPriorDesignPrior$sample()}}
+    \item \href{#method-AnalysisPriorDesignPrior-given_control_rate}{\code{AnalysisPriorDesignPrior$given_control_rate()}}
     \item \href{#method-AnalysisPriorDesignPrior-cdf}{\code{AnalysisPriorDesignPrior$cdf()}}
     \item \href{#method-AnalysisPriorDesignPrior-pdf}{\code{AnalysisPriorDesignPrior$pdf()}}
     \item \href{#method-AnalysisPriorDesignPrior-clone}{\code{AnalysisPriorDesignPrior$clone()}}
@@ -74,6 +75,32 @@ A class representing the analysis prior design prior for Bayesian borrowing.
       \item{\code{n_samples}}{The number of samples to generate.}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-AnalysisPriorDesignPrior-given_control_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-AnalysisPriorDesignPrior-given_control_rate}{}}}
+\subsection{\code{AnalysisPriorDesignPrior$given_control_rate()}}{
+  The analysis prior given the target control rate
+
+The model's own prior given the control rate when it defines one, as
+the binomial models do; otherwise the analysis prior is truncated to the
+range the control rate leaves the effect.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{AnalysisPriorDesignPrior$given_control_rate(control_rate)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{control_rate}}{The target control rate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \link{FunctionalDesignPrior}.
   }
 }
 
