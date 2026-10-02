@@ -65,10 +65,11 @@ test_that("the calibration is the largest parameter within the desired type I er
     calibration$type_I_error,
     pdccpp_binomial_type_I_error(table, z, pdccpp_source$estimate, pdccpp_source$se)
   )
-  if (z < 1e3) {
-    expect_gt(pdccpp_binomial_type_I_error(table, z * (1 + 1e-8), pdccpp_source$estimate,
-                                           pdccpp_source$se), 0.065)
-  }
+  # The parameter sits inside a step of the type I error, not on its edge, so
+  # small changes to it - or to a borderline decision - change nothing.
+  nearby <- pdccpp_binomial_type_I_error(table, z * c(1 - 1e-4, 1 + 1e-4),
+                                         pdccpp_source$estimate, pdccpp_source$se)
+  expect_equal(nearby, rep(calibration$type_I_error, 2))
 })
 
 test_that("the null table is read back from the cache", {

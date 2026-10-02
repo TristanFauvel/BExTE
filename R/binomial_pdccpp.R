@@ -272,7 +272,30 @@ pdccpp_binomial_calibrate <- function(table, desired_tie, source_estimate,
     if (tie(middle) <= desired_tie) lower <- middle else upper <- middle
     if (upper / lower - 1 < 1e-10) break
   }
-  list(calibration_parameter = lower, type_I_error = tie(lower))
+  right_edge <- lower
+  value <- tie(right_edge)
+
+  # The largest admissible parameter sits on the edge of a step: at it, some
+  # outcome's power parameter is within the search tolerance of the value
+  # where its decision changes, which the decision table only locates to
+  # about 1e-8, so the analysis itself can fall on the other side and spend
+  # the next step's type I error. The parameter is therefore taken in the
+  # middle of the step, geometrically, where no decision is borderline.
+  below <- which(grid < right_edge & abs(values - value) > 1e-12)
+  if (length(below) == 0) {
+    left_edge <- grid[1]
+  } else {
+    outside <- grid[max(below)]
+    inside <- right_edge
+    for (step in seq_len(60)) {
+      middle <- sqrt(outside * inside)
+      if (abs(tie(middle) - value) <= 1e-12) inside <- middle else outside <- middle
+      if (inside / outside - 1 < 1e-10) break
+    }
+    left_edge <- inside
+  }
+  calibration_parameter <- sqrt(left_edge * right_edge)
+  list(calibration_parameter = calibration_parameter, type_I_error = tie(calibration_parameter))
 }
 
 
