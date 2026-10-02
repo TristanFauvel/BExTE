@@ -8,8 +8,9 @@ binomial_power_prior_kernel_store
 }
 \description{
 \code{entries} holds up to \code{\link[=binomial_power_prior_kernel_limit]{binomial_power_prior_kernel_limit()}}
-full kernels, most recently used last, and \code{seen} the pairs of discounted
-source likelihoods met so far. A kernel is computed on the second meeting:
-it costs about as much as one to three datasets computed directly.
+full kernels, most recently used last, and \code{seen} how many times each pair
+of discounted source likelihoods was met. A kernel is computed on the
+\link{binomial_power_prior_kernel_meetings}-th meeting: it costs about as much
+as one to three datasets computed directly.
 }
 \keyword{internal}

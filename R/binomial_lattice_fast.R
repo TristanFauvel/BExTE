@@ -266,9 +266,10 @@ lattice_lru_cached <- function(store, key, limit, compute) {
 #' Store of binomial power prior kernels, by discounted source likelihoods
 #'
 #' @description `entries` holds up to [binomial_power_prior_kernel_limit()]
-#'   full kernels, most recently used last, and `seen` the pairs of discounted
-#'   source likelihoods met so far. A kernel is computed on the second meeting:
-#'   it costs about as much as one to three datasets computed directly.
+#'   full kernels, most recently used last, and `seen` how many times each pair
+#'   of discounted source likelihoods was met. A kernel is computed on the
+#'   [binomial_power_prior_kernel_meetings]-th meeting: it costs about as much
+#'   as one to three datasets computed directly.
 #' @keywords internal
 binomial_power_prior_kernel_store <- new.env(parent = emptyenv())
 
@@ -279,6 +280,18 @@ binomial_power_prior_kernel_store <- new.env(parent = emptyenv())
 #'   terms in `entries`; see [binomial_target_terms()].
 #' @keywords internal
 binomial_target_terms_store <- new.env(parent = emptyenv())
+
+
+#' Meetings of a pair of discounted source likelihoods before its kernel is
+#' computed
+#'
+#' @description Three. Datasets mirrored into each other - (x_c, x_t) and
+#'   (n - x_t, n - x_c) - have the same estimate and standard error, so the
+#'   p-value-based power prior and the PDCCPP give many power parameters to
+#'   exactly two datasets; computing their kernel on the second meeting cost
+#'   more than analysing both directly.
+#' @keywords internal
+binomial_power_prior_kernel_meetings <- 3L
 
 
 #' Number of power prior kernels kept per process
@@ -317,7 +330,8 @@ binomial_power_prior_kernel_reset <- function() {
 #' The kernel of a pair of discounted source likelihoods, if worth keeping
 #'
 #' @description Returns the stored kernel when there is one; computes and
-#'   stores it when the pair has been met before; and otherwise records the
+#'   stores it when the pair has been met often enough (see
+#'   [binomial_power_prior_kernel_meetings]); and otherwise records the
 #'   meeting and returns `NULL`, so that the caller computes the dataset's
 #'   density directly. The least recently used kernel is dropped when the store
 #'   is full.
@@ -342,15 +356,20 @@ binomial_power_prior_cached_kernel <- function(source_control, source_treatment,
   if (!is.null(kernel)) {
     return(kernel)
   }
-  if (is.null(store$seen[[key]])) {
-    if (store$n_seen >= 100000L) {
+  meetings <- store$seen[[key]]
+  meetings <- if (is.null(meetings)) 1L else meetings + 1L
+  if (meetings < binomial_power_prior_kernel_meetings) {
+    if (meetings == 1L && store$n_seen >= 100000L) {
       store$seen <- new.env(hash = TRUE, parent = emptyenv())
       store$n_seen <- 0L
     }
-    assign(key, TRUE, envir = store$seen)
-    store$n_seen <- store$n_seen + 1L
+    assign(key, meetings, envir = store$seen)
+    store$n_seen <- store$n_seen + (meetings == 1L)
     return(NULL)
   }
+  # Counted afresh, so that a kernel dropped from the store is only computed
+  # again once it has proved worth it again.
+  assign(key, 0L, envir = store$seen)
   lattice_lru_cached(store, key, limit, function() {
     lattice_power_prior_full_kernel(source_control, source_treatment, source_rows)
   })

@@ -21,7 +21,8 @@ The kernel, or \code{NULL}.
 }
 \description{
 Returns the stored kernel when there is one; computes and
-stores it when the pair has been met before; and otherwise records the
+stores it when the pair has been met often enough (see
+\link{binomial_power_prior_kernel_meetings}); and otherwise records the
 meeting and returns \code{NULL}, so that the caller computes the dataset's
 density directly. The least recently used kernel is dropped when the store
 is full.

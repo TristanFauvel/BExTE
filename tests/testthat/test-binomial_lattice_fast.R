@@ -52,8 +52,8 @@ test_that("the power prior posterior is the original one on every route", {
     for (mode in names(lattice_fast_modes)) {
       withr::local_options(lattice_fast_modes[[mode]])
       binomial_power_prior_kernel_reset()
-      # The kernel is computed on the second call and read on the third.
-      for (call in 1:3) {
+      # The kernel is computed on the third call and read on the fourth.
+      for (call in 1:4) {
         new <- do.call(binomial_power_prior_posterior, arguments)
         expect_same_posterior(new, reference)
       }
@@ -65,13 +65,14 @@ test_that("the power prior posterior is the original one on every route", {
 test_that("power parameters that round every likelihood to one share a kernel", {
   withr::local_options(BExTE.power_prior_kernels = 4L, BExTE.target_terms_cache = 0L)
   binomial_power_prior_kernel_reset()
-  for (gamma in c(0, 1e-19, 1e-30)) {
+  for (gamma in c(0, 1e-22, 1e-30)) {
     binomial_power_prior_posterior(gamma, 280, 154, 293, 184, 47, 20, 47, 30)
   }
   expect_length(binomial_power_prior_kernel_store$entries, 1)
   # A power parameter that does not round them all to one has its own.
-  binomial_power_prior_posterior(1e-10, 280, 154, 293, 184, 47, 20, 47, 30)
-  binomial_power_prior_posterior(1e-10, 280, 154, 293, 184, 47, 21, 47, 30)
+  for (successes in 20:22) {
+    binomial_power_prior_posterior(1e-10, 280, 154, 293, 184, 47, successes, 47, 30)
+  }
   expect_length(binomial_power_prior_kernel_store$entries, 2)
   binomial_power_prior_kernel_reset()
 })
@@ -79,10 +80,25 @@ test_that("power parameters that round every likelihood to one share a kernel", 
 test_that("the kernel store keeps the most recently used kernels only", {
   withr::local_options(BExTE.power_prior_kernels = 2L)
   binomial_power_prior_kernel_reset()
-  for (gamma in c(0.2, 0.2, 0.4, 0.4, 0.6, 0.6)) {
+  for (gamma in rep(c(0.2, 0.4, 0.6), each = 3)) {
     binomial_power_prior_posterior(gamma, 12, 7, 12, 9, 10, 4, 10, 2, n_lattice = 200L)
   }
   expect_length(binomial_power_prior_kernel_store$entries, 2)
+  binomial_power_prior_kernel_reset()
+})
+
+test_that("a power parameter met only twice gets no kernel", {
+  # Mirrored datasets, (x_c, x_t) and (n - x_t, n - x_c), have the same
+  # estimate and standard error, so the PDCCPP and the p-value-based power
+  # prior give them the same power parameter; computing its kernel for two
+  # datasets costs more than analysing them directly.
+  withr::local_options(BExTE.power_prior_kernels = 4L)
+  binomial_power_prior_kernel_reset()
+  binomial_power_prior_posterior(0.37, 280, 154, 293, 184, 47, 20, 47, 30)
+  binomial_power_prior_posterior(0.37, 280, 154, 293, 184, 47, 17, 47, 27)
+  expect_length(binomial_power_prior_kernel_store$entries, 0)
+  binomial_power_prior_posterior(0.37, 280, 154, 293, 184, 47, 25, 47, 25)
+  expect_length(binomial_power_prior_kernel_store$entries, 1)
   binomial_power_prior_kernel_reset()
 })
 
