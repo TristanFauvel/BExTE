@@ -44,7 +44,6 @@ model may still share an analysis between replicates with equal samples.}
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-p_value_based_PP_Binomial-initialize}{\code{p_value_based_PP_Binomial$new()}}
-    \item \href{#method-p_value_based_PP_Binomial-hypothesis_space_transformation}{\code{p_value_based_PP_Binomial$hypothesis_space_transformation()}}
     \item \href{#method-p_value_based_PP_Binomial-empirical_bayes_update}{\code{p_value_based_PP_Binomial$empirical_bayes_update()}}
     \item \href{#method-p_value_based_PP_Binomial-inference}{\code{p_value_based_PP_Binomial$inference()}}
     \item \href{#method-p_value_based_PP_Binomial-prior_elir_ess}{\code{p_value_based_PP_Binomial$prior_elir_ess()}}
@@ -62,6 +61,7 @@ model may still share an analysis between replicates with equal samples.}
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="hypothesis_space_transformation"><a href='../../BExTE/html/Model.html#method-Model-hypothesis_space_transformation'><code>Model$hypothesis_space_transformation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
@@ -120,28 +120,6 @@ model may still share an analysis between replicates with equal samples.}
   }
   \subsection{Returns}{
     None
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-p_value_based_PP_Binomial-hypothesis_space_transformation"></a>}}
-\if{latex}{\out{\hypertarget{method-p_value_based_PP_Binomial-hypothesis_space_transformation}{}}}
-\subsection{\code{p_value_based_PP_Binomial$hypothesis_space_transformation()}}{
-  Transform the hypothesis space.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{p_value_based_PP_Binomial$hypothesis_space_transformation(target_data)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{target_data}}{The target data.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list containing transformed treatment effect estimates.
   }
 }
 

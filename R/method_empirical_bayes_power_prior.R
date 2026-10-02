@@ -235,40 +235,6 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
       self$prior_var <- NULL
     },
 
-    #' @description Transform the hypothesis space.
-    #' @param target_data The target data.
-    #' @return A list containing transformed treatment effect estimates.
-    hypothesis_space_transformation = function(target_data) {
-      # To handle the cases where null_space == "right", we apply the following transformations to put ourselves back in a situation equivalent to null_space == "left":
-
-      assert_single_number(self$parameters$theta_0)
-
-      if (self$null_space == "right") {
-        source_treatment_effect_estimate <- -self$prior$source$treatment_effect_estimate
-        target_treatment_effect_estimate <- -target_data$sample$treatment_effect_estimate
-        # Negate locally. Assigning back to self$parameters$theta_0 flipped its
-        # sign on every call, so consecutive replicates were transformed
-        # differently.
-        theta_0 <- -self$parameters$theta_0
-      } else if (self$null_space == "left") {
-        source_treatment_effect_estimate <- self$prior$source$treatment_effect_estimate
-        target_treatment_effect_estimate <- target_data$sample$treatment_effect_estimate
-        theta_0 <- self$parameters$theta_0
-      } else {
-        stop("The null space must be either on the left side or on the right side of theta_0")
-      }
-      # To handle the cases where theta_0 != 0, we apply the following translations to put ourselves back in a situation equivalent to theta_0 == 0
-      source_treatment_effect_estimate <- source_treatment_effect_estimate - theta_0
-      target_treatment_effect_estimate <- target_treatment_effect_estimate - theta_0
-
-      return(
-        list(
-          source_treatment_effect_estimate = source_treatment_effect_estimate,
-          target_treatment_effect_estimate = target_treatment_effect_estimate
-        )
-      )
-    },
-
     #' @description Empirical Bayes update
     #' @param target_data Target study data
     #' @return NULL
@@ -321,32 +287,6 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
     #' @return A vector of power parameters, or `NULL`.
     vectorised_power_parameter = function(target_data, samples) {
       NULL
-    },
-
-    #' @description Transform the hypothesis space for every replicate at once
-    #'
-    #' Vectorised counterpart of `hypothesis_space_transformation()`.
-    #'
-    #' @param samples Data frame of generated replicates.
-    #' @return A list of transformed source and target treatment effect
-    #'   estimates.
-    vectorised_hypothesis_space_transformation = function(samples) {
-      if (self$null_space == "right") {
-        source_estimate <- -self$prior$source$treatment_effect_estimate
-        target_estimate <- -samples$treatment_effect_estimate
-        theta_0 <- -self$parameters$theta_0
-      } else if (self$null_space == "left") {
-        source_estimate <- self$prior$source$treatment_effect_estimate
-        target_estimate <- samples$treatment_effect_estimate
-        theta_0 <- self$parameters$theta_0
-      } else {
-        stop("The null space must be either on the left side or on the right side of theta_0")
-      }
-
-      list(
-        source_treatment_effect_estimate = source_estimate - theta_0,
-        target_treatment_effect_estimate = target_estimate - theta_0
-      )
     },
 
     #' @description Prior variance for each replicate
@@ -470,7 +410,9 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
     power_parameter_estimation = function(target_data) {
       # We reuse the code from the PDCCPP, but leverage the fact that PDCCPP is equivalent to Gravestock's EBPP with the calibration parameter set as:
 
-      transformed_treatment_effects <- self$hypothesis_space_transformation(target_data = target_data)
+      transformed_treatment_effects <- self$hypothesis_space_transformation(
+        target_data$sample$treatment_effect_estimate
+      )
       source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
       target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
 
@@ -523,7 +465,7 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return A vector of power parameters.
     vectorised_power_parameter = function(target_data, samples) {
-      transformed <- self$vectorised_hypothesis_space_transformation(samples)
+      transformed <- self$hypothesis_space_transformation(samples$treatment_effect_estimate)
       source_estimate <- transformed$source_treatment_effect_estimate
       target_estimate <- transformed$target_treatment_effect_estimate
 
@@ -602,7 +544,9 @@ PDCCPP <- R6::R6Class(
     #' @param target_treatment_effect_estimate The target treatment effect estimate.
     #' @return The estimated power parameter.
     power_parameter_estimation = function(target_data) {
-      transformed_treatment_effects <- self$hypothesis_space_transformation(target_data = target_data)
+      transformed_treatment_effects <- self$hypothesis_space_transformation(
+        target_data$sample$treatment_effect_estimate
+      )
       source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
       target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
 
@@ -652,7 +596,7 @@ PDCCPP <- R6::R6Class(
         stop("The standard error on the treatment effect is Inf")
       }
 
-      transformed <- self$vectorised_hypothesis_space_transformation(samples)
+      transformed <- self$hypothesis_space_transformation(samples$treatment_effect_estimate)
       source_estimate <- transformed$source_treatment_effect_estimate
       target_estimate <- transformed$target_treatment_effect_estimate
 
@@ -931,7 +875,9 @@ p_value_based_PP_Gaussian <- R6::R6Class(
     #' @param target_data The target data object.
     #' @return The power parameter.
     power_parameter_estimation = function(target_data) {
-      transformed_treatment_effects <- self$hypothesis_space_transformation(target_data = target_data)
+      transformed_treatment_effects <- self$hypothesis_space_transformation(
+        target_data$sample$treatment_effect_estimate
+      )
       source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
       target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
 
@@ -957,7 +903,7 @@ p_value_based_PP_Gaussian <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return A vector of power parameters.
     vectorised_power_parameter = function(target_data, samples) {
-      transformed <- self$vectorised_hypothesis_space_transformation(samples)
+      transformed <- self$hypothesis_space_transformation(samples$treatment_effect_estimate)
 
       source_sd <- self$prior$source$standard_error *
         sqrt(self$prior$source$equivalent_source_sample_size_per_arm)
@@ -1038,40 +984,6 @@ p_value_based_PP_Binomial <- R6::R6Class(
       )
       self$summary_measure_likelihood <- "binomial"
       self$null_space <- null_space
-    },
-
-    #' @description Transform the hypothesis space.
-    #' @param target_data The target data.
-    #' @return A list containing transformed treatment effect estimates.
-    hypothesis_space_transformation = function(target_data) {
-      # To handle the cases where null_space == "right", we apply the following transformations to put ourselves back in a situation equivalent to null_space == "left":
-
-      assert_single_number(self$parameters$theta_0)
-
-      if (self$null_space == "right") {
-        source_treatment_effect_estimate <- -self$prior$source$treatment_effect_estimate
-        target_treatment_effect_estimate <- -target_data$sample$treatment_effect_estimate
-        # Negate locally. Assigning back to self$parameters$theta_0 flipped its
-        # sign on every call, so consecutive replicates were transformed
-        # differently.
-        theta_0 <- -self$parameters$theta_0
-      } else if (self$null_space == "left") {
-        source_treatment_effect_estimate <- self$prior$source$treatment_effect_estimate
-        target_treatment_effect_estimate <- target_data$sample$treatment_effect_estimate
-        theta_0 <- self$parameters$theta_0
-      } else {
-        stop("The null space must be either on the left side or on the right side of theta_0")
-      }
-      # To handle the cases where theta_0 != 0, we apply the following translations to put ourselves back in a situation equivalent to theta_0 == 0
-      source_treatment_effect_estimate <- source_treatment_effect_estimate - theta_0
-      target_treatment_effect_estimate <- target_treatment_effect_estimate - theta_0
-
-      return(
-        list(
-          source_treatment_effect_estimate = source_treatment_effect_estimate,
-          target_treatment_effect_estimate = target_treatment_effect_estimate
-        )
-      )
     },
 
     #' @description Empirical Bayes update
@@ -1202,7 +1114,9 @@ p_value_based_PP_Binomial <- R6::R6Class(
     #' @param target_treatment_effect_estimate The target treatment effect estimate.
     #' @return The power parameter.
     power_parameter_estimation = function(target_data) {
-      transformed_treatment_effects <- self$hypothesis_space_transformation(target_data = target_data)
+      transformed_treatment_effects <- self$hypothesis_space_transformation(
+        target_data$sample$treatment_effect_estimate
+      )
       source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
       target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
 
