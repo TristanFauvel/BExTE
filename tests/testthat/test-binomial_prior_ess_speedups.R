@@ -101,7 +101,7 @@ p_value_power_prior_model <- function() {
     shape_parameter = list(1),
     equivalence_margin = list(0.5)
   ))
-  model <- p_value_based_PP_Binomial$new(
+  model <- BinomialPValueBasedPP$new(
     prior = prior,
     theta_0 = 0,
     null_space = "left",

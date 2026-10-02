@@ -110,7 +110,7 @@ findCalibrationParameter <- function(n_iter = 1e6,
   # attained_type_I_error(), which rejects it. Below the precondition the source
   # estimate sits under the full-borrowing critical value, so borrowing is
   # protective rather than anti-conservative and nothing needs discounting on
-  # its account; we fall back to the cut-off Gaussian_Gravestock_EBPP fixes.
+  # its account; we fall back to the cut-off GaussianGravestockEBPP fixes.
   widest_cutoff <- if (maxZ_1_m_c2 > 0) maxZ_1_m_c2 else 1
 
   upper_limit <- min(widest_cutoff, 1)
@@ -202,7 +202,7 @@ log_grid_interpolation <- function(f, x, n_nodes = 100L) {
 }
 
 
-#' Gaussian_empirical_Bayes_PP class
+#' GaussianEmpiricalBayesPP class
 #'
 #' @description This is a parent class for variants of empirical Bayes PP methods for normally distributed summary measure of the treatment effect.
 #'
@@ -212,16 +212,16 @@ log_grid_interpolation <- function(f, x, n_nodes = 100L) {
 #' @field null_space Null hypothesis space.
 #' @field empirical_bayes Boolean indicating if empirical Bayes is used.
 #' @export
-Gaussian_empirical_Bayes_PP <- R6::R6Class(
-  classname = "Gaussian_empirical_Bayes_PP",
-  inherit = StaticBorrowingGaussian,
+GaussianEmpiricalBayesPP <- R6::R6Class(
+  classname = "GaussianEmpiricalBayesPP",
+  inherit = GaussianStaticBorrowing,
   public = list(
     power_parameter = NULL,
     summary_measure_likelihood = NULL,
     null_space = NULL,
     empirical_bayes = TRUE,
 
-    #' @description Initialize the Gaussian_empirical_Bayes_PP object.
+    #' @description Initialize the GaussianEmpiricalBayesPP object.
     #'
     #' @param prior The prior object.
     #' @param null_space Null space
@@ -259,7 +259,7 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
       }
     },
 
-    #' Perform inference using the Gaussian_empirical_Bayes_PP method.
+    #' Perform inference using the GaussianEmpiricalBayesPP method.
     #'
     #' @param target_data The target data.
     #' @return The inference result.
@@ -377,19 +377,19 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
 )
 
 
-#' Gaussian_Gravestock_EBPP class
+#' GaussianGravestockEBPP class
 #'
-#' @description This class inherits from Gaussian_empirical_Bayes_PP and implements the Gravestock's EBPP method.
+#' @description This class inherits from GaussianEmpiricalBayesPP and implements the Gravestock's EBPP method.
 #'
 #' @format R6Class object.
 #' @field method Method name
 #' @export
-Gaussian_Gravestock_EBPP <- R6::R6Class(
-  classname = " Gaussian_gravestock_EBPP",
-  inherit = Gaussian_empirical_Bayes_PP,
+GaussianGravestockEBPP <- R6::R6Class(
+  classname = "GaussianGravestockEBPP",
+  inherit = GaussianEmpiricalBayesPP,
   public = list(
     method = "EBPP",
-    #' @description Initialize the Gaussian_Gravestock_EBPP object.
+    #' @description Initialize the GaussianGravestockEBPP object.
     #'
     #' @param prior The prior object.
     #' @param null_space Side of the null hypothesis space
@@ -500,21 +500,21 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
   )
 )
 
-#' PDCCPP class
+#' GaussianPDCCPP class
 #'
-#' @description This class inherits from Gaussian_empirical_Bayes_PP and implements the PDCCPP method.
+#' @description This class inherits from GaussianEmpiricalBayesPP and implements the PDCCPP method.
 #'
 #' @format R6Class object.
 #' @field null_space Side of the null hypothesis space
 #' @field method Method name
 #' @export
-PDCCPP <- R6::R6Class(
-  classname = "PDCCPP",
-  inherit = Gaussian_empirical_Bayes_PP,
+GaussianPDCCPP <- R6::R6Class(
+  classname = "GaussianPDCCPP",
+  inherit = GaussianEmpiricalBayesPP,
   public = list(
     null_space = NULL,
     method = "PDCCPP",
-    #' @description Initialize the PDCCPP object.
+    #' @description Initialize the GaussianPDCCPP object.
     #'
     #' @param prior The prior object.
     #' @param theta_0 The theta_0 value.
@@ -729,7 +729,7 @@ PDCCPP <- R6::R6Class(
       # findCalibrationParameter reports z_{1-c/2}, which equation (9) of
       # Nikolakopoulos et al (2018) uses as the number of predictive standard
       # deviations that X-bar may deviate from mu_0 before borrowing is
-      # discounted. The formula below is shared with Gaussian_Gravestock_EBPP,
+      # discounted. The formula below is shared with GaussianGravestockEBPP,
       # which parameterises the same cut-off by the tail probability c and
       # recovers z_{1-c/2} as qnorm(1 - c / 2). Sending a z-score through that
       # conversion a second time applied a wider cut-off than the one the
@@ -754,17 +754,17 @@ PDCCPP <- R6::R6Class(
 )
 
 
-#' p_value_based_PP_Gaussian class
+#' GaussianPValueBasedPP class
 #'
 #' @description This class represents a p-value based power prior method.
-#' It inherits from the Gaussian_empirical_Bayes_PP class.
+#' It inherits from the GaussianEmpiricalBayesPP class.
 #'
 #' @field shape_parameter The shape parameter for the method.
 #' @field method Method name
 #' @export
-p_value_based_PP_Gaussian <- R6::R6Class(
-  classname = "p_value_based_PP",
-  inherit = Gaussian_empirical_Bayes_PP,
+GaussianPValueBasedPP <- R6::R6Class(
+  classname = "GaussianPValueBasedPP",
+  inherit = GaussianEmpiricalBayesPP,
   public = list(
     shape_parameter = NULL,
     method = "p_value_based_PP",
@@ -934,7 +934,7 @@ p_value_based_PP_Gaussian <- R6::R6Class(
 
 
 
-#' Gaussian_empirical_Bayes_PP class
+#' GaussianEmpiricalBayesPP class
 #'
 #' @description This is a parent class for variants of empirical Bayes PP methods for normally distributed summary measure of the treatment effect.
 #'
@@ -948,8 +948,8 @@ p_value_based_PP_Gaussian <- R6::R6Class(
 #' @field prior_var Prior variance
 #' @field mcmc_config MCMC configuration
 #' @export
-p_value_based_PP_Binomial <- R6::R6Class(
-  classname = "p_value_based_PP_Binomial",
+BinomialPValueBasedPP <- R6::R6Class(
+  classname = "BinomialPValueBasedPP",
   inherit = BinomialCPP,
   public = list(
     power_parameter = NULL,
@@ -1003,7 +1003,7 @@ p_value_based_PP_Binomial <- R6::R6Class(
       self$prior_cdf_approx <- NULL
     },
 
-    #' Perform inference using the Gaussian_empirical_Bayes_PP method.
+    #' Perform inference using the GaussianEmpiricalBayesPP method.
     #'
     #' @param target_data The target data.
     #' @return The inference result.

@@ -4,7 +4,7 @@
 \alias{BinomialPDCCPP}
 \title{BinomialPDCCPP class}
 \description{
-The calibrated power prior of \link{PDCCPP} for a binary endpoint:
+The calibrated power prior of \link{GaussianPDCCPP} for a binary endpoint:
 the power parameter is given by the same rule, applied to the estimated
 risk differences and their standard errors, the target data are analysed
 with the binomial conditional power prior of \link{BinomialCPP} at that power

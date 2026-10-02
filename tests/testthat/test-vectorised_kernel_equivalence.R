@@ -4,18 +4,16 @@
 # are generated up front in a single call, and every remaining step is
 # deterministic given that data.
 
-# Generators are looked up by method rather than by class name, because
-# Gaussian_Gravestock_EBPP declares classname " Gaussian_gravestock_EBPP",
-# which matches neither the object it is bound to nor its own class.
+# Generators are looked up by method, the key the fixtures are written in.
 generator_for <- function(method) {
   switch(
     method,
-    separate = SeparateGaussian_RBesT,
-    pooling = PoolGaussian_RBesT,
-    conditional_power_prior = StaticBorrowingGaussian,
+    separate = GaussianSeparate_RBesT,
+    pooling = GaussianPooling_RBesT,
+    conditional_power_prior = GaussianStaticBorrowing,
     RMP = GaussianRMP_RBesT,
-    EB_PP = Gaussian_Gravestock_EBPP,
-    p_value_based_PP = p_value_based_PP_Gaussian,
+    EB_PP = GaussianGravestockEBPP,
+    p_value_based_PP = GaussianPValueBasedPP,
     test_then_pool_equivalence = TestThenPoolEquivalence,
     test_then_pool_difference = TestThenPoolDifference,
     stop("unsupported method in fixture")

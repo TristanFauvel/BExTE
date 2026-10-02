@@ -40,8 +40,8 @@ TestThenPool <- R6::R6Class(
         self$separate <- BinomialSeparate$new(prior = prior, mcmc_config = mcmc_config)
         self$pooling <- BinomialPooling$new(prior = prior, mcmc_config = mcmc_config)
       } else if (self$summary_measure_likelihood == "normal") {
-        self$separate <- SeparateGaussian$new(prior = prior)
-        self$pooling <- PoolGaussian$new(prior = prior)
+        self$separate <- GaussianSeparate$new(prior = prior)
+        self$pooling <- GaussianPooling$new(prior = prior)
       } else {
         stop("Distribution not supported")
       }
@@ -117,8 +117,8 @@ TestThenPool <- R6::R6Class(
       # subclass holds either a pair of conjugate Gaussian models or a pair of
       # MCMC ones. Only the former has a prior variance to borrow, so the
       # binomial variant has to keep the replicate loop.
-      if (!inherits(self$pooling, "ConjugateGaussian") ||
-          !inherits(self$separate, "ConjugateGaussian")) {
+      if (!inherits(self$pooling, "GaussianConjugate") ||
+          !inherits(self$separate, "GaussianConjugate")) {
         return(NULL)
       }
 

@@ -8,7 +8,7 @@ The empirical Bayes power prior of Gravestock and Held (2017)
 for a binary endpoint: the power parameter maximizes the marginal
 likelihood of the target data under the binomial power prior of
 \link{BinomialCPP}, and the target data are analysed with that power prior.
-Unlike \link{Gaussian_Gravestock_EBPP}, which uses the closed form of a normal
+Unlike \link{GaussianGravestockEBPP}, which uses the closed form of a normal
 likelihood, the marginal likelihood is that of the binomial likelihoods of
 both arms, computed on the lattice of \code{\link[=binomial_power_prior_posterior]{binomial_power_prior_posterior()}}.
 }

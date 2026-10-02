@@ -613,7 +613,7 @@ BinomialLatticePrior <- R6::R6Class(
 #'   binomial likelihoods of the two arms of each study and a risk difference
 #'   shared by the source and target studies, as in [BinomialCPP]. The power
 #'   parameter has a Beta prior, specified by its mean and standard deviation as
-#'   in [Gaussian_NPP], and is integrated out exactly rather than through a
+#'   in [GaussianNPP], and is integrated out exactly rather than through a
 #'   normal approximation of the likelihood. The posterior is computed on a
 #'   lattice of response rates; see [binomial_npp_prior_kernels()].
 #'
@@ -692,7 +692,7 @@ BinomialNPP <- R6::R6Class(
 
 #' BinomialNPP_KL class
 #'
-#' @description The KL-calibrated normalized power prior of [Gaussian_NPP_KL]
+#' @description The KL-calibrated normalized power prior of [GaussianNPP_KL]
 #'   for a binary endpoint: the Beta prior on the power parameter is calibrated
 #'   to the design with the criterion of [calibrate_npp_kl()], the posterior of
 #'   the power parameter under the two hypothetical results being computed from

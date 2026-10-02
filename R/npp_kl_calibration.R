@@ -697,7 +697,7 @@ npp_kl_calibration_columns <- function(calibration, n_replicates) {
 #' Criterion settings of the KL-calibrated normalized power prior
 #'
 #' @description Read from the method parameters, with the defaults of
-#'   [calibrate_npp_kl()]. Shared by [Gaussian_NPP_KL] and [BinomialNPP_KL].
+#'   [calibrate_npp_kl()]. Shared by [GaussianNPP_KL] and [BinomialNPP_KL].
 #'
 #' @param parameters The method parameters.
 #' @param null_space The null hypothesis space, which gives the benefit

@@ -5,7 +5,7 @@ gaussian_ebpp <- function(null_space, theta_0, source_treatment_effect = 0.5) {
     method_parameters = list(initial_prior = list("noninformative"),
                              power_parameter = list(0.5))
   )
-  model <- Gaussian_Gravestock_EBPP$new(prior = prior,
+  model <- GaussianGravestockEBPP$new(prior = prior,
                                         null_space = null_space,
                                         theta_0 = theta_0)
   # Model$create() assigns this after construction.
@@ -58,7 +58,7 @@ test_that("hypothesis_space_transformation transforms one estimate per replicate
 })
 
 test_that("the binomial p-value based power prior shares the transformation", {
-  # p_value_based_PP_Binomial is not a Gaussian_empirical_Bayes_PP, and used to
+  # BinomialPValueBasedPP is not a GaussianEmpiricalBayesPP, and used to
   # carry its own copy of the transformation; both now inherit it from Model.
   prior <- list(
     source = list(treatment_effect_estimate = 0.5),
@@ -66,7 +66,7 @@ test_that("the binomial p-value based power prior shares the transformation", {
                              shape_parameter = list(1),
                              equivalence_margin = list(0.1))
   )
-  binomial <- p_value_based_PP_Binomial$new(prior = prior, theta_0 = 0.2,
+  binomial <- BinomialPValueBasedPP$new(prior = prior, theta_0 = 0.2,
                                             null_space = "right",
                                             mcmc_config = list(
                                               num_chains = 1L, parallel_chains = 1L,

@@ -4,7 +4,7 @@
 \alias{BinomialNPP_KL}
 \title{BinomialNPP_KL class}
 \description{
-The KL-calibrated normalized power prior of \link{Gaussian_NPP_KL}
+The KL-calibrated normalized power prior of \link{GaussianNPP_KL}
 for a binary endpoint: the Beta prior on the power parameter is calibrated
 to the design with the criterion of \code{\link[=calibrate_npp_kl]{calibrate_npp_kl()}}, the posterior of
 the power parameter under the two hypothetical results being computed from

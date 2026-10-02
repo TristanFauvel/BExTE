@@ -21,7 +21,7 @@
 #' The prior does not depend on the replicate, so this is computed once per
 #' simulation rather than once per replicate.
 #'
-#' @param model A `Gaussian_NPP` object.
+#' @param model A `GaussianNPP` object.
 #' @param n_nodes Number of quadrature nodes.
 #' @return A list with `weights`, `means` and `sds` describing the prior
 #'   mixture, and `power_parameter`, the quadrature nodes themselves, which are

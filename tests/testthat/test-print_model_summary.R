@@ -67,7 +67,7 @@ test_that("static borrowing shows its power parameter", {
     method_parameters = list(initial_prior = list("noninformative"),
                              power_parameter = list(0.5))
   )
-  model <- StaticBorrowingGaussian$new(prior = prior)
+  model <- GaussianStaticBorrowing$new(prior = prior)
   model$inference(gaussian_target())
 
   rows <- model$summary_rows()

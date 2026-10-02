@@ -154,7 +154,7 @@ test_that("a finer power parameter rule changes nothing", {
 
 # ---- The model ---------------------------------------------------------------
 
-test_that("a binary NPP is built as BinomialNPP, a normal one as Gaussian_NPP", {
+test_that("a binary NPP is built as BinomialNPP, a normal one as GaussianNPP", {
   binomial <- Model$new()$create(
     case_study_config = list(summary_measure_likelihood = "binomial", null_space = "left",
                              theta_0 = 0, name = "example"),
@@ -176,7 +176,7 @@ test_that("a binary NPP is built as BinomialNPP, a normal one as Gaussian_NPP", 
                        equivalent_source_sample_size_per_arm = 286),
     mcmc_config = npp_mcmc_config()
   )
-  expect_s3_class(normal, "Gaussian_NPP")
+  expect_s3_class(normal, "GaussianNPP")
 })
 
 test_that("the binomial NPP refuses the Stan engine", {

@@ -8,7 +8,7 @@ The normalized power prior for a binary endpoint, with the
 binomial likelihoods of the two arms of each study and a risk difference
 shared by the source and target studies, as in \link{BinomialCPP}. The power
 parameter has a Beta prior, specified by its mean and standard deviation as
-in \link{Gaussian_NPP}, and is integrated out exactly rather than through a
+in \link{GaussianNPP}, and is integrated out exactly rather than through a
 normal approximation of the likelihood. The posterior is computed on a
 lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial_npp_prior_kernels()}}.
 }
