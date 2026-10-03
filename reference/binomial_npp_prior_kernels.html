@@ -26,7 +26,7 @@ the power parameter and by its square."></head><body>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TristanFauvel/BExTE/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -42,7 +42,7 @@ the power parameter and by its square."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Prior kernels of the binomial normalized power prior</h1>
-      <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/R/binomial_npp.R" class="external-link"><code>R/binomial_npp.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/TristanFauvel/BExTE/blob/main/R/binomial_npp.R" class="external-link"><code>R/binomial_npp.R</code></a></small>
       <div class="d-none name"><code>binomial_npp_prior_kernels.Rd</code></div>
     </div>
 
@@ -98,7 +98,7 @@ of the source log likelihood are tabulated before interpolation.</p></dd>
     <p>A list with <code>n_lattice</code>, the <code>rates</code>, and the N x (2N - 1) matrices
 <code>kernel</code>, <code>kernel_gamma</code> and <code>kernel_gamma_squared</code>, indexed by the target
 control rate and the risk difference k / N, k = -(N - 1), ..., N - 1. They
-are zero where the target treatment rate would leave 0, 1.</p>
+are zero where the target treatment rate would leave \([0, 1]\).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

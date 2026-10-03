@@ -24,6 +24,15 @@ table_bayesian_ocs(
 
   A vector of metric names to include in the tables.
 
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
 ## Value
 
 This function doesn't return a value but calls other functions to

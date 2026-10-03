@@ -18,7 +18,7 @@ egidi_posterior_parameters(informative_posterior_weight, selection)
 - selection:
 
   A data frame from
-  [`egidi_select_weak_weight()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/egidi_select_weak_weight.md).
+  [`egidi_select_weak_weight()`](https://tristanfauvel.github.io/BExTE/reference/egidi_select_weak_weight.md).
 
 ## Value
 

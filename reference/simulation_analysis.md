@@ -43,6 +43,23 @@ simulation_analysis(
 
   List of frequentist metrics.
 
+- case_studies:
+
+  Case studies to analyse, or "all".
+
+- to_compute:
+
+  Which analyses to run: any of "frequentist_power_at_equivalent_tie",
+  "frequentist_power_at_nominal_tie", "sweet_spot" and "bayesian_ocs".
+
+- methods:
+
+  Methods to analyse, or "all".
+
+- case_studies_config_dir:
+
+  Directory holding the case study YAMLs.
+
 - parallelization:
 
   Whether the analysis runs in parallel: a single logical, or a list of

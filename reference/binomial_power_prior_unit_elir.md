@@ -2,7 +2,7 @@
 
 Linear interpolation between the two grid nodes around
 `power_parameter`, each computed once per worker by
-[`grid_prior_unit_elir()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/grid_prior_unit_elir.md)
+[`grid_prior_unit_elir()`](https://tristanfauvel.github.io/BExTE/reference/grid_prior_unit_elir.md)
 and cached. The ELIR is close to linear in the power parameter, so the
 interpolation error is small against the fits' own.
 
@@ -27,7 +27,7 @@ binomial_power_prior_unit_elir(
 
 - power_parameter:
 
-  The power parameter, in 0, 1.
+  The power parameter, in \\\[0, 1\]\\.
 
 - n_samples:
 

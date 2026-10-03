@@ -22,7 +22,7 @@ scenario_tasks(cases, shares_across_drifts, n_workers)
 - shares_across_drifts:
 
   Whether the scenarios share analyses across drifts - see
-  [`analyses_shared_across_drifts()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/analyses_shared_across_drifts.md).
+  [`analyses_shared_across_drifts()`](https://tristanfauvel.github.io/BExTE/reference/analyses_shared_across_drifts.md).
 
 - n_workers:
 

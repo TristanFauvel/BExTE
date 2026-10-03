@@ -50,6 +50,19 @@ plot_metric_vs_parameters(
 
   A logical value indicating whether to add baselines to the plot.
 
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- analysis_config:
+
+  The analysis configuration.
+
 ## Value
 
 None

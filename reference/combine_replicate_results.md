@@ -13,7 +13,7 @@ combine_replicate_results(pieces)
 - pieces:
 
   List of results, as
-  [`vectorised_normal_mixture_simulation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/vectorised_normal_mixture_simulation.md)
+  [`vectorised_normal_mixture_simulation()`](https://tristanfauvel.github.io/BExTE/reference/vectorised_normal_mixture_simulation.md)
   returns them, for consecutive chunks of replicates.
 
 ## Value

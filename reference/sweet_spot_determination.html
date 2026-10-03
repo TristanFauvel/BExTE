@@ -22,7 +22,7 @@ crosses a specified reference_value. It uses linear interpolation for precise cr
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TristanFauvel/BExTE/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -38,7 +38,7 @@ crosses a specified reference_value. It uses linear interpolation for precise cr
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Determine Sweet Spot Bounds and Width</h1>
-      <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/R/analysis_compute_sweet_spot.R" class="external-link"><code>R/analysis_compute_sweet_spot.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/TristanFauvel/BExTE/blob/main/R/analysis_compute_sweet_spot.R" class="external-link"><code>R/analysis_compute_sweet_spot.R</code></a></small>
       <div class="d-none name"><code>sweet_spot_determination.Rd</code></div>
     </div>
 
@@ -72,6 +72,16 @@ crosses a specified <code>reference_value</code>. It uses linear interpolation f
 
 <dt id="arg-reference-value">reference_value<a class="anchor" aria-label="anchor" href="#arg-reference-value"></a></dt>
 <dd><p>A numeric reference value to determine the crossing points.</p></dd>
+
+
+<dt id="arg-larger-is-better">larger_is_better<a class="anchor" aria-label="anchor" href="#arg-larger-is-better"></a></dt>
+<dd><p>Whether larger <code>y_values</code> are better. If FALSE, the sign
+of the comparison with <code>reference_value</code> is reversed.</p></dd>
+
+
+<dt id="arg-return-na-at-boundaries">return_NA_at_boundaries<a class="anchor" aria-label="anchor" href="#arg-return-na-at-boundaries"></a></dt>
+<dd><p>If TRUE, a sweet spot bound that falls on the edge
+of <code>x_values</code> is reported as NA rather than as that edge.</p></dd>
 
 </dl></div>
     <div class="section level2">

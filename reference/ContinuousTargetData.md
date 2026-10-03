@@ -17,7 +17,7 @@ the variance estimate is ignored.
 
 ## Super class
 
-[`TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)
+[`TargetData`](https://tristanfauvel.github.io/BExTE/reference/TargetData.md)
 -\> `ContinuousTargetData`
 
 ## Methods
@@ -34,7 +34,7 @@ the variance estimate is ignored.
 
 Inherited methods
 
-- [`TargetData$plot_sample()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.html#method-plot_sample)
+- [`TargetData$plot_sample()`](https://tristanfauvel.github.io/BExTE/reference/TargetData.html#method-plot_sample)
 
 ------------------------------------------------------------------------
 

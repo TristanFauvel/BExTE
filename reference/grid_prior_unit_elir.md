@@ -1,7 +1,7 @@
 # Unit-scale ELIR of a gridded prior, averaged over several mixture fits
 
 Each fit follows
-[Model](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)'s
+[Model](https://tristanfauvel.github.io/BExTE/reference/Model.md)'s
 `prior_to_RBesT()`: a normal mixture fitted by
 [`RBesT::automixfit()`](https://opensource.nibr.com/RBesT/reference/automixfit.html)
 to `n_samples` draws from the prior. Its ELIR is taken at a unit
@@ -25,7 +25,7 @@ grid_prior_unit_elir(
 - prior_grid:
 
   The prior, as a
-  [`grid_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/grid_posterior.md)
+  [`grid_posterior()`](https://tristanfauvel.github.io/BExTE/reference/grid_posterior.md)
   list.
 
 - n_samples:

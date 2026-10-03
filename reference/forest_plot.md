@@ -27,6 +27,12 @@ forest_plot(
 
   Metric on the x-axis
 
+- panels:
+
+  If TRUE, draw one panel per treatment effect (no effect, partially
+  consistent, consistent); otherwise draw the three in a single combined
+  plot.
+
 - palette:
 
   A colour scheme from bexte_palette() for BExTE-app's dark mode, or
@@ -48,14 +54,6 @@ forest_plot(
 - subtitle:
 
   Optional line drawn above the panels.
-
-- selected_case_study:
-
-  The selected case study.
-
-- selected_target_sample_size_per_arm:
-
-  The selected target sample size per arm.
 
 ## Value
 

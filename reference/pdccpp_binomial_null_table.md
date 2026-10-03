@@ -12,7 +12,7 @@ is below `tail_mass` are omitted, as in
 
 The table depends on the source counts and the design alone, so it is
 saved under
-[`pdccpp_binomial_cache_dir()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/pdccpp_binomial_cache_dir.md)
+[`pdccpp_binomial_cache_dir()`](https://tristanfauvel.github.io/BExTE/reference/pdccpp_binomial_cache_dir.md)
 and read back by any process that needs it; `workers` computes it in
 parallel.
 

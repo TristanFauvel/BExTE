@@ -2,10 +2,10 @@
 
 The largest calibration parameter Z whose exact type I error does not
 exceed `desired_tie`. The type I error is a step function of Z, so Z is
-located on a logarithmic grid over 1e-3, 1e3 and refined by bisection at
-the last grid step that stays within `desired_tie`. If even the largest
-Z does, borrowing is never discounted for conflict and Z is the top of
-the grid; if even the smallest does not, Z is its bottom.
+located on a logarithmic grid over \\\[1e-3, 1e3\]\\ and refined by
+bisection at the last grid step that stays within `desired_tie`. If even
+the largest Z does, borrowing is never discounted for conflict and Z is
+the top of the grid; if even the smallest does not, Z is its bottom.
 
 ## Usage
 
@@ -23,7 +23,7 @@ pdccpp_binomial_calibrate(
 - table:
 
   Output of
-  [`pdccpp_binomial_null_table()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/pdccpp_binomial_null_table.md).
+  [`pdccpp_binomial_null_table()`](https://tristanfauvel.github.io/BExTE/reference/pdccpp_binomial_null_table.md).
 
 - desired_tie:
 

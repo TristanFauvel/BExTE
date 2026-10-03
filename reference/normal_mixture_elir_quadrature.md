@@ -1,7 +1,7 @@
 # ELIR effective sample size by panelled Gauss-Legendre quadrature
 
 The quadrature behind
-[`normal_mixture_elir_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/normal_mixture_elir_ess.md),
+[`normal_mixture_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/normal_mixture_elir_ess.md),
 for mixtures with at least two components given as matrices with one row
 per replicate.
 

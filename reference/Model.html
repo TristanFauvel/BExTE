@@ -22,7 +22,7 @@ It provides methods for creating the model, performing inference, and calculatin
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TristanFauvel/BExTE/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -38,7 +38,7 @@ It provides methods for creating the model, performing inference, and calculatin
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Model Class</h1>
-      <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/R/method_model.R" class="external-link"><code>R/method_model.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/TristanFauvel/BExTE/blob/main/R/method_model.R" class="external-link"><code>R/method_model.R</code></a></small>
       <div class="d-none name"><code>Model.Rd</code></div>
     </div>
 
@@ -196,12 +196,10 @@ the test that is actually performed.</p></dd>
 <li><p><a href="#method-Model-posterior_quantile"><code>Model$posterior_quantile()</code></a></p></li>
 <li><p><a href="#method-Model-posterior_median"><code>Model$posterior_median()</code></a></p></li>
 <li><p><a href="#method-Model-credible_interval"><code>Model$credible_interval()</code></a></p></li>
-<li><p><a href="#method-Model-prior_ESS"><code>Model$prior_ESS()</code></a></p></li>
 <li><p><a href="#method-Model-sample_prior"><code>Model$sample_prior()</code></a></p></li>
 <li><p><a href="#method-Model-sample_posterior"><code>Model$sample_posterior()</code></a></p></li>
 <li><p><a href="#method-Model-test_decision"><code>Model$test_decision()</code></a></p></li>
 <li><p><a href="#method-Model-simulation_for_given_treatment_effect"><code>Model$simulation_for_given_treatment_effect()</code></a></p></li>
-<li><p><a href="#method-Model-prior_treatment_benefit"><code>Model$prior_treatment_benefit()</code></a></p></li>
 <li><p><a href="#method-Model-estimate_frequentist_operating_characteristics"><code>Model$estimate_frequentist_operating_characteristics()</code></a></p></li>
 <li><p><a href="#method-Model-estimate_bayesian_operating_characteristics"><code>Model$estimate_bayesian_operating_characteristics()</code></a></p></li>
 <li><p><a href="#method-Model-prior_to_RBesT"><code>Model$prior_to_RBesT()</code></a></p></li>
@@ -588,19 +586,10 @@ Calculates the credible interval of the posterior distribution for a given level
 
 </div>
 
-<p></p><hr><a id="method-Model-prior_ESS"></a><div class="section">
-<h3 id="model-prior-ess-"><code>Model$prior_ESS()</code><a class="anchor" aria-label="anchor" href="#model-prior-ess-"></a></h3>
-<p>Method to calculate the effective sample size of the prior distribution</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">prior_ESS</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-</div>
-
 <p></p><hr><a id="method-Model-sample_prior"></a><div class="section">
 <h3 id="model-sample-prior-"><code>Model$sample_prior()</code><a class="anchor" aria-label="anchor" href="#model-sample-prior-"></a></h3>
 <p>Method to sample from the prior distribution</p><div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">sample_prior</span><span class="op">(</span><span class="va">n_samples</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
@@ -616,7 +605,7 @@ Calculates the credible interval of the posterior distribution for a given level
 <p></p><hr><a id="method-Model-sample_posterior"></a><div class="section">
 <h3 id="model-sample-posterior-"><code>Model$sample_posterior()</code><a class="anchor" aria-label="anchor" href="#model-sample-posterior-"></a></h3>
 <p>Method to sample from the posterior distribution</p><div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">sample_posterior</span><span class="op">(</span><span class="va">n_samples</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
@@ -632,7 +621,7 @@ Calculates the credible interval of the posterior distribution for a given level
 <p></p><hr><a id="method-Model-test_decision"></a><div class="section">
 <h3 id="model-test-decision-"><code>Model$test_decision()</code><a class="anchor" aria-label="anchor" href="#model-test-decision-"></a></h3>
 <p>This function returns the test decision for a fitted model.</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">test_decision</span><span class="op">(</span><span class="va">critical_value</span>, <span class="va">theta_0</span>, <span class="va">null_space</span>, <span class="va">confidence_level</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
@@ -660,7 +649,7 @@ Calculates the credible interval of the posterior distribution for a given level
 <p></p><hr><a id="method-Model-simulation_for_given_treatment_effect"></a><div class="section">
 <h3 id="model-simulation-for-given-treatment-effect-"><code>Model$simulation_for_given_treatment_effect()</code><a class="anchor" aria-label="anchor" href="#model-simulation-for-given-treatment-effect-"></a></h3>
 <p>Method to simulate for a given treatment effect</p><div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">simulation_for_given_treatment_effect</span><span class="op">(</span></span>
 <span>  <span class="va">target_data</span>,</span>
 <span>  <span class="va">n_replicates</span>,</span>
@@ -735,40 +724,10 @@ their number.</p></dd>
 
 </div>
 
-<p></p><hr><a id="method-Model-prior_treatment_benefit"></a><div class="section">
-<h3 id="model-prior-treatment-benefit-"><code>Model$prior_treatment_benefit()</code><a class="anchor" aria-label="anchor" href="#model-prior-treatment-benefit-"></a></h3>
-<p>Method to calculate the prior probability of treatment benefit</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">prior_treatment_benefit</span><span class="op">(</span></span>
-<span>  <span class="va">theta_0</span>,</span>
-<span>  <span class="va">null_space</span>,</span>
-<span>  <span class="va">n_prior_samples</span>,</span>
-<span>  <span class="va">tuning_length</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>theta_0</code></dt>
-<dd><p>Null hypothesis value</p></dd>
-
-      <dt><code>null_space</code></dt>
-<dd><p>The null space for hypothesis testing</p></dd>
-
-      <dt><code>n_prior_samples</code></dt>
-<dd><p>Number of prior samples</p></dd>
-
-      <dt><code>tuning_length</code></dt>
-<dd><p>Tuning parameter length</p></dd>
-
-
-</dl><p></p></div>
-</div>
-
-</div>
-
 <p></p><hr><a id="method-Model-estimate_frequentist_operating_characteristics"></a><div class="section">
 <h3 id="model-estimate-frequentist-operating-characteristics-"><code>Model$estimate_frequentist_operating_characteristics()</code><a class="anchor" aria-label="anchor" href="#model-estimate-frequentist-operating-characteristics-"></a></h3>
 <p>Method to estimate frequentist operating characteristics</p><div class="section">
-<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">estimate_frequentist_operating_characteristics</span><span class="op">(</span></span>
 <span>  <span class="va">theta_0</span>,</span>
 <span>  <span class="va">target_data</span>,</span>
@@ -785,7 +744,7 @@ their number.</p></dd>
 <span>  enumeration_tail_mass <span class="op">=</span> <span class="fl">1e-10</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
+<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>theta_0</code></dt>
 <dd><p>Null hypothesis value</p></dd>
 
@@ -844,7 +803,7 @@ outcomes the enumeration leaves out.</p></dd>
 <p></p><hr><a id="method-Model-estimate_bayesian_operating_characteristics"></a><div class="section">
 <h3 id="model-estimate-bayesian-operating-characteristics-"><code>Model$estimate_bayesian_operating_characteristics()</code><a class="anchor" aria-label="anchor" href="#model-estimate-bayesian-operating-characteristics-"></a></h3>
 <p>Method to estimate Bayesian operating characteristics</p><div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">estimate_bayesian_operating_characteristics</span><span class="op">(</span></span>
 <span>  <span class="va">design_prior</span>,</span>
 <span>  <span class="va">theta_0</span>,</span>
@@ -866,7 +825,7 @@ outcomes the enumeration leaves out.</p></dd>
 <span>  <span class="va">n_samples_quantiles_estimation</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
+<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>design_prior</code></dt>
 <dd><p>Design prior</p></dd>
 
@@ -936,10 +895,10 @@ Only used for the time-to-event endpoint.</p></dd>
 <p></p><hr><a id="method-Model-prior_to_RBesT"></a><div class="section">
 <h3 id="model-prior-to-rbest-"><code>Model$prior_to_RBesT()</code><a class="anchor" aria-label="anchor" href="#model-prior-to-rbest-"></a></h3>
 <p>Method to convert the model to RBesT</p><div class="section">
-<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">prior_to_RBesT</span><span class="op">(</span><span class="va">n_samples_mixture_approx</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
+<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>n_samples_mixture_approx</code></dt>
 <dd><p>Number of samples used to approximate the prior with a mixture.</p></dd>
 
@@ -955,10 +914,10 @@ Only used for the time-to-event endpoint.</p></dd>
 <p>The default route approximates the prior by a mixture fitted to samples
 drawn from it, and refits between replicates only when the prior is data
 dependent. Subclasses whose prior has a closed form override this.</p><div class="section">
-<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">prior_elir_ess</span><span class="op">(</span><span class="va">target_data</span>, <span class="va">simulation_config</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>target_data</code></dt>
 <dd><p>Target study data, whose sampling standard deviation
 is the reference scale.</p></dd>
@@ -984,10 +943,10 @@ posterior by a mixture fitted to samples drawn from it, which is the only
 option when neither the posterior summary nor draws from it are
 available. Subclasses that know their posterior standard deviation and
 credible interval override this and evaluate the definitions directly.</p><div class="section">
-<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">posterior_ess</span><span class="op">(</span><span class="va">target_data</span>, <span class="va">simulation_config</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>target_data</code></dt>
 <dd><p>Target study data</p></dd>
 
@@ -1006,10 +965,10 @@ credible interval override this and evaluate the definitions directly.</p><div c
 <p></p><hr><a id="method-Model-posterior_to_RBesT"></a><div class="section">
 <h3 id="model-posterior-to-rbest-"><code>Model$posterior_to_RBesT()</code><a class="anchor" aria-label="anchor" href="#model-posterior-to-rbest-"></a></h3>
 <p>Convert the posterior distribution to RBesT format</p><div class="section">
-<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
+<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">posterior_to_RBesT</span><span class="op">(</span><span class="va">target_data</span>, <span class="va">simulation_config</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-24">Arguments<a class="anchor" aria-label="anchor" href="#arguments-24"></a></h4>
+<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>target_data</code></dt>
 <dd><p>Target study data</p></dd>
 
@@ -1026,14 +985,14 @@ credible interval override this and evaluate the definitions directly.</p><div c
 <h3 id="model-posterior-beta-mixture-"><code>Model$posterior_beta_mixture()</code><a class="anchor" aria-label="anchor" href="#model-posterior-beta-mixture-"></a></h3>
 <p>Beta mixture approximation to the posterior response rate</p>
 <p>The unit information design prior rescales the shape parameters of a Beta
-mixture, so it needs the fit on the 0, 1 rate scale rather than the one
+mixture, so it needs the fit on the \([0, 1]\) rate scale rather than the one
 on the treatment effect scale that <code>posterior_to_RBesT()</code> produces. It is
 built here on request because that construction runs once per case study,
 whereas <code>posterior_to_RBesT()</code> runs once per replicate.</p><div class="section">
-<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
+<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">posterior_beta_mixture</span><span class="op">(</span><span class="va">target_data</span>, <span class="va">simulation_config</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-25">Arguments<a class="anchor" aria-label="anchor" href="#arguments-25"></a></h4>
+<h4 id="arguments-24">Arguments<a class="anchor" aria-label="anchor" href="#arguments-24"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>target_data</code></dt>
 <dd><p>Target study data</p></dd>
 
@@ -1052,10 +1011,10 @@ whereas <code>posterior_to_RBesT()</code> runs once per replicate.</p><div class
 <p></p><hr><a id="method-Model-plot_pdfs"></a><div class="section">
 <h3 id="model-plot-pdfs-"><code>Model$plot_pdfs()</code><a class="anchor" aria-label="anchor" href="#model-plot-pdfs-"></a></h3>
 <p>Plot prior and posterior probability density functions (PDF).</p><div class="section">
-<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
+<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">plot_pdfs</span><span class="op">(</span>xmin <span class="op">=</span> <span class="op">-</span><span class="fl">2</span>, xmax <span class="op">=</span> <span class="fl">2</span>, resolution <span class="op">=</span> <span class="fl">100</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-26">Arguments<a class="anchor" aria-label="anchor" href="#arguments-26"></a></h4>
+<h4 id="arguments-25">Arguments<a class="anchor" aria-label="anchor" href="#arguments-25"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xmin</code></dt>
 <dd><p>Lower bound of the treatment effect range</p></dd>
 
@@ -1080,10 +1039,10 @@ whereas <code>posterior_to_RBesT()</code> runs once per replicate.</p><div class
 <p></p><hr><a id="method-Model-plot_prior_pdf"></a><div class="section">
 <h3 id="model-plot-prior-pdf-"><code>Model$plot_prior_pdf()</code><a class="anchor" aria-label="anchor" href="#model-plot-prior-pdf-"></a></h3>
 <p>Plot prior probability density function (PDF).</p><div class="section">
-<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
+<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">plot_prior_pdf</span><span class="op">(</span>xmin <span class="op">=</span> <span class="op">-</span><span class="fl">2</span>, xmax <span class="op">=</span> <span class="fl">2</span>, resolution <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-27">Arguments<a class="anchor" aria-label="anchor" href="#arguments-27"></a></h4>
+<h4 id="arguments-26">Arguments<a class="anchor" aria-label="anchor" href="#arguments-26"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xmin</code></dt>
 <dd><p>Lower bound of the treatment effect range</p></dd>
 
@@ -1105,10 +1064,10 @@ whereas <code>posterior_to_RBesT()</code> runs once per replicate.</p><div class
 <p></p><hr><a id="method-Model-plot_posterior_pdf"></a><div class="section">
 <h3 id="model-plot-posterior-pdf-"><code>Model$plot_posterior_pdf()</code><a class="anchor" aria-label="anchor" href="#model-plot-posterior-pdf-"></a></h3>
 <p>Plot posterior probability density function (PDF).</p><div class="section">
-<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
+<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">plot_posterior_pdf</span><span class="op">(</span>xmin <span class="op">=</span> <span class="op">-</span><span class="fl">2</span>, xmax <span class="op">=</span> <span class="fl">2</span>, resolution <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-28">Arguments<a class="anchor" aria-label="anchor" href="#arguments-28"></a></h4>
+<h4 id="arguments-27">Arguments<a class="anchor" aria-label="anchor" href="#arguments-27"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xmin</code></dt>
 <dd><p>Lower bound of the treatment effect range</p></dd>
 
@@ -1136,7 +1095,7 @@ prior and of the posterior, then each method-specific entry of
 inference has not run or the method does not compute it, gets no row.
 Subclasses add their own parameters by extending
 <code>super$summary_rows()</code>.</p><div class="section">
-<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
+<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">summary_rows</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
@@ -1151,7 +1110,7 @@ formatted as character.</p>
 <p>Print a summary of the model attributes</p>
 <p>Prints the table returned by <code>summary_rows()</code>, numeric values formatted
 to 6 decimal places.</p><div class="section">
-<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
+<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">print_model_summary</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-24">Returns<a class="anchor" aria-label="anchor" href="#returns-24"></a></h4>
@@ -1163,10 +1122,10 @@ to 6 decimal places.</p><div class="section">
 <p></p><hr><a id="method-Model-clone"></a><div class="section">
 <h3 id="model-clone-"><code>Model$clone()</code><a class="anchor" aria-label="anchor" href="#model-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-33">Usage<a class="anchor" aria-label="anchor" href="#usage-33"></a></h4>
+<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Model</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-29">Arguments<a class="anchor" aria-label="anchor" href="#arguments-29"></a></h4>
+<h4 id="arguments-28">Arguments<a class="anchor" aria-label="anchor" href="#arguments-28"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

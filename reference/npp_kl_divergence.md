@@ -21,7 +21,7 @@ npp_kl_divergence(posterior, reference_shape1, reference_shape2)
 - posterior:
 
   A list from
-  [`npp_kl_posterior_masses()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_kl_posterior_masses.md).
+  [`npp_kl_posterior_masses()`](https://tristanfauvel.github.io/BExTE/reference/npp_kl_posterior_masses.md).
 
 - reference_shape1:
 

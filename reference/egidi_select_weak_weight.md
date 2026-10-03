@@ -82,7 +82,7 @@ guaranteed.
 The scan is run in two stages, a coarse one to locate the crossing and a
 fine one at `weight_grid_step` inside it, and the crossing is then
 refined by
-[`vectorised_bracketed_root()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/vectorised_bracketed_root.md).
+[`vectorised_bracketed_root()`](https://tristanfauvel.github.io/BExTE/reference/vectorised_bracketed_root.md).
 The two-stage scan agrees with a single scan at `weight_grid_step`
 unless a crossing both starts and ends inside one coarse step;
 `weight_scan_step = weight_grid_step` disables the coarse stage.

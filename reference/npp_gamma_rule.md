@@ -30,4 +30,4 @@ npp_gamma_rule(p, q, t_limit = 30, t_step = 0.05)
 
 ## Value
 
-A list with `nodes` in 0, 1 and `weights` summing to one.
+A list with `nodes` in \\\[0, 1\]\\ and `weights` summing to one.

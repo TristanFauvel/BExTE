@@ -1,10 +1,10 @@
 # Compress the commensurate quadrature mixture, checking it against the full one
 
 Every component of
-[`commensurate_prior_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/commensurate_prior_mixture.md)
+[`commensurate_prior_mixture()`](https://tristanfauvel.github.io/BExTE/reference/commensurate_prior_mixture.md)
 is centred on the source estimate, so the mixture is a distribution over
 the component variance and
-[`compress_normal_scale_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compress_normal_scale_mixture.md)
+[`compress_normal_scale_mixture()`](https://tristanfauvel.github.io/BExTE/reference/compress_normal_scale_mixture.md)
 can replace its hundreds of components with a few dozen. The posterior
 moments of `tau` and of the power parameter are not functions of the
 variance alone; each is the ratio of an integral against the variance
@@ -40,7 +40,7 @@ compress_commensurate_mixture(
 - mixture:
 
   Output from
-  [`commensurate_prior_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/commensurate_prior_mixture.md).
+  [`commensurate_prior_mixture()`](https://tristanfauvel.github.io/BExTE/reference/commensurate_prior_mixture.md).
 
 - samples:
 
@@ -73,6 +73,6 @@ compress_commensurate_mixture(
 ## Value
 
 A list with the compressed `weights`, `means` and `sds`, the rules
-[`compressed_commensurate_parameter_summary()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compressed_commensurate_parameter_summary.md)
+[`compressed_commensurate_parameter_summary()`](https://tristanfauvel.github.io/BExTE/reference/compressed_commensurate_parameter_summary.md)
 reads, and the node count; or `NULL` when the full mixture should be
 used.

@@ -28,6 +28,10 @@ simulation_frequentist_ocs(
 
   Simulation configuration
 
+- scenarios_config:
+
+  Configuration for the simulation.
+
 - analysis_config:
 
   Analysis configuration
@@ -39,6 +43,10 @@ simulation_frequentist_ocs(
 - case_studies_config_dir:
 
   Case studies configuration directory
+
+- logging_file_path:
+
+  Currently unused.
 
 - frequentist_metrics:
 

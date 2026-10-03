@@ -70,7 +70,7 @@ calibrate_npp_kl(
 
   `1` when larger treatment effects are beneficial, `-1` when smaller
   ones are.
-  [`benefit_sign_from_null_space()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/benefit_sign_from_null_space.md)
+  [`benefit_sign_from_null_space()`](https://tristanfauvel.github.io/BExTE/reference/benefit_sign_from_null_space.md)
   derives it from a case study's `null_space`.
 
 - d_mtd:

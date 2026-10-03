@@ -25,6 +25,10 @@ simulation_bayesian_ocs(
 
   Simulation configuration
 
+- scenarios_config:
+
+  Configuration for the simulation.
+
 - analysis_config:
 
   Analysis configuration

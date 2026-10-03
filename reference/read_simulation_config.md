@@ -1,9 +1,9 @@
 # Read `simulation_config.yml` and validate it
 
 Checks the configuration against
-[simulation_config_schema](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulation_config_schema.md),
+[simulation_config_schema](https://tristanfauvel.github.io/BExTE/reference/simulation_config_schema.md),
 then with
-[`check_decision_threshold()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/check_decision_threshold.md).
+[`check_decision_threshold()`](https://tristanfauvel.github.io/BExTE/reference/check_decision_threshold.md).
 
 ## Usage
 

@@ -30,7 +30,7 @@ varies across replicates through one component's standard deviation
 alone, as the empirical Bayes robust mixture's vague component does, is
 integrated at Chebyshev nodes over the range of that standard deviation
 and interpolated - see
-[`interpolate_smooth_function()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/interpolate_smooth_function.md) -
+[`interpolate_smooth_function()`](https://tristanfauvel.github.io/BExTE/reference/interpolate_smooth_function.md) -
 to a relative error below 1e-9.
 
 ## Usage

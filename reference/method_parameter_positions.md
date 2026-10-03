@@ -30,4 +30,4 @@ method_parameter_positions(key, parameter_labels, dict)
 
 ## Value
 
-A numeric vector of positions in 0, 1.
+A numeric vector of positions in \\\[0, 1\]\\.

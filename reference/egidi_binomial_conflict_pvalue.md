@@ -1,7 +1,7 @@
 # Exact discrete conflict p-value for a two-arm binomial target
 
 The discrete counterpart of
-[`egidi_normal_conflict_pvalue()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/egidi_normal_conflict_pvalue.md):
+[`egidi_normal_conflict_pvalue()`](https://tristanfauvel.github.io/BExTE/reference/egidi_normal_conflict_pvalue.md):
 the total prior-predictive probability of every pair of response counts
 whose probability is at or below that of the observed pair.
 
@@ -23,7 +23,7 @@ egidi_binomial_conflict_pvalue(
 - table_informative, table_weak:
 
   Component tables from
-  [`binomial_rmp_predictive_tables()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_rmp_predictive_tables.md).
+  [`binomial_rmp_predictive_tables()`](https://tristanfauvel.github.io/BExTE/reference/binomial_rmp_predictive_tables.md).
 
 - psi:
 

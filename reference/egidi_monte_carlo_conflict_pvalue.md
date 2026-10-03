@@ -1,7 +1,7 @@
 # Prior-predictive conflict p-value by simulation
 
 The Monte Carlo fallback of
-[`egidi_normal_conflict_pvalue()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/egidi_normal_conflict_pvalue.md),
+[`egidi_normal_conflict_pvalue()`](https://tristanfauvel.github.io/BExTE/reference/egidi_normal_conflict_pvalue.md),
 for checking the deterministic calculation and for sampling
 distributions with no closed-form level sets. Egidi, Pauli and Torelli
 used 1000 hypothetical replications; the deterministic route is

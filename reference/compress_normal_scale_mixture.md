@@ -2,7 +2,7 @@
 
 A normal mixture whose components all share one mean is a distribution
 over the component variance `v`, and the conjugate update of
-[`normal_mixture_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/normal_mixture_posterior.md)
+[`normal_mixture_posterior()`](https://tristanfauvel.github.io/BExTE/reference/normal_mixture_posterior.md)
 depends on each component through `v` alone. Every posterior summary is
 then an integral against that distribution, and a Gauss rule for it with
 a few dozen nodes computes them as accurately as the hundreds of

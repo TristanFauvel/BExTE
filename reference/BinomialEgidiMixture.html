@@ -30,7 +30,7 @@ prior-predictive tables (see egidi_select_weak_weight_binomial())."></head><body
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TristanFauvel/BExTE/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -46,7 +46,7 @@ prior-predictive tables (see egidi_select_weak_weight_binomial())."></head><body
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>BinomialEgidiMixture class</h1>
-      <small class="dont-index">Source: <a href="https://github.com/quinten-health-os/BayesianExtrapolationSimulation/blob/main/R/binomial_rmp.R" class="external-link"><code>R/binomial_rmp.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/TristanFauvel/BExTE/blob/main/R/binomial_rmp.R" class="external-link"><code>R/binomial_rmp.R</code></a></small>
       <div class="d-none name"><code>BinomialEgidiMixture.Rd</code></div>
     </div>
 
@@ -109,6 +109,7 @@ replicate's sample alone.</p></dd>
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-BinomialEgidiMixture-initialize"><code>BinomialEgidiMixture$new()</code></a></p></li>
 <li><p><a href="#method-BinomialEgidiMixture-empirical_bayes_update"><code>BinomialEgidiMixture$empirical_bayes_update()</code></a></p></li>
+<li><p><a href="#method-BinomialEgidiMixture-quadrature_posterior"><code>BinomialEgidiMixture$quadrature_posterior()</code></a></p></li>
 <li><p><a href="#method-BinomialEgidiMixture-compute_posterior_parameters"><code>BinomialEgidiMixture$compute_posterior_parameters()</code></a></p></li>
 <li><p><a href="#method-BinomialEgidiMixture-prior_elir_ess"><code>BinomialEgidiMixture$prior_elir_ess()</code></a></p></li>
 <li><p><a href="#method-BinomialEgidiMixture-clone"><code>BinomialEgidiMixture$clone()</code></a></p></li>
@@ -128,9 +129,7 @@ replicate's sample alone.</p></dd>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href="Model.html#method-posterior_quantile"><code>Model$posterior_quantile()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href="Model.html#method-posterior_to_RBesT"><code>Model$posterior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="print_model_summary"><a href="Model.html#method-print_model_summary"><code>Model$print_model_summary()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href="Model.html#method-prior_ESS"><code>Model$prior_ESS()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href="Model.html#method-prior_to_RBesT"><code>Model$prior_to_RBesT()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href="Model.html#method-prior_treatment_benefit"><code>Model$prior_treatment_benefit()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href="Model.html#method-simulation_for_given_treatment_effect"><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href="Model.html#method-test_decision"><code>Model$test_decision()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="vectorised_replicate_inference"><a href="Model.html#method-vectorised_replicate_inference"><code>Model$vectorised_replicate_inference()</code></a></span></li>
@@ -150,7 +149,6 @@ replicate's sample alone.</p></dd>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href="MCMCModel.html#method-stan_sampler"><code>MCMCModel$stan_sampler()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href="MCMCModel.html#method-uses_quadrature"><code>MCMCModel$uses_quadrature()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="prior_given_control_rate"><a href="BinomialLatticePrior.html#method-prior_given_control_rate"><code>BinomialLatticePrior$prior_given_control_rate()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="quadrature_posterior"><a href="BinomialLatticePrior.html#method-quadrature_posterior"><code>BinomialLatticePrior$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="quadrature_prior"><a href="BinomialLatticePrior.html#method-quadrature_prior"><code>BinomialLatticePrior$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialLatticePrior" data-id="source_counts"><a href="BinomialLatticePrior.html#method-source_counts"><code>BinomialLatticePrior$source_counts()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="BinomialRMP" data-id="components"><a href="BinomialRMP.html#method-components"><code>BinomialRMP$components()</code></a></span></li>
@@ -193,10 +191,31 @@ supported.</p></dd>
 
 </div>
 
+<p></p><hr><a id="method-BinomialEgidiMixture-quadrature_posterior"></a><div class="section">
+<h3 id="binomialegidimixture-quadrature-posterior-"><code>BinomialEgidiMixture$quadrature_posterior()</code><a class="anchor" aria-label="anchor" href="#binomialegidimixture-quadrature-posterior-"></a></h3>
+<p>The posterior on a grid, from the two components' kernels
+and the weight, without forming the mixture kernel; see
+<code><a href="binomial_rmp_posterior.html">binomial_rmp_posterior()</a></code>.</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BinomialEgidiMixture</span><span class="op">$</span><span class="fu">quadrature_posterior</span><span class="op">(</span><span class="va">target_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>target_data</code></dt>
+<dd><p>The target study data.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>The list <code><a href="binomial_npp_posterior.html">binomial_npp_posterior()</a></code> returns.</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BinomialEgidiMixture-compute_posterior_parameters"></a><div class="section">
 <h3 id="binomialegidimixture-compute-posterior-parameters-"><code>BinomialEgidiMixture$compute_posterior_parameters()</code><a class="anchor" aria-label="anchor" href="#binomialegidimixture-compute-posterior-parameters-"></a></h3>
 <p>Record the posterior weight and the selection.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BinomialEgidiMixture</span><span class="op">$</span><span class="fu">compute_posterior_parameters</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -208,10 +227,10 @@ supported.</p></dd>
 changes between datasets only through its weight, so the unit-scale ELIR
 is computed at weights 0, 0.05, ..., 1, once per worker, and interpolated
 linearly.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BinomialEgidiMixture</span><span class="op">$</span><span class="fu">prior_elir_ess</span><span class="op">(</span><span class="va">target_data</span>, <span class="va">simulation_config</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>target_data</code></dt>
 <dd><p>Target study data.</p></dd>
 
@@ -221,7 +240,7 @@ linearly.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>The ELIR effective sample size.</p>
 </div>
 
@@ -230,10 +249,10 @@ linearly.</p><div class="section">
 <p></p><hr><a id="method-BinomialEgidiMixture-clone"></a><div class="section">
 <h3 id="binomialegidimixture-clone-"><code>BinomialEgidiMixture$clone()</code><a class="anchor" aria-label="anchor" href="#binomialegidimixture-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BinomialEgidiMixture</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

@@ -37,4 +37,4 @@ binomial_npp_cached_kernels(
 ## Value
 
 The output of
-[`binomial_npp_prior_kernels()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_npp_prior_kernels.md).
+[`binomial_npp_prior_kernels()`](https://tristanfauvel.github.io/BExTE/reference/binomial_npp_prior_kernels.md).

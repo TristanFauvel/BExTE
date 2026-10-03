@@ -1,7 +1,7 @@
 # Select the weak-component weight from a pair of response counts
 
 The binomial counterpart of
-[`egidi_select_weak_weight()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/egidi_select_weak_weight.md).
+[`egidi_select_weak_weight()`](https://tristanfauvel.github.io/BExTE/reference/egidi_select_weak_weight.md).
 The component tables are fixed, so the scan is over candidate weights
 alone.
 
@@ -44,7 +44,7 @@ egidi_select_weak_weight_binomial(
 ## Value
 
 A one-row data frame shaped like
-[`egidi_select_weak_weight()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/egidi_select_weak_weight.md)'s.
+[`egidi_select_weak_weight()`](https://tristanfauvel.github.io/BExTE/reference/egidi_select_weak_weight.md)'s.
 
 ## Details
 

@@ -1,11 +1,11 @@
 # Calibrate the KL normalized power prior on binomial likelihoods
 
 The criterion of
-[`calibrate_npp_kl()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrate_npp_kl.md) -
+[`calibrate_npp_kl()`](https://tristanfauvel.github.io/BExTE/reference/calibrate_npp_kl.md) -
 the same two hypothetical target results, reference distributions,
 weights, bounds and optimiser - with the posterior of the power
 parameter computed from the binomial marginal likelihood of each result,
-[`npp_kl_binomial_log_marginals()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_kl_binomial_log_marginals.md),
+[`npp_kl_binomial_log_marginals()`](https://tristanfauvel.github.io/BExTE/reference/npp_kl_binomial_log_marginals.md),
 instead of the normal one.
 
 ## Usage
@@ -43,7 +43,7 @@ npp_kl_calibrate_design_binomial(
 - settings:
 
   Output of
-  [`npp_kl_settings()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_kl_settings.md).
+  [`npp_kl_settings()`](https://tristanfauvel.github.io/BExTE/reference/npp_kl_settings.md).
 
 - n_lattice:
 
@@ -56,5 +56,5 @@ npp_kl_calibrate_design_binomial(
 ## Value
 
 A list with the fields of
-[`calibrate_npp_kl()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrate_npp_kl.md)'s
+[`calibrate_npp_kl()`](https://tristanfauvel.github.io/BExTE/reference/calibrate_npp_kl.md)'s
 result.

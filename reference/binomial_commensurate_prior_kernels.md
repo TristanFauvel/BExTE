@@ -27,7 +27,7 @@ binomial_commensurate_prior_kernels(
 - tau_rule:
 
   Output of
-  [`commensurate_tau_quadrature()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/commensurate_tau_quadrature.md).
+  [`commensurate_tau_quadrature()`](https://tristanfauvel.github.io/BExTE/reference/commensurate_tau_quadrature.md).
 
 - borrows_power_parameter:
 
@@ -37,7 +37,7 @@ binomial_commensurate_prior_kernels(
 - tau_moments_exist:
 
   Output of
-  [`commensurate_tau_moments_exist()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/commensurate_tau_moments_exist.md).
+  [`commensurate_tau_moments_exist()`](https://tristanfauvel.github.io/BExTE/reference/commensurate_tau_moments_exist.md).
 
 - n_lattice:
 
@@ -47,5 +47,5 @@ binomial_commensurate_prior_kernels(
 
 A list with `n_lattice`, `rates`, `differences`, `kernel` and `moments`,
 as
-[`binomial_npp_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_npp_posterior.md)
+[`binomial_npp_posterior()`](https://tristanfauvel.github.io/BExTE/reference/binomial_npp_posterior.md)
 reads them.

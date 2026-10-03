@@ -11,7 +11,7 @@ generator and the Cox fit.
 
 ## Super class
 
-[`TargetData`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.md)
+[`TargetData`](https://tristanfauvel.github.io/BExTE/reference/TargetData.md)
 -\> `TimeToEventTargetData`
 
 ## Public fields
@@ -81,7 +81,7 @@ generator and the Cox fit.
 
 Inherited methods
 
-- [`TargetData$plot_sample()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/TargetData.html#method-plot_sample)
+- [`TargetData$plot_sample()`](https://tristanfauvel.github.io/BExTE/reference/TargetData.html#method-plot_sample)
 
 ------------------------------------------------------------------------
 

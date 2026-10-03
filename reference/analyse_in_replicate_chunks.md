@@ -23,7 +23,7 @@ analyse_in_replicate_chunks(samples, analyse, chunk_size = 1000L)
 - analyse:
 
   Function of a chunk of `samples` returning the list that
-  [`vectorised_normal_mixture_simulation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/vectorised_normal_mixture_simulation.md)
+  [`vectorised_normal_mixture_simulation()`](https://tristanfauvel.github.io/BExTE/reference/vectorised_normal_mixture_simulation.md)
   returns.
 
 - chunk_size:

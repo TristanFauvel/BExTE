@@ -77,7 +77,7 @@ where \\m\_\psi'\\ is scanned on a grid fine enough to resolve the
 narrower component and its sign changes are refined by root-finding.
 There are at most three of them, giving at most four monotone pieces,
 each of which holds at most one root. Both refinements run
-[`vectorised_bracketed_root()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/vectorised_bracketed_root.md)
+[`vectorised_bracketed_root()`](https://tristanfauvel.github.io/BExTE/reference/vectorised_bracketed_root.md)
 on a bracket found beforehand, so neither can lose its root.
 
 Scanning for the level crossings directly would not be robust: when the

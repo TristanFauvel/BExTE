@@ -30,6 +30,16 @@ sweet_spot_determination(
 
   A numeric reference value to determine the crossing points.
 
+- larger_is_better:
+
+  Whether larger `y_values` are better. If FALSE, the sign of the
+  comparison with `reference_value` is reversed.
+
+- return_NA_at_boundaries:
+
+  If TRUE, a sweet spot bound that falls on the edge of `x_values` is
+  reported as NA rather than as that edge.
+
 ## Value
 
 A list containing:

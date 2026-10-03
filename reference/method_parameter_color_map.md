@@ -26,7 +26,7 @@ method_parameter_color_map(df_subset, method, ...)
 - ...:
 
   Passed on to
-  [`method_parameter_colors()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/method_parameter_colors.md).
+  [`method_parameter_colors()`](https://tristanfauvel.github.io/BExTE/reference/method_parameter_colors.md).
 
 ## Value
 

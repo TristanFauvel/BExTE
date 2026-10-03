@@ -68,4 +68,4 @@ adaptive_power_prior_type_I_error(
 
 ## Value
 
-The type I error rate, a single number in 0, 1.
+The type I error rate, a single number in \\\[0, 1\]\\.

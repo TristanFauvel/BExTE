@@ -13,7 +13,7 @@ binomial_rmp_kernels(components, weight)
 - components:
 
   Output of
-  [`binomial_rmp_components()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_rmp_components.md).
+  [`binomial_rmp_components()`](https://tristanfauvel.github.io/BExTE/reference/binomial_rmp_components.md).
 
 - weight:
 
@@ -22,6 +22,6 @@ binomial_rmp_kernels(components, weight)
 ## Value
 
 A list as
-[`binomial_npp_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_npp_posterior.md)
+[`binomial_npp_posterior()`](https://tristanfauvel.github.io/BExTE/reference/binomial_npp_posterior.md)
 reads it, whose `prior_weight` moment gives the posterior weight of the
 informative component.

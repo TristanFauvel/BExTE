@@ -4,7 +4,7 @@ The KL criterion compares the posterior of the power parameter under two
 hypothetical target results. With binomial likelihoods that posterior is
 the Beta prior times the marginal likelihood m(gamma) = Z_T(gamma) /
 Z_S(gamma) of the binomial power prior (see
-[`binomial_power_prior_log_marginal()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_power_prior_log_marginal.md)),
+[`binomial_power_prior_log_marginal()`](https://tristanfauvel.github.io/BExTE/reference/binomial_power_prior_log_marginal.md)),
 which does not depend on the Beta prior. It is therefore tabulated once
 per hypothetical result, on a grid of power parameters dense near 0
 where Beta priors with small shapes put their quadrature nodes, and

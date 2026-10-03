@@ -42,6 +42,19 @@ plot_empirical_bayes_hyperparameters_vs_drift(
 
   Variable on the x axis
 
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
+- parameters_combinations:
+
+  The combinations of parameters to filter the results by
+
 ## Value
 
 None

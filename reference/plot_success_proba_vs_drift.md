@@ -52,6 +52,10 @@ plot_success_proba_vs_drift(
   Ratio between the target and source studies sampling standard
   deviation.
 
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
 - parameters_combinations:
 
   The combinations of parameters to filter the results by
@@ -63,6 +67,11 @@ plot_success_proba_vs_drift(
 - join_points:
 
   Whether to join the point with a line or not.
+
+- baseline_success_proba:
+
+  Which baselines to overlay: any of "at_equivalent_TIE" and
+  "at_nominal_TIE".
 
 ## Value
 

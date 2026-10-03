@@ -112,7 +112,7 @@ source_data <- ObservedSourceData$new(case_study_config)
 
 ## Calibrate the prior
 
-[`calibrate_npp_kl()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrate_npp_kl.md)
+[`calibrate_npp_kl()`](https://tristanfauvel.github.io/BExTE/reference/calibrate_npp_kl.md)
 is the calibration on its own, without a model around it. The expected
 target standard error is the one the design implies.
 
@@ -184,7 +184,7 @@ sweep
     ## 2   0.25   2.6145377  6.4850561 0.28732466
     ## 3   0.50   4.9254121  5.0317320 0.49466112
     ## 4   0.75   7.4183202  3.1492847 0.70198690
-    ## 5   1.00   9.9383468  0.9982855 0.90872094
+    ## 5   1.00   9.9383466  0.9982855 0.90872094
 
 ``` r
 

@@ -25,7 +25,7 @@ disk_cached(key, compute, subdirectory = "lattice_kernels")
 - subdirectory:
 
   Subdirectory of
-  [`bexte_cache_dir()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/bexte_cache_dir.md).
+  [`bexte_cache_dir()`](https://tristanfauvel.github.io/BExTE/reference/bexte_cache_dir.md).
 
 ## Value
 

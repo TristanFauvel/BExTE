@@ -3,8 +3,8 @@
 The posterior of the difference in response rates only has mass where
 the treatment arm likelihood does, i.e. where theta + v falls in the
 bulk of Beta(treatment_shape1, treatment_shape2) for some control rate
-node v. The grid spans that region, clipped to -1, 1, with a spacing
-fine enough to resolve the narrowest of `scales`.
+node v. The grid spans that region, clipped to \\\[-1, 1\]\\, with a
+spacing fine enough to resolve the narrowest of `scales`.
 
 ## Usage
 

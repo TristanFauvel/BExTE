@@ -1,11 +1,11 @@
 # Bayesian Extrapolation of Treatment Effects
 
 [![R Package
-Build](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg)](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/build.yml)
-[![pkgdown](https://github.com/quinten-health-os/BayesianExtrapolationSimulation/actions/workflows/pkgdown.yml/badge.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/)
+Build](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml)
+[![pkgdown](https://github.com/TristanFauvel/BExTE/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BExTE/)
 [![License: GPL
-v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/DESCRIPTION)
+v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://tristanfauvel.github.io/BExTE/LICENSE)
+[![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](https://tristanfauvel.github.io/BExTE/DESCRIPTION)
 [![R \>=
 3.5.0](https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg)](https://www.r-project.org/)
 
@@ -17,14 +17,14 @@ A collection of R tools to :
 - Analyze clinical trial data using Bayesian partial extrapolation
   methods.
 
-[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/index.md)
+[](https://tristanfauvel.github.io/BExTE/articles/index.md)
 
 ##### 📚 Vignettes
 
 Step-by-step guides to simulation studies, data generation, borrowing
 methods, and case-study replications.
 
-[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/index.md)
+[](https://tristanfauvel.github.io/BExTE/reference/index.md)
 
 ##### 🔧 API reference
 
@@ -38,7 +38,7 @@ plots, tables, operating characteristics.
 Configure, run, and analyze a simulation study from BExTE-app, a
 separate Shiny app, without hand-editing config files.
 
-[](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/news/index.md)
+[](https://tristanfauvel.github.io/BExTE/news/index.md)
 
 ##### 📝 Changelog
 
@@ -134,7 +134,7 @@ method, allowing to sample many replicates of the target study.
 ## Access documentation
 
 The full documentation website is available at
-[quinten-health-os.github.io/BayesianExtrapolationSimulation](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/).
+[tristanfauvel.github.io/BExTE](https://tristanfauvel.github.io/BExTE/).
 
 To access it locally instead : browseURL(“docs/index.html”)
 
@@ -164,8 +164,8 @@ inference
 
 New contributors are always welcome. Please have a look at the
 [contribution
-guidelines](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/CONTRIBUTING.md)
-on how to get started and to make sure your code complies with our
+guidelines](https://tristanfauvel.github.io/BExTE/CONTRIBUTING.md) on
+how to get started and to make sure your code complies with our
 guidelines.
 
 ## Rationale of the design

@@ -12,7 +12,7 @@ the target standard error, so a prior fixed in advance cannot express
 would not tolerate". This class states that intention instead, as a
 Kullback-Leibler criterion over two hypothetical target estimates, and
 solves for the shape parameters it implies - see
-[`calibrate_npp_kl()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrate_npp_kl.md).
+[`calibrate_npp_kl()`](https://tristanfauvel.github.io/BExTE/reference/calibrate_npp_kl.md).
 
 Everything downstream of the prior is inherited unchanged: the joint and
 marginal posteriors, the quadrature mixture, the summaries and the
@@ -21,15 +21,15 @@ where `p` and `q` come from differs.
 
 The calibration reads the design, not the data, so it happens once per
 scenario, in
-[Model](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)`$calibrate_for_design()`,
+[Model](https://tristanfauvel.github.io/BExTE/reference/Model.md)`$calibrate_for_design()`,
 before any replicate is generated. `p` and `q` are left `NULL` until
 then: a model analysed before it has been calibrated would otherwise
 silently use whatever placeholder stood in for them.
 
 ## Super classes
 
-[`Model`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.md)
--\> `GaussianNPP` -\> `GaussianNPP_KL`
+[`Model`](https://tristanfauvel.github.io/BExTE/reference/Model.md) -\>
+`GaussianNPP` -\> `GaussianNPP_KL`
 
 ## Public fields
 
@@ -48,7 +48,7 @@ silently use whatever placeholder stood in for them.
 - `calibration`:
 
   The result of
-  [`calibrate_npp_kl()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrate_npp_kl.md)
+  [`calibrate_npp_kl()`](https://tristanfauvel.github.io/BExTE/reference/calibrate_npp_kl.md)
   for this scenario
 
 - `calibration_settings`:
@@ -77,30 +77,28 @@ silently use whatever placeholder stood in for them.
 
 Inherited methods
 
-- [`Model$check_data()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-check_data)
-- [`Model$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-create)
-- [`Model$empirical_bayes_update()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-empirical_bayes_update)
-- [`Model$estimate_bayesian_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_bayesian_operating_characteristics)
-- [`Model$estimate_frequentist_operating_characteristics()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-estimate_frequentist_operating_characteristics)
-- [`Model$hypothesis_space_transformation()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-hypothesis_space_transformation)
-- [`Model$inference_cache_scope()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-inference_cache_scope)
-- [`Model$plot_pdfs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_pdfs)
-- [`Model$plot_posterior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_posterior_pdf)
-- [`Model$plot_prior_pdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-plot_prior_pdf)
-- [`Model$posterior_beta_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_beta_mixture)
-- [`Model$posterior_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_ess)
-- [`Model$posterior_mean()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_mean)
-- [`Model$posterior_moments()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_moments)
-- [`Model$posterior_quantile()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_quantile)
-- [`Model$posterior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-posterior_to_RBesT)
-- [`Model$print_model_summary()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-print_model_summary)
-- [`Model$prior_ESS()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_ESS)
-- [`Model$prior_cdf()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_cdf)
-- [`Model$prior_elir_ess()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_elir_ess)
-- [`Model$prior_to_RBesT()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_to_RBesT)
-- [`Model$prior_treatment_benefit()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-prior_treatment_benefit)
-- [`Model$simulation_for_given_treatment_effect()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-simulation_for_given_treatment_effect)
-- [`Model$test_decision()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/Model.html#method-test_decision)
+- [`Model$check_data()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-check_data)
+- [`Model$create()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-create)
+- [`Model$empirical_bayes_update()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-empirical_bayes_update)
+- [`Model$estimate_bayesian_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_bayesian_operating_characteristics)
+- [`Model$estimate_frequentist_operating_characteristics()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-estimate_frequentist_operating_characteristics)
+- [`Model$hypothesis_space_transformation()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-hypothesis_space_transformation)
+- [`Model$inference_cache_scope()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-inference_cache_scope)
+- [`Model$plot_pdfs()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_pdfs)
+- [`Model$plot_posterior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_posterior_pdf)
+- [`Model$plot_prior_pdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-plot_prior_pdf)
+- [`Model$posterior_beta_mixture()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_beta_mixture)
+- [`Model$posterior_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_ess)
+- [`Model$posterior_mean()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_mean)
+- [`Model$posterior_moments()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_moments)
+- [`Model$posterior_quantile()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_quantile)
+- [`Model$posterior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-posterior_to_RBesT)
+- [`Model$print_model_summary()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-print_model_summary)
+- [`Model$prior_cdf()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_cdf)
+- [`Model$prior_elir_ess()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_elir_ess)
+- [`Model$prior_to_RBesT()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-prior_to_RBesT)
+- [`Model$simulation_for_given_treatment_effect()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-simulation_for_given_treatment_effect)
+- [`Model$test_decision()`](https://tristanfauvel.github.io/BExTE/reference/Model.html#method-test_decision)
 - `GaussianNPP$credible_interval()`
 - `GaussianNPP$normalizing_constant_power_parameter()`
 - `GaussianNPP$plot_power_parameter_posterior_pdf()`
@@ -146,7 +144,7 @@ A new GaussianNPP_KL object.
 ### `GaussianNPP_KL$calibrate_for_design()`
 
 Calibrate the prior on the power parameter to this design; see
-[`npp_kl_calibrate_design()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_kl_calibrate_design.md).
+[`npp_kl_calibrate_design()`](https://tristanfauvel.github.io/BExTE/reference/npp_kl_calibrate_design.md).
 For a binary endpoint the expected target standard error is taken at
 zero treatment drift, so that the prior does not depend on the
 scenario's true treatment effect.

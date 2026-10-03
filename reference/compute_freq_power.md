@@ -61,7 +61,7 @@ compute_freq_power(
 - p_values:
 
   Optional p-values already simulated for this design by
-  [`simulate_test_p_values()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulate_test_p_values.md),
+  [`simulate_test_p_values()`](https://tristanfauvel.github.io/BExTE/reference/simulate_test_p_values.md),
   with the same seed and `n_replicates`. `NULL` simulates them. Ignored
   when the power has a closed form.
 
@@ -71,7 +71,7 @@ compute_freq_power(
   scenario. When given, the test rejects at the threshold its actual
   type I error there equals `alpha` at, rather than at `alpha` itself -
   see
-  [`calibrated_levels()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrated_levels.md).
+  [`calibrated_levels()`](https://tristanfauvel.github.io/BExTE/reference/calibrated_levels.md).
   Ignored when the power has a closed form.
 
 ## Value

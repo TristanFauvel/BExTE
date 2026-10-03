@@ -40,9 +40,18 @@ table_empirical_bayes_hyperparameters_vs_drift(
 
   A list containing the x-variable configurations.
 
-- target_sample_size_per_arm:
+- source_denominator_change_factor:
 
-  The target sample size per arm to filter the results by.
+  The source denominator change factor of the scenario to keep.
+
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
+- parameters_combinations:
+
+  The combinations of parameters to filter the results by
 
 ## Value
 

@@ -23,7 +23,7 @@ npp_kl_calibration_columns(calibration, n_replicates)
 - calibration:
 
   A list from
-  [`calibrate_npp_kl()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrate_npp_kl.md).
+  [`calibrate_npp_kl()`](https://tristanfauvel.github.io/BExTE/reference/calibrate_npp_kl.md).
 
 - n_replicates:
 

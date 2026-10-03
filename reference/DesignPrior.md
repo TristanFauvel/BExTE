@@ -116,7 +116,7 @@ override this.
 #### Returns
 
 A
-[FunctionalDesignPrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/FunctionalDesignPrior.md).
+[FunctionalDesignPrior](https://tristanfauvel.github.io/BExTE/reference/FunctionalDesignPrior.md).
 
 ------------------------------------------------------------------------
 

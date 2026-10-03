@@ -361,5 +361,5 @@ staggered accrual, the database lock and the loss to follow-up, and is
 not the design described above.
 
 See
-[Data_generation_botox](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles/doc/Data_generation_botox.md)
+[Data_generation_botox](https://tristanfauvel.github.io/BExTE/articles/doc/Data_generation_botox.md)
 for details on aggregate normal data generation.

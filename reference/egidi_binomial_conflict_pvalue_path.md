@@ -1,6 +1,6 @@
 # Conflict p-values at many weights at once
 
-[`egidi_binomial_conflict_pvalue()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/egidi_binomial_conflict_pvalue.md)
+[`egidi_binomial_conflict_pvalue()`](https://tristanfauvel.github.io/BExTE/reference/egidi_binomial_conflict_pvalue.md)
 at every weight in `psi`, for the cost of sorting the table once rather
 than of one pass over it per weight.
 

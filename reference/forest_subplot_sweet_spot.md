@@ -46,10 +46,6 @@ forest_subplot_sweet_spot(
 
   Name of the metric on the x-axis
 
-- ylabel:
-
-  A logical value indicating whether to display the y-axis label.
-
 ## Value
 
 A ggplot2 object representing the forest plot.

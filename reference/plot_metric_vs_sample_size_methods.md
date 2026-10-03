@@ -37,6 +37,28 @@ plot_metric_vs_sample_size_methods(
 
   Boundary of the null hypothesis space.
 
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- dodging:
+
+  Currently unused.
+
+- join_points:
+
+  Whether to join the point with a line or not.
+
+- target_treatment_effect:
+
+  Which of the three main treatment effects to keep: "No effect",
+  "Partially consistent effect" or "Consistent effect".
+
 ## Value
 
 None

@@ -24,13 +24,14 @@ generate_comparison_table(
 
   The metric to be used for comparison.
 
-- case_study:
+- source_denominator_change_factor:
 
-  The case study to filter the results.
+  The source denominator change factor of the scenario to keep.
 
-- target_sample_size_per_arm:
+- target_to_source_std_ratio:
 
-  The target sample size per arm to filter the results.
+  Ratio between the target and source studies sampling standard
+  deviation.
 
 ## Value
 

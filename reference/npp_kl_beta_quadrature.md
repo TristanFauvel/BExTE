@@ -5,7 +5,7 @@ parameters go as low as 0.05, so the integrand has an algebraic
 singularity at each endpoint. Gauss-Jacobi integrates
 \\\gamma^{a-1}(1-\gamma)^{b-1}\\ exactly, leaving only the smooth
 remainder to the rule, which is the same argument
-[`npp_prior_mixture()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_prior_mixture.md)
+[`npp_prior_mixture()`](https://tristanfauvel.github.io/BExTE/reference/npp_prior_mixture.md)
 makes for the prior mixture. Substituting \\\gamma = (1 + x)/2\\ maps
 [`statmod::gauss.quad()`](https://rdrr.io/pkg/statmod/man/gauss.quad.html)'s
 interval onto the unit interval and turns its weight function

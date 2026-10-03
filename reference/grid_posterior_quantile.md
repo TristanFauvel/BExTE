@@ -15,7 +15,7 @@ grid_posterior_quantile(posterior, probability)
 - posterior:
 
   Output of
-  [`grid_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/grid_posterior.md).
+  [`grid_posterior()`](https://tristanfauvel.github.io/BExTE/reference/grid_posterior.md).
 
 - probability:
 

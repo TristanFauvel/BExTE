@@ -15,7 +15,7 @@ plot_sweet_spot_width_vs_scenario(sweet_spot_df, sweet_spots_metrics)
 
   The data frame containing the results and metrics.
 
-- metrics:
+- sweet_spots_metrics:
 
   A list of metrics to be plotted.
 

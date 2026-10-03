@@ -15,7 +15,7 @@ binomial_power_prior_bilinear(terms)
 - terms:
 
   Output of
-  [`binomial_power_prior_target_terms()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_power_prior_target_terms.md).
+  [`binomial_power_prior_target_terms()`](https://tristanfauvel.github.io/BExTE/reference/binomial_power_prior_target_terms.md).
 
 ## Value
 

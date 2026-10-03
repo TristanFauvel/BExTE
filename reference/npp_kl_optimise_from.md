@@ -1,7 +1,7 @@
 # One run of the calibration optimiser
 
 Factored out of
-[`calibrate_npp_kl()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrate_npp_kl.md)
+[`calibrate_npp_kl()`](https://tristanfauvel.github.io/BExTE/reference/calibrate_npp_kl.md)
 so that a single starting value can be exercised, and made to fail, on
 its own.
 
@@ -26,7 +26,7 @@ npp_kl_optimise_from(start, objective, beta_parameter_bounds)
 - objective:
 
   A function of `eta`, as
-  [`npp_kl_objective()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_kl_objective.md).
+  [`npp_kl_objective()`](https://tristanfauvel.github.io/BExTE/reference/npp_kl_objective.md).
 
 - beta_parameter_bounds:
 

@@ -7,7 +7,7 @@ sum over the source control rate of exp(gamma l) / Z_S(gamma), with l
 the source log likelihood, the average is a sum of h(l) over the source
 control rate, where h is a function of one scalar, tabulated once per
 distinct shape g(tau) and interpolated (as in
-[`binomial_npp_prior_kernels()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_npp_prior_kernels.md)).
+[`binomial_npp_prior_kernels()`](https://tristanfauvel.github.io/BExTE/reference/binomial_npp_prior_kernels.md)).
 
 ## Usage
 

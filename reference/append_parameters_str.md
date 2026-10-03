@@ -20,7 +20,7 @@ append_parameters_str(stem, parameters_str)
 - parameters_str:
 
   The output of
-  [`convert_params_to_str()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/convert_params_to_str.md).
+  [`convert_params_to_str()`](https://tristanfauvel.github.io/BExTE/reference/convert_params_to_str.md).
 
 ## Value
 

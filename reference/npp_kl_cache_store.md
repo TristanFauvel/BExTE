@@ -9,7 +9,7 @@ drift axis collapses onto a single calibration.
 
 The store lives in the package rather than on a model because a model is
 built afresh for each scenario, the same reason
-[inference_cache_store](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/inference_cache_store.md)
+[inference_cache_store](https://tristanfauvel.github.io/BExTE/reference/inference_cache_store.md)
 does.
 
 ## Usage

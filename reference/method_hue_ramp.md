@@ -24,4 +24,4 @@ method_hue_ramp(hue, light_weight = 0.75, dark_weight = 0.45)
 
 ## Value
 
-A function mapping positions in 0, 1 to hex colours.
+A function mapping positions in \\\[0, 1\]\\ to hex colours.

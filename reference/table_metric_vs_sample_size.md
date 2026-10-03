@@ -39,9 +39,19 @@ table_metric_vs_sample_size(
 
   The null hypothesis value
 
-- parameters_combinations:
+- source_denominator_change_factor:
 
-  The combinations of parameters
+  The source denominator change factor of the scenario to keep.
+
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
+- wide_table:
+
+  Whether to pivot the table so that each parameter combination gets its
+  own column.
 
 ## Value
 

@@ -43,6 +43,15 @@ table_metric_vs_parameters(
 
   The null hypothesis value
 
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
 ## Value
 
 Generates and saves tables in HTML, PDF, and LaTeX formats

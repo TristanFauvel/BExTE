@@ -27,6 +27,14 @@ frequentist_power_at_equivalent_tie(
 
   The analysis configuration.
 
+- simulation_config:
+
+  The simulation configuration.
+
+- parallelization:
+
+  Whether to simulate the designs in parallel.
+
 - n_replicates:
 
   Number of Monte Carlo replicates the simulated power estimates are
@@ -37,14 +45,14 @@ frequentist_power_at_equivalent_tie(
 
   Optional environment holding the simulated trials of each design,
   filled here and read back by
-  [`frequentist_power_at_nominal_tie()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/frequentist_power_at_nominal_tie.md),
+  [`frequentist_power_at_nominal_tie()`](https://tristanfauvel.github.io/BExTE/reference/frequentist_power_at_nominal_tie.md),
   whose separate and pooled powers read the same trials. `NULL` keeps
   them for this call only.
 
 - cluster:
 
   Optional shared cluster from `new_analysis_cluster()`, as
-  [`simulation_analysis()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulation_analysis.md)
+  [`simulation_analysis()`](https://tristanfauvel.github.io/BExTE/reference/simulation_analysis.md)
   passes it. `NULL` starts one for this call if the work warrants it.
 
 ## Value

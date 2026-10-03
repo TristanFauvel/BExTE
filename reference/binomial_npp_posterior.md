@@ -22,7 +22,7 @@ binomial_npp_posterior(
 - kernels:
 
   Output of
-  [`binomial_npp_prior_kernels()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_npp_prior_kernels.md).
+  [`binomial_npp_prior_kernels()`](https://tristanfauvel.github.io/BExTE/reference/binomial_npp_prior_kernels.md).
 
 - n_control, n_successes_control:
 
@@ -35,7 +35,7 @@ binomial_npp_posterior(
 ## Value
 
 A
-[`grid_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/grid_posterior.md)
+[`grid_posterior()`](https://tristanfauvel.github.io/BExTE/reference/grid_posterior.md)
 list with, in addition, `power_parameter_mean` and
 `power_parameter_std`, the posterior mean and standard deviation of the
 power parameter.

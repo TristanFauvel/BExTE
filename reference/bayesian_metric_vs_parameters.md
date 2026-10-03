@@ -49,6 +49,15 @@ bayesian_metric_vs_parameters(
 
   A logical value indicating whether to add baselines to the plot.
 
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
 ## Value
 
 None

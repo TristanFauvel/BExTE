@@ -53,18 +53,9 @@ plot_metric_vs_drift_methods(
 
   Whether to join the point with a line or not.
 
-- method:
+- source_denominator_change_factor:
 
-  The method name
-
-- category:
-
-  The category to group the results by (either "parameters" or
-  "target_sample_size_per_arm")
-
-- parameters_combinations:
-
-  The combinations of parameters to filter the results by
+  The source denominator change factor of the scenario to keep.
 
 ## Value
 

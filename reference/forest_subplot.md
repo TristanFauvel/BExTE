@@ -17,7 +17,10 @@ forest_subplot(
   legend = FALSE,
   sort_by = FALSE,
   palette = NULL,
-  reference_line = NULL
+  reference_line = NULL,
+  ess_limits = NULL,
+  ess_midpoint = NULL,
+  nominal_tie_line = NULL
 )
 ```
 
@@ -51,15 +54,45 @@ forest_subplot(
 
   Label of the metric on the x-axis
 
+- methods_labels:
+
+  Display labels of the methods, as defined by sourcing
+  `methods_plots_config.R`.
+
+- legend:
+
+  Whether to draw a legend for the reference lines.
+
+- sort_by:
+
+  `"methods_parameters"` to order each method's rows by its parameter
+  values, `"value"` to order the rows by the metric, or FALSE to keep
+  the input order.
+
 - palette:
 
-  A colour scheme from bexte_palette() for the Shiny app's dark mode, or
+  A colour scheme from bexte_palette() for BExTE-app's dark mode, or
   NULL for the publication figure.
 
 - reference_line:
 
   x position of a dotted vertical reference line, or NULL for none.
 
+- ess_limits:
+
+  Limits of the moment-based ESS fill scale, so that several panels can
+  share one scale, or NULL for the range of `data`.
+
+- ess_midpoint:
+
+  Midpoint of the ESS fill scale, or NULL for
+  `forest_ess_midpoint(data)`.
+
+- nominal_tie_line:
+
+  x position of a dashed line marking the nominal type I error rate, or
+  NULL for none.
+
 ## Value
 
-A ggplot2::ggplot( object representing the forest plot.
+A ggplot object representing the forest plot.

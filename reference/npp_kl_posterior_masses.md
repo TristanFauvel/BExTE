@@ -6,7 +6,7 @@ s_T^2 + s_S^2/\gamma) \\ \mathrm{Beta}(\gamma; a, b).\$\$ Evaluated on
 the quadrature nodes this becomes a discrete distribution, whose masses
 are the normalised products of the Beta measure and the normal
 likelihood. Normalising through
-[`npp_kl_log_sum_exp()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_kl_log_sum_exp.md)
+[`npp_kl_log_sum_exp()`](https://tristanfauvel.github.io/BExTE/reference/npp_kl_log_sum_exp.md)
 keeps the very small likelihoods reached at the maximum tolerable
 discrepancy from underflowing.
 
@@ -56,7 +56,7 @@ npp_kl_posterior_masses(
 - rule:
 
   A rule from
-  [`npp_kl_beta_quadrature()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_kl_beta_quadrature.md).
+  [`npp_kl_beta_quadrature()`](https://tristanfauvel.github.io/BExTE/reference/npp_kl_beta_quadrature.md).
 
 ## Value
 

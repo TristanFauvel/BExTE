@@ -14,13 +14,18 @@ bayesian_operating_characteristics_vs_tie_plots(
 
 ## Arguments
 
-- results_metrics_df:
+- results_bayes_df:
 
-  The data frame containing the results and metrics.
+  The Bayesian results data frame.
 
-- metrics:
+- results_freq_df:
 
-  A list of metrics to be plotted.
+  The frequentist results data frame, from which the type I error rates
+  are read.
+
+- bayesian_metrics:
+
+  List of Bayesian metrics, as defined by sourcing `metrics_config.R`.
 
 ## Value
 

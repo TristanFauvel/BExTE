@@ -1,7 +1,7 @@
 # Base hues for a set of methods, keyed by method
 
 The companion to
-[`method_shape_map()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/method_shape_map.md),
+[`method_shape_map()`](https://tristanfauvel.github.io/BExTE/reference/method_shape_map.md),
 for the figures that colour by method rather than by parameter value.
 
 ## Usage

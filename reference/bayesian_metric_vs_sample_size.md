@@ -26,6 +26,10 @@ bayesian_metric_vs_sample_size(
 
   The metric to plot.
 
+- input_df:
+
+  The data frame containing the results and metrics.
+
 - case_study:
 
   The case study to plot the metric for.
@@ -51,9 +55,13 @@ bayesian_metric_vs_sample_size(
   Ratio between the sampling standard deviation in the source study and
   in the target study.
 
-- results_metrics_df:
+- source_denominator_change_factor:
 
-  The data frame containing the results and metrics.
+  The source denominator change factor of the scenario to keep.
+
+- design_prior:
+
+  Currently unused.
 
 ## Value
 

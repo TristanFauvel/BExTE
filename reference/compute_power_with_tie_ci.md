@@ -70,7 +70,7 @@ compute_power_with_tie_ci(
 
   Optional p-values of the separate analysis, already simulated for this
   design by
-  [`simulate_test_p_values()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulate_test_p_values.md).
+  [`simulate_test_p_values()`](https://tristanfauvel.github.io/BExTE/reference/simulate_test_p_values.md).
   They depend on the design alone, not on the borrowing method, so a
   caller pricing many rows of one design simulates them once and passes
   them here. `NULL` simulates them. Ignored when the power has a closed
@@ -82,7 +82,7 @@ compute_power_with_tie_ci(
   scenario. When given, each sampled type I error is matched by the
   test's actual rejection rate there rather than by its nominal level -
   see
-  [`calibrated_levels()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrated_levels.md).
+  [`calibrated_levels()`](https://tristanfauvel.github.io/BExTE/reference/calibrated_levels.md).
   Ignored when the power has a closed form.
 
 ## Value

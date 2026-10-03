@@ -19,7 +19,7 @@ pdccpp_binomial_type_I_error(
 - table:
 
   Output of
-  [`pdccpp_binomial_null_table()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/pdccpp_binomial_null_table.md).
+  [`pdccpp_binomial_null_table()`](https://tristanfauvel.github.io/BExTE/reference/pdccpp_binomial_null_table.md).
 
 - calibration_parameter:
 

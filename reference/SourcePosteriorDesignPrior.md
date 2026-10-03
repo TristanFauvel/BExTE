@@ -5,7 +5,7 @@ borrowing.
 
 ## Super class
 
-[`DesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.md)
+[`DesignPrior`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.md)
 -\> `SourcePosteriorDesignPrior`
 
 ## Public fields
@@ -52,7 +52,7 @@ borrowing.
 
 Inherited methods
 
-- [`DesignPrior$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-create)
+- [`DesignPrior$create()`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.html#method-create)
 
 ------------------------------------------------------------------------
 
@@ -144,7 +144,7 @@ rate. Otherwise the inherited truncation applies.
 #### Returns
 
 A
-[FunctionalDesignPrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/FunctionalDesignPrior.md).
+[FunctionalDesignPrior](https://tristanfauvel.github.io/BExTE/reference/FunctionalDesignPrior.md).
 
 ------------------------------------------------------------------------
 

@@ -84,6 +84,14 @@ plot_metric_vs_drift(
 
   Whether to join the point with a line or not.
 
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- analysis_config:
+
+  The analysis configuration.
+
 ## Value
 
 None

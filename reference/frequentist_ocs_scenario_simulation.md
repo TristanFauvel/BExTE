@@ -28,6 +28,10 @@ frequentist_ocs_scenario_simulation(
 
   Simulation configuration
 
+- scenarios_config:
+
+  Configuration for the simulation.
+
 - freq_filename:
 
   File name for the frequentist OCs

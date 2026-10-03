@@ -65,6 +65,20 @@ table_metric_vs_drift(
 
   A list containing x-axis variable information
 
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
+- wide_table:
+
+  Whether to pivot the table so that each parameter combination gets its
+  own column.
+
 ## Value
 
 Generates and saves tables in HTML, PDF, and LaTeX formats

@@ -15,9 +15,14 @@ plot_metrics_vs_ess(results_metrics_df, frequentist_metrics, inference_metrics)
 
   The data frame containing the results and metrics.
 
-- metrics:
+- frequentist_metrics:
 
-  A list of metrics to be plotted.
+  List of frequentist metrics, as defined by sourcing
+  `metrics_config.R`.
+
+- inference_metrics:
+
+  List of inference metrics, as defined by sourcing `metrics_config.R`.
 
 ## Value
 

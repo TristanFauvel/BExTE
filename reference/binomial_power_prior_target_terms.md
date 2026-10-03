@@ -45,5 +45,6 @@ binomial_power_prior_target_terms(
 A list with `n_lattice`, the risk `differences` (in lattice units) the
 target data reach, the N x K matrices `target` (T) and
 `source_log_likelihood` (l, `-Inf` where the source treatment rate
-leaves 0, 1), and the source arms' log likelihoods on the lattice,
-`source_control_log_likelihood` and `source_treatment_log_likelihood`.
+leaves \\\[0, 1\]\\), and the source arms' log likelihoods on the
+lattice, `source_control_log_likelihood` and
+`source_treatment_log_likelihood`.

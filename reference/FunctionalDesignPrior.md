@@ -5,7 +5,7 @@ conditioned on the target control rate are.
 
 ## Super class
 
-[`DesignPrior`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.md)
+[`DesignPrior`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.md)
 -\> `FunctionalDesignPrior`
 
 ## Public fields
@@ -38,8 +38,8 @@ conditioned on the target control rate are.
 
 Inherited methods
 
-- [`DesignPrior$create()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-create)
-- [`DesignPrior$given_control_rate()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/DesignPrior.html#method-given_control_rate)
+- [`DesignPrior$create()`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.html#method-create)
+- [`DesignPrior$given_control_rate()`](https://tristanfauvel.github.io/BExTE/reference/DesignPrior.html#method-given_control_rate)
 
 ------------------------------------------------------------------------
 

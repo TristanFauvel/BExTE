@@ -6,7 +6,7 @@ non-degenerate interval, the baseline also gets error bars.
 
 The bounds are only informative where the power was approximated by
 Monte Carlo:
-[`compute_freq_power()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_freq_power.md)
+[`compute_freq_power()`](https://tristanfauvel.github.io/BExTE/reference/compute_freq_power.md)
 returns an exact binomial interval when it simulates, but a degenerate
 `c(power, power)` when it has a closed form. Handing those degenerate
 bounds to `geom_errorbar()` would draw a zero-height bar - a bare cap

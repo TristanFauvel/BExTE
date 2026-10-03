@@ -30,7 +30,7 @@
   forest plot at 123 per arm, and the versus-type-I-error figures for
   Dapagliflozin (66), Belimumab (140) and Aprepitant (143), and the
   Botox forest plot at 117 per arm (X8).
-- [`export_paper_outputs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/export_paper_outputs.md)
+- [`export_paper_outputs()`](https://tristanfauvel.github.io/BExTE/reference/export_paper_outputs.md)
   copies figures into `paper_outputs/` as PDF, the vector format the
   manuscript includes, rather than PNG, and removes PNG copies an
   earlier export left there.
@@ -198,12 +198,12 @@
   BExTE. `run_bexte_app()` and `create_bexte_shortcut()` are now
   `BExTEapp::run_bexte_app()` and `BExTEapp::create_bexte_shortcut()`,
   and BExTE no longer depends on shiny, bslib, plotly or DT.
-  [`forest_plot()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot.md),
-  [`forest_plot_bayesian()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/forest_plot_bayesian.md),
-  [`get_parameters()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/get_parameters.md),
-  [`simulation_scenarios()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulation_scenarios.md)
+  [`forest_plot()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot.md),
+  [`forest_plot_bayesian()`](https://tristanfauvel.github.io/BExTE/reference/forest_plot_bayesian.md),
+  [`get_parameters()`](https://tristanfauvel.github.io/BExTE/reference/get_parameters.md),
+  [`simulation_scenarios()`](https://tristanfauvel.github.io/BExTE/reference/simulation_scenarios.md)
   and
-  [`run_progress_tracker()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/run_progress_tracker.md)
+  [`run_progress_tracker()`](https://tristanfauvel.github.io/BExTE/reference/run_progress_tracker.md)
   are now exported, for the app.
 - The analysis step is faster again: 162 s instead of 273 s for the
   three power and Bayesian steps on a full Teriflunomide frame, with
@@ -214,11 +214,11 @@
   error, and the pooled analysis’s - now reads one set of trials: the
   nominal step takes them from the equivalent step instead of generating
   them twice more. The `p_value_cache` argument of
-  [`frequentist_power_at_equivalent_tie()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/frequentist_power_at_equivalent_tie.md)
+  [`frequentist_power_at_equivalent_tie()`](https://tristanfauvel.github.io/BExTE/reference/frequentist_power_at_equivalent_tie.md)
   is now `trial_cache`, and
-  [`compute_freq_power_pooling()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/compute_freq_power_pooling.md)
+  [`compute_freq_power_pooling()`](https://tristanfauvel.github.io/BExTE/reference/compute_freq_power_pooling.md)
   takes the trials to reuse.
-- [`export_paper_outputs()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/export_paper_outputs.md)
+- [`export_paper_outputs()`](https://tristanfauvel.github.io/BExTE/reference/export_paper_outputs.md)
   can produce the paper’s items in parallel, each in a forked process,
   through the new `workers` argument. `reproduce_paper.R` uses as many
   workers as the simulation (capped by `BEXTE_MAX_WORKERS`;
@@ -229,7 +229,7 @@
   status of every item are those of a sequential run. The default stays
   sequential, which the Shiny app keeps: its progress bar cannot be
   driven from a forked process.
-- [`sweet_spot()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/sweet_spot.md)
+- [`sweet_spot()`](https://tristanfauvel.github.io/BExTE/reference/sweet_spot.md)
   failed on time-to-event results with “arguments imply differing number
   of rows”. It pooled every design of a case study - dropout, event time
   distribution, treatment delay - into one curve per method, then bound
@@ -360,7 +360,7 @@
   prior’s probability of success, MSE and coverage. S45-S47 are forest
   plots, one per level of each axis, captioned with the expected number
   of events
-  ([`time_to_event_expected_events()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/time_to_event_expected_events.md));
+  ([`time_to_event_expected_events()`](https://tristanfauvel.github.io/BExTE/reference/time_to_event_expected_events.md));
   S48-S50 plot each method against drift with one line per level.
   Selecting them makes `reproduce_paper.R` simulate the sensitivity
   designs at N_T/2 = 123, one axis at a time (the new
@@ -375,7 +375,7 @@
   analysis does not model. The scenario’s treatment effect is the Cox
   model’s large-sample limit under the trial’s censoring, and the hazard
   ratio after the delay is solved to match it
-  ([`time_to_event_delayed_log_hr()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/time_to_event_delayed_log_hr.md)),
+  ([`time_to_event_delayed_log_hr()`](https://tristanfauvel.github.io/BExTE/reference/time_to_event_delayed_log_hr.md)),
   so drift, bias and the null hypothesis keep their meaning. Figures
   S51-S52 show 12- and 24-week delays for Teriflunomide. Scenarios
   without a delay simulate exactly as before.

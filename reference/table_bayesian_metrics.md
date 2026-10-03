@@ -24,6 +24,19 @@ table_bayesian_metrics(
 
   Character string specifying the case study.
 
+- target_sample_size_per_arm:
+
+  The target sample size per arm.
+
+- source_denominator_change_factor:
+
+  The source denominator change factor of the scenario to keep.
+
+- target_to_source_std_ratio:
+
+  Ratio between the target and source studies sampling standard
+  deviation.
+
 ## Value
 
 This function doesn't return a value but saves the generated tables as

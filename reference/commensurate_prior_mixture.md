@@ -24,9 +24,9 @@ commensurate_prior_mixture(model, n_tau = 48L, n_gamma = 12L)
 - model:
 
   A
-  [GaussianCommensuratePowerPrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/GaussianCommensuratePowerPrior.md)
+  [GaussianCommensuratePowerPrior](https://tristanfauvel.github.io/BExTE/reference/GaussianCommensuratePowerPrior.md)
   or
-  [GaussianCommensuratePrior](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/GaussianCommensuratePrior.md)
+  [GaussianCommensuratePrior](https://tristanfauvel.github.io/BExTE/reference/GaussianCommensuratePrior.md)
   object. The latter fixes the power parameter at one, which collapses
   the second quadrature dimension: the mixture is then one normal
   component per `tau` node rather than `n_gamma` of them.

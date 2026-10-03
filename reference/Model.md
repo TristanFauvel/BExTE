@@ -164,8 +164,6 @@ inference, and calculating posterior moments.
 
 - [`Model$credible_interval()`](#method-Model-credible_interval)
 
-- [`Model$prior_ESS()`](#method-Model-prior_ESS)
-
 - [`Model$sample_prior()`](#method-Model-sample_prior)
 
 - [`Model$sample_posterior()`](#method-Model-sample_posterior)
@@ -173,8 +171,6 @@ inference, and calculating posterior moments.
 - [`Model$test_decision()`](#method-Model-test_decision)
 
 - [`Model$simulation_for_given_treatment_effect()`](#method-Model-simulation_for_given_treatment_effect)
-
-- [`Model$prior_treatment_benefit()`](#method-Model-prior_treatment_benefit)
 
 - [`Model$estimate_frequentist_operating_characteristics()`](#method-Model-estimate_frequentist_operating_characteristics)
 
@@ -613,16 +609,6 @@ The credible interval.
 
 ------------------------------------------------------------------------
 
-### `Model$prior_ESS()`
-
-Method to calculate the effective sample size of the prior distribution
-
-#### Usage
-
-    Model$prior_ESS()
-
-------------------------------------------------------------------------
-
 ### `Model$sample_prior()`
 
 Method to sample from the prior distribution
@@ -776,39 +762,6 @@ Method to simulate for a given treatment effect
 
 A list of simulation results including test decisions, posterior means,
 medians, credible intervals, and posterior parameters
-
-------------------------------------------------------------------------
-
-### `Model$prior_treatment_benefit()`
-
-Method to calculate the prior probability of treatment benefit
-
-#### Usage
-
-    Model$prior_treatment_benefit(
-      theta_0,
-      null_space,
-      n_prior_samples,
-      tuning_length
-    )
-
-#### Arguments
-
-- `theta_0`:
-
-  Null hypothesis value
-
-- `null_space`:
-
-  The null space for hypothesis testing
-
-- `n_prior_samples`:
-
-  Number of prior samples
-
-- `tuning_length`:
-
-  Tuning parameter length
 
 ------------------------------------------------------------------------
 
@@ -1117,10 +1070,11 @@ Convert the posterior distribution to RBesT format
 Beta mixture approximation to the posterior response rate
 
 The unit information design prior rescales the shape parameters of a
-Beta mixture, so it needs the fit on the 0, 1 rate scale rather than the
-one on the treatment effect scale that `posterior_to_RBesT()` produces.
-It is built here on request because that construction runs once per case
-study, whereas `posterior_to_RBesT()` runs once per replicate.
+Beta mixture, so it needs the fit on the \\\[0, 1\]\\ rate scale rather
+than the one on the treatment effect scale that `posterior_to_RBesT()`
+produces. It is built here on request because that construction runs
+once per case study, whereas `posterior_to_RBesT()` runs once per
+replicate.
 
 #### Usage
 

@@ -2,7 +2,7 @@
 
 The prior-predictive probability of every pair of target responder
 counts under each component, as the matrices
-[`egidi_binomial_conflict_pvalue()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/egidi_binomial_conflict_pvalue.md)
+[`egidi_binomial_conflict_pvalue()`](https://tristanfauvel.github.io/BExTE/reference/egidi_binomial_conflict_pvalue.md)
 reads: one row per control count and one column per treatment count. On
 the lattice, the table is `t(B_c) K B_t`, with `K` the component in
 target control and treatment rates and `B` the binomial probabilities of
@@ -24,7 +24,7 @@ binomial_rmp_predictive_tables(
 - components:
 
   Output of
-  [`binomial_rmp_components()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/binomial_rmp_components.md).
+  [`binomial_rmp_components()`](https://tristanfauvel.github.io/BExTE/reference/binomial_rmp_components.md).
 
 - source_counts:
 

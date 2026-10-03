@@ -31,7 +31,7 @@ recheck_borderline_decisions(
 - posterior:
 
   Compressed posterior, from
-  [`normal_mixture_posterior()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/normal_mixture_posterior.md).
+  [`normal_mixture_posterior()`](https://tristanfauvel.github.io/BExTE/reference/normal_mixture_posterior.md).
 
 - mixture:
 

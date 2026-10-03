@@ -46,7 +46,7 @@ time_to_event_expected_events(
   Target log hazard ratio; the source estimate by default, i.e. a
   consistent treatment effect. Under a delayed effect, the Cox model's
   large-sample limit (see
-  [`time_to_event_delayed_log_hr()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/time_to_event_delayed_log_hr.md)).
+  [`time_to_event_delayed_log_hr()`](https://tristanfauvel.github.io/BExTE/reference/time_to_event_delayed_log_hr.md)).
 
 - treatment_delay:
 

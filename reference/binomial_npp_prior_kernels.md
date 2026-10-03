@@ -32,7 +32,7 @@ binomial_npp_prior_kernels(
 - gamma_rule:
 
   Quadrature rule for the prior of the power parameter, as returned by
-  [`npp_gamma_rule()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/npp_gamma_rule.md):
+  [`npp_gamma_rule()`](https://tristanfauvel.github.io/BExTE/reference/npp_gamma_rule.md):
   a single node of weight one gives the conditional power prior with
   that power parameter.
 
@@ -50,4 +50,5 @@ binomial_npp_prior_kernels(
 A list with `n_lattice`, the `rates`, and the N x (2N - 1) matrices
 `kernel`, `kernel_gamma` and `kernel_gamma_squared`, indexed by the
 target control rate and the risk difference k / N, k = -(N - 1), ...,
-N - 1. They are zero where the target treatment rate would leave 0, 1.
+N - 1. They are zero where the target treatment rate would leave \\\[0,
+1\]\\.

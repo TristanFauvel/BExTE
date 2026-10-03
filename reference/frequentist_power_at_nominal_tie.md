@@ -9,7 +9,7 @@ frame holds one row per design *and* method-parameter combination: the
 paper's environment repeats each of its 330 designs 56 times. They are
 therefore computed once per design and copied to the rows that share it.
 That is exact rather than an approximation, because
-[`simulate_test_p_values()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/simulate_test_p_values.md)
+[`simulate_test_p_values()`](https://tristanfauvel.github.io/BExTE/reference/simulate_test_p_values.md)
 reseeds from `simulation_config$seed` on every call, so the repeats were
 identical to the last bit anyway.
 
@@ -57,7 +57,7 @@ frequentist_power_at_nominal_tie(
 - trial_cache:
 
   Optional environment of simulated trials left by
-  [`frequentist_power_at_equivalent_tie()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/frequentist_power_at_equivalent_tie.md).
+  [`frequentist_power_at_equivalent_tie()`](https://tristanfauvel.github.io/BExTE/reference/frequentist_power_at_equivalent_tie.md).
   Both baselines read the same trials, so a design found there is not
   simulated again.
 

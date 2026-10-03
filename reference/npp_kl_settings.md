@@ -1,11 +1,11 @@
 # Criterion settings of the KL-calibrated normalized power prior
 
 Read from the method parameters, with the defaults of
-[`calibrate_npp_kl()`](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/calibrate_npp_kl.md).
+[`calibrate_npp_kl()`](https://tristanfauvel.github.io/BExTE/reference/calibrate_npp_kl.md).
 Shared by
-[GaussianNPP_KL](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/GaussianNPP_KL.md)
+[GaussianNPP_KL](https://tristanfauvel.github.io/BExTE/reference/GaussianNPP_KL.md)
 and
-[BinomialNPP_KL](https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference/BinomialNPP_KL.md).
+[BinomialNPP_KL](https://tristanfauvel.github.io/BExTE/reference/BinomialNPP_KL.md).
 
 ## Usage
 
