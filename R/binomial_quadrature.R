@@ -357,22 +357,30 @@ binomial_power_prior_posterior <- function(power_parameter,
   # The source control rates that carry any discounted likelihood: all of them
   # at a power parameter near 0, a narrow band near 1.
   source_rows <- which(source_control > 1e-300)
+  source_control[-source_rows] <- 0
+  target_control[-control_points] <- 0
 
-  # R x K: the discounted source likelihood at every source control rate i and
-  # treatment effect k, zero where the source treatment rate leaves [0, 1].
-  source_weight <- source_control[source_rows] *
-    lattice_shift_matrix(source_treatment, source_rows, differences)
-
-  # J x K: summed over the source control rate against the prior density of
-  # theta given the two control rates, 1 / (N - |i - j|).
-  width <- binomial_lattice_width(N)[source_rows, control_points, drop = FALSE]
-  kernel <- crossprod(width, source_weight)
-
-  # The target likelihood, zero where the target treatment rate leaves [0, 1].
-  likelihood <- target_control[control_points] *
-    lattice_shift_matrix(target_treatment, control_points, differences)
-
-  density <- colSums(kernel * likelihood)
+  # density[k] = sum_j c_j t_{j+k} sum_i a_i b_{i+k} / (N - |i - j|), over the
+  # source rows i and target control rates j kept, and zero wherever a treatment
+  # rate leaves the lattice; see R/binomial_lattice_fast.R. The kernel - the sum
+  # over i - is kept when the same discounted source likelihoods come back, and
+  # the target terms - the sum over j - when asked to; either is then summed
+  # against the other side's likelihoods alone.
+  kernel <- binomial_power_prior_cached_kernel(source_control, source_treatment,
+                                               range(source_rows))
+  density <- if (!is.null(kernel)) {
+    lattice_power_prior_density_from_kernel(kernel, target_control, target_treatment,
+                                            range(control_points), differences)
+  } else if (binomial_target_terms_limit() > 0L && is.null(control_rate)) {
+    lattice_power_prior_density_from_terms(
+      binomial_target_terms(target_control, target_treatment, range(control_points), differences),
+      source_control, source_treatment, range(source_rows), differences
+    )
+  } else {
+    lattice_power_prior_density(source_control, source_treatment,
+                                target_control, target_treatment,
+                                range(source_rows), range(control_points), differences)
+  }
   support <- c(min(differences) - 1L, differences, max(differences) + 1L)
   grid_posterior(support / N, c(0, density, 0))
 }

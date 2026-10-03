@@ -120,16 +120,19 @@ binomial_power_prior_target_terms <- function(n_control_source,
   differences <- seq(min(treatment_points) - max(control_points),
                      max(treatment_points) - min(control_points))
 
-  # J x K: the target likelihood, zero where the target treatment rate leaves [0, 1].
-  likelihood <- target_control[control_points] *
-    lattice_shift_matrix(target_treatment, control_points, differences)
-
-  # N x K: summed over the target control rate against the prior density of
-  # the risk difference given the two control rates, 1 / (N - |i - j|).
-  target <- binomial_lattice_width(N)[, control_points, drop = FALSE] %*% likelihood
+  # N x K: the target likelihood, zero where the target treatment rate leaves
+  # [0, 1], summed over the target control rate against the prior density of
+  # the risk difference given the two control rates, 1 / (N - |i - j|). This is
+  # the kernel of the power prior with the roles of the two studies swapped, so
+  # it is computed by blocks of risk differences in the same way; it is zero
+  # where the source treatment rate i + k leaves the lattice, where the source
+  # log likelihood is -Inf.
+  target_control[-control_points] <- 0
+  target <- binomial_target_terms(target_control, target_treatment,
+                                  range(control_points), differences)
 
   source_log_likelihood <- source_control +
-    lattice_shift_matrix(source_treatment, seq_len(N), differences, fill = -Inf)
+    lattice_hankel(source_treatment, 1L, N, differences[1], length(differences), fill = -Inf)
 
   list(
     n_lattice = N,
@@ -137,9 +140,20 @@ binomial_power_prior_target_terms <- function(n_control_source,
     target = target,
     source_log_likelihood = source_log_likelihood,
     source_control_log_likelihood = source_control,
-    source_treatment_log_likelihood = source_treatment
+    source_treatment_log_likelihood = source_treatment,
+    # The largest source log likelihood where the target terms are positive,
+    # from which binomial_power_prior_terms_posterior() scales its exponentials.
+    largest_log_likelihood = max(source_log_likelihood[target > 0 & is.finite(source_log_likelihood)])
   )
 }
+
+
+#' Log normalizing constants of the binomial power prior already computed
+#'
+#' @description Keyed by the source log likelihoods and the power parameters;
+#'   see [binomial_power_prior_log_marginal()].
+#' @keywords internal
+binomial_power_prior_normalizer_store <- new.env(hash = TRUE, parent = emptyenv())
 
 
 #' Log marginal likelihood of the target data under the binomial power prior
@@ -162,7 +176,20 @@ binomial_power_prior_log_marginal <- function(terms, power_parameter,
   # parameter costs two matrix-vector products rather than an exponential per
   # lattice point.
   numerator <- log(colSums(control * (bilinear %*% treatment)))
-  normalizer <- log(colSums(control * (mass %*% treatment)))
+  # The normalizer depends on the source data alone, and the empirical Bayes
+  # search evaluates every dataset at the same grid and, often, the same first
+  # refinement points, so it is kept for the power parameters already met.
+  key <- rlang::hash(list(terms$source_control_log_likelihood,
+                          terms$source_treatment_log_likelihood, power_parameter))
+  normalizer <- binomial_power_prior_normalizer_store[[key]]
+  if (is.null(normalizer)) {
+    normalizer <- log(colSums(control * (mass %*% treatment)))
+    if (length(binomial_power_prior_normalizer_store) >= 20000L) {
+      rm(list = ls(envir = binomial_power_prior_normalizer_store, all.names = TRUE),
+         envir = binomial_power_prior_normalizer_store)
+    }
+    assign(key, normalizer, envir = binomial_power_prior_normalizer_store)
+  }
   values <- numerator - normalizer
 
   # Where the products underflow - only under extreme conflict, at power
@@ -190,11 +217,19 @@ binomial_power_prior_log_marginal <- function(terms, power_parameter,
 #' @keywords internal
 binomial_power_prior_bilinear <- function(terms) {
   N <- terms$n_lattice
-  rows <- rep(seq_len(N), times = length(terms$differences))
-  columns <- rows + rep(terms$differences, each = N)
-  inside <- columns >= 1L & columns <= N
+  differences <- terms$differences
+  # Column k of the target terms, at the source control rates i that keep i + k
+  # on the lattice, goes to the entries (i, i + k): an arithmetic sequence of
+  # step N + 1 in the N x N matrix.
+  first <- pmax(1L, 1L - differences)
+  last <- pmin(N, N - differences)
+  kept <- first <= last
+  lengths <- (last - first + 1L)[kept]
+  source <- sequence(lengths, from = (which(kept) - 1L) * N + first[kept])
+  destination <- sequence(lengths, from = first[kept] + (first[kept] + differences[kept] - 1L) * N,
+                          by = N + 1L)
   bilinear <- matrix(0, N, N)
-  bilinear[cbind(rows[inside], columns[inside])] <- terms$target[inside]
+  bilinear[destination] <- terms$target[source]
   bilinear
 }
 
@@ -231,10 +266,19 @@ binomial_power_prior_empirical_bayes <- function(terms) {
 #'   [binomial_power_prior_posterior()] gives.
 #' @keywords internal
 binomial_power_prior_terms_posterior <- function(terms, power_parameter) {
-  exponent <- power_parameter * terms$source_log_likelihood
-  exponent[!is.finite(exponent)] <- -Inf
-  largest <- max(exponent[terms$target > 0])
-  density <- colSums(terms$target * exp(exponent - largest))
+  if (is.null(terms$largest_log_likelihood) || !(power_parameter > 0)) {
+    exponent <- power_parameter * terms$source_log_likelihood
+    exponent[!is.finite(exponent)] <- -Inf
+    largest <- max(exponent[terms$target > 0])
+    density <- colSums(terms$target * exp(exponent - largest))
+  } else {
+    # The same exponentials, without the passes over the N x K matrices that
+    # locate their largest value: a positive power parameter preserves the
+    # order of the log likelihoods, also in floating point, and turns the -Inf
+    # off the lattice into a zero weight.
+    largest <- power_parameter * terms$largest_log_likelihood
+    density <- colSums(terms$target * exp(power_parameter * terms$source_log_likelihood - largest))
+  }
   N <- terms$n_lattice
   differences <- terms$differences
   support <- c(min(differences) - 1L, differences, max(differences) + 1L)
