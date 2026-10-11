@@ -78,17 +78,15 @@ devtools::load_all()
 
 </details>
 
-### Running and analyzing simulations
+### Reproducing the paper
 
-- To launch a simulation study, run main.R
-
-- To plot the results of the simulation study, run plots.R
-
-- To create the results tables, run tables.R
+The scripts that run the paper's simulation study and make its figures and
+tables live in BExTEpaper, a separate folder next to this package. See the
+README there.
 
 ### Browser-based interface
 
-Instead of hand-editing config files and running the scripts above, you can
+Instead of hand-editing config files and running scripts, you can
 configure, run, and analyze a simulation study from a browser with
 [BExTE-app](https://github.com/TristanFauvel/BExTE-app), a Shiny app built on
 this package:

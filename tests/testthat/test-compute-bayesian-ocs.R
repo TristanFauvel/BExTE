@@ -3,7 +3,8 @@ test_that("deterministic Bayesian OC analysis handles an empty result set", {
 
   result <- BExTE:::compute_bayesian_ocs(
     results_freq_df = empty_results,
-    env = "pipeline_tests"
+    env = "pipeline_tests",
+    config_dir = testthat::test_path("fixtures", "pipeline_tests", "")
   )
 
   expect_s3_class(result, "data.frame")

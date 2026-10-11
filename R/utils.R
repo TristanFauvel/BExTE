@@ -1061,7 +1061,7 @@ stan_model_directory <- function() {
 #'
 #' @description The models are compiled on first use and cached in
 #'   `stan_model_directory()`. Clearing the cache forces the next run to
-#'   recompile them, which is what `inst/scripts/main.R` does when its
+#'   recompile them, which is what BExTEpaper's `scripts/main.R` does when its
 #'   `delete_stan_files` switch is set.
 #'
 #' @param directory Directory holding the cached models.

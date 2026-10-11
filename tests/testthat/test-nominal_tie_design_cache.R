@@ -145,20 +145,3 @@ test_that("the design columns cover everything the computation reads", {
   expect_true(length(used) > 0)
   expect_setequal(intersect(used, NOMINAL_TIE_DESIGN_COLUMNS), used)
 })
-
-test_that("the paper's environment really does hold only 330 designs", {
-  path <- testthat::test_path("..", "..", "results",
-                              "paper_replication_20260917_165916",
-                              "results_frequentist.csv")
-  skip_if_not(file.exists(path), "no completed run to read")
-
-  results <- readr::read_csv(path, show_col_types = FALSE)
-  key <- nominal_tie_design_key(
-    results[intersect(NOMINAL_TIE_DESIGN_COLUMNS, names(results))]
-  )
-
-  expect_equal(nrow(results), 18480)
-  expect_equal(length(unique(key)), 330)
-  # Uniformly 56 rows a design: one per method-parameter combination.
-  expect_equal(unique(as.integer(table(key))), 56L)
-})

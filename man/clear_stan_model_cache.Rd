@@ -15,6 +15,6 @@ Paths of the files that were removed, invisibly.
 \description{
 The models are compiled on first use and cached in
 \code{stan_model_directory()}. Clearing the cache forces the next run to
-recompile them, which is what \code{inst/scripts/main.R} does when its
+recompile them, which is what BExTEpaper's \code{scripts/main.R} does when its
 \code{delete_stan_files} switch is set.
 }

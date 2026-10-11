@@ -137,7 +137,7 @@ test_that("UnitInformationDesignPrior carries one patient's worth of information
     system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
   )
   mcmc_config <- yaml::read_yaml(
-    system.file("conf/combined_aprepitant/mcmc_config.yml", package = "BExTE")
+    system.file("conf/full/mcmc_config.yml", package = "BExTE")
   )
 
   set.seed(123)

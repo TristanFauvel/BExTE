@@ -9,17 +9,6 @@ methods_plots_config <- function() {
   env
 }
 
-test_that("every method the paper compares has a full name for its title", {
-  config <- methods_plots_config()
-  labels <- get("methods_labels", envir = config)
-
-  for (method in PAPER_METHODS) {
-    expect_true(method %in% names(labels), info = method)
-    full_name <- labels[[method]]$full_name
-    expect_true(is.character(full_name) && nzchar(full_name), info = method)
-  }
-})
-
 test_that("the full names spell out the abbreviations rather than repeating them", {
   config <- methods_plots_config()
   labels <- get("methods_labels", envir = config)

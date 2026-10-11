@@ -169,9 +169,9 @@ analysis_uses_cluster <- function(parallelization, n_rows,
 
 #' Make BExTE (and any other packages) available in every worker of a cluster
 #'
-#' BExTE is not necessarily an installed package: both `inst/scripts/main.R`
-#' and BExTE-app's background process `devtools::load_all()` it from
-#' source, and a worker that only calls `library(BExTE)` fails outright there.
+#' BExTE is not necessarily an installed package: BExTE-app's background
+#' process `devtools::load_all()`s it from source, and a worker that only
+#' calls `library(BExTE)` fails outright there.
 #' Each worker therefore falls back to loading the same source tree.
 #'
 #' @param cl A cluster from `parallel::makeCluster()`.

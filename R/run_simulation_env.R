@@ -64,7 +64,7 @@ resolve_analysis_steps <- function(scenarios_config, all_case_studies_shipped) {
 #'
 #' @description Runs the frequentist and/or Bayesian Monte Carlo operating
 #'   characteristics simulation for a single environment. This mirrors the
-#'   per-environment body of the driver loop in `inst/scripts/main.R`, extracted
+#'   per-environment body of the driver loop in BExTEpaper's `scripts/main.R`, extracted
 #'   into a callable function so it can be invoked directly (e.g. from a
 #'   background process launched by BExTE-app).
 #'
@@ -86,7 +86,7 @@ resolve_analysis_steps <- function(scenarios_config, all_case_studies_shipped) {
 #' @param results_dir Directory the results are written to. Defaults to
 #'   `./results/<env>/`.
 #' @param check_results_completeness Reserved for a future completeness
-#'   check; currently unused, mirroring `inst/scripts/main.R` where the
+#'   check; currently unused, mirroring BExTEpaper's `scripts/main.R` where the
 #'   corresponding call is commented out.
 #'
 #' @return `TRUE`, invisibly, once frequentist and/or Bayesian OCs have been
@@ -152,7 +152,7 @@ run_simulation_env <- function(env,
   if (simulation_config$compute_frequentist_ocs == TRUE) {
     if (simulation_config$delete_old_results) {
       unlink(results_dir, recursive = TRUE, force = TRUE)
-      dir.create(results_dir)  # This recreates the empty directory
+      dir.create(results_dir, recursive = TRUE)  # This recreates the empty directory
     }
 
     simulation_frequentist_ocs(env = env,

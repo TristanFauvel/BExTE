@@ -43,7 +43,7 @@ sourcing \code{metrics_config.R}.}
 \verb{./results/<env>/}.}
 
 \item{check_results_completeness}{Reserved for a future completeness
-check; currently unused, mirroring \code{inst/scripts/main.R} where the
+check; currently unused, mirroring BExTEpaper's \code{scripts/main.R} where the
 corresponding call is commented out.}
 }
 \value{
@@ -53,7 +53,7 @@ computed and concatenated according to \code{simulation_config}.
 \description{
 Runs the frequentist and/or Bayesian Monte Carlo operating
 characteristics simulation for a single environment. This mirrors the
-per-environment body of the driver loop in \code{inst/scripts/main.R}, extracted
+per-environment body of the driver loop in BExTEpaper's \code{scripts/main.R}, extracted
 into a callable function so it can be invoked directly (e.g. from a
 background process launched by BExTE-app).
 }

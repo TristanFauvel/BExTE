@@ -381,7 +381,7 @@ test_that("the sensitivity reference is read only for the time-to-event endpoint
 
 
 test_that("the sensitivity designs are simulated only at the reference point", {
-  config_dir <- paste0(system.file("conf/combined_teriflunomide", package = "BExTE"), "/")
+  config_dir <- testthat::test_path("fixtures", "combined_teriflunomide", "")
   case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
   skip_if(!nzchar(config_dir) || !file.exists(paste0(config_dir, "scenarios_config.yml")))
 
@@ -421,7 +421,7 @@ test_that("the sensitivity designs are simulated only at the reference point", {
 
 
 test_that("a sensitivity reference outside the sample size factors is refused", {
-  config_dir <- paste0(system.file("conf/combined_teriflunomide", package = "BExTE"), "/")
+  config_dir <- testthat::test_path("fixtures", "combined_teriflunomide", "")
   case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
   skip_if(!nzchar(config_dir) || !file.exists(paste0(config_dir, "scenarios_config.yml")))
 
@@ -444,7 +444,7 @@ test_that("a sensitivity reference outside the sample size factors is refused", 
 
 
 test_that("one axis at a time keeps the primary design and five sensitivity designs", {
-  config_dir <- paste0(system.file("conf/combined_teriflunomide", package = "BExTE"), "/")
+  config_dir <- testthat::test_path("fixtures", "combined_teriflunomide", "")
   case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
   skip_if(!nzchar(config_dir) || !file.exists(paste0(config_dir, "scenarios_config.yml")))
 
@@ -606,7 +606,7 @@ test_that("the delay is a sensitivity axis, simulated one at a time", {
   expect_false(is_primary_time_to_event_design(0, 0, "exponential", 0.230769))
   expect_equal(time_to_event_axes_off_primary(0, 0, "exponential", 0.230769), 1L)
 
-  config_dir <- paste0(system.file("conf/combined", package = "BExTE"), "/")
+  config_dir <- testthat::test_path("fixtures", "combined", "")
   case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
   scenarios_config <- read_config(
     paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema

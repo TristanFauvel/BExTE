@@ -138,7 +138,7 @@ test_that("unwrap_scalar_list_columns leaves everything else alone", {
 })
 
 test_that("simulation_scenarios returns a grid of scalars, not list columns", {
-  config_dir <- paste0(system.file("conf/aprepitant_mcmc_config_light", package = "BExTE"), "/")
+  config_dir <- testthat::test_path("fixtures", "aprepitant_mcmc_config_light", "")
   skip_if(config_dir == "/", "packaged configuration not available")
 
   scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))

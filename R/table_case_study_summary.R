@@ -26,8 +26,7 @@ PAPER_TABLE_S1_CASE_STUDIES <- c(
 #'
 #'   The sample-size columns are the nominal totals `floor(N_S / k)`, as the
 #'   paper prints them. The simulation puts `floor(N_S / (2k))` patients in
-#'   each arm, so the total it actually simulates can be one or two lower -
-#'   see [paper_sample_size_per_arm()].
+#'   each arm, so the total it actually simulates can be one or two lower.
 #'
 #'   Every case study is listed whatever the selection, because the paper's
 #'   table always has all six rows.
@@ -56,8 +55,7 @@ table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_
     }
     ## Only the end points are used, and they do not depend on ndrift.
     drift <- range(compute_drift_range(list(ndrift = 2), config))
-    ## control + treatment, not the `total:` field - see
-    ## paper_sample_size_per_arm().
+    ## control + treatment, not the `total:` field.
     source_total <- config$source$control + config$source$treatment
 
     data.frame(
@@ -114,8 +112,7 @@ table_case_study_summary <- function(case_studies, case_studies_config_dir, tabl
       ## whole table down, not just that row.
       `Endpoint` = escape_latex_underscores(config$endpoint),
       `Summary measure` = escape_latex_underscores(config$summary_measure_likelihood),
-      ## control + treatment, not the `total:` field - see
-      ## paper_sample_size_per_arm().
+      ## control + treatment, not the `total:` field.
       `Source N` = config$source$control + config$source$treatment,
       `Source effect` = round(config$source$treatment_effect, 4),
       `Source SE` = round(config$source$standard_error, 4),

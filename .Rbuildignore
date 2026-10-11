@@ -23,4 +23,3 @@
 ^user_configs$
 ^\.pre-commit-config\.yaml$
 ^specs$
-^REPRODUCING_PAPER\.md$

@@ -67,18 +67,3 @@ test_that("the schema accepts the key and rejects a malformed one", {
     "analysis_steps should be"
   )
 })
-
-test_that("the paper environments skip the steps their figures do not read", {
-  for (env in c("paper_replication_20260917_165916", "paper_aprepitant_20260917_182049")) {
-    path <- testthat::test_path("..", "..", "user_configs", env, "scenarios_config.yml")
-    skip_if_not(file.exists(path), paste("no config for", env))
-
-    config <- read_config(path, scenarios_config_schema)
-    steps <- resolve_analysis_steps(config, TRUE)
-
-    expect_setequal(steps, c("frequentist_power_at_equivalent_tie",
-                             "frequentist_power_at_nominal_tie"))
-    expect_false("sweet_spot" %in% steps, info = env)
-    expect_false("bayesian_ocs" %in% steps, info = env)
-  }
-})

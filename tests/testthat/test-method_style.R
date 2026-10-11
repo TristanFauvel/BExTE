@@ -51,17 +51,6 @@ style_test_dict <- function() {
   )
 }
 
-test_that("every method the paper compares has a style", {
-  config <- methods_plots_config()
-  styles <- get("methods_style", envir = config)
-
-  for (method in PAPER_METHODS) {
-    expect_true(method %in% names(styles), info = method)
-    expect_true(is.numeric(styles[[method]]$shape), info = method)
-    expect_match(styles[[method]]$hue, "^#[0-9A-Fa-f]{6}$", info = method)
-  }
-})
-
 test_that("the style table covers every labelled method", {
   ## shape_codes held ten entries for eleven methods, so a run with all of
   ## them silently handed the eleventh an NA shape.

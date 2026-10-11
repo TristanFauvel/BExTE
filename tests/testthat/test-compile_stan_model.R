@@ -186,7 +186,7 @@ test_that("clear_stan_model_cache empties the model cache", {
   cache <- withr::local_tempdir()
   file.create(file.path(cache, c("a_model.stan", "a_model.exe")))
 
-  # inst/scripts/main.R clears the cache to force a recompile. It used to do
+  # BExTEpaper's scripts/main.R clears the cache to force a recompile. It used to do
   # that by listing system.file("stan", package = "BExTE"), which stopped
   # being where the models live.
   removed <- clear_stan_model_cache(cache)
