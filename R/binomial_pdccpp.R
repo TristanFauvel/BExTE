@@ -47,14 +47,6 @@ pdccpp_power_parameter <- function(target_estimate, target_standard_error,
 }
 
 
-#' Directory of the exact PDCCPP calibration tables
-#' @return A directory path, created if needed.
-#' @keywords internal
-pdccpp_binomial_cache_dir <- function() {
-  bexte_cache_dir("pdccpp_binomial")
-}
-
-
 #' Directory of BExTE's disk caches
 #'
 #' @description Under `BEXTE_CACHE_DIR` when it is set, and
@@ -111,9 +103,9 @@ disk_cached <- function(key, compute, subdirectory = "lattice_kernels") {
 #'   refined by `uniroot`. Pairs whose total probability is below `tail_mass`
 #'   are omitted, as in `BinaryTargetData$enumerate_support()`.
 #'
-#'   The table depends on the source counts and the design alone, so it is
-#'   saved under [pdccpp_binomial_cache_dir()] and read back by any process
-#'   that needs it; `workers` computes it in parallel.
+#'   The table depends on the source counts and the design alone, so
+#'   [disk_cached()] saves it under its `pdccpp_binomial` subdirectory, and any
+#'   process that needs it reads it back; `workers` computes it in parallel.
 #'
 #' @inheritParams binomial_power_prior_posterior
 #' @param control_rate Target control rate of the design.
@@ -147,72 +139,66 @@ pdccpp_binomial_null_table <- function(n_control_source,
     signif(c(control_rate, theta_0, critical_value, tail_mass), 12),
     null_space
   )
-  path <- file.path(pdccpp_binomial_cache_dir(), paste0(rlang::hash(identity), ".rds"))
-  if (file.exists(path)) {
-    return(readRDS(path))
-  }
+  disk_cached(identity, function() {
+    treatment_rate <- control_rate + theta_0
+    arm_support <- function(n, rate) {
+      counts <- seq.int(stats::qbinom(tail_mass / 4, n, rate),
+                        stats::qbinom(tail_mass / 4, n, rate, lower.tail = FALSE))
+      list(counts = counts, probabilities = stats::dbinom(counts, n, rate))
+    }
+    control <- arm_support(n_control, control_rate)
+    treatment <- arm_support(n_treatment, treatment_rate)
+    grid <- expand.grid(control = seq_along(control$counts),
+                        treatment = seq_along(treatment$counts))
+    control_counts <- control$counts[grid$control]
+    treatment_counts <- treatment$counts[grid$treatment]
+    weight <- control$probabilities[grid$control] * treatment$probabilities[grid$treatment]
+    weight <- weight / sum(weight)
 
-  treatment_rate <- control_rate + theta_0
-  arm_support <- function(n, rate) {
-    counts <- seq.int(stats::qbinom(tail_mass / 4, n, rate),
-                      stats::qbinom(tail_mass / 4, n, rate, lower.tail = FALSE))
-    list(counts = counts, probabilities = stats::dbinom(counts, n, rate))
-  }
-  control <- arm_support(n_control, control_rate)
-  treatment <- arm_support(n_treatment, treatment_rate)
-  grid <- expand.grid(control = seq_along(control$counts),
-                      treatment = seq_along(treatment$counts))
-  control_counts <- control$counts[grid$control]
-  treatment_counts <- treatment$counts[grid$treatment]
-  weight <- control$probabilities[grid$control] * treatment$probabilities[grid$treatment]
-  weight <- weight / sum(weight)
+    control_estimate <- control_counts / n_control
+    treatment_estimate <- treatment_counts / n_treatment
+    estimate <- treatment_estimate - control_estimate
+    standard_error <- sqrt(treatment_estimate * (1 - treatment_estimate) / n_treatment +
+                             control_estimate * (1 - control_estimate) / n_control)
 
-  control_estimate <- control_counts / n_control
-  treatment_estimate <- treatment_counts / n_treatment
-  estimate <- treatment_estimate - control_estimate
-  standard_error <- sqrt(treatment_estimate * (1 - treatment_estimate) / n_treatment +
-                           control_estimate * (1 - control_estimate) / n_control)
+    benefit <- function(terms, gamma) {
+      posterior <- binomial_power_prior_terms_posterior(terms, gamma)
+      below <- grid_posterior_cdf(posterior, theta_0)
+      if (identical(null_space, "left")) 1 - below else below
+    }
+    gamma_grid <- seq(0, 1, by = 0.05)
+    one_pair <- function(index) {
+      terms <- binomial_power_prior_target_terms(
+        n_control_source, n_successes_control_source,
+        n_treatment_source, n_successes_treatment_source,
+        n_control, control_counts[index], n_treatment, treatment_counts[index],
+        n_lattice = n_lattice
+      )
+      excess <- vapply(gamma_grid, function(gamma) benefit(terms, gamma) - critical_value,
+                       numeric(1))
+      changes <- which(diff(excess > 0) != 0)
+      crossings <- vapply(changes, function(k) {
+        stats::uniroot(function(gamma) benefit(terms, gamma) - critical_value,
+                       interval = gamma_grid[c(k, k + 1L)], tol = 1e-8)$root
+      }, numeric(1))
+      list(reject_at_zero = excess[1] > 0, crossings = crossings)
+    }
 
-  benefit <- function(terms, gamma) {
-    posterior <- binomial_power_prior_terms_posterior(terms, gamma)
-    below <- grid_posterior_cdf(posterior, theta_0)
-    if (identical(null_space, "left")) 1 - below else below
-  }
-  gamma_grid <- seq(0, 1, by = 0.05)
-  one_pair <- function(index) {
-    terms <- binomial_power_prior_target_terms(
-      n_control_source, n_successes_control_source,
-      n_treatment_source, n_successes_treatment_source,
-      n_control, control_counts[index], n_treatment, treatment_counts[index],
-      n_lattice = n_lattice
+    pairs <- if (workers > 1L) {
+      parallel::mclapply(seq_along(weight), one_pair, mc.cores = workers)
+    } else {
+      lapply(seq_along(weight), one_pair)
+    }
+
+    table <- list(
+      estimate = estimate,
+      standard_error = standard_error,
+      weight = weight,
+      reject_at_zero = vapply(pairs, `[[`, logical(1), "reject_at_zero"),
+      crossings = lapply(pairs, `[[`, "crossings")
     )
-    excess <- vapply(gamma_grid, function(gamma) benefit(terms, gamma) - critical_value,
-                     numeric(1))
-    changes <- which(diff(excess > 0) != 0)
-    crossings <- vapply(changes, function(k) {
-      stats::uniroot(function(gamma) benefit(terms, gamma) - critical_value,
-                     interval = gamma_grid[c(k, k + 1L)], tol = 1e-8)$root
-    }, numeric(1))
-    list(reject_at_zero = excess[1] > 0, crossings = crossings)
-  }
-
-  pairs <- if (workers > 1L) {
-    parallel::mclapply(seq_along(weight), one_pair, mc.cores = workers)
-  } else {
-    lapply(seq_along(weight), one_pair)
-  }
-
-  table <- list(
-    estimate = estimate,
-    standard_error = standard_error,
-    weight = weight,
-    reject_at_zero = vapply(pairs, `[[`, logical(1), "reject_at_zero"),
-    crossings = lapply(pairs, `[[`, "crossings")
-  )
-  temporary <- tempfile(tmpdir = dirname(path), fileext = ".rds")
-  saveRDS(table, temporary)
-  file.rename(temporary, path)
-  table
+    table
+  }, subdirectory = "pdccpp_binomial")
 }
 
 

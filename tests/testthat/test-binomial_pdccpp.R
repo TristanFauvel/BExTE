@@ -88,6 +88,21 @@ test_that("the null table is read back from the cache", {
   expect_identical(first, second)
 })
 
+test_that("a corrupt null table in the cache is computed again", {
+  skip_on_cran()
+  directory <- withr::local_tempdir()
+  withr::local_envvar(BEXTE_CACHE_DIR = directory)
+  null_table <- function() {
+    pdccpp_binomial_null_table(280L, 154L, 293L, 184L, 10L, 10L, control_rate = 0.55,
+                               theta_0 = 0, null_space = "left", critical_value = 0.975,
+                               n_lattice = 200L)
+  }
+  first <- null_table()
+  path <- list.files(directory, pattern = "\\.rds$", recursive = TRUE, full.names = TRUE)
+  writeLines("not an rds file", path)
+  expect_identical(null_table(), first)
+})
+
 test_that("a binary PDCCPP is built as BinomialPDCCPP", {
   model <- Model$new()$create(
     case_study_config = list(summary_measure_likelihood = "binomial", null_space = "left",
