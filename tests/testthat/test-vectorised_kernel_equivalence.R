@@ -99,14 +99,15 @@ model_for <- function(method, case_study_config, source_data) {
   )
 }
 
-run_kernel <- function(model, target_data, seed, to_return) {
+run_kernel <- function(model, target_data, seed, to_return,
+                       confidence_level = 0.95) {
   set.seed(seed)
   model$simulation_for_given_treatment_effect(
     target_data = target_data,
     n_replicates = 40,
     critical_value = 0.975,
     theta_0 = 0,
-    confidence_level = 0.95,
+    confidence_level = confidence_level,
     null_space = "left",
     case_study = "unit_test",
     method = "unit_test",
@@ -114,6 +115,47 @@ run_kernel <- function(model, target_data, seed, to_return) {
     n_samples_quantiles_estimation = 100
   )
 }
+
+test_that("RBesT credible intervals use the requested level", {
+  prior <- list(method_parameters = list(initial_prior = list("noninformative")))
+  model <- Model_RBesT$new(prior = prior)
+  model$RBesT_posterior <- RBesT::mixnorm(
+    c(0.7, -0.2, 0.3), c(0.3, 0.8, 0.5)
+  )
+  model$posterior_summary <- summary(model$RBesT_posterior)
+  names(model$posterior_summary) <- c("mean", "standard_deviation", "cri95L",
+                                      "median", "cri95U")
+
+  expect_equal(unname(model$credible_interval()),
+               unname(model$posterior_summary[c("cri95L", "cri95U")]))
+  for (level in c(0.5, 0.9)) {
+    interval <- model$credible_interval(level = level)
+    expect_equal(model$posterior_cdf(interval),
+                 c((1 - level) / 2, (1 + level) / 2), tolerance = 1e-4)
+  }
+  expect_error(model$credible_interval(level = 1), "between 0 and 1")
+})
+
+test_that("vectorised RBesT intervals agree with scalar intervals at 90%", {
+  case_study_config <- test_case_study_config()
+  source_data <- SourceData$new(case_study_config)
+  target_data <- build_target_data(case_study_config, source_data)
+  outputs <- c("credible_interval", "ess_precision")
+
+  for (method in c("separate", "pooling", "RMP")) {
+    model <- model_for(method, case_study_config, source_data)
+    reference <- scalar_only(method, model)
+    vectorised <- run_kernel(model, target_data, seed = 7,
+                             to_return = outputs, confidence_level = 0.9)
+    scalar <- run_kernel(reference, target_data, seed = 7,
+                         to_return = outputs, confidence_level = 0.9)
+
+    expect_equal(vectorised$credible_intervals, scalar$credible_intervals,
+                 tolerance = 1e-4)
+    expect_equal(vectorised$ess_precisions, scalar$ess_precisions,
+                 tolerance = 1e-3)
+  }
+})
 
 vectorised_methods <- c("separate", "pooling", "conditional_power_prior", "RMP",
                         "EB_PP", "p_value_based_PP",

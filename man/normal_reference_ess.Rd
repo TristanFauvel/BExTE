@@ -9,7 +9,8 @@ normal_reference_ess(
   posterior_sd,
   lower,
   upper,
-  sample_size_per_arm
+  sample_size_per_arm,
+  level = 0.95
 )
 }
 \arguments{
@@ -18,11 +19,13 @@ of the target study.}
 
 \item{posterior_sd}{Standard deviation of the posterior treatment effect.}
 
-\item{lower}{Lower bound of the 95\% credible interval.}
+\item{lower}{Lower bound of the credible interval.}
 
-\item{upper}{Upper bound of the 95\% credible interval.}
+\item{upper}{Upper bound of the credible interval.}
 
 \item{sample_size_per_arm}{Per-arm sample size of the target study.}
+
+\item{level}{Level of the credible interval.}
 }
 \value{
 A list with the \code{moment} and \code{precision} effective sample sizes.
@@ -31,8 +34,8 @@ A list with the \code{moment} and \code{precision} effective sample sizes.
 Both effective sample sizes reported per replicate compare the
 posterior against a normal reference of known scale. The moment version uses
 the posterior variance directly; the precision version uses the variance a
-normal distribution would need in order to have the same 95\% credible
-interval width. Both are expressed relative to the target study, by
+normal distribution would need in order to have the same credible interval
+width at \code{level}. Both are expressed relative to the target study, by
 subtracting its per-arm sample size.
 
 Models whose posterior summary is available exactly, or already computed,

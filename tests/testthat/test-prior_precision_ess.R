@@ -1,4 +1,4 @@
-mock_posterior_precision_ess <- function(model) {
+mock_posterior_precision_ess <- function(model, level = 0.95) {
   200
 }
 

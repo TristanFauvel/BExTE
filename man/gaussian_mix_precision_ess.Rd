@@ -4,10 +4,12 @@
 \alias{gaussian_mix_precision_ess}
 \title{Calculate the precision-based Effective Sample Size (ESS) for a Gaussian mixture.}
 \usage{
-gaussian_mix_precision_ess(mix)
+gaussian_mix_precision_ess(mix, level = 0.95)
 }
 \arguments{
 \item{mix}{A mixture object.}
+
+\item{level}{Level of the credible interval used for precision matching.}
 }
 \value{
 The precision-based ESS for the Gaussian mixture.

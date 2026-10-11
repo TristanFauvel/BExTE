@@ -4,12 +4,14 @@
 \alias{prior_precision_ess}
 \title{Calculate the prior precision-based Effective Sample Size (ESS) for a Bayesian model.}
 \usage{
-prior_precision_ess(rbest_model, target_data)
+prior_precision_ess(rbest_model, target_data, level = 0.95)
 }
 \arguments{
 \item{rbest_model}{A RBesT model object.}
 
 \item{target_data}{Target data containing sample information.}
+
+\item{level}{Level of the credible interval used for precision matching.}
 }
 \value{
 The prior precision-based ESS for the Bayesian model.

@@ -195,18 +195,20 @@ BinomialConjugate <- R6::R6Class(
     #' quantity that has no need of it.
     #'
     #' @param target_data Target study data
+    #' @param level Level used for the precision-based ESS.
     #' @param ... Unused, kept so that the simulation can call every model the
     #'   same way.
     #' @return A list with the `moment` and `precision` effective sample sizes.
-    posterior_ess = function(target_data, ...) {
-      interval <- self$credible_interval(level = 0.95)
+    posterior_ess = function(target_data, level = 0.95, ...) {
+      interval <- self$credible_interval(level = level)
 
       return(normal_reference_ess(
         reference_scale = target_data$sample$standard_deviation,
         posterior_sd = sqrt(self$post_var),
         lower = interval[[1]],
         upper = interval[[2]],
-        sample_size_per_arm = target_data$sample_size_per_arm
+        sample_size_per_arm = target_data$sample_size_per_arm,
+        level = level
       ))
     },
 

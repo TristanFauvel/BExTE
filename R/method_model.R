@@ -913,7 +913,8 @@ Model <- R6::R6Class(
             if (requested("ess_moment") || requested("ess_precision")) {
               posterior_ess <- self$posterior_ess(
                 target_data = target_data,
-                simulation_config = simulation_config
+                simulation_config = simulation_config,
+                level = confidence_level
               )
 
               if (requested("ess_moment")) {
@@ -1657,8 +1658,9 @@ Model <- R6::R6Class(
     #'
     #' @param target_data Target study data
     #' @param simulation_config Configuration of simulation study
+    #' @param level Level used for the precision-based ESS.
     #' @return A list with the `moment` and `precision` effective sample sizes.
-    posterior_ess = function(target_data, simulation_config) {
+    posterior_ess = function(target_data, simulation_config, level = 0.95) {
       self$posterior_to_RBesT(
         target_data = target_data,
         simulation_config = simulation_config
@@ -1671,7 +1673,8 @@ Model <- R6::R6Class(
         ),
         precision = prior_precision_ess(
           rbest_model = self$RBesT_posterior_normix,
-          target_data = target_data
+          target_data = target_data,
+          level = level
         )
       ))
     },
@@ -2468,10 +2471,15 @@ Model_RBesT <- R6::R6Class(
     #' @param level Level of the credible interval.
     #' @return A vector containing the lower and upper bounds of the credible interval.
     credible_interval = function(level = 0.95) {
-      if (level != 0.95) {
-        stop("Not implemented for other than 95% CrI")
+      if (!is.numeric(level) || length(level) != 1L ||
+          !is.finite(level) || level <= 0 || level >= 1) {
+        stop("`level` must be between 0 and 1.")
       }
-      return(c(self$posterior_summary["cri95L"], self$posterior_summary["cri95U"]))
+      if (level == 0.95) {
+        return(c(self$posterior_summary["cri95L"], self$posterior_summary["cri95U"]))
+      }
+      alpha <- (1 - level) / 2
+      RBesT::qmix(self$RBesT_posterior, c(alpha, 1 - alpha))
     },
 
     #' @description Prior mixture components for each replicate
@@ -2510,11 +2518,6 @@ Model_RBesT <- R6::R6Class(
       prior <- self$vectorised_prior_components(target_data, samples)
       if (is.null(prior)) {
         return(NULL)
-      }
-
-      if (confidence_level != 0.95) {
-        # Matches the scalar credible_interval(), which only supports 95%.
-        stop("Not implemented for other than 95% CrI")
       }
 
       posterior <- normal_mixture_posterior(
@@ -3031,18 +3034,20 @@ MCMCModel <- R6::R6Class(
     #' the sampler already carries.
     #'
     #' @param target_data Target study data
+    #' @param level Level used for the precision-based ESS.
     #' @param ... Unused, kept so that the simulation can call every model the
     #'   same way.
     #' @return A list with the `moment` and `precision` effective sample sizes.
-    posterior_ess = function(target_data, ...) {
-      interval <- self$credible_interval(level = 0.95)
+    posterior_ess = function(target_data, level = 0.95, ...) {
+      interval <- self$credible_interval(level = level)
 
       return(normal_reference_ess(
         reference_scale = target_data$sample$standard_deviation,
         posterior_sd = sqrt(self$post_var),
         lower = interval[[1]],
         upper = interval[[2]],
-        sample_size_per_arm = target_data$sample_size_per_arm
+        sample_size_per_arm = target_data$sample_size_per_arm,
+        level = level
       ))
     },
 

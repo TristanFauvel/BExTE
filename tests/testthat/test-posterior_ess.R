@@ -139,6 +139,25 @@ test_that("BinomialConjugate precision ESS uses the exact credible interval", {
   )
 })
 
+test_that("BinomialConjugate precision ESS uses the requested interval level", {
+  model <- BinomialSeparate$new(
+    prior = ess_noninformative_prior(),
+    mcmc_config = ess_mcmc_config()
+  )
+  target_data <- ess_target_data()
+  model$inference(target_data = target_data)
+
+  level <- 0.9
+  bounds <- beta_difference_quantile(c(0.05, 0.95), 11, 31, 26, 16)
+  implied_sd <- ((bounds[2] - bounds[1]) / 2) /
+    stats::qnorm((1 + level) / 2)
+
+  result <- model$posterior_ess(target_data = target_data, level = level)
+
+  expect_equal(result$precision, 0.5^2 / implied_sd^2 - 40,
+               tolerance = 1e-3)
+})
+
 
 test_that("BinomialConjugate separates the two ESS definitions", {
   # The Monte Carlo route fitted a single-component normal mixture, which forced
