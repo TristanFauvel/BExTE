@@ -348,6 +348,7 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
                                              min_drift,
                                              max_drift,
                                              resolution) {
+      check_plot_packages()
       # Generate a sequence of differences
       drifts <- seq(min_drift, max_drift, length.out = resolution)
 
@@ -363,10 +364,10 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
       plot_data <- data.frame(Drift = drifts, PowerParameter = power_parameters)
 
       # Plot using ggplot2
-      ggplot(plot_data, aes(x = Drift, y = PowerParameter)) +
-        geom_line(color = "blue") +
-        labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
-        theme_minimal()
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
+        ggplot2::geom_line(color = "blue") +
+        ggplot2::labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
+        ggplot2::theme_minimal()
     }
   ),
   private = list(
@@ -1162,6 +1163,7 @@ BinomialPValueBasedPP <- R6::R6Class(
                                              min_drift,
                                              max_drift,
                                              resolution) {
+      check_plot_packages()
       # Generate a sequence of differences
       drifts <- seq(min_drift, max_drift, length.out = resolution)
 
@@ -1177,10 +1179,10 @@ BinomialPValueBasedPP <- R6::R6Class(
       plot_data <- data.frame(Drift = drifts, PowerParameter = power_parameters)
 
       # Plot using ggplot2
-      ggplot(plot_data, aes(x = Drift, y = PowerParameter)) +
-        geom_line(color = "blue") +
-        labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
-        theme_minimal()
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
+        ggplot2::geom_line(color = "blue") +
+        ggplot2::labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
+        ggplot2::theme_minimal()
     }
   )
 )

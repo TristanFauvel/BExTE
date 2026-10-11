@@ -33,6 +33,7 @@ table_metric_vs_drift <- function(metric,
                                   source_denominator_change_factor = 1,
                                   target_to_source_std_ratio = 1,
                                   wide_table = TRUE) {
+  check_table_packages()
   # Filter results by case study and target sample size per arm
   results_metrics_df <- results_metrics_df %>%
     dplyr::filter(case_study == !!case_study) %>%
@@ -191,7 +192,7 @@ table_metric_vs_drift <- function(metric,
     title <- sprintf(
       "%s, %s, %s %s",
       frequentist_metrics[[metric]]$label,
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title
     )
@@ -210,7 +211,7 @@ table_metric_vs_drift <- function(metric,
     title <- sprintf(
       "%s, %s, %s %s, %s %s",
       frequentist_metrics[[metric]]$label,
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title,
       "$N_T/2 = $",
@@ -234,7 +235,7 @@ table_metric_vs_drift <- function(metric,
     title <- sprintf(
       "%s, %s, %s, $N_T/2 = $ %s",
       frequentist_metrics[[metric]]$label,
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       target_sample_size_per_arm
     )
@@ -253,7 +254,7 @@ table_metric_vs_drift <- function(metric,
     title <- sprintf(
       "%s, %s, %s %s, %s %s",
       frequentist_metrics[[metric]]$label,
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title,
       "$N_T/2 = $",
@@ -375,6 +376,7 @@ table_metric_vs_parameters <- function(results_metrics_df,
                                        theta_0 = NULL,
                                        source_denominator_change_factor = 1,
                                        target_to_source_std_ratio = 1) {
+  check_table_packages()
   results_df <- results_metrics_df %>%
     dplyr::filter(
       case_study == !!case_study,
@@ -523,7 +525,7 @@ table_metric_vs_parameters <- function(results_metrics_df,
 
       title <- sprintf(
         "%s, $N_T/2 = $ %s, Source denominator change factor = %s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$label,
         other_params_label,
         target_sample_size_per_arm
@@ -564,6 +566,7 @@ table_metric_vs_sample_size <- function(metric,
                                         source_denominator_change_factor = 1,
                                         target_to_source_std_ratio = 1,
                                         wide_table = TRUE) {
+  check_table_packages()
 
 
 
@@ -684,11 +687,11 @@ table_metric_vs_sample_size <- function(metric,
       gsub(" ", "_", treatment_effect)
     )
 
-    title <-  TeX(
+    title <-  latex2exp::TeX(
       sprintf(
         "%s, %s, %s, %s",
         frequentist_metrics[[metric]]$label,
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$label,
         treatment_effect
       )
@@ -716,6 +719,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
                                   parameters_combinations,
                                   xvars,
                                   wide_table = TRUE) {
+  check_table_packages()
   # Filter results by case study and target sample size per arm
   results_metrics_df <- results_metrics_df %>%
     dplyr::filter(case_study == !!case_study) %>%
@@ -874,7 +878,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     title <- sprintf(
       "%s, %s, %s %s",
       frequentist_metrics[[metric]]$label,
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title
     )
@@ -893,7 +897,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     title <- sprintf(
       "%s, %s, %s %s, %s %s",
       frequentist_metrics[[metric]]$label,
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title,
       "$N_T/2 = $",
@@ -917,7 +921,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     title <- sprintf(
       "%s, %s, %s, $N_T/2 = $ %s",
       frequentist_metrics[[metric]]$label,
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       target_sample_size_per_arm
     )
@@ -936,7 +940,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     title <- sprintf(
       "%s, %s, %s %s, %s %s",
       frequentist_metrics[[metric]]$label,
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title,
       "$N_T/2 = $",
@@ -1047,6 +1051,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
 #'
 #' @importFrom dplyr filter
 tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
+  check_table_packages()
   case_studies <- unique(results_metrics_df$case_study)
 
   # Get the list of methods

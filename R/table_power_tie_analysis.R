@@ -1,4 +1,5 @@
 table_noninflated_tie <- function(noninflated_cases_df){
+  check_table_packages()
   noninflated_cases_df <- noninflated_cases_df[, intersect(c(unique_scenario_columns, "method", "parameters"), names(noninflated_cases_df))]
 
   file_path <- file.path(tables_dir, "noninflated_tie_cases")
@@ -26,6 +27,7 @@ table_noninflated_tie <- function(noninflated_cases_df){
 
 
 table_power_gain <- function(power_gain_cases_df){
+  check_table_packages()
   power_gain_cases_df <- power_gain_cases_df[, intersect(c(unique_scenario_columns, "method", "parameters"), names(power_gain_cases_df))]
 
   file_path <- file.path(tables_dir, "power_gain_cases")
@@ -52,6 +54,7 @@ table_power_gain <- function(power_gain_cases_df){
 }
 
 table_power_loss <- function(power_loss_cases_df){
+  check_table_packages()
   power_loss_cases_df <- power_loss_cases_df[, intersect(c(unique_scenario_columns, "method", "parameters"), names(power_loss_cases_df))]
 
   file_path <- file.path(tables_dir, "power_loss_cases")
@@ -78,6 +81,7 @@ table_power_loss <- function(power_loss_cases_df){
 }
 
 table_power_loss_cases_inflated_tie <- function(power_loss_cases_inflated_tie_df){
+  check_table_packages()
   power_loss_cases_inflated_tie_df <- power_loss_cases_inflated_tie_df[, intersect(c(unique_scenario_columns, "method", "parameters"), names(power_loss_cases_inflated_tie_df))]
 
   file_path <- file.path(tables_dir, "power_loss_cases")

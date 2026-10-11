@@ -14,7 +14,6 @@
 #'
 #' @return This function doesn't return a value but generates and saves tables in various formats (HTML, PDF, LaTeX).
 #'
-#' @import dplyr
 #'
 #' @export
 table_power_vs_tie <- function(results_metrics_df,
@@ -25,6 +24,7 @@ table_power_vs_tie <- function(results_metrics_df,
                                metrics,
                                source_denominator_change_factor,
                                target_to_source_std_ratio) {
+  check_table_packages()
   results_df <- results_metrics_df %>%
     dplyr::filter(
       target_sample_size_per_arm == !!target_sample_size_per_arm,
@@ -133,7 +133,7 @@ table_power_vs_tie <- function(results_metrics_df,
 
   title <-  sprintf(
       "%s, $N_T/2 = %s$, %s",
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       target_sample_size_per_arm,
       treatment_effect_label
     )
@@ -157,10 +157,10 @@ table_power_vs_tie <- function(results_metrics_df,
 #'
 #' @return This function doesn't return a value but generates multiple tables using table_power_vs_tie().
 #'
-#' @import dplyr
 #'
 #' @export
 power_vs_tie_tables <- function(results_metrics_df, metrics) {
+  check_table_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,

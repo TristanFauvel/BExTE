@@ -118,7 +118,7 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
 
     plot_title <- sprintf(
       "%s, $N_T/2 = $%s, %s",
-      str_to_title(unique(results_df$case_study)),
+      stringr::str_to_title(unique(results_df$case_study)),
       target_sample_size_per_arm,
       treatment_effects_labels[[treatment_effect]]
     )
@@ -148,7 +148,7 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
 
     plot_title <- sprintf(
       "%s, $N_T/2 = $%s, %s",
-      str_to_title(unique(results_df$case_study)),
+      stringr::str_to_title(unique(results_df$case_study)),
       unique(results_df$target_sample_size_per_arm),
       design_prior_label
     )
@@ -199,8 +199,8 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
     plt <- plot_element_metric_vs_xvar_methods(
       plt,
       results_df,
-      sym("target_to_source_std_ratio"),
-      sym(metric$name),
+      ggplot2::sym("target_to_source_std_ratio"),
+      ggplot2::sym(metric$name),
       selected_metric_uncertainty_lower,
       selected_metric_uncertainty_upper,
       cap_size,
@@ -216,8 +216,8 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
     plt <- plot_element_metric_vs_xvar_methods(
       plt,
       results_df,
-      sym("target_to_source_std_ratio"),
-      sym(metric$name),
+      ggplot2::sym("target_to_source_std_ratio"),
+      ggplot2::sym(metric$name),
       NULL,
       NULL,
       cap_size,
@@ -231,12 +231,12 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
   }
 
   plt <- plt +
-    labs(
+    ggplot2::labs(
       title = plot_title,
       x = latex2exp::TeX("$\\sigma_T / \\sigma_S$"),
       y = metric$label
     ) +
-    theme_minimal()
+    ggplot2::theme_minimal()
   plt <- plt +
     ggplot2::scale_x_continuous(
       breaks = c(1, 2)
@@ -254,6 +254,7 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
 }
 
 loop_plot_effect_target_standard_deviation <- function(results_df, metrics){
+  check_plot_packages()
   # Define the columns that uniquely define a scenario
   scenario_vars <- c("target_sample_size_per_arm",
                      "drift", "case_study") #"method", "parameters",

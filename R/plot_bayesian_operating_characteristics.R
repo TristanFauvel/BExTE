@@ -24,6 +24,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
                                           add_baselines = FALSE,
                                           source_denominator_change_factor = 1,
                                           target_to_source_std_ratio = 1) {
+  check_plot_packages()
 
   # Filter results_metrics_df on the selected case study, target sample arm and method
   results_df <- results_metrics_df %>%
@@ -141,7 +142,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
       plot_title <-
         sprintf(
           "%s, %s, %s $N_T/2 = $ %s",
-          str_to_title(case_study),
+          stringr::str_to_title(case_study),
           methods_labels[[method]]$full_name,
           other_params_label,
           target_sample_size_per_arm
@@ -168,8 +169,8 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
             y = !!selected_metric_name
           )
         ) +
-          geom_point() +
-          geom_line()
+          ggplot2::geom_point() +
+          ggplot2::geom_line()
 
         plt <- plt +
           ggplot2::labs(
@@ -188,9 +189,9 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
             color = as.factor(label)
           )
         ) +
-          geom_point() +
-          geom_line()
-        plt <- plt + scale_color_manual(values = color_map,
+          ggplot2::geom_point() +
+          ggplot2::geom_line()
+        plt <- plt + ggplot2::scale_color_manual(values = color_map,
                            name = NULL,
                            labels = design_priors) +
         ggplot2::labs(
@@ -204,7 +205,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
 
       # Add a y-line at theta = 0
       if (add_baselines) {
-        plt <- plt + geom_hline(yintercept = theta_0, linetype = "dashed")
+        plt <- plt + ggplot2::geom_hline(yintercept = theta_0, linetype = "dashed")
       }
 
       # Save plot
@@ -278,6 +279,7 @@ bayesian_metric_vs_sample_size <- function(metric,
                                            target_to_source_std_ratio = 1,
                                            source_denominator_change_factor = 1,
                                            design_prior = NULL) {
+  check_plot_packages()
   # Filter on the selected case study, method, etc
   results_df <- input_df %>%
     dplyr::filter(
@@ -371,7 +373,7 @@ bayesian_metric_vs_sample_size <- function(metric,
     plot_title <-
       sprintf(
         "%s, %s %s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$full_name,
         param_label
       )
@@ -409,7 +411,7 @@ bayesian_metric_vs_sample_size <- function(metric,
     plot_title <-
       sprintf(
         "%s, Design prior : %s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         design_prior_label
       )
 
@@ -520,11 +522,11 @@ bayesian_metric_vs_sample_size <- function(metric,
           y = !!selected_metric_name
         )
       ) +
-        geom_point() +
+        ggplot2::geom_point() +
         # geom_point(position = position_dodge(width = cap_size / 2)) +
-        geom_line() +
-        scale_x_continuous(name = "Target study sample size per arm") +
-        scale_y_continuous(name = selected_label)
+        ggplot2::geom_line() +
+        ggplot2::scale_x_continuous(name = "Target study sample size per arm") +
+        ggplot2::scale_y_continuous(name = selected_label)
     } else {
       # Produce the plot
       design_priors_names <- c("Analysis prior",  "Source posterior", "UI design prior")
@@ -538,13 +540,13 @@ bayesian_metric_vs_sample_size <- function(metric,
           color = as.factor(label)
         )
       ) +
-        geom_point() +
+        ggplot2::geom_point() +
         # geom_point(position = position_dodge(width = cap_size / 2)) +
-        geom_line() +
-        scale_x_continuous(name = "Target study sample size per arm") +
-        scale_y_continuous(name = selected_label) +
+        ggplot2::geom_line() +
+        ggplot2::scale_x_continuous(name = "Target study sample size per arm") +
+        ggplot2::scale_y_continuous(name = selected_label) +
         ggplot2::labs(color = labels_title) +
-        scale_color_manual(values = color_map,
+        ggplot2::scale_color_manual(values = color_map,
                            name = NULL,
                            labels = design_priors_names)
     }
@@ -569,15 +571,15 @@ bayesian_metric_vs_sample_size <- function(metric,
     )
 
     plt <- plt +
-      geom_point(size = 1) + # Adjust size if needed
-      geom_line() +
-      scale_x_continuous(name = "Target study sample size per arm") +
-      scale_y_continuous(name = selected_label) +
+      ggplot2::geom_point(size = 1) + # Adjust size if needed
+      ggplot2::geom_line() +
+      ggplot2::scale_x_continuous(name = "Target study sample size per arm") +
+      ggplot2::scale_y_continuous(name = selected_label) +
       ggplot2::labs(color = "Methods") +
-      scale_color_viridis_d(labels = parameters_labels, guide = "legend") +
-      scale_fill_viridis_d(labels = parameters_labels, guide = "legend") +
-      scale_shape_manual(values = seq_along(parameters_labels), labels = parameters_labels, guide = "legend") +
-      guides(color = guide_legend(title = "Methods"), shape = guide_legend(title = "Methods"))
+      ggplot2::scale_color_viridis_d(labels = parameters_labels, guide = "legend") +
+      ggplot2::scale_fill_viridis_d(labels = parameters_labels, guide = "legend") +
+      ggplot2::scale_shape_manual(values = seq_along(parameters_labels), labels = parameters_labels, guide = "legend") +
+      ggplot2::guides(color = ggplot2::guide_legend(title = "Methods"), shape = ggplot2::guide_legend(title = "Methods"))
   }
 
   plt <- plt +
@@ -585,7 +587,7 @@ bayesian_metric_vs_sample_size <- function(metric,
 
   # Add a y-line at theta = 0
   if (add_baselines) {
-    plt <- plt + geom_hline(yintercept = theta_0, linetype = "dashed")
+    plt <- plt + ggplot2::geom_hline(yintercept = theta_0, linetype = "dashed")
   }
 
   # Save plot
@@ -622,6 +624,7 @@ bayesian_metric_vs_sample_size <- function(metric,
 #'
 #' @examples NA
 bayesian_ocs_plots <- function(results_metrics_df, metrics) {
+  check_plot_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,

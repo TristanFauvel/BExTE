@@ -9,10 +9,10 @@
 #'
 #' @return A kable object representing the comparison table.
 #'
-#' @import dplyr
 #' @export
 generate_comparison_table <- function(results_df,
                                       x_metric, source_denominator_change_factor, target_to_source_std_ratio) {
+  check_table_packages()
   if (x_metric %in% names(frequentist_metrics)) {
     metric <- frequentist_metrics[[x_metric]]
   } else if (x_metric %in% names(inference_metrics)) {
@@ -127,7 +127,7 @@ generate_comparison_table <- function(results_df,
 
   title <- sprintf(
       "%s, $N_T/2 = $ %s",
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       target_sample_size_per_arm
     )
   title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor, as_latex = TRUE)
@@ -173,10 +173,10 @@ generate_comparison_table <- function(results_df,
 #'
 #' @return None
 #'
-#' @import dplyr
 #'
 #' @export
 table_methods_comparison <- function(results_metrics_df, metrics) {
+  check_table_packages()
   if (nrow(results_metrics_df) == 0) {
     stop("The dataframe is empty")
   }

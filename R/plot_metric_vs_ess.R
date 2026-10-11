@@ -94,7 +94,7 @@ plot_metric_vs_ess <- function(results_metrics_df,
 
   plot_title <- sprintf(
     "%s, $N_T/2 = $ %s, %s",
-    str_to_title(case_study),
+    stringr::str_to_title(case_study),
     target_sample_size_per_arm,
     treatment_effects_labels[[treatment_effect]]
   )
@@ -113,10 +113,10 @@ plot_metric_vs_ess <- function(results_metrics_df,
   ess_label <- ess_method$label
 
 
-  plt <- ggplot(results_df, aes(x = !!ess_name))
+  plt <- ggplot2::ggplot(results_df, ggplot2::aes(x = !!ess_name))
 
   if (metric$name == "mse" && ess_method$name == "ess_moment") {
-    plt <- plt + geom_vline(
+    plt <- plt + ggplot2::geom_vline(
       xintercept = target_sample_size_per_arm,
       color = "black",
       linetype = "dashed"
@@ -124,13 +124,13 @@ plot_metric_vs_ess <- function(results_metrics_df,
   }
 
   plt <- plt +
-    geom_point(aes(
+    ggplot2::geom_point(ggplot2::aes(
       y = !!metric_name,
       color = as.factor(method),
       shape = as.factor(method)
     )) +
-    geom_errorbar(
-      aes(
+    ggplot2::geom_errorbar(
+      ggplot2::aes(
         ymin = !!metric_uncertainty_lower,
         ymax = !!metric_uncertainty_upper,
         color =  as.factor(method)
@@ -148,8 +148,8 @@ plot_metric_vs_ess <- function(results_metrics_df,
 
   # MSE-versus-ESS panels show uncertainty only in the MSE estimate.
   if (metric$name != "mse") {
-    plt <- plt + geom_errorbarh(
-      aes(
+    plt <- plt + ggplot2::geom_errorbarh(
+      ggplot2::aes(
         xmin = !!ess_uncertainty_lower,
         xmax = !!ess_uncertainty_upper,
         y = !!metric_name,
@@ -164,14 +164,14 @@ plot_metric_vs_ess <- function(results_metrics_df,
   ## in level order, so a case study missing a method recoloured every method
   ## after it. Here a method carries the same colour and symbol everywhere.
   plt <- plt +
-    scale_color_manual(values = method_hue_map(results_df$method), name = "Methods") +
-    scale_shape_manual(values = method_shape_map(results_df$method), name = "Methods")
+    ggplot2::scale_color_manual(values = method_hue_map(results_df$method), name = "Methods") +
+    ggplot2::scale_shape_manual(values = method_shape_map(results_df$method), name = "Methods")
 
   if (metric$name == "mse") {
     plt <- plt +
-      guides(
-        color = guide_legend(ncol = 5, byrow = TRUE),
-        shape = guide_legend(ncol = 5, byrow = TRUE)
+      ggplot2::guides(
+        color = ggplot2::guide_legend(ncol = 5, byrow = TRUE),
+        shape = ggplot2::guide_legend(ncol = 5, byrow = TRUE)
       )
   }
 
@@ -186,7 +186,7 @@ plot_metric_vs_ess <- function(results_metrics_df,
   }
 
   legend_theme <- if (metric$name == "mse") {
-    theme(legend.position = "bottom", legend.title.position = "top")
+    ggplot2::theme(legend.position = "bottom", legend.title.position = "top")
   } else {
     NULL
   }
@@ -213,6 +213,7 @@ plot_metric_vs_ess <- function(results_metrics_df,
 #'
 #' @examples NA
 plot_metrics_vs_ess <- function(results_metrics_df, frequentist_metrics, inference_metrics) {
+  check_plot_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,

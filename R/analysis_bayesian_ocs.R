@@ -886,12 +886,13 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
       on.exit(cluster$stop(), add = TRUE)
     }
     cluster$get()
+    `%dopar%` <- foreach::`%dopar%`
 
     # The foreach body is evaluated outside the package namespace, where an
     # internal function is not visible; bound here, it travels to the workers
     # as an exported variable, with the namespace as its environment.
     run_job <- bayesian_ocs_for_combination
-    results_list <- foreach(job = jobs, .packages = c("dplyr", "yaml")) %dopar% {
+    results_list <- foreach::foreach(job = jobs, .packages = c("dplyr", "yaml")) %dopar% {
       run_job(job, simulation_config, mcmc_config, design_prior_types)
     }
   } else {

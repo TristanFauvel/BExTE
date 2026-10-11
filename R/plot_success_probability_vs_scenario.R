@@ -46,42 +46,42 @@ plot_baseline_success_proba_vs_xvar <- function(plt,
                                   selected_metric_uncertainty_lower,
                                   selected_metric_uncertainty_upper)) {
     plt <- plt +
-      geom_errorbar(
+      ggplot2::geom_errorbar(
         data = data,
         ggplot2::aes(
-          x = !!sym(xvar_name),
-          y = !!sym(selected_metric_name),
-          ymin = !!sym(selected_metric_uncertainty_lower),
-          ymax = !!sym(selected_metric_uncertainty_upper),
+          x = !!ggplot2::sym(xvar_name),
+          y = !!ggplot2::sym(selected_metric_name),
+          ymin = !!ggplot2::sym(selected_metric_uncertainty_lower),
+          ymax = !!ggplot2::sym(selected_metric_uncertainty_upper),
           color = label
         ),
-        position = position_dodge(width = cap_size),
+        position = ggplot2::position_dodge(width = cap_size),
         width = cap_size
       )
   }
 
   plt <- plt +
-    geom_point(
+    ggplot2::geom_point(
       data = data,
       ggplot2::aes(
-        x = !!sym(xvar_name),
-        y = !!sym(selected_metric_name),
+        x = !!ggplot2::sym(xvar_name),
+        y = !!ggplot2::sym(selected_metric_name),
         color = label
       ),
-      position = position_dodge(width = cap_size),
+      position = ggplot2::position_dodge(width = cap_size),
       size = markersize,
     )
 
   if (join_points == TRUE) {
-    plt <- plt + geom_line(
+    plt <- plt + ggplot2::geom_line(
       #  Add lines between points
       data = data,
       ggplot2::aes(
-        x = !!sym(xvar_name),
-        y = !!sym(selected_metric_name),
+        x = !!ggplot2::sym(xvar_name),
+        y = !!ggplot2::sym(selected_metric_name),
         color = label
       ),
-      position = position_dodge(width = cap_size)
+      position = ggplot2::position_dodge(width = cap_size)
     )
   }
   return(plt)
@@ -103,43 +103,43 @@ plot_success_proba_vs_xvar <- function(plt,
   }
 
   plt <- plt +
-    geom_errorbar(
+    ggplot2::geom_errorbar(
       data = data,
       ggplot2::aes(
-        x = !!sym(xvar_name),
-        y = !!sym(selected_metric_name),
-        ymin = !!sym(selected_metric_uncertainty_lower),
-        ymax = !!sym(selected_metric_uncertainty_upper),
+        x = !!ggplot2::sym(xvar_name),
+        y = !!ggplot2::sym(selected_metric_name),
+        ymin = !!ggplot2::sym(selected_metric_uncertainty_lower),
+        ymax = !!ggplot2::sym(selected_metric_uncertainty_upper),
         color = label
       ),
-      position = position_dodge(width = cap_size),
+      position = ggplot2::position_dodge(width = cap_size),
       width = cap_size
     ) +
-    geom_point(
+    ggplot2::geom_point(
       data = data,
       ggplot2::aes(
-        x = !!sym(xvar_name),
-        y = !!sym(selected_metric_name),
+        x = !!ggplot2::sym(xvar_name),
+        y = !!ggplot2::sym(selected_metric_name),
         color = label
       ),
-      position = position_dodge(width = cap_size),
+      position = ggplot2::position_dodge(width = cap_size),
       size = markersize,
     )
   if (join_points == TRUE) {
-    plt <- plt + geom_line(
+    plt <- plt + ggplot2::geom_line(
       #  Add lines between points
       data = data,
       ggplot2::aes(
-        x = !!sym(xvar_name),
-        y = !!sym(selected_metric_name),
+        x = !!ggplot2::sym(xvar_name),
+        y = !!ggplot2::sym(selected_metric_name),
         color = label
       ),
-      position = position_dodge(width = cap_size)
+      position = ggplot2::position_dodge(width = cap_size)
     )
   }
 
   plt <- plt +
-    ylim(0, 1)
+    ggplot2::ylim(0, 1)
   return(plt)
 }
 
@@ -175,6 +175,7 @@ plot_success_proba_vs_drift <- function(metric,
                                         xvars,
                                         join_points = FALSE,
                                         baseline_success_proba) {
+  check_plot_packages()
 
 
   xvar <- xvars$drift
@@ -313,7 +314,7 @@ plot_success_proba_vs_drift <- function(metric,
 
   drift_theta_0 <- theta_0 - unique(results_df$source_treatment_effect_estimate)
   plt <- plt +
-    geom_vline(xintercept = drift_theta_0,
+    ggplot2::geom_vline(xintercept = drift_theta_0,
                linetype = "dashed",
                color = "black") #+
   # annotate("text", x = drift_theta_0, y = 0, label = TeX("$\\theta_0 - \\hat{\\theta}_0$"), vjust = -0.1 )
@@ -328,7 +329,7 @@ plot_success_proba_vs_drift <- function(metric,
 
   plot_title <- sprintf(
     "%s, %s%s, $N_T/2 = $ %s",
-    str_to_title(case_study),
+    stringr::str_to_title(case_study),
     methods_labels[[method]]$full_name,
     param_label,
     target_sample_size_per_arm
@@ -339,10 +340,10 @@ plot_success_proba_vs_drift <- function(metric,
   # Add colors, labels and theme
   plt <- plt +
     ggplot2::labs(x = xvar_label, y = selected_label, title = plot_title) +
-    theme_bw() +
-    scale_color_manual(values = color_groups) +
-    labs(color = "")+ # Legend title
-    theme(legend.position = "bottom")
+    ggplot2::theme_bw() +
+    ggplot2::scale_color_manual(values = color_groups) +
+    ggplot2::labs(color = "")+ # Legend title
+    ggplot2::theme(legend.position = "bottom")
 
   plot.size <- set_size(textwidth)
   fig_width_in <- plot.size[1]
@@ -375,6 +376,7 @@ plot_success_proba_vs_drift <- function(metric,
 #'
 #' @examples NA
 plot_success_proba_vs_scenario <- function(results_metrics_df, metrics) {
+  check_plot_packages()
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

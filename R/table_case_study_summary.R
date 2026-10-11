@@ -38,6 +38,7 @@ PAPER_TABLE_S1_CASE_STUDIES <- c(
 #'
 #' @export
 table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_dir) {
+  check_table_packages()
   dir.create(tables_dir, showWarnings = FALSE, recursive = TRUE)
 
   format_range <- function(bounds) {
@@ -98,6 +99,7 @@ table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_
 #'
 #' @export
 table_case_study_summary <- function(case_studies, case_studies_config_dir, tables_dir) {
+  check_table_packages()
   dir.create(tables_dir, showWarnings = FALSE, recursive = TRUE)
 
   rows <- lapply(case_studies, function(case_study) {

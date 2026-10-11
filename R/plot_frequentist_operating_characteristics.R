@@ -22,7 +22,7 @@ plot_element_metric_vs_xvar <- function(plt,
       }
 
       plt <- plt +
-        geom_errorbar(
+        ggplot2::geom_errorbar(
           data = data,
           ggplot2::aes(
             x = !!xvar_name,
@@ -32,10 +32,10 @@ plot_element_metric_vs_xvar <- function(plt,
             color = as.factor(label),
             group = as.factor(label),
           ),
-          position = position_dodge(width = cap_size),
+          position = ggplot2::position_dodge(width = cap_size),
           width = cap_size
         ) +
-        geom_point(
+        ggplot2::geom_point(
           data = data,
           ggplot2::aes(
             x = !!xvar_name,
@@ -43,14 +43,14 @@ plot_element_metric_vs_xvar <- function(plt,
             group = as.factor(label),
             color = as.factor(label),
           ),
-          position = position_dodge(width = cap_size),
+          position = ggplot2::position_dodge(width = cap_size),
           size = markersize,
         ) +
-        scale_color_viridis_d() + # Apply the viridis color map for discrete data
+        ggplot2::scale_color_viridis_d() + # Apply the viridis color map for discrete data
         ggplot2::labs(color = labels_title)
 
       if (join_points == TRUE) {
-        plt <- plt + geom_line(
+        plt <- plt + ggplot2::geom_line(
           #  Add lines between points
           data = data,
           ggplot2::aes(
@@ -59,7 +59,7 @@ plot_element_metric_vs_xvar <- function(plt,
             group = as.factor(label),
             color = as.factor(label),
           ),
-          position = position_dodge(width = cap_size)
+          position = ggplot2::position_dodge(width = cap_size)
         )
       }
     } else {
@@ -67,7 +67,7 @@ plot_element_metric_vs_xvar <- function(plt,
 
       if (length(unique(data$parameters)) > 1) {
         plt <- plt +
-          geom_errorbar(
+          ggplot2::geom_errorbar(
             data = data,
             ggplot2::aes(
               x = !!xvar_name,
@@ -78,10 +78,10 @@ plot_element_metric_vs_xvar <- function(plt,
               # Used to keep the parameters ordered
               group = factor(parameters, levels = unique(data$parameters)),
             ),
-            position = position_dodge(width = cap_size),
+            position = ggplot2::position_dodge(width = cap_size),
             width = cap_size
           ) +
-          geom_point(
+          ggplot2::geom_point(
             data = data,
             ggplot2::aes(
               x = !!xvar_name,
@@ -90,13 +90,13 @@ plot_element_metric_vs_xvar <- function(plt,
               # Used to keep the parameters ordered
               group = factor(parameters, levels = unique(data$parameters)),
             ),
-            position = position_dodge(width = cap_size),
+            position = ggplot2::position_dodge(width = cap_size),
             size = markersize,
           ) +
-          scale_color_viridis_d(labels = parameters_labels) + labs(color = labels_title)
+          ggplot2::scale_color_viridis_d(labels = parameters_labels) + ggplot2::labs(color = labels_title)
 
         if (join_points == TRUE) {
-          plt <- plt + geom_line(
+          plt <- plt + ggplot2::geom_line(
             #  Add lines between points
             data = data,
             ggplot2::aes(
@@ -106,12 +106,12 @@ plot_element_metric_vs_xvar <- function(plt,
               # Used to keep the parameters ordered
               group = factor(parameters, levels = unique(data$parameters)),
             ),
-            position = position_dodge(width = cap_size)
+            position = ggplot2::position_dodge(width = cap_size)
           )
         }
       } else {
         plt <- plt +
-          geom_errorbar(
+          ggplot2::geom_errorbar(
             data = data,
             ggplot2::aes(
               x = !!xvar_name,
@@ -119,34 +119,34 @@ plot_element_metric_vs_xvar <- function(plt,
               ymin = !!selected_metric_uncertainty_lower,
               ymax = !!selected_metric_uncertainty_upper
             ),
-            position = position_dodge(width = cap_size),
+            position = ggplot2::position_dodge(width = cap_size),
             width = cap_size
           ) +
-          geom_point(
+          ggplot2::geom_point(
             data = data,
             ggplot2::aes(
               x = !!xvar_name,
               y = !!selected_metric_name
             ),
-            position = position_dodge(width = cap_size),
+            position = ggplot2::position_dodge(width = cap_size),
             size = markersize,
           )
         if (join_points == TRUE) {
-          plt <- plt + geom_line(
+          plt <- plt + ggplot2::geom_line(
             #  Add lines between points
             data = data,
             ggplot2::aes(
               x = !!xvar_name,
               y = !!selected_metric_name
             ),
-            position = position_dodge(width = cap_size)
+            position = ggplot2::position_dodge(width = cap_size)
           )
         }
       }
     }
   } else {
     plt <- plt +
-      geom_errorbar(
+      ggplot2::geom_errorbar(
         data = data,
         ggplot2::aes(
           x = !!xvar_name,
@@ -154,17 +154,17 @@ plot_element_metric_vs_xvar <- function(plt,
           ymin = !!selected_metric_uncertainty_lower,
           ymax = !!selected_metric_uncertainty_upper,
         ),
-        position = position_dodge(width = cap_size),
+        position = ggplot2::position_dodge(width = cap_size),
         width = cap_size,
         color = color
       ) +
-      geom_point(
+      ggplot2::geom_point(
         data = data,
         ggplot2::aes(
           x = !!xvar_name,
           y = !!selected_metric_name,
         ),
-        position = position_dodge(width = cap_size),
+        position = ggplot2::position_dodge(width = cap_size),
         size = markersize,
         color = color
       )
@@ -213,6 +213,7 @@ plot_metric_vs_drift <- function(metric,
                                  join_points = FALSE,
                                  source_denominator_change_factor = 1,
                                  analysis_config) {
+  check_plot_packages()
 
   if (!(metric %in% colnames(results_metrics_df))) {
     warning("Metric not in input dataframe.")
@@ -439,7 +440,7 @@ plot_metric_vs_drift <- function(metric,
 
   if (control_drift) {
     plt <- plt +
-      geom_vline(xintercept = 0,
+      ggplot2::geom_vline(xintercept = 0,
                  linetype = "dashed",
                  color = "gray")
   } else {
@@ -457,12 +458,12 @@ plot_metric_vs_drift <- function(metric,
     )
 
     plt <- plt +
-      geom_vline(data = mandatory_drift_values,
-                 aes(xintercept = drift_value, linetype = effect_label), color = "black") +
-      scale_linetype_manual(values = c("No effect" = "dotted",
+      ggplot2::geom_vline(data = mandatory_drift_values,
+                 ggplot2::aes(xintercept = drift_value, linetype = effect_label), color = "black") +
+      ggplot2::scale_linetype_manual(values = c("No effect" = "dotted",
                                        "Partially consistent effect" = "dashed",
                                        "Consistent effect" = "solid")) +
-      labs(linetype = "Treatment effect")
+      ggplot2::labs(linetype = "Treatment effect")
 
   }
 
@@ -545,7 +546,7 @@ plot_metric_vs_drift <- function(metric,
   if (category == "target_sample_size_per_arm") {
     title <- sprintf(
         "%s, %s %s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$full_name,
         parameters_label_title
       )
@@ -563,7 +564,7 @@ plot_metric_vs_drift <- function(metric,
   } else if (category == "source_denominator_change_factor") {
     title <- sprintf(
         "%s, %s %s, %s %s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$full_name,
         parameters_label_title,
         "$N_T/2 = $",
@@ -585,7 +586,7 @@ plot_metric_vs_drift <- function(metric,
   } else if (category == "parameters") {
     title <- sprintf(
         "%s, %s, $N_T/2 = $ %s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$full_name,
         target_sample_size_per_arm
       )
@@ -604,7 +605,7 @@ plot_metric_vs_drift <- function(metric,
   } else if (category == "target_to_source_std_ratio") {
     title <- sprintf(
         "%s, %s%s, $N_T/2 = $%s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$full_name,
         parameters_label_title,
         target_sample_size_per_arm
@@ -627,7 +628,7 @@ plot_metric_vs_drift <- function(metric,
   } else if (category %in% names(TIME_TO_EVENT_AXES)) {
     title <- sprintf(
         "%s, %s%s, $N_T/2 = $%s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$full_name,
         parameters_label_title,
         target_sample_size_per_arm
@@ -707,6 +708,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
                                       target_to_source_std_ratio = 1,
                                       source_denominator_change_factor = 1,
                                       analysis_config) {
+  check_plot_packages()
   if (!(metric %in% colnames(results_metrics_df))) {
     warning("Metric not in input dataframe.")
     return()
@@ -829,7 +831,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 
       plot_title <-  sprintf(
           "%s, %s, %s $N_T/2 = $ %s",
-          str_to_title(case_study),
+          stringr::str_to_title(case_study),
           methods_labels[[method]]$full_name,
           other_params_label,
           target_sample_size_per_arm
@@ -864,19 +866,19 @@ plot_metric_vs_parameters <- function(results_metrics_df,
           ggplot2::scale_y_continuous(breaks = nominal_tie_breaks(analysis_config$nominal_tie))  # Add y-tick at y = 0.05
       }
 
-      plt <- plt + geom_point(position = position_dodge(width = cap_size)) +
-      geom_errorbar(
+      plt <- plt + ggplot2::geom_point(position = ggplot2::position_dodge(width = cap_size)) +
+      ggplot2::geom_errorbar(
         ggplot2::aes(
           x = parameter_values,
           ymin = !!rlang::sym(selected_metric_uncertainty_lower),
           ymax = !!rlang::sym(selected_metric_uncertainty_upper)
         ),
-        position = position_dodge(width = cap_size),
+        position = ggplot2::position_dodge(width = cap_size),
         width = cap_size
       )
 
       if(!(metric %in% c("tie"))){
-        plt <- plt + scale_color_manual(values = color_map,
+        plt <- plt + ggplot2::scale_color_manual(values = color_map,
                                         name = NULL,
                                         labels = treatment_effects_names)
         plt <- plt +
@@ -895,7 +897,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 
       # Add a y-line at theta = 0
       if (add_baselines) {
-        plt <- plt + geom_hline(yintercept = theta_0, linetype = "dashed")
+        plt <- plt + ggplot2::geom_hline(yintercept = theta_0, linetype = "dashed")
       }
 
 
@@ -971,6 +973,7 @@ plot_metric_vs_sample_size <- function(metric,
                                        target_to_source_std_ratio = 1,
                                        source_denominator_change_factor = 1,
                                        analysis_config) {
+  check_plot_packages()
 
 
   if (!(metric %in% colnames(results_metrics_df))) {
@@ -1065,8 +1068,8 @@ plot_metric_vs_sample_size <- function(metric,
         color = as.factor(target_treatment_effect)
       )
     ) +
-      geom_point(position = position_dodge(width = cap_size)) +
-      geom_errorbar(
+      ggplot2::geom_point(position = ggplot2::position_dodge(width = cap_size)) +
+      ggplot2::geom_errorbar(
         ggplot2::aes(
           x = target_sample_size_per_arm,
           ymin = !!selected_metric_uncertainty_lower,
@@ -1074,10 +1077,10 @@ plot_metric_vs_sample_size <- function(metric,
           group = as.factor(target_treatment_effect),
           color = as.factor(target_treatment_effect)
         ),
-        position = position_dodge(width = cap_size),
+        position = ggplot2::position_dodge(width = cap_size),
         width = cap_size
       ) +
-      scale_color_manual(values = color_map,
+      ggplot2::scale_color_manual(values = color_map,
                          name = NULL,
                          labels = effects)
   } else {
@@ -1088,14 +1091,14 @@ plot_metric_vs_sample_size <- function(metric,
         y = !!selected_metric_name
       )
     ) +
-      geom_point(position = position_dodge(width = cap_size)) +
-      geom_errorbar(
+      ggplot2::geom_point(position = ggplot2::position_dodge(width = cap_size)) +
+      ggplot2::geom_errorbar(
         ggplot2::aes(
           x = target_sample_size_per_arm,
           ymin = !!selected_metric_uncertainty_lower,
           ymax = !!selected_metric_uncertainty_upper
         ),
-        position = position_dodge(width = cap_size),
+        position = ggplot2::position_dodge(width = cap_size),
         width = cap_size
       )
   }
@@ -1119,7 +1122,7 @@ plot_metric_vs_sample_size <- function(metric,
 
   title <- sprintf(
       "%s, %s%s",
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       methods_labels[[method]]$full_name,
       param_label
     )
@@ -1133,7 +1136,7 @@ plot_metric_vs_sample_size <- function(metric,
 
   # Add a y-line at theta = 0
   if (add_baselines) {
-    plt <- plt + geom_hline(yintercept = theta_0, linetype = "dashed")
+    plt <- plt + ggplot2::geom_hline(yintercept = theta_0, linetype = "dashed")
   }
 
   directory <- paste0(figures_dir, case_study)
@@ -1181,6 +1184,7 @@ plot_metric_vs_sample_size <- function(metric,
 #'
 #' @examples NA
 plot_metric_vs_scenario <- function(results_metrics_df, metrics) {
+  check_plot_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,

@@ -128,7 +128,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 
         plot_title <- sprintf(
           "%s, %s, %s $N_T/2 = $ %s",
-          str_to_title(case_study),
+          stringr::str_to_title(case_study),
           methods_labels[[method]]$full_name,
           other_params_label,
           target_sample_size_per_arm
@@ -142,14 +142,14 @@ plot_posterior_vs_prior_parameters <- function(input_df,
         cap_size <- x_width * relative_error_cap_width # Adjust relative_error_cap_width to control the relative cap size
 
         # Create the plot
-        plt <- ggplot(combined_data, aes(x = x, y = y, ymin = conf_int_lower, ymax = conf_int_upper, color = as.factor(drift))) +
-          geom_errorbar(width = cap_size, position = position_dodge(width = cap_size / 2)) +
-          geom_point(size = markersize, position = position_dodge(width = cap_size / 2)) +
-          scale_color_manual(values = color_map, name = NULL, labels = treatment_effects_names) +
+        plt <- ggplot2::ggplot(combined_data, ggplot2::aes(x = x, y = y, ymin = conf_int_lower, ymax = conf_int_upper, color = as.factor(drift))) +
+          ggplot2::geom_errorbar(width = cap_size, position = ggplot2::position_dodge(width = cap_size / 2)) +
+          ggplot2::geom_point(size = markersize, position = ggplot2::position_dodge(width = cap_size / 2)) +
+          ggplot2::scale_color_manual(values = color_map, name = NULL, labels = treatment_effects_names) +
           ggplot2::labs(
             title = plot_title,
-            x = TeX(sprintf("%s %s", "Prior", methods_dict[[method]][[key]]$parameter_notation)),
-            y = TeX(sprintf("%s %s", "Posterior", methods_dict[[method]][[posterior_key]]$parameter_notation)),
+            x = latex2exp::TeX(sprintf("%s %s", "Prior", methods_dict[[method]][[key]]$parameter_notation)),
+            y = latex2exp::TeX(sprintf("%s %s", "Posterior", methods_dict[[method]][[posterior_key]]$parameter_notation)),
             color = "Target treatment effect",
             group = "Target treatment effect"
           )
@@ -220,6 +220,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
                                                xvars,
                                                source_denominator_change_factor,
                                                target_to_source_std_ratio) {
+  check_plot_packages()
   # Filter the data frame based on method, case_study, and target_sample_size_per_arm
   results_metrics_df <- results_metrics_df %>%
     dplyr::filter(
@@ -383,7 +384,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     plot_title <-
       sprintf(
         "%s, %s, $N_T/2 =$ %s",
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         methods_labels[[method]]$full_name,
         target_sample_size_per_arm
       )
@@ -391,7 +392,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     plot_title <- format_title(title = plot_title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
     plt <- ggplot2::ggplot()
-    plt <- plt + geom_errorbar(
+    plt <- plt + ggplot2::geom_errorbar(
       data = plot_data_df,
       ggplot2::aes(
         x = drift,
@@ -401,10 +402,10 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
         color = parameters,
         group = parameters
       ),
-      position = position_dodge(width = cap_size / 2),
+      position = ggplot2::position_dodge(width = cap_size / 2),
       width = cap_size
     ) +
-      geom_point(
+      ggplot2::geom_point(
         data = plot_data_df,
         ggplot2::aes(
           x = drift,
@@ -412,14 +413,14 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
           color = parameters,
           group = parameters
         ),
-        position = position_dodge(width = cap_size / 2),
+        position = ggplot2::position_dodge(width = cap_size / 2),
         size = markersize,
       ) +
-      scale_color_viridis_d(labels = parameters_labels) + # Apply the viridis color map for discrete data
+      ggplot2::scale_color_viridis_d(labels = parameters_labels) + # Apply the viridis color map for discrete data
       ggplot2::labs(color = "Prior parameters value") +
-      ggtitle(plot_title)
+      ggplot2::ggtitle(plot_title)
 
-    plt <- plt + ggplot2::labs(x = xvar[["label"]], y = TeX(sprintf("Posterior %s", methods_dict[[method]][[key]][["parameter_notation"]])))
+    plt <- plt + ggplot2::labs(x = xvar[["label"]], y = latex2exp::TeX(sprintf("Posterior %s", methods_dict[[method]][[key]][["parameter_notation"]])))
 
 
     case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
@@ -436,12 +437,12 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     )
 
     plt <- plt +
-      geom_vline(data = mandatory_drift_values,
-                 aes(xintercept = drift_value, linetype = effect_label), color = "black") +
-      scale_linetype_manual(values = c("No effect" = "dotted",
+      ggplot2::geom_vline(data = mandatory_drift_values,
+                 ggplot2::aes(xintercept = drift_value, linetype = effect_label), color = "black") +
+      ggplot2::scale_linetype_manual(values = c("No effect" = "dotted",
                                        "Partially consistent effect" = "dashed",
                                        "Consistent effect" = "solid")) +
-      labs(linetype = "Treatment effect")
+      ggplot2::labs(linetype = "Treatment effect")
 
     directory <- paste0(figures_dir, case_study)
     if (!dir.exists(directory)) {
@@ -487,6 +488,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
 #'
 #' @examples NA
 posterior_parameters_plots <- function(results_metrics_df) {
+  check_plot_packages()
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

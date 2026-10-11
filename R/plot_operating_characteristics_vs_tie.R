@@ -209,6 +209,7 @@ operating_characteristic_vs_tie <- function(
     target_to_source_std_ratio,
     show_tie_error_bars = FALSE
 ) {
+  check_plot_packages()
 
   directory <- paste0(figures_dir, case_study)
   if (!dir.exists(directory)) {
@@ -306,7 +307,7 @@ operating_characteristic_vs_tie <- function(
 
   plot_title <- sprintf(
     "%s, $N_T/2 = $%s, %s",
-    str_to_title(case_study),
+    stringr::str_to_title(case_study),
     target_sample_size_per_arm,
     treatment_effects_labels[[treatment_effect]]
   )
@@ -330,7 +331,7 @@ operating_characteristic_vs_tie <- function(
   shapes <- method_shape_map(unique_methods)
 
   # Initialize the plot
-  plt <- ggplot(mapping = aes(x = tie, y = !!sym(operating_characteristic$name)))
+  plt <- ggplot2::ggplot(mapping = ggplot2::aes(x = tie, y = !!ggplot2::sym(operating_characteristic$name)))
 
   # Iterate over each method and add layers
   plt <- plt + purrr::imap(results_df_split, function(df_subset, method_name) {
@@ -352,23 +353,23 @@ operating_characteristic_vs_tie <- function(
     # Create the plot layers for this method
     layers <- list(
       # Add points for this method
-      geom_point(
+      ggplot2::geom_point(
         data = df_subset,
-        aes(
+        ggplot2::aes(
           x = tie,
-          y = !!sym(operating_characteristic$name),
+          y = !!ggplot2::sym(operating_characteristic$name),
           color = factor(parameters_labels, levels = method_parameters)
         ),
         shape = method_shape,
         size = 2
       ),
       # Add vertical error bars
-      geom_errorbar(
+      ggplot2::geom_errorbar(
         data = df_subset,
-        aes(
+        ggplot2::aes(
           x = tie,
-          ymin = !!sym(paste0("conf_int_", operating_characteristic$name, "_lower")),
-          ymax = !!sym(paste0("conf_int_", operating_characteristic$name, "_upper")),
+          ymin = !!ggplot2::sym(paste0("conf_int_", operating_characteristic$name, "_lower")),
+          ymax = !!ggplot2::sym(paste0("conf_int_", operating_characteristic$name, "_upper")),
           color = factor(parameters_labels, levels = method_parameters)
         ),
         width = y_cap_size
@@ -378,10 +379,10 @@ operating_characteristic_vs_tie <- function(
       ## cross each other and obscure the points they belong to, so they
       ## are off unless asked for.
       if (show_tie_error_bars) {
-        geom_errorbarh(
+        ggplot2::geom_errorbarh(
           data = df_subset,
-          aes(
-            y = !!sym(operating_characteristic$name),
+          ggplot2::aes(
+            y = !!ggplot2::sym(operating_characteristic$name),
             xmin = conf_int_tie_lower,
             xmax = conf_int_tie_upper,
             color = factor(parameters_labels, levels = method_parameters)
@@ -396,7 +397,7 @@ operating_characteristic_vs_tie <- function(
       ## goes on the key itself, so it reads "Pooling" rather than a
       ## "Pooling" title above a lone unlabelled symbol. Where that key
       ## also carries parameters they follow the name.
-      scale_color_manual(
+      ggplot2::scale_color_manual(
         values = method_colors,
         labels = vs_tie_key_labels(method_name, method_parameters),
         name = if (length(method_parameters) == 1) NULL else method_name,
@@ -404,7 +405,7 @@ operating_characteristic_vs_tie <- function(
         ## Up to three entries per row: a method with nine parameter values
         ## (RMP's weights) becomes a 3x3 block rather than a column nine
         ## tall, which is what made the legend taller than the panel.
-        guide = guide_legend(
+        guide = ggplot2::guide_legend(
           override.aes = list(shape = method_shape),
           ncol = min(3, length(method_parameters)),
           byrow = TRUE
@@ -413,7 +414,7 @@ operating_characteristic_vs_tie <- function(
     )
 
     # Reset the color scale for the next method
-    layers <- c(layers, list(new_scale_color()))
+    layers <- c(layers, list(ggnewscale::new_scale_color()))
 
     layers
   })
@@ -442,33 +443,33 @@ operating_characteristic_vs_tie <- function(
 
   # Add shape scale for methods
   plt <- plt +
-    scale_shape_manual(
+    ggplot2::scale_shape_manual(
       values = shapes,
       name = "Methods",
-      guide = guide_legend(order = 1, nrow = 2)
+      guide = ggplot2::guide_legend(order = 1, nrow = 2)
     ) +
-    labs(
+    ggplot2::labs(
       title = plot_title,
       x = "TIE",
       y = operating_characteristic$label
     )
 
   # Apply theme settings
-  plt <- plt + theme_bw() + theme(
-    axis.text = element_text(family = font, size = text_size),
-    axis.text.y = element_text(family = font, size = small_text_size),
-    axis.text.x = element_text(family = font, size = small_text_size),
-    axis.title = element_text(family = font, size = text_size),
-    plot.title = element_text(family = font, size = text_size),
-    legend.text = element_text(family = font, size = small_text_size),
-    legend.title = element_text(family = font, size = text_size),
-    legend.key.size = unit(0.1, "cm"),
-    legend.spacing.x = unit(0.03, "cm"),
-    legend.spacing.y = unit(0.01, "cm"),
+  plt <- plt + ggplot2::theme_bw() + ggplot2::theme(
+    axis.text = ggplot2::element_text(family = font, size = text_size),
+    axis.text.y = ggplot2::element_text(family = font, size = small_text_size),
+    axis.text.x = ggplot2::element_text(family = font, size = small_text_size),
+    axis.title = ggplot2::element_text(family = font, size = text_size),
+    plot.title = ggplot2::element_text(family = font, size = text_size),
+    legend.text = ggplot2::element_text(family = font, size = small_text_size),
+    legend.title = ggplot2::element_text(family = font, size = text_size),
+    legend.key.size = grid::unit(0.1, "cm"),
+    legend.spacing.x = grid::unit(0.03, "cm"),
+    legend.spacing.y = grid::unit(0.01, "cm"),
     legend.position = "bottom",
     legend.direction = "vertical",
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
     ## The eight method groups laid side by side make a legend row wider
     ## than any page - at 12pt it was clipped at both ends however wide
     ## the figure was made. Stacking the groups wraps the legend instead
@@ -513,6 +514,7 @@ operating_characteristic_vs_tie <- function(
 #'
 #' @examples NA
 operating_characteristics_vs_tie_plots <- function(results_metrics_df, metrics) {
+  check_plot_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,
@@ -703,7 +705,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
 
   plot_title <- sprintf(
     "%s, $N_T/2 = $%s, %s",
-    str_to_title(case_study),
+    stringr::str_to_title(case_study),
     target_sample_size_per_arm,
     design_prior_label
   )
@@ -739,7 +741,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
   }
 
   # Initialize the plot
-  plt <- ggplot(mapping = aes_string(x = x_var, y = operating_characteristic$name))
+  plt <- ggplot2::ggplot(mapping = ggplot2::aes_string(x = x_var, y = operating_characteristic$name))
 
   # Iterate over each method and add layers
   plt <- plt + purrr::imap(results_df_split, function(df_subset, method_name) {
@@ -761,9 +763,9 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     # Create the plot layers for this method
     layers <- list(
       # Add points for this method
-      geom_point(
+      ggplot2::geom_point(
         data = df_subset,
-        aes(color = factor(parameters_labels, levels = method_parameters)),
+        ggplot2::aes(color = factor(parameters_labels, levels = method_parameters)),
         shape = method_shape,
         size = 2
       ),
@@ -772,7 +774,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
       ## goes on the key itself, so it reads "Pooling" rather than a
       ## "Pooling" title above a lone unlabelled symbol. Where that key
       ## also carries parameters they follow the name.
-      scale_color_manual(
+      ggplot2::scale_color_manual(
         values = method_colors,
         labels = vs_tie_key_labels(method_name, method_parameters),
         name = if (length(method_parameters) == 1) NULL else method_name,
@@ -780,7 +782,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
         ## Up to three entries per row: a method with nine parameter values
         ## (RMP's weights) becomes a 3x3 block rather than a column nine
         ## tall, which is what made the legend taller than the panel.
-        guide = guide_legend(
+        guide = ggplot2::guide_legend(
           override.aes = list(shape = method_shape),
           ncol = min(3, length(method_parameters)),
           byrow = TRUE
@@ -792,12 +794,12 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     # Add horizontal error bars if tie_type is "tie"
     if (tie_type == "tie") {
       layers <- c(layers, list(
-        geom_errorbarh(
+        ggplot2::geom_errorbarh(
           data = df_subset,
-          aes(
+          ggplot2::aes(
             xmin = conf_int_tie_lower,
             xmax = conf_int_tie_upper,
-            y = !!sym(operating_characteristic$name),
+            y = !!ggplot2::sym(operating_characteristic$name),
             color = factor(parameters_labels, levels = method_parameters)
           ),
           height = x_cap_size
@@ -806,40 +808,40 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     }
 
     # Reset the color scale for the next method
-    layers <- c(layers, list(new_scale_color()))
+    layers <- c(layers, list(ggnewscale::new_scale_color()))
 
     layers
   })
 
   # Add shape scale for methods and labels
   plt <- plt +
-    scale_shape_manual(
+    ggplot2::scale_shape_manual(
       values = shapes,
       name = "Methods",
-      guide = guide_legend(order = 1, nrow = 2)
+      guide = ggplot2::guide_legend(order = 1, nrow = 2)
     ) +
-    labs(
+    ggplot2::labs(
       title = plot_title,
       x = x_label,
       y = operating_characteristic$label
     )
 
   # Apply theme settings
-  plt <- plt + theme_bw() + theme(
-    axis.text = element_text(family = font, size = text_size),
-    axis.text.y = element_text(family = font, size = small_text_size),
-    axis.text.x = element_text(family = font, size = small_text_size),
-    axis.title = element_text(family = font, size = text_size),
-    plot.title = element_text(family = font, size = text_size),
-    legend.text = element_text(family = font, size = small_text_size),
-    legend.title = element_text(family = font, size = text_size),
-    legend.key.size = unit(0.1, "cm"),  # Key size
-    legend.spacing.x = unit(0.03, "cm"),
-    legend.spacing.y = unit(0.01, "cm"),  # Narrow vertical spacing
+  plt <- plt + ggplot2::theme_bw() + ggplot2::theme(
+    axis.text = ggplot2::element_text(family = font, size = text_size),
+    axis.text.y = ggplot2::element_text(family = font, size = small_text_size),
+    axis.text.x = ggplot2::element_text(family = font, size = small_text_size),
+    axis.title = ggplot2::element_text(family = font, size = text_size),
+    plot.title = ggplot2::element_text(family = font, size = text_size),
+    legend.text = ggplot2::element_text(family = font, size = small_text_size),
+    legend.title = ggplot2::element_text(family = font, size = text_size),
+    legend.key.size = grid::unit(0.1, "cm"),  # Key size
+    legend.spacing.x = grid::unit(0.03, "cm"),
+    legend.spacing.y = grid::unit(0.01, "cm"),  # Narrow vertical spacing
     legend.position = "bottom",
     legend.direction = "vertical",
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
     legend.box = "horizontal",             # Stack legends vertically
     legend.box.just = "center"             # Align legends to the left
   )
@@ -884,6 +886,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
 #'
 #' @examples NA
 bayesian_operating_characteristics_vs_tie_plots <- function(results_bayes_df, results_freq_df, bayesian_metrics) {
+  check_plot_packages()
  common_columns <- intersect(names(results_bayes_df), names(results_freq_df))
 
   # Select the results that correspond to TIE computation.

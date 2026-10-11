@@ -13,7 +13,6 @@
 #'
 #' @return This function does not return a value. It creates and saves tables in HTML, PDF, and LaTeX formats.
 #'
-#' @import dplyr
 #' @export
 table_posterior_parameters_vs_drift <- function(results_metrics_df,
                                                 method,
@@ -23,6 +22,7 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
                                                 xvars,
                                                 source_denominator_change_factor,
                                                 target_to_source_std_ratio) {
+  check_table_packages()
   # Filter the data frame based on method, case_study, and target_sample_size_per_arm
   results_metrics_df <- results_metrics_df %>%
     dplyr::filter(
@@ -146,7 +146,7 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
 
   title <- sprintf(
     "%s, %s, $N_T/2 =$ %s",
-    str_to_title(case_study),
+    stringr::str_to_title(case_study),
     methods_labels[[method]]$label,
     target_sample_size_per_arm
   )
@@ -190,7 +190,7 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
     if (is.character(x)) {
       sapply(x, function(y) {
         if (!is.na(y) && !grepl("^\\s*NA\\s*$", y)) { # Ignore actual NA and "NA" strings
-          str_to_title(trimws(y)) # Capitalize words and remove any leading/trailing spaces
+          stringr::str_to_title(trimws(y)) # Capitalize words and remove any leading/trailing spaces
         } else {
           y # Leave NA and "NA" strings as they are
         }
@@ -213,11 +213,10 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
 #'
 #' @return This function does not return a value. It calls other functions to create and save multiple tables.
 #'
-#' @import dplyr
-#' @import yaml
 #'
 #' @export
 posterior_parameters_tables <- function(results_metrics_df, metrics) {
+  check_table_packages()
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

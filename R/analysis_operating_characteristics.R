@@ -832,12 +832,13 @@ equivalent_tie_design_p_values <- function(design_rows,
         on.exit(cluster$stop(), add = TRUE)
       }
       cluster$get()
+      `%dopar%` <- foreach::`%dopar%`
 
       # The foreach body is evaluated outside the package namespace, where an
       # internal function is not visible; bound here, it travels to the
       # workers as an exported variable, with the namespace as its environment.
       simulate_design <- design_trials
-      trials[to_simulate] <- foreach(row = rows_to_simulate, .packages = c("dplyr", "yaml")) %dopar% {
+      trials[to_simulate] <- foreach::foreach(row = rows_to_simulate, .packages = c("dplyr", "yaml")) %dopar% {
         simulate_design(row, simulation_config, n_replicates)
       }
     } else {
@@ -1370,8 +1371,9 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
       on.exit(cluster$stop(), add = TRUE)
     }
     cluster$get()
+    `%dopar%` <- foreach::`%dopar%`
 
-    computed_list[to_compute] <- foreach(i = to_compute, .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
+    computed_list[to_compute] <- foreach::foreach(i = to_compute, .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
       compute_design(i)
     }
   } else if (length(to_compute) > 0) {

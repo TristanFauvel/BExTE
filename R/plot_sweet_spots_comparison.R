@@ -87,27 +87,27 @@ forest_subplot_sweet_spot <- function(data,
   labels <- parse(text = widths$label)
 
   # Build the plot
-  plt <- ggplot(
+  plt <- ggplot2::ggplot(
     data,
-    aes(
+    ggplot2::aes(
       y = row,
       xmin = !!rlang::sym(sweet_spot_lower),
       xmax = !!rlang::sym(sweet_spot_upper)
     )
   ) +
-    geom_errorbarh(height = 0.2, linewidth = 1) +
-    labs(title = title, x = NULL, y = NULL) +
-    theme(
-      axis.title.y = element_blank(),
-      axis.title.x = element_blank(),
-      axis.text.y = element_text(size = 12),
-      axis.text.x = element_text(size = 12),
-      text = element_text(size = 14),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      plot.title = element_text(hjust = 0.5)
+    ggplot2::geom_errorbarh(height = 0.2, linewidth = 1) +
+    ggplot2::labs(title = title, x = NULL, y = NULL) +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_text(size = 12),
+      axis.text.x = ggplot2::element_text(size = 12),
+      text = ggplot2::element_text(size = 14),
+      panel.grid.major = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(hjust = 0.5)
     ) +
-    scale_y_continuous(breaks = widths$row, labels = labels)
+    ggplot2::scale_y_continuous(breaks = widths$row, labels = labels)
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
   source_treatment_effect_estimate <- unique(data$source_treatment_effect_estimate)[1]
@@ -123,12 +123,12 @@ forest_subplot_sweet_spot <- function(data,
   )
 
   plt <- plt +
-    geom_vline(data = mandatory_drift_values,
-               aes(xintercept = drift_value, linetype = effect_label), color = "black") +
-    scale_linetype_manual(values = c("No effect" = "dotted",
+    ggplot2::geom_vline(data = mandatory_drift_values,
+               ggplot2::aes(xintercept = drift_value, linetype = effect_label), color = "black") +
+    ggplot2::scale_linetype_manual(values = c("No effect" = "dotted",
                                      "Partially consistent effect" = "dashed",
                                      "Consistent effect" = "solid")) +
-    labs(linetype = "Treatment effect")
+    ggplot2::labs(linetype = "Treatment effect")
 
  return(plt)
 }
@@ -228,7 +228,7 @@ forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
   title <- sprintf(
     "%s, %s, $N_T/2 = $ %s",
     x_metric_label,
-    str_to_title(unique(df$case_study)),
+    stringr::str_to_title(unique(df$case_study)),
     unique(df$target_sample_size_per_arm)
   )
 
@@ -276,6 +276,7 @@ forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
 #'
 #' @return None
 forest_plot_sweet_spots_comparison <- function(sweet_spots_df, metrics) {
+  check_plot_packages()
 
   case_studies <- unique(sweet_spots_df$case_study)
 
@@ -456,13 +457,13 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
 
     title <- sprintf(
       "%s",
-      str_to_title(case_study)
+      stringr::str_to_title(case_study)
     )
 
     title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
     # Initialize the plot
-    plt <- ggplot(mapping = aes_string(x = "target_sample_size_per_arm", y = "sweet_spot_total_width"))
+    plt <- ggplot2::ggplot(mapping = ggplot2::aes_string(x = "target_sample_size_per_arm", y = "sweet_spot_total_width"))
 
     plt <- plt + purrr::imap(results_df_split, function(df_subset, method_name) {
       df_subset <- df_subset[!is.na(df_subset[["sweet_spot_total_width"]]), ]
@@ -483,63 +484,63 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
       # Create the plot layers for this method
       layers <- list(
         # Add points for this method
-        geom_point(
+        ggplot2::geom_point(
           data = df_subset,
-          aes(color = factor(parameters_labels, levels = method_parameters)),
+          ggplot2::aes(color = factor(parameters_labels, levels = method_parameters)),
           shape = method_shape,
           size = 2
           #position = position_jitter(width = 4, height = 0)
         ),
-        geom_line(
+        ggplot2::geom_line(
           data = df_subset,
-          aes(color = factor(parameters_labels, levels = method_parameters))
+          ggplot2::aes(color = factor(parameters_labels, levels = method_parameters))
         ),
         # Define the color scale for parameters within this method
-        scale_color_manual(
+        ggplot2::scale_color_manual(
           values = method_colors,
           labels = method_parameters,
           name = method_name,
           drop = TRUE,
-          guide = guide_legend(override.aes = list(shape = method_shape), ncol = 1)
+          guide = ggplot2::guide_legend(override.aes = list(shape = method_shape), ncol = 1)
         )
       )
 
 
       # Reset the color scale for the next method
-      layers <- c(layers, list(new_scale_color()))
+      layers <- c(layers, list(ggnewscale::new_scale_color()))
 
       layers
     })
 
     # Add shape scale for methods and labels
     plt <- plt +
-      scale_shape_manual(
+      ggplot2::scale_shape_manual(
         values = shapes,
         name = "Methods",
-        guide = guide_legend(order = 1, nrow = 2, byrow = TRUE)
+        guide = ggplot2::guide_legend(order = 1, nrow = 2, byrow = TRUE)
       ) +
-      labs(
+      ggplot2::labs(
         title =  title,
         x = "Target study sample size per arm",
         y = metric$label
       )
 
     # Apply theme settings
-    plt <- plt + theme_bw() + theme(
-      axis.text = element_text(family = font, size = text_size),
-      axis.text.y = element_text(family = font, size = small_text_size),
-      axis.text.x = element_text(family = font, size = small_text_size),
-      axis.title = element_text(family = font, size = text_size),
-      plot.title = element_text(family = font, size = text_size),
-      legend.text = element_text(family = font, size = small_text_size),
-      legend.title = element_text(family = font, size = text_size),
-      legend.key.size = unit(0.1, "cm"),  # Key size
-      legend.spacing.x = unit(0.01, "cm"),
-      legend.spacing.y = unit(0.01, "cm"),  # Narrow vertical spacing
+    plt <- plt + ggplot2::theme_bw() + ggplot2::theme(
+      axis.text = ggplot2::element_text(family = font, size = text_size),
+      axis.text.y = ggplot2::element_text(family = font, size = small_text_size),
+      axis.text.x = ggplot2::element_text(family = font, size = small_text_size),
+      axis.title = ggplot2::element_text(family = font, size = text_size),
+      plot.title = ggplot2::element_text(family = font, size = text_size),
+      legend.text = ggplot2::element_text(family = font, size = small_text_size),
+      legend.title = ggplot2::element_text(family = font, size = text_size),
+      legend.key.size = grid::unit(0.1, "cm"),  # Key size
+      legend.spacing.x = grid::unit(0.01, "cm"),
+      legend.spacing.y = grid::unit(0.01, "cm"),  # Narrow vertical spacing
       legend.position = "bottom",
       legend.direction = "vertical",
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
+      panel.grid.major = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
       legend.box = "horizontal"             # Stack legends vertically
     )
 
@@ -584,6 +585,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
 #'
 #' @examples NA
 plot_sweet_spot_width_vs_scenario <- function(sweet_spot_df, sweet_spots_metrics) {
+  check_plot_packages()
   # Get the list of case studies
   case_studies <- unique(sweet_spot_df$case_study)
 

@@ -114,37 +114,12 @@ run_simulation_env <- function(env,
 
   scenarios_config <- read_config(paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema)
 
-  # Define the parallel logger
-  if (scenarios_config$parallelization){
-    # Parallel logger
-    ParallelLogger::registerLogger(ParallelLogger::createLogger(
-      name = "ParLogger",
-      threshold = "INFO",
-      appenders = list(
-        ParallelLogger::createConsoleAppender(
-          layout =  ParallelLogger::layoutSimple
-        ),
-        ParallelLogger::createFileAppender(
-          layout =  ParallelLogger::layoutParallel,
-          fileName = LOGGING_FILE_PATH
-        )
-      )
-    ))
+  # Set up the new log file. Sequential and parallel runs use the same
+  # logger: the workers' futile.logger calls go to their own console.
+  futile.logger::flog.appender(futile.logger::appender.file(LOGGING_FILE_PATH))
 
-
-    ParallelLogger::registerLogger(ParallelLogger::createLogger(name = "DEFAULT_ERRORREPORT_LOGGER",
-                                threshold = "FATAL",
-                                appenders = list(ParallelLogger::createFileAppender(layout =  ParallelLogger::layoutErrorReport,
-                                                                    fileName = paste0("./logs/", env, "/error_report.txt"),
-                                                                    overwrite = TRUE,
-                                                                    expirationTime = 60))))
-  } else {
-    # Set up the new log file
-    futile.logger::flog.appender(futile.logger::appender.file(LOGGING_FILE_PATH))
-
-    # Set the global error handler
-    options(error = global_error_handler)
-  }
+  # Set the global error handler
+  options(error = global_error_handler)
 
   outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
   ocs_filename <- outputs_config$frequentist_ocs_results_filename

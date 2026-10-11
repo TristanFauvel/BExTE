@@ -3,6 +3,7 @@
 ## the true effect in one number - for the same three treatment-effect
 ## scenarios used by the Belimumab forest plots.
 table_precision_ecp <- function(results_df, tables_dir) {
+  check_table_packages()
   required <- c(
     "case_study", "target_sample_size_per_arm", "method", "parameters",
     "target_to_source_std_ratio", "source_denominator_change_factor",

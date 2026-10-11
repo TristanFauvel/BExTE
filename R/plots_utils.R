@@ -453,18 +453,18 @@ export_plots <- function(plt,
                          bg = NULL, theme_extra = NULL) {
 
   if (!(forest_plot) && adjust_theme == TRUE){
-    plt <- plt + theme_bw() + theme(
-      axis.text = element_text(family = font, size = text_size),
-      axis.text.y = element_text(family = font, size = small_text_size),
-      axis.text.x = element_text(family = font, size = small_text_size),
-      axis.title = element_text(family = font, size = text_size),
-      plot.title = element_text(family = font, size = text_size),
-      legend.text = element_text(family = font, size = small_text_size),
-      legend.title = element_text(family = font, size = text_size),
-      legend.key = element_blank(),
+    plt <- plt + ggplot2::theme_bw() + ggplot2::theme(
+      axis.text = ggplot2::element_text(family = font, size = text_size),
+      axis.text.y = ggplot2::element_text(family = font, size = small_text_size),
+      axis.text.x = ggplot2::element_text(family = font, size = small_text_size),
+      axis.title = ggplot2::element_text(family = font, size = text_size),
+      plot.title = ggplot2::element_text(family = font, size = text_size),
+      legend.text = ggplot2::element_text(family = font, size = small_text_size),
+      legend.title = ggplot2::element_text(family = font, size = text_size),
+      legend.key = ggplot2::element_blank(),
       # strip.background = element_blank(),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank()
+      panel.grid.major = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank()
     )
   }
 
@@ -1050,4 +1050,23 @@ has_monte_carlo_uncertainty <- function(data, lower, upper) {
   width <- data[[upper]] - data[[lower]]
 
   any(is.finite(width) & width > 0)
+}
+
+#' Packages that the plotting code needs
+#'
+#' They are in Suggests, so that users who only fit priors and compute
+#' operating characteristics do not have to install them.
+#' @noRd
+PLOT_PACKAGES <- c("ggplot2", "ggnewscale", "gridExtra", "latex2exp",
+                   "purrr", "stringr", "viridis")
+
+#' Check that the packages for plotting are installed
+#'
+#' Every plotting entry point calls this first.
+#'
+#' @return `NULL`, invisibly. Raises an error if a package is missing and the
+#'   user does not install it.
+#' @noRd
+check_plot_packages <- function() {
+  rlang::check_installed(PLOT_PACKAGES, reason = "to draw plots.")
 }

@@ -1,29 +1,25 @@
-## Only packages whose exports this package uses bare belong in the @import
-## tags below. Everything else stays in DESCRIPTION's Imports - which
-## guarantees it is installed without loading it - and is reached with
-## pkg::fun() at the point of use, so its namespace loads on first call
-## rather than on library(BExTE). That matters for BExTE-app, which
-## attaches the package to serve a web UI that touches none of the
-## simulation stack: an @importFrom of five RBesT symbols that nothing used
-## bare was pulling in rstan and ~200 MB of resident memory at startup.
+## Only names this package uses bare belong in the @importFrom tags below.
+## No tag imports a whole package. Everything else in DESCRIPTION's Imports
+## is installed but not loaded, and is reached with pkg::fun() at the point
+## of use, so its namespace loads on first call rather than on
+## library(BExTE). That matters for BExTE-app, which attaches the package to
+## serve a web UI that touches none of the simulation stack: an @importFrom
+## of five RBesT symbols that nothing used bare was pulling in rstan and
+## ~200 MB of resident memory at startup.
+##
+## Plotting, table and report code uses packages from Suggests. Each entry
+## point calls check_plot_packages(), check_table_packages() or
+## check_parallel_packages() before it uses them.
 #' @keywords internal
-#' @import rlang dplyr tidyr readr parallel foreach extrafont
-#' @import R6 ggplot2 viridis stringr assertions
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom purrr imap
-#' @importFrom latex2exp TeX
-#' @importFrom jsonlite write_json toJSON
-#' @importFrom ggnewscale new_scale_color
-#' @importFrom gridExtra grid.arrange
-#' @importFrom Bolstad2 sintegral
-#' @importFrom progress progress_bar
-#' @importFrom yaml yaml.load_file read_yaml
-#' @importFrom parallel makeCluster clusterEvalQ stopCluster clusterExport detectCores
-#' @importFrom doParallel registerDoParallel
-#' @importFrom truncnorm rtruncnorm
-#' @importFrom HDInterval inverseCDF
-#' @importFrom pwr pwr.t.test pwr.norm.test ES.h pwr.2p2n.test
+#' @importFrom dplyr %>% across all_of any_of arrange case_when distinct
+#' @importFrom dplyr everything first group_by left_join mutate mutate_if
+#' @importFrom dplyr n_distinct pull rename_with row_number rowwise select
+#' @importFrom dplyr summarize ungroup where
+#' @importFrom tidyr pivot_wider unite unnest
+#' @importFrom rlang := duplicate sym
+#' @importFrom assertions assert_whole_number
 ## usethis namespace: end
 NULL

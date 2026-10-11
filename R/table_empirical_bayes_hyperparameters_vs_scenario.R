@@ -11,7 +11,6 @@
 #'
 #' @return This function does not return a value. It creates and saves tables in HTML, PDF, and LaTeX formats.
 #'
-#' @import dplyr
 #' @export
 table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
                                                 method,
@@ -21,6 +20,7 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
                                                 source_denominator_change_factor,
                                                 target_to_source_std_ratio,
                                                 parameters_combinations) {
+  check_table_packages()
 
   if (nrow(parameters_combinations) > 1){
     stop("The function was designed for a single parameters combination.")
@@ -165,14 +165,14 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       title <-
         sprintf(
           "%s, %s",
-          str_to_title(case_study),
+          stringr::str_to_title(case_study),
           methods_labels[[method]]$label
         )
     } else {
       title <-
         sprintf(
           "%s, %s%s",
-          str_to_title(case_study),
+          stringr::str_to_title(case_study),
           methods_labels[[method]]$label,
           parameters_label_title
         )
@@ -192,11 +192,10 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
 #'
 #' @return This function does not return a value. It calls other functions to create and save multiple tables.
 #'
-#' @import dplyr
-#' @import yaml
 #'
 #' @export
 table_empirical_bayes_hyperparameters_vs_scenario <- function(results_metrics_df, metrics) {
+  check_table_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,

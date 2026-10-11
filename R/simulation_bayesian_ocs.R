@@ -412,6 +412,8 @@ simulation_bayesian_ocs <- function(env,
         # Register parallel backend, one that calls the `opts` progress
         # callback built above as each scenario comes back - see
         # register_parallel_backend().
+        check_parallel_packages()
+        `%dopar%` <- foreach::`%dopar%`
         cl <- parallel::makeCluster(ncores)
         register_parallel_backend(cl)
 

@@ -8,13 +8,13 @@
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #' @return This function doesn't return a value but saves the generated tables as HTML, PDF, and LaTeX files.
 #'
-#' @import dplyr
 #' @export
 table_bayesian_metrics <- function(results_metrics_df,
                                                   case_study,
                                                   target_sample_size_per_arm,
                                                   source_denominator_change_factor = 1,
                                                   target_to_source_std_ratio = 1) {
+  check_table_packages()
 
   results_df <- results_metrics_df %>%
     dplyr::filter(
@@ -81,7 +81,7 @@ table_bayesian_metrics <- function(results_metrics_df,
     title <- sprintf(
         "%s, %s, $N_T/2 = %s$",
         bayesian_metrics[[i]]$label,
-        str_to_title(case_study),
+        stringr::str_to_title(case_study),
         target_sample_size_per_arm
       )
 
@@ -159,7 +159,7 @@ table_bayesian_metrics_sample_sizes_comparison <- function(results_metrics_df,
     title <- sprintf(
       "%s, %s",
       bayesian_metrics[[i]]$label,
-      str_to_title(case_study)
+      stringr::str_to_title(case_study)
     )
 
     title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor, as_latex = TRUE)
@@ -267,12 +267,11 @@ table_bayesian_metrics_across_case_studies <- function(results_metrics_df) {
 #'
 #' @return This function doesn't return a value but calls other functions to generate and save tables.
 #'
-#' @import dplyr
-#' @import yaml
 #'
 #' @export
 table_bayesian_ocs <- function(results_metrics_df, metrics, source_denominator_change_factor = 1,
                                target_to_source_std_ratio = 1) {
+  check_table_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,

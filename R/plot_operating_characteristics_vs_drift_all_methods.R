@@ -22,7 +22,7 @@ plot_element_metric_vs_xvar_methods <- function(plt,
   if (dodging){
     if (!is.null(selected_metric_uncertainty_lower)){
       plt <- plt +
-        geom_errorbar(
+        ggplot2::geom_errorbar(
           data = data,
           ggplot2::aes(
             x = !!xvar_name,
@@ -34,12 +34,12 @@ plot_element_metric_vs_xvar_methods <- function(plt,
             group = factor(parameters_labels, levels = unique(data$parameters_labels)),
             shape = factor(parameters_labels, levels = unique(data$parameters_labels))
           ),
-          position = position_dodge(width = cap_size),
+          position = ggplot2::position_dodge(width = cap_size),
           width = cap_size
         )
     }
     plt <- plt +
-      geom_point(
+      ggplot2::geom_point(
         data = data,
         ggplot2::aes(
           x = !!xvar_name,
@@ -49,13 +49,13 @@ plot_element_metric_vs_xvar_methods <- function(plt,
           group = factor(parameters_labels, levels = unique(data$parameters_labels)),
           shape = factor(parameters_labels, levels = unique(data$parameters_labels))
         ),
-        position = position_dodge(width = cap_size),
+        position = ggplot2::position_dodge(width = cap_size),
         size = markersize,
       )
     } else {
       if (!is.null(selected_metric_uncertainty_lower)){
         plt <- plt +
-          geom_errorbar(
+          ggplot2::geom_errorbar(
             data = data,
             ggplot2::aes(
               x = !!xvar_name,
@@ -71,7 +71,7 @@ plot_element_metric_vs_xvar_methods <- function(plt,
           )
       }
       plt <- plt +
-        geom_point(
+        ggplot2::geom_point(
           data = data,
           ggplot2::aes(
             x = !!xvar_name,
@@ -85,14 +85,14 @@ plot_element_metric_vs_xvar_methods <- function(plt,
         )
   }
 
-  plt <- plt + labs(color = labels_title) + scale_color_viridis_d(labels = parameters_labels, guide = "legend") + scale_fill_viridis_d(labels = parameters_labels, guide = "legend") +
-    scale_shape_manual(values = seq_along(parameters_labels), labels = parameters_labels, guide = "legend") +
-    guides(color = guide_legend(title = "Methods"), shape = guide_legend(title = "Methods"))
+  plt <- plt + ggplot2::labs(color = labels_title) + ggplot2::scale_color_viridis_d(labels = parameters_labels, guide = "legend") + ggplot2::scale_fill_viridis_d(labels = parameters_labels, guide = "legend") +
+    ggplot2::scale_shape_manual(values = seq_along(parameters_labels), labels = parameters_labels, guide = "legend") +
+    ggplot2::guides(color = ggplot2::guide_legend(title = "Methods"), shape = ggplot2::guide_legend(title = "Methods"))
 
 
   if (join_points == TRUE) {
     if (dodging){
-      plt <- plt + geom_line(
+      plt <- plt + ggplot2::geom_line(
         #  Add lines between points
         data = data,
         ggplot2::aes(
@@ -102,10 +102,10 @@ plot_element_metric_vs_xvar_methods <- function(plt,
           # Used to keep the parameters ordered
           group = factor(parameters_labels, levels = unique(data$parameters_labels)),
         ),
-        position = position_dodge(width = cap_size)
+        position = ggplot2::position_dodge(width = cap_size)
       )
     } else {
-      plt <- plt + geom_line(
+      plt <- plt + ggplot2::geom_line(
         #  Add lines between points
         data = data,
         ggplot2::aes(
@@ -146,6 +146,7 @@ plot_metric_vs_drift_methods <- function(metric,
                                  target_to_source_std_ratio = 1,
                                  join_points = FALSE,
                                  source_denominator_change_factor = 1) {
+  check_plot_packages()
 
   if (!(metric %in% colnames(results_metrics_df))) {
     warning("Metric not in input dataframe.")
@@ -274,16 +275,16 @@ plot_metric_vs_drift_methods <- function(metric,
   )
 
   plt <- plt +
-    geom_vline(data = mandatory_drift_values,
-               aes(xintercept = drift_value, linetype = effect_label), color = "black") +
-    scale_linetype_manual(values = c("No effect" = "dotted",
+    ggplot2::geom_vline(data = mandatory_drift_values,
+               ggplot2::aes(xintercept = drift_value, linetype = effect_label), color = "black") +
+    ggplot2::scale_linetype_manual(values = c("No effect" = "dotted",
                                    "Partially consistent effect" = "dashed",
                                    "Consistent effect" = "solid")) +
-    labs(linetype = "Treatment effect")
+    ggplot2::labs(linetype = "Treatment effect")
 
   title <- sprintf(
           "%s, $N_T/2 = %s$",
-          str_to_title(case_study),
+          stringr::str_to_title(case_study),
           target_sample_size_per_arm
         )
 
@@ -353,6 +354,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
                                        dodging = FALSE,
                                        join_points = FALSE,
                                        target_treatment_effect = target_treatment_effect) {
+  check_plot_packages()
 
 
   if (!(metric %in% colnames(results_metrics_df))) {
@@ -540,7 +542,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
 
 
   # Initialize the plot
-  plt <- ggplot(mapping = aes(x = target_sample_size_per_arm, y = !!selected_metric_name))
+  plt <- ggplot2::ggplot(mapping = ggplot2::aes(x = target_sample_size_per_arm, y = !!selected_metric_name))
 
   # Iterate over each method and add layers
   plt <- plt + purrr::imap(results_df_split, function(df_subset, method_name) {
@@ -563,40 +565,40 @@ plot_metric_vs_sample_size_methods <- function(metric,
     # Create the plot layers for this method
     layers <- list(
       # Add points for this method
-      geom_point(
+      ggplot2::geom_point(
         data = df_subset,
-        aes(x = jittered_x, color = factor(parameters_labels, levels = method_parameters)),
+        ggplot2::aes(x = jittered_x, color = factor(parameters_labels, levels = method_parameters)),
         shape = method_shape,
         size = 2
       ),
-      geom_line(
+      ggplot2::geom_line(
         data = df_subset,
-        aes(x = jittered_x, color = factor(parameters_labels, levels = method_parameters))
+        ggplot2::aes(x = jittered_x, color = factor(parameters_labels, levels = method_parameters))
       ),
       # Add vertical error bars
-      geom_errorbar(
+      ggplot2::geom_errorbar(
         data = df_subset,
-        aes(
+        ggplot2::aes(
           x = jittered_x,
-          ymin = !!sym(paste0("conf_int_", selected_metric_name, "_lower")),
-          ymax = !!sym(paste0("conf_int_", selected_metric_name, "_upper")),
+          ymin = !!ggplot2::sym(paste0("conf_int_", selected_metric_name, "_lower")),
+          ymax = !!ggplot2::sym(paste0("conf_int_", selected_metric_name, "_upper")),
           color = factor(parameters_labels, levels = method_parameters)
         ),
         width = cap_width
       ),
       # Define the color scale for parameters within this method
-      scale_color_manual(
+      ggplot2::scale_color_manual(
         values = method_colors,
         labels = method_parameters,
         name = method_name,
         drop = TRUE,
-        guide = guide_legend(override.aes = list(shape = method_shape), ncol = 1)
+        guide = ggplot2::guide_legend(override.aes = list(shape = method_shape), ncol = 1)
       )
     )
 
 
     # Reset the color scale for the next method
-    layers <- c(layers, list(new_scale_color()))
+    layers <- c(layers, list(ggnewscale::new_scale_color()))
 
     layers
   })
@@ -609,40 +611,40 @@ plot_metric_vs_sample_size_methods <- function(metric,
 
   plot_title <- sprintf(
     "%s, %s",
-    str_to_title(case_study),
+    stringr::str_to_title(case_study),
     target_treatment_effect
   )
   plot_title <- format_title(title = plot_title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
   # Add shape scale for methods and labels
   plt <- plt +
-    scale_shape_manual(
+    ggplot2::scale_shape_manual(
       values = shapes,
       name = "Methods",
-      guide = guide_legend(order = 1, nrow = 2)
+      guide = ggplot2::guide_legend(order = 1, nrow = 2)
     ) +
-    labs(
+    ggplot2::labs(
       title = plot_title,
       x = "Target study sample size per arm",
       y = selected_label
     )
 
   # Apply theme settings
-  plt <- plt + theme_bw() + theme(
-    axis.text = element_text(family = font, size = text_size),
-    axis.text.y = element_text(family = font, size = small_text_size),
-    axis.text.x = element_text(family = font, size = small_text_size),
-    axis.title = element_text(family = font, size = text_size),
-    plot.title = element_text(family = font, size = text_size),
-    legend.text = element_text(family = font, size = small_text_size),
-    legend.title = element_text(family = font, size = text_size),
-    legend.key.size = unit(0.1, "cm"),  # Key size
-    legend.spacing.x = unit(0.03, "cm"),
-    legend.spacing.y = unit(0.01, "cm"),  # Narrow vertical spacing
+  plt <- plt + ggplot2::theme_bw() + ggplot2::theme(
+    axis.text = ggplot2::element_text(family = font, size = text_size),
+    axis.text.y = ggplot2::element_text(family = font, size = small_text_size),
+    axis.text.x = ggplot2::element_text(family = font, size = small_text_size),
+    axis.title = ggplot2::element_text(family = font, size = text_size),
+    plot.title = ggplot2::element_text(family = font, size = text_size),
+    legend.text = ggplot2::element_text(family = font, size = small_text_size),
+    legend.title = ggplot2::element_text(family = font, size = text_size),
+    legend.key.size = grid::unit(0.1, "cm"),  # Key size
+    legend.spacing.x = grid::unit(0.03, "cm"),
+    legend.spacing.y = grid::unit(0.01, "cm"),  # Narrow vertical spacing
     legend.position = "bottom",
     legend.direction = "vertical",
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
     legend.box = "horizontal",             # Stack legends vertically
     legend.box.just = "center"             # Align legends to the left
   )
@@ -697,6 +699,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
 #'
 #' @examples NA
 plot_metric_vs_scenario_methods <- function(results_metrics_df, metrics) {
+  check_plot_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,

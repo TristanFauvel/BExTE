@@ -15,23 +15,23 @@ forest_palette_theme <- function(palette) {
   if (is.null(palette)) {
     return(NULL)
   }
-  theme(
-    text = element_text(colour = palette$ink),
-    axis.text = element_text(colour = palette$ink),
-    axis.title = element_text(colour = palette$ink),
-    plot.title = element_text(colour = palette$ink),
-    legend.text = element_text(colour = palette$ink),
-    legend.title = element_text(colour = palette$ink),
-    legend.background = element_blank(),
-    legend.key = element_blank(),
-    axis.ticks = element_line(colour = palette$ink_muted),
-    panel.background = element_rect(fill = palette$surface, colour = NA),
-    panel.border = element_rect(fill = NA, colour = palette$hairline),
-    panel.grid.major = element_line(colour = palette$hairline, linetype = "solid",
+  ggplot2::theme(
+    text = ggplot2::element_text(colour = palette$ink),
+    axis.text = ggplot2::element_text(colour = palette$ink),
+    axis.title = ggplot2::element_text(colour = palette$ink),
+    plot.title = ggplot2::element_text(colour = palette$ink),
+    legend.text = ggplot2::element_text(colour = palette$ink),
+    legend.title = ggplot2::element_text(colour = palette$ink),
+    legend.background = ggplot2::element_blank(),
+    legend.key = ggplot2::element_blank(),
+    axis.ticks = ggplot2::element_line(colour = palette$ink_muted),
+    panel.background = ggplot2::element_rect(fill = palette$surface, colour = NA),
+    panel.border = ggplot2::element_rect(fill = NA, colour = palette$hairline),
+    panel.grid.major = ggplot2::element_line(colour = palette$hairline, linetype = "solid",
                                     linewidth = 0.15),
-    strip.background = element_rect(fill = palette$hairline, colour = NA),
-    strip.text = element_text(colour = palette$ink),
-    plot.background = element_blank()
+    strip.background = ggplot2::element_rect(fill = palette$hairline, colour = NA),
+    strip.text = ggplot2::element_text(colour = palette$ink),
+    plot.background = ggplot2::element_blank()
   )
 }
 
@@ -157,7 +157,7 @@ forest_ess_values <- function(data) {
 ## colour scale on the N_T/2 and N_S/2 reference lines.
 forest_ess_layer <- function(data, palette, ess_limits) {
   if (is.null(forest_ess_values(data)) || !is.null(palette)) {
-    return(forest_ink_layer(geom_pointrange, palette, size = 0.001, linewidth = 1))
+    return(forest_ink_layer(ggplot2::geom_pointrange, palette, size = 0.001, linewidth = 1))
   }
   ggplot2::geom_pointrange(
     ggplot2::aes(fill = ess_moment),
@@ -377,21 +377,21 @@ forest_subplot <- function(data,
   ) +
     forest_ess_layer(data, palette, ess_limits) +
     ggplot2::labs(title = title, x = scientific_x$label) +
-    theme(
-      axis.title.y = element_blank(),
-      text = element_text(family = font, size = small_text_size),
-      axis.text.y = element_text(size = small_text_size),
-      strip.text.x = element_text(size = small_text_size),
-      legend.key = element_blank(),
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_blank(),
+      text = ggplot2::element_text(family = font, size = small_text_size),
+      axis.text.y = ggplot2::element_text(size = small_text_size),
+      strip.text.x = ggplot2::element_text(size = small_text_size),
+      legend.key = ggplot2::element_blank(),
       # strip.background = element_blank(),
-      panel.grid.major = element_line(color = "gray80", linetype = "solid",  size = 0.15),
-      panel.grid.minor = element_blank(),
-      axis.title = element_text(size = small_text_size),
-      plot.title = element_text(hjust = 0.5),
-      plot.background = element_blank()
+      panel.grid.major = ggplot2::element_line(color = "gray80", linetype = "solid",  size = 0.15),
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(size = small_text_size),
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      plot.background = ggplot2::element_blank()
     ) +
     forest_palette_theme(palette) +
-    scale_y_continuous(breaks = data$rows, labels = labels) + # LaTeX labels
+    ggplot2::scale_y_continuous(breaks = data$rows, labels = labels) + # LaTeX labels
     forest_ess_scale(data, ess_limits, ess_midpoint) +
     scientific_x$scale
     # scale_x_continuous(
@@ -399,21 +399,21 @@ forest_subplot <- function(data,
     #   labels = function(x) format(x, nsmall = 2)     # Optional: Format to 2 decimal places
     # )
   if (!ylabel) {
-    plt <- plt + theme(axis.text.y = element_blank(), # Removes y-axis tick labels
-                       axis.ticks.y = element_blank()) # Removes y-axis ticks
+    plt <- plt + ggplot2::theme(axis.text.y = ggplot2::element_blank(), # Removes y-axis tick labels
+                       axis.ticks.y = ggplot2::element_blank()) # Removes y-axis ticks
   }
   if (x_metric_name == "posterior_mean" ||
       x_metric_name == "posterior_median" || x_metric_name == "point_estimate_mean") {
     theta_0 <- unique(data$theta_0)
     if (legend) {
-      plt <- plt + geom_vline(aes(xintercept = theta_0, color = "theta_0"), linetype = "dotted") +
-        scale_color_manual(
+      plt <- plt + ggplot2::geom_vline(ggplot2::aes(xintercept = theta_0, color = "theta_0"), linetype = "dotted") +
+        ggplot2::scale_color_manual(
           name = "",
           values = c("theta_0" = refs$ink),
           labels = expression(theta[0])
         )
     } else {
-      plt <- plt + geom_vline(xintercept = theta_0, linetype = "dotted", color = refs$ink)
+      plt <- plt + ggplot2::geom_vline(xintercept = theta_0, linetype = "dotted", color = refs$ink)
     }
   } else if (x_metric_name == "ess_moment" ||
              x_metric_name == "ess_precision" ||
@@ -429,15 +429,15 @@ forest_subplot <- function(data,
 
     if (legend) {
       plt <- plt +
-        geom_vline(
-          aes(xintercept = target_sample_size_per_arm, color = "Target sample size per arm"),
+        ggplot2::geom_vline(
+          ggplot2::aes(xintercept = target_sample_size_per_arm, color = "Target sample size per arm"),
           linetype = "dotted"
         ) +
-        geom_vline(
-          aes(xintercept = source_sample_size_per_arm, color = "Source sample size per arm"),
+        ggplot2::geom_vline(
+          ggplot2::aes(xintercept = source_sample_size_per_arm, color = "Source sample size per arm"),
           linetype = "dotted"
         ) +
-        scale_color_manual(
+        ggplot2::scale_color_manual(
           name = "",
           values = c(
             "Target sample size per arm" = refs$target,
@@ -450,12 +450,12 @@ forest_subplot <- function(data,
         )
     } else {
       plt <- plt +
-        geom_vline(
+        ggplot2::geom_vline(
           xintercept = target_sample_size_per_arm,
           linetype = "dotted",
           "color" = refs$target
         ) +
-        geom_vline(
+        ggplot2::geom_vline(
           xintercept = source_sample_size_per_arm,
           linetype = "dotted",
           "color" = refs$source
@@ -487,7 +487,7 @@ forest_subplot <- function(data,
   #   # plt <- plt + scale_x_continuous(limits = c(new_xl, new_xu))
   # }
   if (!is.null(extra_reference)) {
-    plt <- plt + geom_vline(
+    plt <- plt + ggplot2::geom_vline(
       xintercept = extra_reference,
       linetype = "dotted",
       color = refs$ink
@@ -497,7 +497,7 @@ forest_subplot <- function(data,
   ## declaring success is the type I error rate. Dashed, to read apart
   ## from the dotted reference lines above.
   if (!is.null(nominal_tie_line)) {
-    plt <- plt + geom_vline(
+    plt <- plt + ggplot2::geom_vline(
       xintercept = nominal_tie_line,
       linetype = "dashed",
       color = refs$ink
@@ -558,27 +558,27 @@ forest_subplot_no_uncertainty <- function(data,
   plt <- ggplot2::ggplot(data, ggplot2::aes(y = rows, x = !!x_metric_name)) +
     forest_ink_layer(ggplot2::geom_point, palette, size = 0.001) + # Scatter plot
     ggplot2::labs(title = title, x = x_metric_label) +
-    theme_bw() +
-    theme(
-      axis.title.y = element_blank(),
-      text = element_text(family = font, size = text_size),
-      axis.text.y = element_text(size = text_size),
-      strip.text.x = element_text(size = text_size),
-      legend.key = element_blank(),
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_blank(),
+      text = ggplot2::element_text(family = font, size = text_size),
+      axis.text.y = ggplot2::element_text(size = text_size),
+      strip.text.x = ggplot2::element_text(size = text_size),
+      legend.key = ggplot2::element_blank(),
       # strip.background = element_blank(),
-      panel.grid.major = element_line(color = "gray80", linetype = "solid",  size = 0.15),
-      panel.grid.minor = element_blank(),
-      axis.title = element_text(size = text_size),
-      plot.title = element_text(hjust = 0.5)
+      panel.grid.major = ggplot2::element_line(color = "gray80", linetype = "solid",  size = 0.15),
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(size = text_size),
+      plot.title = ggplot2::element_text(hjust = 0.5)
       # Center the title
       # plot.background = element_blank()
     ) +
     forest_palette_theme(palette) +
-    scale_y_continuous(breaks = data$rows, labels = labels) # LaTeX labels
+    ggplot2::scale_y_continuous(breaks = data$rows, labels = labels) # LaTeX labels
 
   if (!ylabel) {
-    plt <- plt + theme(axis.text.y = element_blank(), # Removes y-axis tick labels
-                       axis.ticks.y = element_blank()) # Removes y-axis ticks
+    plt <- plt + ggplot2::theme(axis.text.y = ggplot2::element_blank(), # Removes y-axis tick labels
+                       axis.ticks.y = ggplot2::element_blank()) # Removes y-axis ticks
   }
 
   return(plt)
@@ -625,28 +625,28 @@ forest_combined_plot <- function(data,
       color = effect_type
     )
   ) +
-    geom_pointrange(size = 0.001, linewidth = 1) +
+    ggplot2::geom_pointrange(size = 0.001, linewidth = 1) +
     ggplot2::labs(
       title = "Add title",
       x = x_metric_label,
       color = ""
     ) +
-    theme(
-      axis.title.y = element_blank(),
-      text = element_text(family = font, size = small_text_size),
-      axis.text.y = element_text(size = small_text_size),
-      strip.text.x = element_text(size = small_text_size),
-      legend.key = element_blank(),
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_blank(),
+      text = ggplot2::element_text(family = font, size = small_text_size),
+      axis.text.y = ggplot2::element_text(size = small_text_size),
+      strip.text.x = ggplot2::element_text(size = small_text_size),
+      legend.key = ggplot2::element_blank(),
       # strip.background = element_blank(),
-      panel.grid.major = element_line(color = "gray80", linetype = "solid",  size = 0.15),
-      panel.grid.minor = element_blank(),
-      axis.title = element_text(size = small_text_size),
-      plot.title = element_text(hjust = 0.5)
+      panel.grid.major = ggplot2::element_line(color = "gray80", linetype = "solid",  size = 0.15),
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(size = small_text_size),
+      plot.title = ggplot2::element_text(hjust = 0.5)
       # plot.background = element_blank()
     ) +
     forest_palette_theme(palette) +
-    scale_y_continuous(breaks = data$rows, labels = labels) +
-    scale_color_manual(values = c(
+    ggplot2::scale_y_continuous(breaks = data$rows, labels = labels) +
+    ggplot2::scale_color_manual(values = c(
       "No effect" = "blue",
       "Partially consistent" = "orange",
       "Consistent (no drift)" = "green"
@@ -655,7 +655,7 @@ forest_combined_plot <- function(data,
   # Add vertical lines for specific cases
   if (x_metric_name == "posterior_mean" || x_metric_name == "posterior_median" || x_metric_name == "point_estimate_mean") {
     theta_0 <- unique(data$theta_0)
-    plt <- plt + geom_vline(xintercept = theta_0, linetype = "dotted", color = "black")
+    plt <- plt + ggplot2::geom_vline(xintercept = theta_0, linetype = "dotted", color = "black")
   } else if (x_metric_name %in% c("ess_moment", "ess_precision", "ess_elir")) {
     target_sample_size_per_arm <- unique(data$target_sample_size_per_arm)
     equivalent_source_sample_size_per_arm <- ifelse(
@@ -666,8 +666,8 @@ forest_combined_plot <- function(data,
     source_sample_size_per_arm <- unique(round(equivalent_source_sample_size_per_arm))
 
     plt <- plt +
-      geom_vline(xintercept = target_sample_size_per_arm, linetype = "dotted", color = "black") +
-      geom_vline(xintercept = source_sample_size_per_arm, linetype = "dotted", color = "red")
+      ggplot2::geom_vline(xintercept = target_sample_size_per_arm, linetype = "dotted", color = "black") +
+      ggplot2::geom_vline(xintercept = source_sample_size_per_arm, linetype = "dotted", color = "red")
   }
 
   return(plt)
@@ -699,6 +699,7 @@ forest_combined_plot <- function(data,
 forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL,
                         relative_to_separate = FALSE, filename_suffix = "",
                         subtitle = NULL) {
+  check_plot_packages()
   close_device <- use_font_capable_device()
   on.exit(close_device(), add = TRUE)
 
@@ -986,9 +987,9 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
     drop_legend <- ggplot2::theme(legend.position = "none")
 
     # Convert to grobs
-    grob_no_effect <- ggplotGrob(plot_no_effect + drop_legend)
-    grob_partially_consistent_effect <- ggplotGrob(plot_partially_consistent_effect + drop_legend)
-    grob_consistent_effect <- ggplotGrob(plot_consistent_effect + drop_legend)
+    grob_no_effect <- ggplot2::ggplotGrob(plot_no_effect + drop_legend)
+    grob_partially_consistent_effect <- ggplot2::ggplotGrob(plot_partially_consistent_effect + drop_legend)
+    grob_consistent_effect <- ggplot2::ggplotGrob(plot_consistent_effect + drop_legend)
 
     panel_widths <- forest_panel_widths(
       list(grob_no_effect, grob_partially_consistent_effect, grob_consistent_effect),
@@ -1119,6 +1120,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
 #' @return None
 #' @export
 forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
+  check_plot_packages()
   close_device <- use_font_capable_device()
   on.exit(close_device(), add = TRUE)
 
@@ -1216,9 +1218,9 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
   )
 
   # Convert to grobs
-  grob_ui_design_prior <- ggplotGrob(plot_ui_design_prior)
-  grob_analysis_design_prior <- ggplotGrob(plot_analysis_design_prior)
-  grob_source_posterior_design_prior <- ggplotGrob(plot_source_posterior_design_prior)
+  grob_ui_design_prior <- ggplot2::ggplotGrob(plot_ui_design_prior)
+  grob_analysis_design_prior <- ggplot2::ggplotGrob(plot_analysis_design_prior)
+  grob_source_posterior_design_prior <- ggplot2::ggplotGrob(plot_source_posterior_design_prior)
 
   # arrangeGrob() (unlike grid.arrange()) only builds the combined grob, with
   # no drawing side effect, so it doesn't require (or open) a graphics
@@ -1255,6 +1257,7 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
 #'
 #' @return None
 forest_plot_methods_comparison <- function(results_metrics_df, metrics) {
+  check_plot_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,
@@ -1314,6 +1317,7 @@ forest_plot_methods_comparison <- function(results_metrics_df, metrics) {
 #'
 #' @return None
 forest_plot_methods_comparison_bayesian <- function(results_metrics_df, metrics) {
+  check_plot_packages()
   case_studies <- unique(results_metrics_df$case_study)
 
   results_metrics_df <- results_metrics_df[(results_metrics_df[, "source_denominator_change_factor"] == 1 &

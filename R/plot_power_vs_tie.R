@@ -20,6 +20,7 @@ power_vs_tie <- function(results_metrics_df,
                          metrics,
                          source_denominator_change_factor,
                          target_to_source_std_ratio) {
+  check_plot_packages()
 
   directory <- paste0(figures_dir, case_study)
   if (!dir.exists(directory)) {
@@ -117,7 +118,7 @@ power_vs_tie <- function(results_metrics_df,
 
   plot_title <- sprintf(
       "%s, %s %s, %s",
-      str_to_title(case_study),
+      stringr::str_to_title(case_study),
       "$N_T/2 = $",
       target_sample_size_per_arm,
       treatment_effects_labels[[treatment_effect]]
@@ -125,23 +126,23 @@ power_vs_tie <- function(results_metrics_df,
 
   plot_title <- format_title(title = plot_title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
-  plt <- ggplot(results_df, aes(x = tie)) +
+  plt <- ggplot2::ggplot(results_df, ggplot2::aes(x = tie)) +
     # coord_cartesian(xlim = c(xmin, xmax), ylim = c(ymin, ymax)) +
-    geom_point(aes(
+    ggplot2::geom_point(ggplot2::aes(
       y = success_proba,
       color = as.factor(method),
       shape = as.factor(method)
     )) +
-    geom_errorbar(
-      aes(
+    ggplot2::geom_errorbar(
+      ggplot2::aes(
         ymin = conf_int_success_proba_lower,
         ymax = conf_int_success_proba_upper,
         color =  as.factor(method)
       ),
       width = y_cap_size
     ) +
-    geom_errorbarh(
-      aes(
+    ggplot2::geom_errorbarh(
+      ggplot2::aes(
         xmin = conf_int_tie_lower,
         xmax = conf_int_tie_upper,
         y = success_proba,
@@ -165,16 +166,16 @@ power_vs_tie <- function(results_metrics_df,
   if (power_difference == FALSE) {
     # Add the nominal frequentist power and power at equivalent TIE
     plt <- plt +
-      geom_point(
-      aes(
-        y = !!sym("nominal_frequentist_power_separate"),
+      ggplot2::geom_point(
+      ggplot2::aes(
+        y = !!ggplot2::sym("nominal_frequentist_power_separate"),
         color = "Nominal frequentist power",
         shape = "Nominal frequentist power"
       )
     ) +
-      geom_point(
-        aes(
-          y = !!sym("frequentist_power_at_equivalent_tie"),
+      ggplot2::geom_point(
+        ggplot2::aes(
+          y = !!ggplot2::sym("frequentist_power_at_equivalent_tie"),
           color = "Frequentist power at equivalent TIE",
           shape = "Frequentist power at equivalent TIE"
         )
@@ -186,7 +187,7 @@ power_vs_tie <- function(results_metrics_df,
   }
 
   plt <- plt +
-    scale_color_viridis_d() # Apply viridis color scale
+    ggplot2::scale_color_viridis_d() # Apply viridis color scale
 
   # Save plot
 
@@ -209,6 +210,7 @@ power_vs_tie <- function(results_metrics_df,
 #'
 #' @examples NA
 power_vs_tie_plots <- function(results_metrics_df, metrics) {
+  check_plot_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,

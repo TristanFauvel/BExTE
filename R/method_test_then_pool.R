@@ -383,6 +383,7 @@ TestThenPool <- R6::R6Class(
                                   min_drift,
                                   max_drift,
                                   resolution) {
+      check_plot_packages()
       drifts <- seq(min_drift, max_drift, length.out = resolution)
 
       test_results <- sapply(drifts, function(drift) {
@@ -393,10 +394,10 @@ TestThenPool <- R6::R6Class(
 
       plot_data <- data.frame(Drift = drifts, Test = test_results * 1)
 
-      plt <- ggplot(plot_data, aes(x = Drift, y = Test)) +
-        geom_line(color = "blue") +
-        labs(title = "Pooling Test a Function of Drift", x = "Drift", y = "Pooling or not") +
-        theme_minimal()
+      plt <- ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = Test)) +
+        ggplot2::geom_line(color = "blue") +
+        ggplot2::labs(title = "Pooling Test a Function of Drift", x = "Drift", y = "Pooling or not") +
+        ggplot2::theme_minimal()
 
       return(plt)
     },
@@ -413,6 +414,7 @@ TestThenPool <- R6::R6Class(
                                          min_drift,
                                          max_drift,
                                          resolution) {
+      check_plot_packages()
       drifts <- seq(min_drift, max_drift, length.out = resolution)
 
       p_values <- sapply(drifts, function(drift) {
@@ -423,10 +425,10 @@ TestThenPool <- R6::R6Class(
 
       plot_data <- data.frame(Drift = drifts, Pvalue = p_values)
 
-      plt <- ggplot(plot_data, aes(x = Drift, y = Pvalue)) +
-        geom_line(color = "blue") +
-        labs(title = "P-value a Function of Drift", x = "Drift", y = "p-value") +
-        theme_minimal()
+      plt <- ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = Pvalue)) +
+        ggplot2::geom_line(color = "blue") +
+        ggplot2::labs(title = "P-value a Function of Drift", x = "Drift", y = "p-value") +
+        ggplot2::theme_minimal()
 
       return(plt)
     }

@@ -645,33 +645,34 @@ TargetData <- R6::R6Class(
     #' @param data Data samples
     #' @return A plot.
     plot_sample = function(data) {
+      check_plot_packages()
       # Plot 1: Histogram of treatment effect estimate
-      p1 <- ggplot(data, aes(x = treatment_effect_estimate)) +
-        geom_histogram(
+      p1 <- ggplot2::ggplot(data, ggplot2::aes(x = treatment_effect_estimate)) +
+        ggplot2::geom_histogram(
           nbins = 100,
           fill = "black",
           color = "black",
           alpha = 0.7
         ) +
-        theme_minimal() +
+        ggplot2::theme_minimal() +
         ggplot2::labs(x = "Treatment Effect Estimate", y = "Frequency")
 
       # Plot 2: Histogram of treatment effect standard error
-      p2 <- ggplot(data, aes(x = treatment_effect_standard_error)) +
-        geom_histogram(
+      p2 <- ggplot2::ggplot(data, ggplot2::aes(x = treatment_effect_standard_error)) +
+        ggplot2::geom_histogram(
           nbins = 100,
           fill = "black",
           color = "black",
           alpha = 0.7
         ) +
-        theme_minimal() +
+        ggplot2::theme_minimal() +
         ggplot2::labs(x = "Treatment Effect Standard Error", y = "Frequency")
 
-      p3 <- ggplot(data,
-                   aes(x = treatment_effect_estimate, y = treatment_effect_standard_error)) +
-        geom_hex(bins = 50) + # Adjust the number of bins as needed
-        scale_fill_viridis_c() + # Use viridis color scale for better perception
-        theme_minimal() +
+      p3 <- ggplot2::ggplot(data,
+                   ggplot2::aes(x = treatment_effect_estimate, y = treatment_effect_standard_error)) +
+        ggplot2::geom_hex(bins = 50) + # Adjust the number of bins as needed
+        ggplot2::scale_fill_viridis_c() + # Use viridis color scale for better perception
+        ggplot2::theme_minimal() +
         ggplot2::labs(x = "Treatment Effect Estimate", y = "Treatment Effect Standard Error", fill = "Count")
 
       # # Plot 3: Scatter plot of treatment effect estimate vs standard error

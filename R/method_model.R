@@ -1752,6 +1752,7 @@ Model <- R6::R6Class(
                          xmax = 2,
                          resolution = 100,
                          ...) {
+      check_plot_packages()
       x_values <- seq(xmin, xmax, length.out = resolution)
 
       prior_pdf <- self$prior_pdf(x_values)
@@ -1763,18 +1764,18 @@ Model <- R6::R6Class(
 
       df_long <- reshape2::melt(df, id = "x")
 
-      plt <- ggplot(df_long, aes(x = x, y = value, color = variable)) +
-        geom_line(size = 1) +
+      plt <- ggplot2::ggplot(df_long, ggplot2::aes(x = x, y = value, color = variable)) +
+        ggplot2::geom_line(size = 1) +
         ggplot2::labs(title = "Prior and posterior distribution of the treatment effect", x = "Treatment effect", y = "Density") +
-        scale_color_manual(
+        ggplot2::scale_color_manual(
           values = c(
             "prior_pdf" = "blue",
             "posterior_pdf" = "red"
           ),
           labels = c("prior_pdf" = "Prior pdf", "posterior_pdf" = "Posterior pdf")
         ) +
-        theme_minimal() +
-        guides(color = guide_legend(title = NULL))
+        ggplot2::theme_minimal() +
+        ggplot2::guides(color = ggplot2::guide_legend(title = NULL))
 
       return(plt)
     },
@@ -1788,6 +1789,7 @@ Model <- R6::R6Class(
     plot_prior_pdf = function(xmin = -2,
                               xmax = 2,
                               resolution = 100) {
+      check_plot_packages()
       x_values <- seq(xmin, xmax, length.out = resolution)
 
       prior_pdf <- self$prior_pdf(x_values)
@@ -1796,7 +1798,7 @@ Model <- R6::R6Class(
 
       # Use ggplot2 to plot both PDFs on the same plot
       plt <- ggplot2::ggplot(df, ggplot2::aes(x = x_values)) +
-        geom_line(ggplot2::aes(y = prior_pdf),
+        ggplot2::geom_line(ggplot2::aes(y = prior_pdf),
                   color = "blue",
                   size = 1) +
         ggplot2::labs(
@@ -1805,10 +1807,10 @@ Model <- R6::R6Class(
           y = "Density",
           labels = c("Prior pdf")
         ) +
-        theme_minimal() +
-        scale_color_manual(values = c("blue")) +
-        guides(color = guide_legend(title = NULL)) +
-        scale_fill_manual(
+        ggplot2::theme_minimal() +
+        ggplot2::scale_color_manual(values = c("blue")) +
+        ggplot2::guides(color = ggplot2::guide_legend(title = NULL)) +
+        ggplot2::scale_fill_manual(
           name = "PDF",
           labels = c("Prior pdf"),
           values = c("blue")
@@ -1825,6 +1827,7 @@ Model <- R6::R6Class(
     plot_posterior_pdf = function(xmin = -2,
                                   xmax = 2,
                                   resolution = 100) {
+      check_plot_packages()
       x_values <- seq(xmin, xmax, length.out = resolution)
 
       posterior_pdf <- self$posterior_pdf(x_values)
@@ -1833,7 +1836,7 @@ Model <- R6::R6Class(
 
       # Use ggplot2 to plot both PDFs on the same plot
       plt <- ggplot2::ggplot(df, ggplot2::aes(x = x_values)) +
-        geom_line(ggplot2::aes(y = posterior_pdf),
+        ggplot2::geom_line(ggplot2::aes(y = posterior_pdf),
                   color = "red",
                   size = 1) +
         ggplot2::labs(
@@ -1842,10 +1845,10 @@ Model <- R6::R6Class(
           y = "Density",
           labels = c("Posterior pdf")
         ) +
-        theme_minimal() +
-        scale_color_manual(values = c("red")) +
-        guides(color = guide_legend(title = NULL)) +
-        scale_fill_manual(
+        ggplot2::theme_minimal() +
+        ggplot2::scale_color_manual(values = c("red")) +
+        ggplot2::guides(color = ggplot2::guide_legend(title = NULL)) +
+        ggplot2::scale_fill_manual(
           name = "PDF",
           labels = c("Posterior pdf"),
           values = c("red")

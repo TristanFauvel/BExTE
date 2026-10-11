@@ -94,3 +94,21 @@ export_table <- function(data_table, ncollapses = 1, column_names = NULL, title,
     stop("The PDF file was not created successfully. Please check for LaTeX compilation errors.")
   }
 }
+
+#' Packages that the table code needs
+#'
+#' They are in Suggests, so that users who only fit priors and compute
+#' operating characteristics do not have to install them.
+#' @noRd
+TABLE_PACKAGES <- c("kableExtra", "knitr", "latex2exp", "stringr", "tinytex")
+
+#' Check that the packages for tables are installed
+#'
+#' Every table entry point calls this first.
+#'
+#' @return `NULL`, invisibly. Raises an error if a package is missing and the
+#'   user does not install it.
+#' @noRd
+check_table_packages <- function() {
+  rlang::check_installed(TABLE_PACKAGES, reason = "to make tables.")
+}

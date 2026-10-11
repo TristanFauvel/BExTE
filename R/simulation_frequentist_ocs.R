@@ -280,7 +280,6 @@ case_study_n_replicates <- function(scenarios_config, case_study) {
 #'   `metrics_config.R`.
 #' @return None
 #' @export
-#' @importFrom foreach %dopar%
 simulation_frequentist_ocs <- function(env,
                                        simulation_config,
                                        scenarios_config,
@@ -453,6 +452,8 @@ simulation_frequentist_ocs <- function(env,
         # Register parallel backend. It has to be one that calls the
         # `opts` progress callback built above as each scenario comes back -
         # see register_parallel_backend().
+        check_parallel_packages()
+        `%dopar%` <- foreach::`%dopar%`
         cl <- parallel::makeCluster(ncores)
         register_parallel_backend(cl)
 
@@ -533,11 +534,11 @@ simulation_frequentist_ocs <- function(env,
                 frequentist_metrics = frequentist_metrics,
                 inference_metrics = inference_metrics
               )
-              ParallelLogger::logInfo(paste("Iteration", i, " completed by worker", worker_id))
+              futile.logger::flog.info(paste("Iteration", i, " completed by worker", worker_id))
               result  # Return the result (assuming it’s a data frame)
             }, error = function(e) {
-              ParallelLogger::logError(paste("Error at iteration", i, "by worker", worker_id, ":", e$message))
-              ParallelLogger::logError("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n"))
+              futile.logger::flog.error(paste("Error at iteration", i, "by worker", worker_id, ":", e$message))
+              futile.logger::flog.error("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n"))
 
               # Save state even if there's an error
               save_state(iteration = i, scenario = scenario, worker_id = worker_id, env = env)

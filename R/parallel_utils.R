@@ -222,6 +222,19 @@ register_parallel_backend <- function(cl) {
   invisible(doSNOW::registerDoSNOW(cl))
 }
 
+#' Check that the packages for parallel runs are installed
+#'
+#' foreach and doSNOW are in Suggests: only parallel runs need them. Call this
+#' before starting a cluster, so that a missing package stops the run before
+#' any worker starts.
+#'
+#' @return `NULL`, invisibly. Raises an error if a package is missing and the
+#'   user does not install it.
+#' @noRd
+check_parallel_packages <- function() {
+  rlang::check_installed(c("foreach", "doSNOW"), reason = "to run in parallel.")
+}
+
 #' Packages every analysis worker attaches
 #'
 #' The union of what the analysis steps' workers need, so that one cluster
@@ -248,12 +261,13 @@ new_analysis_cluster <- function() {
   list(
     get = function() {
       if (is.null(state$cl)) {
+        check_parallel_packages()
         state$cl <- parallel::makeCluster(get_parallel_worker_count())
         load_bexte_in_workers(state$cl, packages = ANALYSIS_WORKER_PACKAGES)
       }
       # Registered on every use: something in between may have registered
       # another backend.
-      doParallel::registerDoParallel(state$cl)
+      register_parallel_backend(state$cl)
       state$cl
     },
     stop = function() {

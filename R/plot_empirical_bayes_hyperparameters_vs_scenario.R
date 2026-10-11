@@ -20,6 +20,7 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
                                                source_denominator_change_factor,
                                                target_to_source_std_ratio,
                                                parameters_combinations) {
+  check_plot_packages()
 
   if (nrow(parameters_combinations) >1){
     stop("The function was designed for a single parameters combination.")
@@ -114,14 +115,14 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       plot_title <-
         sprintf(
           "%s, %s",
-          str_to_title(case_study),
+          stringr::str_to_title(case_study),
           methods_labels[[method]]$full_name
         )
     } else {
       plot_title <-
         sprintf(
           "%s, %s%s",
-          str_to_title(case_study),
+          stringr::str_to_title(case_study),
           methods_labels[[method]]$full_name,
           parameters_label_title
         )
@@ -130,7 +131,7 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
     plot_title <- format_title(title = plot_title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
     plt <- ggplot2::ggplot()
-    plt <- plt + geom_errorbar(
+    plt <- plt + ggplot2::geom_errorbar(
       data = plot_data_df,
       ggplot2::aes(
         x = drift,
@@ -140,10 +141,10 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
         color = target_sample_size_per_arm,
         group = target_sample_size_per_arm
       ),
-      position = position_dodge(width = cap_size / 2),
+      position = ggplot2::position_dodge(width = cap_size / 2),
       width = cap_size
     ) +
-      geom_point(
+      ggplot2::geom_point(
         data = plot_data_df,
         ggplot2::aes(
           x = drift,
@@ -151,19 +152,19 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
           color = target_sample_size_per_arm,
           group = target_sample_size_per_arm
         ),
-        position = position_dodge(width = cap_size / 2),
+        position = ggplot2::position_dodge(width = cap_size / 2),
         size = markersize,
       ) +
-      ggplot2::labs(color = TeX("$N_T/2$"), group = TeX("$N_T/2$")) +
-      scale_color_viridis_d() + # Apply the viridis color map for discrete data
-      ggtitle(plot_title)
+      ggplot2::labs(color = latex2exp::TeX("$N_T/2$"), group = latex2exp::TeX("$N_T/2$")) +
+      ggplot2::scale_color_viridis_d() + # Apply the viridis color map for discrete data
+      ggplot2::ggtitle(plot_title)
 
-    plt <- plt + ggplot2::labs(x = xvar[["label"]], y = TeX(sprintf("%s%s", empirical_bayes_hyperparameters[[method]][[key]][["parameter_notation"]], empirical_bayes_hyperparameters[[method]][[key]][["suffix"]])))
+    plt <- plt + ggplot2::labs(x = xvar[["label"]], y = latex2exp::TeX(sprintf("%s%s", empirical_bayes_hyperparameters[[method]][[key]][["parameter_notation"]], empirical_bayes_hyperparameters[[method]][[key]][["suffix"]])))
 
     hyperparameter_range <- empirical_bayes_hyperparameters[[method]][[key]][["range"]]
 
     if (length(hyperparameter_range) == 2 && !is.na(hyperparameter_range[1]) && !is.na(hyperparameter_range[2])){
-      plt <- plt + ylim(hyperparameter_range[1], hyperparameter_range[2])
+      plt <- plt + ggplot2::ylim(hyperparameter_range[1], hyperparameter_range[2])
     }
 
     directory <- paste0(figures_dir, case_study)
@@ -206,6 +207,7 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
 #' @return None
 #' @export
 empirical_bayes_parameters_plots <- function(results_metrics_df) {
+  check_plot_packages()
   check_required_colnames(
     results_metrics_df,
     required_colnames_consumer,
