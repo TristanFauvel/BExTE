@@ -124,7 +124,7 @@ print(model$post_var) # Posterior variance
 Now, let us see how this is implemented:
 
 ```{r}
-read_function_code(model$inference)
+BExTE:::read_function_code(model$inference)
 ```
 
 The first step updates the prior based on the target data. For the PDCCPP this
@@ -132,7 +132,7 @@ is where the power parameter is chosen: it is a function of the observed target
 estimate, which makes the PDCCPP an empirical Bayes method.
 
 ```{r}
-read_function_code(model$empirical_bayes_update)
+BExTE:::read_function_code(model$empirical_bayes_update)
 ```
 
 The power parameter is set by the calibration of Nikolakopoulos et al. (2018):
@@ -140,11 +140,11 @@ it borrows as much as possible while keeping the type I error of the resulting
 test at `desired_tie`.
 
 ```{r}
-read_function_code(model$power_parameter_estimation)
+BExTE:::read_function_code(model$power_parameter_estimation)
 ```
 
 ```{r}
-read_function_code(model$power_parameter_from_calibration)
+BExTE:::read_function_code(model$power_parameter_from_calibration)
 ```
 
 Given $\gamma$, the prior is the source posterior raised to the power $\gamma$,
@@ -163,29 +163,29 @@ $$
 The code to compute the posterior moments is the following:
 
 ```{r}
-read_function_code(model$posterior_moments)
+BExTE:::read_function_code(model$posterior_moments)
 ```
 
 With:
 
 ```{r}
-read_function_code(model$posterior_mean)
+BExTE:::read_function_code(model$posterior_mean)
 ```
 
 and:
 
 ```{r}
-read_function_code(model$posterior_variance)
+BExTE:::read_function_code(model$posterior_variance)
 ```
 
 The posterior pdf and cdf are those of this normal distribution:
 
 ```{r}
-read_function_code(model$posterior_pdf)
+BExTE:::read_function_code(model$posterior_pdf)
 ```
 
 ```{r}
-read_function_code(model$posterior_cdf)
+BExTE:::read_function_code(model$posterior_cdf)
 ```
 
 
@@ -224,7 +224,7 @@ ggplot2::ggplot(df, ggplot2::aes(x = x)) +
 Being able to sample from the posterior is crucial for estimating quantiles, we use the following:. 
 
 ```{r}
-read_function_code(model$sample_posterior)
+BExTE:::read_function_code(model$sample_posterior)
 ```
 
 Illustration of this sampling approach:

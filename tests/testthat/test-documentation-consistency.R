@@ -23,6 +23,13 @@ namespace_exports <- function() {
   sub("^export\\((.*)\\)$", "\\1", grep("^export\\(", lines, value = TRUE))
 }
 
+## The S3 methods NAMESPACE registers, named generic.class as in R/.
+namespace_s3_methods <- function() {
+  lines <- readLines(file.path(project_dir, "NAMESPACE"), warn = FALSE)
+  methods <- grep("^S3method\\(", lines, value = TRUE)
+  sub("^S3method\\(([^,]+),([^)]+)\\)$", "\\1.\\2", methods)
+}
+
 ## The object an `@export` tag applies to: the first thing assigned after the
 ## roxygen block it sits in.
 roxygen_exports <- function() {
@@ -61,8 +68,8 @@ help_topics <- function() {
 
 test_that("the files these checks read are all there", {
   # A silent empty read would make every assertion below vacuously true.
-  expect_gt(length(namespace_exports()), 100)
-  expect_gt(length(roxygen_exports()), 100)
+  expect_gt(length(namespace_exports()), 50)
+  expect_gt(length(roxygen_exports()), 50)
   expect_gt(length(pkgdown_index()), 100)
   expect_gt(length(help_topics()), 100)
 })
@@ -76,6 +83,8 @@ test_that("NAMESPACE exports exactly what the roxygen blocks ask it to", {
   # Either direction means NAMESPACE is stale: run devtools::document().
   tagged <- roxygen_exports()
   tagged <- tagged[!is.na(tagged)]
+  # An @export on an S3 method registers it rather than exporting it.
+  tagged <- setdiff(tagged, namespace_s3_methods())
   exported <- namespace_exports()
 
   expect_equal(

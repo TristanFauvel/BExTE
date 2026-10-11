@@ -26,10 +26,4 @@ object. The mean and standard deviation are closed form. The quantiles invert
 the mixture CDF by bisection, which runs on every replicate simultaneously;
 RBesT instead calls \code{uniroot} once per mixture, at a looser tolerance.
 }
-\examples{
-# One replicate, with a two-component mixture.
-weights <- matrix(c(0.5, 0.5), nrow = 1)
-means <- matrix(c(0.48, 0), nrow = 1)
-sds <- matrix(c(0.12, 1.2), nrow = 1)
-normal_mixture_summary(weights, means, sds)
-}
+\keyword{internal}

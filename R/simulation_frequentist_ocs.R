@@ -13,35 +13,7 @@
 #' @param inference_metrics List of inference metrics, as defined by sourcing
 #'   `metrics_config.R`.
 #' @return The results of the simulation.
-#' @examples
-#' conf <- system.file("conf", package = "BExTE")
-#' config_dir <- file.path(conf, "full", "")
-#' case_studies_config_dir <- file.path(conf, "case_studies", "")
-#' simulation_config <- yaml::read_yaml(file.path(conf, "simulation_config.yml"))
-#' metrics <- new.env()
-#' sys.source(file.path(conf, "metrics_config.R"), envir = metrics)
-#' # One scenario of the separate analysis of botox, with ten replicates.
-#' scenarios_config <- list(
-#'   n_replicates = 10, ndrift = 2, parallelization = FALSE,
-#'   denominator_change_factor = 1, sample_size_factors = 2,
-#'   target_to_source_std_ratio_range = 1,
-#'   case_studies = "botox", methods = "separate"
-#' )
-#' cases <- simulation_scenarios(config_dir, scenarios_config, case_studies_config_dir)
-#' freq_filename <- tempfile(fileext = ".csv")
-#' result <- frequentist_ocs_scenario_simulation(
-#'   scenario = cases[1, ],
-#'   simulation_config = simulation_config,
-#'   scenarios_config = scenarios_config,
-#'   freq_filename = freq_filename,
-#'   config_dir = config_dir,
-#'   case_studies_config_dir = case_studies_config_dir,
-#'   frequentist_metrics = metrics$frequentist_metrics,
-#'   inference_metrics = metrics$inference_metrics
-#' )
-#' result[, c("method", "drift", "target_sample_size_per_arm")]
-#' unlink(freq_filename)
-#' @export
+#' @keywords internal
 frequentist_ocs_scenario_simulation <- function(scenario,
                                                 simulation_config,
                                                 scenarios_config,
@@ -307,42 +279,7 @@ case_study_n_replicates <- function(scenarios_config, case_study) {
 #' @param inference_metrics List of inference metrics, as defined by sourcing
 #'   `metrics_config.R`.
 #' @return None
-#' @examples
-#' \donttest{
-#' conf <- system.file("conf", package = "BExTE")
-#' simulation_config <- yaml::read_yaml(file.path(conf, "simulation_config.yml"))
-#' analysis_config <- yaml::read_yaml(file.path(conf, "analysis_config.yml"))
-#' metrics <- new.env()
-#' sys.source(file.path(conf, "metrics_config.R"), envir = metrics)
-#' # One case study, one method, two drift values and ten replicates, on one core.
-#' scenarios_config <- list(
-#'   n_replicates = 10, ndrift = 2, parallelization = FALSE,
-#'   denominator_change_factor = 1, sample_size_factors = 2,
-#'   target_to_source_std_ratio_range = 1,
-#'   case_studies = "botox", methods = "separate"
-#' )
-#' # The results go to ./results/<env>/, so run from a temporary directory.
-#' work_dir <- file.path(tempdir(), "bexte-example")
-#' dir.create(work_dir, showWarnings = FALSE)
-#' old_wd <- setwd(work_dir)
-#' old_options <- options(error = NULL)
-#' simulation_frequentist_ocs(
-#'   env = "example",
-#'   simulation_config = simulation_config,
-#'   scenarios_config = scenarios_config,
-#'   analysis_config = analysis_config,
-#'   config_dir = file.path(conf, "full", ""),
-#'   case_studies_config_dir = file.path(conf, "case_studies", ""),
-#'   logging_file_path = NULL,
-#'   frequentist_metrics = metrics$frequentist_metrics,
-#'   inference_metrics = metrics$inference_metrics
-#' )
-#' list.files("results/example", recursive = TRUE)
-#' options(old_options)
-#' setwd(old_wd)
-#' unlink(work_dir, recursive = TRUE)
-#' }
-#' @export
+#' @keywords internal
 simulation_frequentist_ocs <- function(env,
                                        simulation_config,
                                        scenarios_config,

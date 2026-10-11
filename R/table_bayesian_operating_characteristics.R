@@ -8,45 +8,7 @@
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #' @return This function doesn't return a value but saves the generated tables as HTML, PDF, and LaTeX files.
 #'
-#' @examples
-#' ## Globals that the plot functions read, as in inst/scripts/plots.R
-#' old_options <- options(); old_theme <- ggplot2::theme_get()
-#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
-#'   source(system.file("conf", f, package = "BExTE"))
-#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
-#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
-#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
-#' remake_figures <- TRUE
-#' tables_dir <- file.path(tempdir(), "bexte-tables")
-#' ## Synthetic Bayesian results: 3 methods, 3 design priors, 2 sample sizes
-#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
-#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
-#' bayes <- merge(
-#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
-#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
-#'   expand.grid(design_prior_type = c("analysis_prior", "source_posterior", "ui_design_prior"),
-#'               target_sample_size_per_arm = c(50, 100), stringsAsFactors = FALSE)
-#' )
-#' bayes <- dplyr::mutate(bayes, case_study = "botox", source_denominator_change_factor = 1,
-#'   target_to_source_std_ratio = 1, source_treatment_effect_estimate = 0.2,
-#'   source_standard_error = 0.1, endpoint = "continuous", summary_measure_likelihood = "normal",
-#'   source_sample_size_control = 235, source_sample_size_treatment = 233,
-#'   equivalent_source_sample_size_per_arm = 234)
-#' set.seed(1)
-#' for (m in names(bayesian_metrics)) bayes[[m]] <- round(runif(nrow(bayes)), 3)
-#' \donttest{
-#' ## The tables are compiled with LaTeX and cropped with pdfcrop
-#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
-#'   table_bayesian_metrics(bayes, case_study = "botox",
-#'                          target_sample_size_per_arm = 50)
-#'   print(list.files(tables_dir, recursive = TRUE))
-#' }
-#' }
-#' options(old_options); ggplot2::theme_set(old_theme)
-#' unlink(figures_dir, recursive = TRUE)
-#' unlink(tables_dir, recursive = TRUE)
-#' @export
+#' @keywords internal
 table_bayesian_metrics <- function(results_metrics_df,
                                                   case_study,
                                                   target_sample_size_per_arm,
@@ -306,44 +268,7 @@ table_bayesian_metrics_across_case_studies <- function(results_metrics_df) {
 #' @return This function doesn't return a value but calls other functions to generate and save tables.
 #'
 #'
-#' @examples
-#' ## Globals that the plot functions read, as in inst/scripts/plots.R
-#' old_options <- options(); old_theme <- ggplot2::theme_get()
-#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
-#'   source(system.file("conf", f, package = "BExTE"))
-#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
-#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
-#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
-#' remake_figures <- TRUE
-#' tables_dir <- file.path(tempdir(), "bexte-tables")
-#' ## Synthetic Bayesian results: 3 methods, 3 design priors, 2 sample sizes
-#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
-#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
-#' bayes <- merge(
-#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
-#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
-#'   expand.grid(design_prior_type = c("analysis_prior", "source_posterior", "ui_design_prior"),
-#'               target_sample_size_per_arm = c(50, 100), stringsAsFactors = FALSE)
-#' )
-#' bayes <- dplyr::mutate(bayes, case_study = "botox", source_denominator_change_factor = 1,
-#'   target_to_source_std_ratio = 1, source_treatment_effect_estimate = 0.2,
-#'   source_standard_error = 0.1, endpoint = "continuous", summary_measure_likelihood = "normal",
-#'   source_sample_size_control = 235, source_sample_size_treatment = 233,
-#'   equivalent_source_sample_size_per_arm = 234)
-#' set.seed(1)
-#' for (m in names(bayesian_metrics)) bayes[[m]] <- round(runif(nrow(bayes)), 3)
-#' \donttest{
-#' ## The tables are compiled with LaTeX and cropped with pdfcrop
-#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
-#'   table_bayesian_ocs(bayes[bayes$target_sample_size_per_arm == 50, ], bayesian_metrics)
-#'   print(list.files(tables_dir, recursive = TRUE))
-#' }
-#' }
-#' options(old_options); ggplot2::theme_set(old_theme)
-#' unlink(figures_dir, recursive = TRUE)
-#' unlink(tables_dir, recursive = TRUE)
-#' @export
+#' @keywords internal
 table_bayesian_ocs <- function(results_metrics_df, metrics, source_denominator_change_factor = 1,
                                target_to_source_std_ratio = 1) {
   check_table_packages()

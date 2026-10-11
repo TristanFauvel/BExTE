@@ -50,7 +50,7 @@ set.seed(42)
 
 config_path <- system.file("conf/case_studies/mepolizumab.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
-format_case_study_config(case_study_config)
+BExTE:::format_case_study_config(case_study_config)
 ```
 
 # Initializing a RecurrentEventTargetData object with a normal treatment effect summary measure distribution
@@ -72,15 +72,15 @@ target_data <- target_data$create(source_data = source_data, case_study_config =
 When initializing a RecurrentEventTargetData object, we start by computing the rate in each arm based on the drift in each arm (by default, the drift between control arms, or control drift, is 0)
 
 ```{r}
-read_function_code(rate_from_drift_logRR)
+BExTE:::read_function_code(rate_from_drift_logRR)
 ```
 
 ```{r}
 control_drift <- 0
 treatment_drift <- drift + control_drift
 
-target_data$control_rate <- rate_from_drift_logRR(control_drift, source_data$control_rate)
-target_data$treatment_rate <- rate_from_drift_logRR(treatment_drift, source_data$treatment_rate)
+target_data$control_rate <- BExTE:::rate_from_drift_logRR(control_drift, source_data$control_rate)
+target_data$treatment_rate <- BExTE:::rate_from_drift_logRR(treatment_drift, source_data$treatment_rate)
 
 target_data$treatment_effect <- target_data$drift + source_data$treatment_effect_estimate
 ```
@@ -166,8 +166,8 @@ for (i in 1:n_replicates) {
   # Generate the patient-level data by sampling from negative binomial distributions
   source_data_control <- rnbinom(n_control, size = 1 / k_control, mu = mu_control)
   source_data_treatment <- rnbinom(n_treatment, size = 1 / k_treatment, mu = mu_treatment)
-  treatment <- negative_binomial_regression(source_data_treatment)
-  control <- negative_binomial_regression(source_data_control)
+  treatment <- BExTE:::negative_binomial_regression(source_data_treatment)
+  control <- BExTE:::negative_binomial_regression(source_data_control)
   log_rate_ratio <- log(treatment$rate_estimate) - log(control$rate_estimate)
 
   # Calculate the SE of the log rate ratio
@@ -227,9 +227,9 @@ for (i in 1:n_replicates) {
     mu = treatment_rate
   )
 
-  treatment <- negative_binomial_regression(input_data = target_data_treatment)
+  treatment <- BExTE:::negative_binomial_regression(input_data = target_data_treatment)
 
-  control <- negative_binomial_regression(input_data = target_data_control)
+  control <- BExTE:::negative_binomial_regression(input_data = target_data_control)
 
   log_rate_ratio <- log(treatment$rate_estimate) - log(control$rate_estimate)
 
@@ -269,7 +269,7 @@ target_data$plot_sample(data)
 ### Implementation details
  
 ```{r}
-read_function_code(sample_aggregate_normal_data)
+BExTE:::read_function_code(sample_aggregate_normal_data)
 ```
 
 See [Data_generation_botox](../doc/Data_generation_botox.html) for details on aggregate normal data generation.

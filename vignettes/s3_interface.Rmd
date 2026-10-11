@@ -1,0 +1,325 @@
+---
+title: "The BExTE interface"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The BExTE interface}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{BExTE, ggplot2}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", warning = FALSE, message = FALSE)
+```
+
+This vignette describes every function of the BExTE interface: what each one takes, what it returns, and how the functions fit together. For a short first tour, see `vignette("BExTE")`.
+
+```{r}
+library(BExTE)
+```
+
+## Overview
+
+An analysis has two inputs: a **source** study, which gives the information to borrow, and a **target** study, which the analysis is about. A **prior** builder turns the source study into a borrowing prior. The rest of the interface uses that prior in two ways:
+
+- to *analyse* an observed target study: `posterior()`, then `summary()`, `quantile()`, `plot()`, `ess()` and a `decision()` rule;
+- to *plan* a target study before it runs: `oc_frequentist()` and `oc_bayesian()`.
+
+| Step | Function | Returns (class) |
+|---|---|---|
+| Describe the source study | `source_data()` | `bexte_source` |
+| Describe the target study | `target_data()` | `bexte_target` |
+| Build a borrowing prior | `rmp()`, `npp()`, `power_prior()`, ... | `bexte_prior` |
+| Analyse the target study | `posterior()` | `bexte_posterior` |
+| Measure the borrowing | `ess()` | a number |
+| Define success | `decision()` | `bexte_decision` (a function) |
+| Choose a design prior | `design_prior()` | `bexte_design_prior` |
+| Frequentist OCs | `oc_frequentist()` | `bexte_oc_frequentist` (a data frame) |
+| Bayesian OCs | `oc_bayesian()` | `bexte_oc_bayesian` (a data frame) |
+
+Every object has a `print()` method. The function names do not clash with common packages: for example, the separate-analysis prior is `separate_prior()`, not `separate()`, which `tidyr` uses.
+
+## 1. Data
+
+### Source data
+
+`source_data()` accepts a study in one of three ways.
+
+**Binary endpoint, from counts.** Give the arm sizes and the numbers of responders:
+
+```{r}
+src <- source_data(
+  n_control = 562, n_treatment = 563,
+  responses_control = 218, responses_treatment = 285,
+  name = "Belimumab adults"
+)
+src
+```
+
+The `likelihood` argument sets the scale of the treatment effect:
+
+- `"normal"` (the default) analyses the log odds ratio, with a normal likelihood;
+- `"binomial"` analyses the risk difference, with the exact binomial likelihood.
+
+```{r}
+source_data(
+  n_control = 562, n_treatment = 563,
+  responses_control = 218, responses_treatment = 285,
+  likelihood = "binomial"
+)
+```
+
+**Continuous endpoint, from an estimate.** Give the arm sizes, the treatment effect estimate (for example, a mean difference) and its standard error:
+
+```{r}
+source_data(n_control = 235, n_treatment = 233, estimate = 0.2, se = 0.1,
+            name = "Botox adults")
+```
+
+**From a configuration file.** The case studies of the package are YAML files. `config` also accepts a list with the same fields.
+
+```{r}
+dir(system.file("conf/case_studies", package = "BExTE"))
+belimumab <- source_data(
+  config = system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+```
+
+**The null hypothesis.** `theta_0` and `null_space` define the null hypothesis. By default it is `theta <= 0`, so a positive effect is a benefit. Use `null_space = "right"` when a negative effect is a benefit. Some methods adapt the borrowing to this hypothesis, and `decision()` uses it by default.
+
+### Target data
+
+`target_data()` takes the same kinds of arguments, without `likelihood`. The target study is analysed on the scale of the source study that the prior comes from.
+
+```{r}
+tgt <- target_data(n_control = 39, n_treatment = 53,
+                   responses_control = 17, responses_treatment = 28)
+tgt
+```
+
+For a continuous endpoint, give `estimate` and `se`:
+
+```{r}
+target_data(n_control = 130, n_treatment = 126, estimate = 0.1, se = 0.1)
+```
+
+The functions check their arguments, and the errors name the wrong argument:
+
+```{r, error = TRUE}
+source_data(n_control = 100, n_treatment = 100)
+```
+
+## 2. Borrowing priors
+
+Each method has its own builder, whose first argument is the source data. The builders only check and store the arguments. The prior is built when `posterior()` or an OC function runs, because some methods also need the target design.
+
+| Builder | Method | Main arguments |
+|---|---|---|
+| `separate_prior(source)` | No borrowing | none |
+| `pooling_prior(source)` | Full borrowing | none |
+| `power_prior(source, a0)` | Power prior with a fixed power | `a0` in [0, 1] |
+| `npp(source, a0_mean, a0_sd)` | Normalised power prior: Beta prior on the power | mean and SD of the Beta prior |
+| `npp_kl(source, lambda, c_target, d_mtd_multiplier)` | NPP calibrated to the target design | calibration criterion |
+| `rmp(source, weight, empirical_bayes)` | Robust mixture prior | prior weight of the source component |
+| `egidi_mixture(source, alpha_pc, ...)` | Mixture whose weight comes from the prior-data conflict | conflict test level |
+| `commensurate_prior(source, heterogeneity_prior)` | Commensurate prior | prior on the heterogeneity |
+| `commensurate_power_prior(source, heterogeneity_prior)` | Commensurate power prior | prior on the heterogeneity |
+| `eb_power_prior(source)` | Empirical Bayes power prior | none |
+| `pvalue_power_prior(source, shape, equivalence_margin)` | Power set from an equivalence test | shape of the p-value map, margin |
+| `pdccpp(source, desired_tie, significance_level, n_iter)` | Power calibrated to a type I error rate | target type I error rate |
+| `test_then_pool(source, type, significance_level, ...)` | Pool only if a test finds no difference | test type and level |
+
+`?borrowing_priors` documents all of them, with references to the method papers. A prior prints its method and parameters:
+
+```{r}
+rmp(belimumab, weight = 0.5)
+npp(belimumab, a0_mean = 0.5, a0_sd = 0.2)
+```
+
+The heterogeneity prior of the commensurate priors is a list that names a `family` and its parameters:
+
+```{r}
+commensurate_prior(belimumab)  # the default: an inverse gamma prior
+commensurate_prior(belimumab, heterogeneity_prior = list(family = "half_normal", std_dev = 1))
+```
+
+Arguments outside their range give an error at once:
+
+```{r, error = TRUE}
+npp(belimumab, a0_mean = 0.5, a0_sd = 0.6)
+```
+
+## 3. Posterior
+
+`posterior()` updates a prior with the target data.
+
+```{r}
+post <- posterior(rmp(belimumab, weight = 0.5), tgt)
+post
+```
+
+### Summaries
+
+`summary()` returns a one-row data frame: mean, standard deviation, median and an equal-tailed credible interval. `level` sets the level of the interval.
+
+```{r}
+summary(post)
+summary(post, level = 0.9)
+```
+
+`quantile()` gives any posterior quantiles. `as.data.frame()` gives the summary as a plain data frame, which is convenient to combine results.
+
+```{r}
+quantile(post, probs = c(0.05, 0.5, 0.95))
+```
+
+### Plot
+
+`plot()` draws the prior and the posterior densities with ggplot2. By default, it shows the posterior mean plus or minus 4 posterior standard deviations. Set `xlim` to change this. The result is a ggplot object, so you can add layers to it.
+
+```{r, fig.width = 6, fig.height = 4}
+plot(post, xlim = c(-0.5, 1.5))
+```
+
+### Effective sample size
+
+`ess()` gives the effective sample size of the prior, in target patients per arm. It evaluates the prior at the observed target data. This matters for methods such as the empirical Bayes ones, whose prior depends on those data.
+
+- `"elir"` (the default) is the expected local information ratio of Neuenschwander et al. (2020).
+- `"moment"` and `"precision"` compare the posterior with the target data alone: the posterior ESS minus the target sample size.
+
+For most methods, the ESS comes from a mixture fitted to random draws, so it varies a little from one call to the next. Call `set.seed()` first to get the same value again.
+
+```{r}
+set.seed(1)
+ess(post)
+ess(post, method = "moment")
+ess(post, method = "precision")
+```
+
+### Comparing methods
+
+Because every builder returns the same kind of object, comparing methods takes a few lines:
+
+```{r}
+priors <- list(
+  separate_prior(belimumab),
+  power_prior(belimumab, a0 = 0.5),
+  npp(belimumab),
+  rmp(belimumab, weight = 0.5),
+  commensurate_prior(belimumab),
+  pooling_prior(belimumab)
+)
+set.seed(1)
+results <- do.call(rbind, lapply(priors, function(prior) {
+  post <- posterior(prior, tgt)
+  cbind(as.data.frame(post), ess = round(ess(post), 1))
+}))
+print(results[, c("method", "mean", "sd", "lower", "upper", "ess")], digits = 3)
+```
+
+## 4. Decision rules
+
+`decision()` defines when a trial succeeds: the posterior probability that the effect lies outside the null hypothesis must exceed `critical_value`. The result is a function. Call it on a posterior to get the decision:
+
+```{r}
+success <- decision(critical_value = 0.975)
+success
+success(post)
+success(posterior(pooling_prior(belimumab), tgt))
+```
+
+By default, the rule takes `theta_0` and `null_space` from the source data of the prior. Give them to `decision()` to test another hypothesis, for example a margin of 0.2 on the log odds ratio:
+
+```{r}
+margin_rule <- decision(critical_value = 0.9, theta_0 = 0.2)
+margin_rule(post)
+```
+
+In `oc_frequentist()` and `oc_bayesian()`, the hypothesis of the rule is also the one the adaptive methods use, so the two always agree.
+
+## 5. Frequentist operating characteristics
+
+`oc_frequentist()` simulates target trials at fixed true treatment effects, and analyses each trial with the prior and the decision rule. The true effect is the source effect plus `drift`, so a drift of 0 means that the two studies agree. The main arguments are:
+
+- `n_per_arm`: the target sample size per arm;
+- `drift`: a vector of drifts, one row of results per value;
+- `n_rep`: the number of simulated trials per drift;
+- `control_drift` (binary endpoint): a change in the control response rate;
+- `target_to_source_std_ratio` (continuous endpoint): a change in the sampling standard deviation.
+
+The simulation uses R's random number generator, so call `set.seed()` first to get the same results again.
+
+```{r}
+botox <- source_data(config = system.file("conf/case_studies/botox.yml", package = "BExTE"))
+set.seed(42)
+oc_f <- oc_frequentist(rmp(botox, weight = 0.5), success, n_per_arm = 91,
+                       drift = seq(-0.4, 0.2, by = 0.1), n_rep = 300)
+oc_f
+```
+
+The printed table is `summary(oc_f)`. When the true effect lies in the null hypothesis (`null_true` is `TRUE`), the probability of success is a type I error rate. Otherwise it is the power. The `metric` column says which. `success_lower` and `success_upper` give the Monte Carlo uncertainty of the probability.
+
+`as.data.frame()` gives every column, including the posterior mean and median, interval scores and effective sample sizes:
+
+```{r}
+names(as.data.frame(oc_f))
+```
+
+`plot()` draws one column against the true effect, by default the probability of success:
+
+```{r, fig.width = 6, fig.height = 4}
+plot(oc_f)
+plot(oc_f, metric = "coverage")
+```
+
+## 6. Bayesian operating characteristics
+
+`oc_bayesian()` draws the true effect from a **design prior**, simulates trials at each draw, and averages. `design_prior()` chooses the design prior:
+
+- `"source_posterior"`: the posterior of the source study;
+- `"unit_information"`: centred on the source estimate, with the information of one patient per arm;
+- `"analysis_prior"`: the borrowing prior itself. Empirical Bayes methods cannot use it, because their prior depends on the target data.
+
+The cost is `n_draws` times `n_rep` analyses, so keep both small while you explore.
+
+```{r}
+set.seed(42)
+oc_b <- oc_bayesian(rmp(botox, weight = 0.5), success, design_prior("unit_information"),
+                    n_per_arm = 91, n_rep = 50, n_draws = 100)
+oc_b
+```
+
+The columns are:
+
+- `prior_proba_success`: the probability that the trial succeeds;
+- `prior_proba_no_benefit`: the design-prior probability of the null hypothesis;
+- `prepost_proba_TP` and `prepost_proba_FP`: the probabilities that the trial succeeds and the treatment works, or does not;
+- `average_power` and `average_tie`: the probability of success given that the treatment works, or does not;
+- `upper_bound_proba_FP`: an upper bound on `prepost_proba_FP`.
+
+The two kinds of OCs have different classes, `bexte_oc_frequentist` and `bexte_oc_bayesian`, so their printed output always says which kind it is.
+
+## 7. The R6 layer underneath
+
+The interface is a thin layer over the R6 classes of the package. It builds their arguments and calls them, and it computes nothing itself. `post$model` is the R6 model, for anything the interface does not cover:
+
+```{r}
+class(post$model)
+post$model$posterior_cdf(0)  # P(theta <= 0 | data)
+```
+
+| Interface | R6 code it runs |
+|---|---|
+| `source_data()` | `ObservedSourceData$new()` |
+| `posterior(prior, target)` | `Model$new()$create()`, then `$calibrate_for_design()` and `$inference()` |
+| `ess(post)` | `$prior_elir_ess()` or `$posterior_ess()` |
+| `success(post)` | `$test_decision()` |
+| `oc_frequentist()` | `TargetDataFactory$new()$create()`, then `$estimate_frequentist_operating_characteristics()` |
+| `oc_bayesian()` | `DesignPrior$new()$create()`, then `$estimate_bayesian_operating_characteristics()` |
+
+The binomial models accept MCMC settings through the `mcmc_config` argument of `posterior()` and of the OC functions. By default, they use quadrature, which needs no Stan installation.
+
+## References
+
+Neuenschwander, B., Weber, S., Schmidli, H. and O'Hagan, A. (2020). Predictively consistent prior effective sample sizes. *Biometrics*, 76(2), 578-587.

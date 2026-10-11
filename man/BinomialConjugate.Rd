@@ -300,13 +300,14 @@ which costs a mixture fit per replicate and leaves Monte Carlo error in a
 quantity that has no need of it.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BinomialConjugate$posterior_ess(target_data, ...)}
+    \preformatted{BinomialConjugate$posterior_ess(target_data, level = 0.95, ...)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{target_data}}{Target study data}
+      \item{\code{level}}{Level used for the precision-based ESS.}
       \item{\code{...}}{Unused, kept so that the simulation can call every model the
 same way.}
     }

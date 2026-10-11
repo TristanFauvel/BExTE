@@ -41,32 +41,4 @@ None
 \description{
 This function plots the hyperparameters updated using empirical Bayes against the drift for a given method, case study sample size, and control drift option.
 }
-\examples{
-## Globals that the plot functions read, as in inst/scripts/plots.R
-old_options <- options(); old_theme <- ggplot2::theme_get()
-for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
-  source(system.file("conf", f, package = "BExTE"))
-source(system.file("conf/full/methods_config.R", package = "BExTE"))
-analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
-figures_dir <- file.path(tempdir(), "bexte-figures", "")
-remake_figures <- TRUE
-## Synthetic results for the empirical Bayes power prior, whose power
-## parameter is estimated from the target data
-eb <- expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
-gamma <- round(plogis(-10 * abs(eb$drift)), 2)
-eb <- dplyr::mutate(eb, method = "EB_PP", parameters = "{'initial_prior': 'noninformative'}",
-  case_study = "botox", treatment_drift = drift, control_drift = 0,
-  source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
-  posterior_parameters = paste0("{'power_parameter': ", gamma,
-    ", 'conf_int_lower_power_parameter': ", gamma - 0.05,
-    ", 'conf_int_upper_power_parameter': ", gamma + 0.05, "}"))
-plot_empirical_bayes_hyperparameters_vs_drift(
-  eb, method = "EB_PP", case_study = "botox",
-  control_drift = FALSE, xvars = xvars, source_denominator_change_factor = 1,
-  target_to_source_std_ratio = 1, parameters_combinations = unique(eb[, "parameters"])
-)
-list.files(figures_dir, recursive = TRUE)
-options(old_options); ggplot2::theme_set(old_theme)
-unlink(figures_dir, recursive = TRUE)
-}
+\keyword{internal}

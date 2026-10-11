@@ -23,16 +23,4 @@ interval keeps gains and losses at the same stringency; they were
 previously detected with two different rules -- a z-test built from
 interval widths on one side, and non-overlap of two intervals on the other.
 }
-\examples{
-results <- data.frame(
-  success_proba = c(0.80, 0.70, 0.60),
-  conf_int_success_proba_lower = c(0.77, 0.67, 0.57),
-  conf_int_success_proba_upper = c(0.83, 0.73, 0.63),
-  frequentist_power_at_equivalent_tie = c(0.70, 0.69, 0.70),
-  frequentist_power_at_equivalent_tie_lower = c(0.67, 0.66, 0.67),
-  frequentist_power_at_equivalent_tie_upper = c(0.73, 0.72, 0.73)
-)
-flagged <- flag_power_differences(results)
-flagged[, c("power_difference", "power_gain", "power_loss")]
-
-}
+\keyword{internal}

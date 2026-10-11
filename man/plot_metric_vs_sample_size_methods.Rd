@@ -43,33 +43,4 @@ None
 \description{
 This function plots a metric against the sample size for a given method, case study, and parameters combinations.
 }
-\examples{
-## Globals that the plot functions read, as in inst/scripts/plots.R
-old_options <- options(); old_theme <- ggplot2::theme_get()
-for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
-  source(system.file("conf", f, package = "BExTE"))
-source(system.file("conf/full/methods_config.R", package = "BExTE"))
-analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
-figures_dir <- file.path(tempdir(), "bexte-figures", "")
-remake_figures <- TRUE
-## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
-rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
-              ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
-res <- merge(
-  data.frame(method = c("separate", "pooling", rep("RMP", 3)),
-             parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
-  expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
-)
-res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
-  control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
-  source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
-  success_proba = plogis(20 * target_treatment_effect - 4),
-  conf_int_success_proba_lower = success_proba - 0.02,
-  conf_int_success_proba_upper = success_proba + 0.02)
-plot_metric_vs_sample_size_methods("success_proba", res, case_study = "botox",
-                                   target_treatment_effect = "Consistent effect")
-list.files(figures_dir, recursive = TRUE)
-options(old_options); ggplot2::theme_set(old_theme)
-unlink(figures_dir, recursive = TRUE)
-}
+\keyword{internal}

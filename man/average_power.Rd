@@ -18,6 +18,4 @@ The average power.
 This function calculates the average power based on the preposterior probability of true positive
 and the prior probability of no benefit.
 }
-\examples{
-NA
-}
+\keyword{internal}

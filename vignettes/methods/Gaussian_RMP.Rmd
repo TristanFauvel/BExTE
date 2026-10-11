@@ -116,7 +116,7 @@ The model's prior_pdf method is :
 
 
 ```{r}
-read_function_code(model$prior_pdf)
+BExTE:::read_function_code(model$prior_pdf)
 ```
 
 ## Inference with the RMP
@@ -135,7 +135,7 @@ model$print_model_summary()
 Now, let us see how this is implemented:
 
 ```{r}
-read_function_code(model$inference)
+BExTE:::read_function_code(model$inference)
 ```
 
 The first step in inference is to update the prior based on target_data if needed, in case where the method uses empirical Bayes. With empirical Bayes, some parameters of the prior are set based on observed target data. 
@@ -145,7 +145,7 @@ The second step is to compute the moments of the treatment effect posterior dist
 In the study protocol, we specified that the variance of the vague component of the RMP should be such that this prior corresponds to the information provided by a single subject per arm in the target study. This is a form of empirical Bayes:   
 
 ```{r}
-read_function_code(model$empirical_bayes_update)
+BExTE:::read_function_code(model$empirical_bayes_update)
 ```
 
 The posterior is given by : 
@@ -159,19 +159,19 @@ where $\mathcal{N}(\theta_T | \mu, \sigma^2)$ denotes the probability density fu
 The code to compute the posterior moments is the following : 
 
 ```{r}
-read_function_code(model$posterior_moments)
+BExTE:::read_function_code(model$posterior_moments)
 ```
  
 With :
 
 ```{r}
-read_function_code(model$posterior_mean)
+BExTE:::read_function_code(model$posterior_mean)
 ```
 and : 
 
 
 ```{r}
-read_function_code(model$posterior_variance)
+BExTE:::read_function_code(model$posterior_variance)
 ```
  
 A crucial aspect of this inference step is the computation of the posterior mixture weights:
@@ -191,10 +191,10 @@ $$C_S =  \frac{1}{\sqrt{\nu_S^2 + \sigma^2_T/N_T}}\exp\left(-\frac{1}{2}\frac{(\
 This allows us to compute the posterior cdf and posterior pdf : 
 
 ```{r}
-read_function_code(model$posterior_pdf)
+BExTE:::read_function_code(model$posterior_pdf)
 ``` 
 ```{r}
-read_function_code(model$posterior_cdf)
+BExTE:::read_function_code(model$posterior_cdf)
 ```  
 
 Let us plot the posterior pdf : 
@@ -207,7 +207,7 @@ model$plot_pdfs(xmin = -0.5, xmax = 1.5, resolution = 100)
 Being able to sample from the posterior is crucial for estimating quantiles, we use the following:. 
 
 ```{r}
-read_function_code(model$sample_posterior)
+BExTE:::read_function_code(model$sample_posterior)
 ```  
  
 

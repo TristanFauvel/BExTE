@@ -628,21 +628,7 @@ concatenate_simulation_results <- function(results_dir, ocs_filename) {
 #'
 #' @return A data frame with one row per metric, suitable for printing.
 #'
-#' @examples
-#' metrics <- c("success_proba", "coverage", "mse", "bias", "posterior_mean",
-#'              "posterior_median", "precision", "interval_score", "ess_moment",
-#'              "ess_precision", "ess_elir")
-#' output <- list()
-#' for (metric in metrics) {
-#'   output[[metric]] <- 0.5
-#'   output[[paste0("conf_int_", metric, "_lower")]] <- 0.45
-#'   output[[paste0("conf_int_", metric, "_upper")]] <- 0.55
-#' }
-#' output$credible_interval_lower <- -0.1
-#' output$credible_interval_upper <- 0.9
-#' format_simulation_output_table(output)
-#'
-#' @export
+#' @keywords internal
 format_simulation_output_table <- function(output) {
   # Extract the data
   data <- list(
@@ -751,11 +737,7 @@ format_parameters_to_json <- function(json_parameters, escape = FALSE) {
 #'   target and source settings. The data-generation vignettes print it to
 #'   describe a case study.
 #'
-#' @examples
-#' config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
-#' format_case_study_config(config)
-#'
-#' @export
+#' @keywords internal
 format_case_study_config <- function(case_study_config) {
   rlang::check_installed(c("knitr", "kableExtra"), reason = "to format tables.")
   if (case_study_config$endpoint == "continuous" ||
@@ -1410,10 +1392,7 @@ save_state <- function(iteration, scenario, worker_id = NULL, env) {
 #'
 #' @return `NULL`, invisibly; prints the function's source code as a side effect.
 #'
-#' @examples
-#' read_function_code(interval_score)
-#'
-#' @export
+#' @keywords internal
 read_function_code <- function(function_obj){
   function_name <- substitute(function_obj)
 

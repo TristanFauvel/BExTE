@@ -192,7 +192,7 @@ A target estimate agreeing with the source raises no conflict, so nothing is
 given to the weak component:
 
 ```{r}
-agreeing <- fit_egidi_mixture(
+agreeing <- BExTE:::fit_egidi_mixture(
   theta_target_hat = 0.5,
   se_target = standard_error,
   informative_component = informative,
@@ -207,7 +207,7 @@ A conflicting one moves the weight off zero, by exactly as much as it takes to
 bring the conflict $p$-value up to the threshold:
 
 ```{r}
-conflicting <- fit_egidi_mixture(
+conflicting <- BExTE:::fit_egidi_mixture(
   theta_target_hat = -0.75,
   se_target = standard_error,
   informative_component = informative,

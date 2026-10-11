@@ -91,49 +91,7 @@ resolve_analysis_steps <- function(scenarios_config, all_case_studies_shipped) {
 #'
 #' @return `TRUE`, invisibly, once frequentist and/or Bayesian OCs have been
 #'   computed and concatenated according to `simulation_config`.
-#' @examples
-#' \donttest{
-#' conf <- system.file("conf", package = "BExTE")
-#' work_dir <- file.path(tempdir(), "bexte-example")
-#' config_dir <- file.path(work_dir, "config", "")
-#' dir.create(config_dir, recursive = TRUE, showWarnings = FALSE)
-#' file.copy(file.path(conf, "full", c("methods_config.R", "mcmc_config.yml")),
-#'           config_dir)
-#' # One case study, one method, two drift values and ten replicates, on one core.
-#' yaml::write_yaml(list(
-#'   n_replicates = 10, ndrift = 2, parallelization = FALSE,
-#'   denominator_change_factor = 1, sample_size_factors = 2,
-#'   target_to_source_std_ratio_range = 1,
-#'   case_studies = "botox", methods = "separate",
-#'   analysis_steps = list("sweet_spot")
-#' ), file.path(config_dir, "scenarios_config.yml"))
-#' simulation_config <- yaml::read_yaml(file.path(conf, "simulation_config.yml"))
-#' analysis_config <- yaml::read_yaml(file.path(conf, "analysis_config.yml"))
-#' metrics <- new.env()
-#' sys.source(file.path(conf, "metrics_config.R"), envir = metrics)
-#'
-#' # The run writes ./logs/<env>/ and ./results/<env>/, and changes the error
-#' # option and the log appender, so run it in a temporary directory and
-#' # restore them afterwards.
-#' old_wd <- setwd(work_dir)
-#' old_options <- options(error = NULL)
-#' old_appender <- futile.logger::flog.appender("ROOT")
-#' run_simulation_env(
-#'   env = "example",
-#'   config_dir = config_dir,
-#'   case_studies_config_dir = file.path(conf, "case_studies", ""),
-#'   simulation_config = simulation_config,
-#'   analysis_config = analysis_config,
-#'   frequentist_metrics = metrics$frequentist_metrics,
-#'   inference_metrics = metrics$inference_metrics
-#' )
-#' list.files("results/example")
-#' invisible(futile.logger::flog.appender(old_appender))
-#' options(old_options)
-#' setwd(old_wd)
-#' unlink(work_dir, recursive = TRUE)
-#' }
-#' @export
+#' @keywords internal
 run_simulation_env <- function(env,
                                config_dir,
                                case_studies_config_dir,

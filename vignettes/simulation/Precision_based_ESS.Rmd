@@ -64,7 +64,7 @@ The moment-based matching method used in RBesT is the following:
 The corresponding code is the following : 
 
 ```{r}
-read_function_code(gaussian_mix_moment_ess)
+BExTE:::read_function_code(gaussian_mix_moment_ess)
 ```
  
 So, we recognize the ESS computation from the normal-normal model: $m = \frac{\sigma^2}{\tau^2}$, where $\sigma$ is the reference scale and $\tau$ is the standard deviation of the distribution of interest. 
@@ -88,12 +88,12 @@ Therefore, if we match any distribution with a Gaussian with the same mean and p
 Therefore, we can simply reuse the moment-based matching code in RBesT by replacing the standard deviation of the matching distribution with $\tau = \frac{\rho}{\Phi^{-1}(1-\alpha/2)}$. 
 
 ```{r}
-read_function_code(gaussian_mix_precision_ess)
+BExTE:::read_function_code(gaussian_mix_precision_ess)
 ```
 
 
 ```{r}
-gaussian_mix_precision_ess(nm)
+BExTE:::gaussian_mix_precision_ess(nm)
 ```
 
 ## Cases in which the summary measure is not normally distributed (binary endpoint without normal approximation)
@@ -154,11 +154,11 @@ rbest_model <- model$RBesT_posterior
 ```
 
 ```{r}
-read_function_code(prior_moment_ess)
+BExTE:::read_function_code(prior_moment_ess)
 ```
  
 ```{r}
-read_function_code(prior_precision_ess)
+BExTE:::read_function_code(prior_precision_ess)
 ```
 
 ## Converting models to RBesT format
@@ -168,11 +168,11 @@ In most cases, however, the posterior is not a Gaussian or a mixture of Gaussian
 To do so, we use the RBesT RBesT::automixfit function, which allows automatic fitting of mixtures of conjugate distributions to a sample using the EM algorithm.
 
 ```{r}
-read_function_code(model$prior_to_RBesT)
+BExTE:::read_function_code(model$prior_to_RBesT)
 ```
 
 ```{r}
-read_function_code(model$posterior_to_RBesT)
+BExTE:::read_function_code(model$posterior_to_RBesT)
 ```
 
 Let us see how we can apply this to the Gaussian RMP, and determine whether this provides an accurate approximation (here it is simpler than in the general case as we now the number of components): 

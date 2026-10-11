@@ -41,18 +41,4 @@ distribution and control-arm heterogeneity change in the time-to-event
 trial, and what the precision of its log hazard ratio rests on. Uses the
 same arm parameters and censoring as the data generator.
 }
-\examples{
-config <- yaml::yaml.load_file(
-  system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
-)
-time_to_event_expected_events(config, sample_size_per_arm = 83)
-
-# With loss to follow-up and Weibull event times
-time_to_event_expected_events(
-  config,
-  sample_size_per_arm = 83,
-  dropout_probability = 0.1,
-  event_time_distribution = "weibull"
-)
-
-}
+\keyword{internal}

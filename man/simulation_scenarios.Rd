@@ -20,15 +20,4 @@ A list of simulation scenarios.
 \description{
 Generate simulation scenarios based on the configuration directory.
 }
-\examples{
-config_dir <- paste0(system.file("conf/full", package = "BExTE"), "/")
-case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
-scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
-# Keep one case study, one method and a coarse drift grid.
-scenarios_config$case_studies <- "botox"
-scenarios_config$methods <- "separate"
-scenarios_config$ndrift <- 3
-cases <- simulation_scenarios(config_dir, scenarios_config, case_studies_config_dir)
-nrow(cases)
-head(cases[, c("case_study", "method", "target_sample_size_per_arm", "drift")])
-}
+\keyword{internal}

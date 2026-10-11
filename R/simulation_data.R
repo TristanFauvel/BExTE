@@ -15,10 +15,6 @@
 #'
 #' @return The standard error of the log odds ratio
 #'
-#' @examples
-#' standard_error_log_odds_ratio(100, 90, 50, 60)
-#'
-#' @export
 #' @keywords internal
 standard_error_log_odds_ratio <- function(n_control_nonresponders,
                                           n_treatment_nonresponders,
@@ -49,10 +45,6 @@ standard_error_log_odds_ratio <- function(n_control_nonresponders,
 #' @return The success rate in the corresponding arm of the target study
 #'
 #' @keywords internal
-#' @examples
-#' # A drift of 0.5 on the log odds scale, from a source rate of 0.4
-#' rate_from_drift_logOR(arm_drift = 0.5, source_rate = 0.4)
-#' @export
 rate_from_drift_logOR <- function(arm_drift, source_rate) {
   source_odds <- source_rate / (1 - source_rate)
 
@@ -76,10 +68,6 @@ rate_from_drift_logOR <- function(arm_drift, source_rate) {
 #'
 #' @return The rate in the corresponding arm of the target study
 #' @keywords internal
-#' @examples
-#' # A rate 0.8 times the source rate of 0.534 events per year
-#' rate_from_drift_logRR(arm_drift = log(0.8), source_rate = 0.534)
-#' @export
 rate_from_drift_logRR <- function(arm_drift, source_rate) {
   return(source_rate * exp(arm_drift))
 }
@@ -103,15 +91,6 @@ sample_negative_binomial <- function(n, mu, k) {
 #'
 #' @return A list containing the log odds ratio, treatment rate, control rate, and standard error of the log odds ratio
 #'
-#' @examples
-#' compute_ORs(
-#'   n_control = 100,
-#'   n_treatment = 100,
-#'   n_control_responders = 40,
-#'   n_treatment_responders = 55
-#' )
-#'
-#' @export
 #' @keywords internal
 compute_ORs <- function(n_control,
                         n_treatment,
@@ -183,18 +162,7 @@ compute_log_odds_ratio_from_counts <- function(n_control_responders,
 #' @param n_replicates Number of replicates to sample
 #'
 #' @return A list containing the sampled log odds ratios and the standard error of the log odds ratio
-#' @examples
-#' set.seed(1)
-#' draws <- sample_log_odds_ratios(
-#'   n_control = 100,
-#'   n_treatment = 100,
-#'   treatment_rate = 0.55,
-#'   control_rate = 0.4,
-#'   n_replicates = 5
-#' )
-#' draws$log_odds_ratio
-#' draws$std_err_log_odds_ratio
-#' @export
+#' @keywords internal
 sample_log_odds_ratios <- function(n_control,
                                    n_treatment,
                                    treatment_rate,
@@ -227,15 +195,7 @@ sample_log_odds_ratios <- function(n_control,
 #'   standard deviation. The standard error and standard deviation are the
 #'   replicate's own estimates, drawn around the true `variance`, not the true
 #'   values themselves.
-#' @examples
-#' set.seed(1)
-#' sample_aggregate_normal_data(
-#'   mean = 0.2,
-#'   variance = 1,
-#'   n_replicates = 5,
-#'   n_samples_per_arm = 50
-#' )
-#' @export
+#' @keywords internal
 sample_aggregate_normal_data <- function(mean,
                                          variance,
                                          n_replicates,
@@ -279,10 +239,7 @@ sample_aggregate_normal_data <- function(mean,
 #' @param n_replicates Number of replicates to sample
 #'
 #' @return A vector of sampled rates
-#' @examples
-#' set.seed(1)
-#' sample_aggregate_binary_data(rate = 0.3, n = 100, n_replicates = 5)
-#' @export
+#' @keywords internal
 sample_aggregate_binary_data <- function(rate, n, n_replicates) {
   n_successes <- rbinom(n_replicates, n, rate)
   return(n_successes / n)
@@ -1230,11 +1187,7 @@ negative_binomial_inverse_dispersion <- function(input_data, rate_estimate) {
 #'
 #' @param input_data The data for which the rate parameter and standard error need to be estimated.
 #' @return A list containing the rate estimate, standard error of the rate estimate, and standard error of the log(rate) estimate.
-#' @examples
-#' set.seed(1)
-#' counts <- stats::rnbinom(100, size = 0.8, mu = 1.7)
-#' negative_binomial_regression(counts)
-#' @export
+#' @keywords internal
 negative_binomial_regression <- function(input_data) {
   if (length(input_data) == 0 || anyNA(input_data) ||
         !all(is.finite(input_data))) {

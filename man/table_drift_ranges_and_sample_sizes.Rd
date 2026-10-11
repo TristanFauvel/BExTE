@@ -29,16 +29,4 @@ each arm, so the total it actually simulates can be one or two lower.
 Every case study is listed whatever the selection, because the paper's
 table always has all six rows.
 }
-\examples{
-\donttest{
-# The table is compiled with LaTeX and cropped with pdfcrop.
-if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
-  tables_dir <- file.path(tempdir(), "bexte-tables")
-  table_drift_ranges_and_sample_sizes(
-    case_studies_config_dir = system.file("conf/case_studies", package = "BExTE"),
-    tables_dir = tables_dir
-  )
-  unlink(tables_dir, recursive = TRUE)
-}
-}
-}
+\keyword{internal}

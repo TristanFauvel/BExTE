@@ -12,6 +12,11 @@ template:
 
 # See https://pkgdown.r-lib.org/reference/build_articles.html
 articles:
+- title: Using BExTE
+  desc: The functions of the BExTE interface
+  contents:
+  - s3_interface
+
 - title: Simulation
   desc: Vignettes describing simulation-based estimation of OCs
   contents:
@@ -70,18 +75,44 @@ articles:
 
 # See https://pkgdown.r-lib.org/reference/build_reference
 reference:
-- title: Data generation
+- title: Data
+  desc: Describe the source and target studies
 - contents:
-  - sample_aggregate_binary_data
-  - sample_aggregate_normal_data
-  - sample_log_odds_ratios
-  - compute_ORs
-  - compute_log_odds_ratio_from_counts
-  - rate_from_drift_logOR
-  - rate_from_drift_logRR
-  - standard_error_log_odds_ratio
+  - source_data
+  - target_data
 
-- title: Methods
+- title: Priors
+  desc: One builder per borrowing method
+- contents:
+  - separate_prior
+  - pooling_prior
+  - power_prior
+  - npp
+  - npp_kl
+  - rmp
+  - egidi_mixture
+  - commensurate_prior
+  - commensurate_power_prior
+  - eb_power_prior
+  - pvalue_power_prior
+  - pdccpp
+  - test_then_pool
+
+- title: Fit and summarise
+- contents:
+  - posterior
+  - ess
+  - decision
+  - bexte_methods
+
+- title: Operating characteristics
+  desc: Frequentist OCs at fixed true effects, and Bayesian OCs over a design prior
+- contents:
+  - oc_frequentist
+  - oc_bayesian
+  - design_prior
+
+- title: "Advanced: R6 method classes"
 - contents:
   - BinomialPooling
   - BinomialSeparate
@@ -121,7 +152,48 @@ reference:
   - GaussianPValueBasedPP
   - BinomialConjugate
 
-- title: Binomial quadrature
+- title: "Advanced: R6 data classes"
+- contents:
+  - TargetData
+  - TargetDataFactory
+  - SourceData
+  - BinaryTargetData
+  - ObservedSourceData
+  - ObservedTargetData
+  - ContinuousTargetData
+  - TimeToEventTargetData
+
+- title: "Advanced: R6 design priors"
+- contents:
+  - DesignPrior
+  - AnalysisPriorDesignPrior
+  - SourcePosteriorDesignPrior
+  - UnitInformationDesignPrior
+
+- title: "Utilities: caches"
+  desc: Inspecting and clearing the compiled-model and analysis caches
+- contents:
+  - inference_cache_size
+  - inference_cache_reset
+  - generate_replicates
+  - generation_cache_key
+  - npp_kl_calibration_cache_size
+  - npp_kl_calibration_cache_reset
+  - clear_stan_draws
+  - clear_stan_model_cache
+
+- title: "Internals: data generation"
+- contents:
+  - sample_aggregate_binary_data
+  - sample_aggregate_normal_data
+  - sample_log_odds_ratios
+  - compute_ORs
+  - compute_log_odds_ratio_from_counts
+  - rate_from_drift_logOR
+  - rate_from_drift_logRR
+  - standard_error_log_odds_ratio
+
+- title: "Internals: binomial quadrature"
   desc: Exact posteriors of a difference in response rates for the binomial
     borrowing models, computed on a grid instead of sampled
 - contents:
@@ -135,7 +207,7 @@ reference:
   - grid_posterior_quantile
   - grid_posterior_sample
 
-- title: Vectorised inference
+- title: "Internals: vectorised inference"
   desc: Conjugate updates and frequentist tests evaluated across all
     replicates of a scenario at once
 - contents:
@@ -149,7 +221,7 @@ reference:
   - calibrate_npp_kl
   - summary_t_test_p_value
 
-- title: Plots
+- title: "Internals: plots"
 - contents:
   - method_style
   - method_key
@@ -202,7 +274,7 @@ reference:
   - plot_metric_vs_scenario_methods
   - scale_by_separate
 
-- title: Operating characteristics
+- title: "Internals: operating characteristics"
 - contents:
   - average_power
   - average_tie
@@ -224,7 +296,7 @@ reference:
   - interval_score
   - compute_power_with_tie_ci
 
-- title: Monte Carlo uncertainty
+- title: "Internals: monte carlo uncertainty"
   desc: Propagating simulation error into the comparison with the
     frequentist benchmark at equivalent type I error
 - contents:
@@ -234,7 +306,7 @@ reference:
   - add_power_difference_columns
   - flag_power_differences
 
-- title: Simulation
+- title: "Internals: simulation"
 - contents:
   - compute_control_drift_range
   - compute_drift_range
@@ -254,7 +326,7 @@ reference:
   - time_to_event_axes_off_primary
   - time_to_event_sensitivity_reference
 
-- title: Tables
+- title: "Internals: tables"
 - contents:
   - table_methods_comparison
   - posterior_parameters_tables
@@ -272,37 +344,7 @@ reference:
   - table_case_study_summary
   - table_drift_ranges_and_sample_sizes
 
-- title: Data
-- contents:
-  - TargetData
-  - TargetDataFactory
-  - SourceData
-  - BinaryTargetData
-  - ObservedSourceData
-  - ObservedTargetData
-  - ContinuousTargetData
-  - TimeToEventTargetData
-
-- title: Design priors
-- contents:
-  - DesignPrior
-  - AnalysisPriorDesignPrior
-  - SourcePosteriorDesignPrior
-  - UnitInformationDesignPrior
-
-- title: Caching
-  desc: Inspecting and clearing the compiled-model and analysis caches
-- contents:
-  - inference_cache_size
-  - inference_cache_reset
-  - generate_replicates
-  - generation_cache_key
-  - npp_kl_calibration_cache_size
-  - npp_kl_calibration_cache_reset
-  - clear_stan_draws
-  - clear_stan_model_cache
-
-- title: Utilities
+- title: "Internals: utilities"
 - contents:
   - check_colnames
   - combine_parameters

@@ -116,16 +116,19 @@ Still open:
 
 RBesT succeeds because it does one job well: robust meta-analytic priors. Its API is small and stable, and its docs are tied to the method papers. It is easy to install. It also had a pharma sponsor (Novartis) and FDA/EMA use behind it. Measured against that, BExTE lacks the following.
 
-1. **A small, clear user API.** BExTE exports 143 objects. Many are internal helpers or paper-specific functions (`paper_manifest*`, `export_paper_outputs`, `table_*`, `plot_*` for figures). A new user cannot tell where to start.
-   - Aim for a core of about 15–25 functions, for example:
-     - a function that defines source and target data;
-     - a prior builder per method (`power_prior()`, `commensurate_prior()`, `rmp()`, `npp()` …);
-     - `posterior()` or `fit()`;
-     - `ess()`;
-     - `oc()` for operating characteristics, with `decision()` rules;
-     - `print`, `summary` and `plot` methods.
-   - Move the paper reproduction to a separate repo or a "BExTEpaper" package. Done (2026-10-11): it is now the plain project folder `../BExTEpaper`, with its own git repo. The other paper-specific exports (`table_*`, `plot_*` for figures) are still in BExTE.
-2. **A standard R interface.** R6 classes such as `BinomialNPP$new()` feel foreign to most R statisticians. RBesT uses S3 generics (`postmix`, `ess`, `oc2S`, `decision2S`) that work well together. Give the R6 classes an S3 front end.
+1. **A small, clear user API.** Done (2026-10-11). BExTE exported 156 objects, many of them internal helpers or paper-specific functions, so a new user could not tell where to start. It now exports 73: 21 core functions, 7 cache and calibration utilities, and the 45 R6 classes.
+   - The core: `source_data()`, `target_data()`; one prior builder per method (`separate_prior()`, `pooling_prior()`, `power_prior()`, `npp()`, `npp_kl()`, `rmp()`, `egidi_mixture()`, `commensurate_prior()`, `commensurate_power_prior()`, `eb_power_prior()`, `pvalue_power_prior()`, `pdccpp()`, `test_then_pool()`); `posterior()`, `ess()`, `decision()`; `oc_frequentist()`, `oc_bayesian()`, `design_prior()`.
+   - The two kinds of operating characteristics have separate functions and result classes, as RBesT has `oc2S()` and `pos2S()`. `oc_frequentist()` fixes the true effect, and labels each row as type I error or power. `oc_bayesian()` averages over a design prior.
+   - The 83 paper and pipeline functions (`plot_*`, `table_*`, `run_simulation_env()`, `simulation_*()`, the ESS and data-generation helpers, ...) are internal now, with `@keywords internal` and no `@examples`. Their code stays in BExTE.
+   - `../BExTEpaper/setup.R` attaches the 9 pipeline functions its scripts call. Its `R/` code and tests already run inside the BExTE namespace.
+   - The pkgdown articles in subfolders call the internal helpers with `BExTE:::`. CRAN does not build them.
+   - Not checked: BExTE-app, which may call functions that are now internal.
+   - Move the paper reproduction to a separate repo or a "BExTEpaper" package. Done (2026-10-11): it is now the plain project folder `../BExTEpaper`, with its own git repo.
+2. **A standard R interface.** Done (2026-10-11). R6 classes such as `BinomialNPP$new()` feel foreign to most R statisticians. The functions above are an S3 front end over the R6 classes (`R/api_*.R`):
+   - Builders return light specs. `posterior()` creates the R6 model through `Model$create()` and runs `inference()`. `post$model` gives the R6 object for advanced use.
+   - `print`, `summary`, `plot`, `quantile` and `as.data.frame` methods cover the data, priors, posteriors, decision rules and both OC result classes.
+   - `tests/testthat/test-s3-api.R` checks each wrapper against the direct R6 calls.
+   - The vignettes "Get started with BExTE" (new), "The BExTE interface" (new, a guide to every function), "Separate analysis", "Pooling" and "Plan a trial: operating characteristics" use this API.
 3. **Easy install.** Make the CmdStan requirement optional, or remove it. This matters more than anything else for uptake in pharma, where locked-down machines are common. Done (2026-10-11): no method needs Stan. Stan stays as an optional reference engine (`engine: stan`).
 4. **Validation and trust.** Pharma users need:
    - a published method reference for each prior;
@@ -155,6 +158,6 @@ RBesT succeeds because it does one job well: robust meta-analytic priors. Its AP
 
 1. Fix the license.
 2. Make `cmdstanr` optional. Done (2026-10-11).
-3. Cut down the exported API. (The dependencies are done.)
+3. Cut down the exported API. Done (2026-10-11), and the dependencies are done.
 4. Do the CRAN check items and submit to CRAN.
 5. Work on the paper and the outreach.

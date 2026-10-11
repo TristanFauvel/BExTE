@@ -33,9 +33,8 @@ check_probability_value <- function(p) {
 #'
 #' @return The probability of false positive.
 #'
-#' @export
 #'
-#' @examples NA
+#' @keywords internal
 preposterior_proba_FP_MC <- function(conditional_proba_success,
                                      design_prior_samples,
                                      theta_0,
@@ -72,9 +71,8 @@ preposterior_proba_FP_MC <- function(conditional_proba_success,
 #'
 #' @return The probability of true positive.
 #'
-#' @export
 #'
-#' @examples NA
+#' @keywords internal
 preposterior_proba_TP_MC <- function(conditional_proba_success,
                                      design_prior_samples,
                                      theta_0,
@@ -109,9 +107,8 @@ preposterior_proba_TP_MC <- function(conditional_proba_success,
 #'
 #' @return The average type 1 error.
 #'
-#' @export
 #'
-#' @examples NA
+#' @keywords internal
 average_tie <- function(prepost_proba_FP,
                         prior_proba_no_benefit) {
   if (is.na(prepost_proba_FP) || is.na(prior_proba_no_benefit)) {
@@ -138,9 +135,8 @@ average_tie <- function(prepost_proba_FP,
 #'
 #' @return The average power.
 #'
-#' @export
 #'
-#' @examples NA
+#' @keywords internal
 average_power <- function(prepost_proba_TP,
                           prior_proba_no_benefit) {
   if (is.na(prepost_proba_TP) || is.na(prior_proba_no_benefit)) {
@@ -219,9 +215,7 @@ analysed_success_probability <- function(results) {
 #'
 #' @return The upper bound probability of false positive, defined as \eqn{Pr(Study success|\theta_T = \theta_0) \times Pr(\theta_T \leq \theta_0)}
 #'
-#' @examples NA
-#'
-#' @export
+#' @keywords internal
 upper_bound_proba_FP_MC <- function(model,
                                     prior_proba_no_benefit,
                                     source_data,

@@ -31,8 +31,4 @@ The standard error of the log odds ratio
 \description{
 This function calculates the standard error of the log odds ratio based on the number of noncases and cases in the unexposed and exposed groups.
 }
-\examples{
-standard_error_log_odds_ratio(100, 90, 50, 60)
-
-}
 \keyword{internal}

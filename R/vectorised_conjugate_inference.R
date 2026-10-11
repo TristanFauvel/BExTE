@@ -232,18 +232,7 @@ vectorised_test_decision <- function(posterior_weights, posterior_means,
 #' @param standard_error Vector of per-replicate standard errors.
 #' @return A list of three `n_replicates x n_components` matrices: `weights`,
 #'   `means` and `sds` of the posterior mixture.
-#' @examples
-#' # A two-component prior shared by three replicates.
-#' posterior <- normal_mixture_posterior(
-#'   weights = c(0.5, 0.5),
-#'   means = c(0.48, 0),
-#'   sds = c(0.12, 1.2),
-#'   estimate = c(0.1, 0.37, 0.9),
-#'   standard_error = 0.42
-#' )
-#' posterior$weights
-#' posterior$means
-#' @export
+#' @keywords internal
 normal_mixture_posterior <- function(weights, means, sds, estimate, standard_error) {
   n_replicates <- length(estimate)
   standard_error <- rep_len(standard_error, n_replicates)
@@ -348,13 +337,7 @@ shared_normal_mixture_posterior <- function(weights, means, sds,
 #' @param probs Probabilities at which to evaluate the quantile function.
 #' @return A list with `mean` and `sd` vectors of length `n_replicates`, and a
 #'   `n_replicates x length(probs)` matrix of `quantiles`.
-#' @examples
-#' # One replicate, with a two-component mixture.
-#' weights <- matrix(c(0.5, 0.5), nrow = 1)
-#' means <- matrix(c(0.48, 0), nrow = 1)
-#' sds <- matrix(c(0.12, 1.2), nrow = 1)
-#' normal_mixture_summary(weights, means, sds)
-#' @export
+#' @keywords internal
 normal_mixture_summary <- function(weights, means, sds, probs = c(0.025, 0.5, 0.975)) {
   mixture_mean <- rowSums(weights * means)
   # Law of total variance: E[X^2] - E[X]^2 over the mixture components.
@@ -540,17 +523,7 @@ normal_mixture_quantile <- function(weights, means, sds, p,
 #' @param n_nodes Number of Gauss-Legendre nodes per panel.
 #' @param spread How many standard deviations each component's panels reach.
 #' @return Vector of ELIR effective sample sizes, one per replicate.
-#' @examples
-#' # A robust mixture prior shared by every replicate.
-#' normal_mixture_elir_ess(
-#'   weights = c(0.5, 0.5),
-#'   means = c(0.48, 0),
-#'   sds = c(0.12, 1.2),
-#'   sigma = 2
-#' )
-#' # A single normal component: the ELIR is sigma^2 / sd^2.
-#' normal_mixture_elir_ess(weights = 1, means = 0.48, sds = 0.12, sigma = 2)
-#' @export
+#' @keywords internal
 normal_mixture_elir_ess <- function(weights, means, sds, sigma,
                                     n_nodes = 40L, spread = 9) {
   if (!is.matrix(weights)) {

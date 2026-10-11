@@ -21,24 +21,7 @@
 #'
 #' @return The number of replicates, or `NA_real_` when no summary identifies it.
 #'
-#' @examples
-#' # From the Monte Carlo standard error of an estimate based on 1000 replicates
-#' binomial_replicate_count(
-#'   estimate = 0.05,
-#'   mcse = sqrt(0.05 * 0.95 / 1000),
-#'   conf_int_lower = NA,
-#'   conf_int_upper = NA
-#' )
-#'
-#' # No success: the upper bound of the exact interval gives the count
-#' binomial_replicate_count(
-#'   estimate = 0,
-#'   mcse = 0,
-#'   conf_int_lower = 0,
-#'   conf_int_upper = 1 - 0.025^(1 / 1000)
-#' )
-#'
-#' @export
+#' @keywords internal
 binomial_replicate_count <- function(estimate,
                                      mcse,
                                      conf_int_lower,
@@ -104,16 +87,7 @@ binomial_replicate_count <- function(estimate,
 #'
 #' @return A numeric vector of `n_samples` draws in `(0, 1)`.
 #'
-#' @examples
-#' set.seed(1)
-#' draws <- sample_binomial_proportion(
-#'   n_samples = 1000,
-#'   estimate = 0.05,
-#'   n_replicates = 1000
-#' )
-#' stats::quantile(draws, c(0.025, 0.975))
-#'
-#' @export
+#' @keywords internal
 sample_binomial_proportion <- function(n_samples, estimate, n_replicates) {
   if (is.na(estimate) || is.na(n_replicates) || n_replicates <= 0) {
     return(rep(NA_real_, n_samples))
@@ -151,13 +125,7 @@ sample_binomial_proportion <- function(n_samples, estimate, n_replicates) {
 #'   interval for `estimate_1 - estimate_2`, or `NA` bounds when any input is
 #'   missing.
 #'
-#' @examples
-#' mover_difference_ci(
-#'   estimate_1 = 0.80, lower_1 = 0.77, upper_1 = 0.83,
-#'   estimate_2 = 0.70, lower_2 = 0.67, upper_2 = 0.73
-#' )
-#'
-#' @export
+#' @keywords internal
 mover_difference_ci <- function(estimate_1,
                                 lower_1,
                                 upper_1,
@@ -246,18 +214,7 @@ power_difference_bounds <- function(results_df, correlation = 0) {
 #' @return The data frame with `success_proba` and its interval bounds replaced
 #'   by the difference and its interval.
 #'
-#' @examples
-#' results <- data.frame(
-#'   success_proba = c(0.80, 0.70, 0.60),
-#'   conf_int_success_proba_lower = c(0.77, 0.67, 0.57),
-#'   conf_int_success_proba_upper = c(0.83, 0.73, 0.63),
-#'   frequentist_power_at_equivalent_tie = c(0.70, 0.69, 0.70),
-#'   frequentist_power_at_equivalent_tie_lower = c(0.67, 0.66, 0.67),
-#'   frequentist_power_at_equivalent_tie_upper = c(0.73, 0.72, 0.73)
-#' )
-#' add_power_difference_columns(results)
-#'
-#' @export
+#' @keywords internal
 add_power_difference_columns <- function(results_df, correlation = 0) {
   bounds <- power_difference_bounds(results_df, correlation = correlation)
 
@@ -285,19 +242,7 @@ add_power_difference_columns <- function(results_df, correlation = 0) {
 #' @return The data frame with `power_difference`, `power_difference_lower`,
 #'   `power_difference_upper`, `power_gain` and `power_loss` columns added.
 #'
-#' @examples
-#' results <- data.frame(
-#'   success_proba = c(0.80, 0.70, 0.60),
-#'   conf_int_success_proba_lower = c(0.77, 0.67, 0.57),
-#'   conf_int_success_proba_upper = c(0.83, 0.73, 0.63),
-#'   frequentist_power_at_equivalent_tie = c(0.70, 0.69, 0.70),
-#'   frequentist_power_at_equivalent_tie_lower = c(0.67, 0.66, 0.67),
-#'   frequentist_power_at_equivalent_tie_upper = c(0.73, 0.72, 0.73)
-#' )
-#' flagged <- flag_power_differences(results)
-#' flagged[, c("power_difference", "power_gain", "power_loss")]
-#'
-#' @export
+#' @keywords internal
 flag_power_differences <- function(results_df, correlation = 0) {
   bounds <- power_difference_bounds(results_df, correlation = correlation)
 

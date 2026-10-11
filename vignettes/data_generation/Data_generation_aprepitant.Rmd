@@ -28,7 +28,7 @@ Source :
 set.seed(42)
 
 case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/aprepitant.yml", package = "BExTE"))
-format_case_study_config(case_study_config)
+BExTE:::format_case_study_config(case_study_config)
 ```
 
 ### Generation of aggregate data
@@ -56,15 +56,15 @@ target_data$plot_sample(data)
 
 
 ```{r}
-read_function_code(sample_aggregate_binary_data)
+BExTE:::read_function_code(sample_aggregate_binary_data)
 ```
 
 ```{r, eval = FALSE}
-sample_treatment_rate <- sample_aggregate_binary_data(self$treatment_rate,
+sample_treatment_rate <- BExTE:::sample_aggregate_binary_data(self$treatment_rate,
                                                               self$sample_size_per_arm,
                                                               n_replicates)
 
-sample_control_rate <- sample_aggregate_binary_data(self$control_rate,
+sample_control_rate <- BExTE:::sample_aggregate_binary_data(self$control_rate,
                                                     self$sample_size_per_arm,
                                                     n_replicates)
 

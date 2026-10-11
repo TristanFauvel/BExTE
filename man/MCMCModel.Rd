@@ -361,13 +361,14 @@ replicate and adds a second layer of Monte Carlo error on top of the one
 the sampler already carries.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{MCMCModel$posterior_ess(target_data, ...)}
+    \preformatted{MCMCModel$posterior_ess(target_data, level = 0.95, ...)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{target_data}}{Target study data}
+      \item{\code{level}}{Level used for the precision-based ESS.}
       \item{\code{...}}{Unused, kept so that the simulation can call every model the
 same way.}
     }

@@ -40,10 +40,4 @@ difference. MOVER recovers a variance from each interval at the bound that
 matters for the corresponding bound of the difference, so the result keeps
 the asymmetry of exact binomial intervals instead of symmetrising them.
 }
-\examples{
-mover_difference_ci(
-  estimate_1 = 0.80, lower_1 = 0.77, upper_1 = 0.83,
-  estimate_2 = 0.70, lower_2 = 0.67, upper_2 = 0.73
-)
-
-}
+\keyword{internal}

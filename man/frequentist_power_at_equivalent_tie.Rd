@@ -42,32 +42,4 @@ The final results data frame with power and frequentist test columns added.
 \description{
 This function computes the frequentist power at equivalent tie for a given set of results and analysis configuration.
 }
-\examples{
-# Bayesian results for two Botox scenarios: the null (effect 0) and the
-# effect seen in the source study (0.2)
-results <- data.frame(
-  method = "separate", parameters = "{}", case_study = "botox",
-  control_drift = 0, treatment_drift = c(-0.2, 0),
-  source_denominator = NA_real_, source_denominator_change_factor = 1,
-  target_to_source_std_ratio = 1, target_sample_size_per_arm = 50,
-  theta_0 = 0, null_space = "left", sampling_approximation = FALSE,
-  summary_measure_likelihood = "normal", endpoint = "continuous",
-  source_sample_size_treatment = 233, source_sample_size_control = 235,
-  source_standard_error = 0.1, source_treatment_effect_estimate = 0.2,
-  equivalent_source_sample_size_per_arm = 234,
-  target_treatment_effect = c(0, 0.2),
-  success_proba = c(0.03, 0.6),
-  mcse_success_proba = c(0.0054, 0.0155),
-  conf_int_success_proba_lower = c(0.020, 0.569),
-  conf_int_success_proba_upper = c(0.043, 0.630)
-)
-set.seed(1)
-out <- frequentist_power_at_equivalent_tie(
-  results,
-  analysis_config = list(frequentist_test = "t-test"),
-  simulation_config = list(seed = 1)
-)
-out[, c("target_treatment_effect", "tie",
-        "frequentist_power_at_equivalent_tie")]
-
-}
+\keyword{internal}

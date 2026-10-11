@@ -26,13 +26,4 @@ A zero or missing denominator makes the ratio undefined. Those rows are
 dropped with a warning rather than reported as \code{Inf} or as some finite
 stand-in.
 }
-\examples{
-## Success probability of two methods in two scenarios (drifts)
-res <- data.frame(
-  method = c("separate", "pooling", "separate", "pooling"),
-  case_study = "botox", target_sample_size_per_arm = 50, drift = c(0, 0, -0.2, -0.2),
-  target_to_source_std_ratio = 1, source_denominator_change_factor = 1,
-  success_proba = c(0.40, 0.60, 0.025, 0.10)
-)
-scale_by_separate(res, "success_proba")
-}
+\keyword{internal}

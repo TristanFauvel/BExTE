@@ -70,7 +70,4 @@ This function calculates the upper bound probability of false positive based on 
 source data, theta_0, target sample size per arm, case study configuration, number of replicates, confidence level,
 null space, and critical value.
 }
-\examples{
-NA
-
-}
+\keyword{internal}

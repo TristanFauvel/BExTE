@@ -25,20 +25,7 @@
 #' @param source_data_sampling_variance Sampling variance of the source study data
 #' @param theta_0 Value of the treatment effect under the null hypothesis
 #' @return The type I error rate, a single number in \eqn{[0, 1]}.
-#' @examples
-#' # Type I error for two values of the calibration parameter
-#' sapply(c(1, 2), function(calibration_parameter) {
-#'   adaptive_power_prior_type_I_error(
-#'     calibration_parameter = calibration_parameter,
-#'     source_sample_size_per_arm = 562,
-#'     target_sample_size_per_arm = 46,
-#'     source_treatment_effect_estimate = 0.48,
-#'     significance_level = 0.05,
-#'     target_data_sampling_variance = 0.42^2 * 46,
-#'     source_data_sampling_variance = 0.12^2 * 562
-#'   )
-#' })
-#' @export
+#' @keywords internal
 adaptive_power_prior_type_I_error <- function(calibration_parameter,
                                               source_sample_size_per_arm,
                                               target_sample_size_per_arm,

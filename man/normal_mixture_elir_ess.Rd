@@ -56,14 +56,4 @@ mixture's vague component does, is integrated at Chebyshev nodes over the
 range of that standard deviation and interpolated - see
 \code{\link[=interpolate_smooth_function]{interpolate_smooth_function()}} - to a relative error below 1e-9.
 }
-\examples{
-# A robust mixture prior shared by every replicate.
-normal_mixture_elir_ess(
-  weights = c(0.5, 0.5),
-  means = c(0.48, 0),
-  sds = c(0.12, 1.2),
-  sigma = 2
-)
-# A single normal component: the ELIR is sigma^2 / sd^2.
-normal_mixture_elir_ess(weights = 1, means = 0.48, sds = 0.12, sigma = 2)
-}
+\keyword{internal}

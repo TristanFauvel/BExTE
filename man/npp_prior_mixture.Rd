@@ -38,21 +38,4 @@ machine precision at a few dozen nodes for every configured setting.
 The prior does not depend on the replicate, so this is computed once per
 simulation rather than once per replicate.
 }
-\examples{
-case_study_config <- yaml::yaml.load_file(
-  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
-)
-model <- Model$new()$create(
-  case_study_config = case_study_config,
-  method = "NPP",
-  method_parameters = list(
-    initial_prior = "noninformative",
-    power_parameter_mean = 0.5,
-    power_parameter_std = 0.2
-  ),
-  source_data = ObservedSourceData$new(case_study_config)
-)
-mixture <- npp_prior_mixture(model, n_nodes = 20)
-sum(mixture$weights)
-head(cbind(power_parameter = mixture$power_parameter, sd = mixture$sds))
-}
+\keyword{internal}

@@ -43,18 +43,7 @@ power_prior_variance <- function(source_standard_error, power_parameter,
 #' @param tolerance Tolerance for convergence of the estimation
 #' @param theta_0 True mean for type I error computation
 #' @return A matrix containing the calibration parameter and other related values
-#' @examples
-#' # Belimumab: 562 patients per arm in the source study, 46 in the target study
-#' findCalibrationParameter(
-#'   source_sample_size_per_arm = 562,
-#'   target_sample_size_per_arm = 46,
-#'   source_treatment_effect_estimate = 0.48,
-#'   desired_tie = 0.065,
-#'   significance_level = 0.05,
-#'   target_data_sampling_variance = 0.42^2 * 46,
-#'   source_data_sampling_variance = 0.12^2 * 562
-#' )
-#' @export
+#' @keywords internal
 findCalibrationParameter <- function(n_iter = 1e6,
                                      source_sample_size_per_arm,
                                      target_sample_size_per_arm,

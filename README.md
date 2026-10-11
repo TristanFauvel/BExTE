@@ -13,7 +13,7 @@ A collection of R tools to :
 
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 my-4">
 <div class="col"><a href="articles/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📚 Vignettes</h5><p class="card-text small text-muted">Step-by-step guides to simulation studies, data generation, borrowing methods, and case-study replications.</p></div></a></div>
-<div class="col"><a href="reference/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🔧 API reference</h5><p class="card-text small text-muted">Every exported function and R6 class, grouped by topic: data, methods, plots, tables, operating characteristics.</p></div></a></div>
+<div class="col"><a href="reference/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🔧 API reference</h5><p class="card-text small text-muted">Every exported function and R6 class, grouped by topic: data, priors, fitting, operating characteristics, and the R6 classes.</p></div></a></div>
 <div class="col"><a href="https://github.com/TristanFauvel/BExTE-app" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🖥️ Browser app</h5><p class="card-text small text-muted">Configure, run, and analyze a simulation study from BExTE-app, a separate Shiny app, without hand-editing config files.</p></div></a></div>
 <div class="col"><a href="news/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📝 Changelog</h5><p class="card-text small text-muted">What changed in each release.</p></div></a></div>
 </div>
@@ -48,6 +48,34 @@ pak::pkg_install("local::/path/to/BExTE_0.0.2.tar.gz")
 ```
 
 </details>
+
+### A first analysis
+
+Describe the source study, choose a borrowing prior, analyse the target study,
+and plan the trial:
+
+```r
+library(BExTE)
+
+src  <- source_data(config = system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+tgt  <- target_data(n_control = 39, n_treatment = 53,
+                    responses_control = 17, responses_treatment = 28)
+pri  <- rmp(src, weight = 0.5)          # or npp(), power_prior(), commensurate_prior(), ...
+post <- posterior(pri, tgt)
+summary(post); plot(post); ess(post)
+
+success <- decision(critical_value = 0.975)
+success(post)
+
+# Frequentist operating characteristics: type I error and power at fixed true effects
+oc_frequentist(pri, success, n_per_arm = 46, drift = c(-0.48, 0, 0.3), n_rep = 1000)
+# Bayesian operating characteristics: averaged over a design prior
+oc_bayesian(pri, success, design_prior("source_posterior"), n_per_arm = 46)
+```
+
+The vignette "Get started with BExTE" (`vignette("BExTE")`) walks through these
+steps. The R6 classes behind these functions (for example `Model` and
+`BinomialNPP`) stay available for advanced use.
 
 <details>
 <summary>Optional: Stan as a reference engine</summary>

@@ -27,6 +27,4 @@ The probability of false positive.
 This function calculates the probability of false positive based on the conditional probability of success,
 design prior samples, theta_0, and null space.
 }
-\examples{
-NA
-}
+\keyword{internal}

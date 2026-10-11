@@ -150,7 +150,7 @@ print(plt)
 The test is implemented as : 
   
 ```{r}
-read_function_code(model$test)
+BExTE:::read_function_code(model$test)
 ```
 
 ## Test-then-pool with an equivalence test
@@ -259,5 +259,5 @@ Without drift, the data are not pooled.
 The test is implemented as: 
   
 ```{r}
-read_function_code(model$test)
+BExTE:::read_function_code(model$test)
 ```

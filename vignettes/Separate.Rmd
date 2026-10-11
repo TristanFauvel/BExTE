@@ -15,7 +15,7 @@ vignette: >
 This vignette describes an implementation of a Bayesian analysis without borrowing.
 
   
-## Set working directory and load packages
+## Load the package
 
 ```{r setup, warning=F, message=F, include = FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -24,57 +24,43 @@ library(BExTE)
 library(ggplot2)
 ```
 
-## Load the case study configuration
+## Load the case study
 
-Load the simulation configuration and the Belimumab case study configuration from YAML files.
+The Belimumab case study ships with the package. `source_data()` reads the source (adult) study from its configuration.
 
 ```{r load_config}
-set.seed(42)
-case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+config <- system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+src <- source_data(config = config)
+src
 ```
 
-### Create data objects
+The observed target (paediatric) study: 39 control and 53 treated patients, with 17 and 28 responders.
 
-Create a source_data instance, where information about the source data is stored
-
- 
 ```{r}
-source_data <- ObservedSourceData$new(case_study_config)
+tgt <- target_data(n_control = 39, n_treatment = 53,
+                   responses_control = 17, responses_treatment = 28)
 ```
 
-Set the observed target data (in the paediatrics population)
+## Build the prior and fit the model
+
 ```{r}
-target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$target$treatment_effect, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = as.integer(case_study_config$target$total / 2), summary_measure_likelihood = case_study_config$summary_measure_likelihood)
+prior <- separate_prior(src)
+post <- posterior(prior, tgt)
+post
+summary(post)
 ```
 
-### Create model
-  
- 
-```{r}
-method <- "separate"
-method_parameters <- list(
-  initial_prior = "noninformative" # This corresponds to the fact that the posterior for the adults data is derived from an uninformative prior (for consistency with other methods).
-)
-``` 
-Now, we define the model we want to use for inferring the treatment effect in the target study.  
+`decision()` defines when the trial succeeds. Here it succeeds when the posterior probability of a benefit exceeds 0.975.
 
 ```{r}
-model <- Model$new()
-
-model <- model$create(
-  case_study_config = case_study_config,
-  method = method,
-  method_parameters = method_parameters,
-  source_data = source_data
-)
+success <- decision(critical_value = 0.975)
+success(post)
 ```
-   
-### Inference
 
+## Plot the prior and the posterior
 
-```{r}
-# Perform Bayesian inference based on observed target data.
-model$inference(target_data = target_data)
-
-model$plot_pdfs(xmin = -5, xmax = 5, resolution = 100)
+```{r, fig.width = 6, fig.height = 4}
+plot(post, xlim = c(-1.5, 2.5))
 ```
+
+For advanced use, `post$model` is the underlying R6 model, of class `GaussianSeparate_RBesT`.

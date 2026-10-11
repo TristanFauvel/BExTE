@@ -27,13 +27,4 @@ is supported on \verb{(0, 1)} by construction, so no draw is ever discarded, and
 it retains the skewness that the normal approximation removes -- which
 matters most for the small type I errors these comparisons are made at.
 }
-\examples{
-set.seed(1)
-draws <- sample_binomial_proportion(
-  n_samples = 1000,
-  estimate = 0.05,
-  n_replicates = 1000
-)
-stats::quantile(draws, c(0.025, 0.975))
-
-}
+\keyword{internal}

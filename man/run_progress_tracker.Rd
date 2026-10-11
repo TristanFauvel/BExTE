@@ -27,13 +27,4 @@ record a run-wide total.
 Creating a tracker resets the environment's progress file, so a relaunch
 starts from zero rather than resuming whatever the previous run left.
 }
-\examples{
-# The tracker writes ./logs/<env>/progress.json, so work in a temporary directory.
-old_wd <- setwd(tempdir())
-tracker <- run_progress_tracker("example", total = 4)
-tracker$starting(case_study = "botox", method = "separate")
-tracker$tick(2)
-jsonlite::read_json(tracker$path)
-unlink(file.path("logs", "example"), recursive = TRUE)
-setwd(old_wd)
-}
+\keyword{internal}

@@ -45,7 +45,7 @@ set.seed(42)
 
 config_path <- system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
-format_case_study_config(case_study_config)
+BExTE:::format_case_study_config(case_study_config)
 ```
 
 
@@ -119,7 +119,7 @@ c(theta_T = target_data$treatment_effect,
 The arm rates follow from $\kappa$ and $\theta_T$:
 
 ```{r}
-read_function_code(rate_from_drift_logRR)
+BExTE:::read_function_code(rate_from_drift_logRR)
 ```
 
 

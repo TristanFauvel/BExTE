@@ -5,14 +5,7 @@
 #'
 #' @param mix A mixture object.
 #' @return The moment-based ESS for the Gaussian mixture.
-#' @examples
-#' prior <- RBesT::mixnorm(
-#'   informative = c(0.5, 0.48, 0.12),
-#'   vague = c(0.5, 0, 1.2),
-#'   sigma = 2
-#' )
-#' gaussian_mix_moment_ess(prior)
-#' @export
+#' @keywords internal
 gaussian_mix_moment_ess <- function(mix) {
   sigma <- RBesT::sigma(mix)
   if (is.null(sigma)) {
@@ -33,14 +26,7 @@ gaussian_mix_moment_ess <- function(mix) {
 #' @param mix A mixture object.
 #' @param level Level of the credible interval used for precision matching.
 #' @return The precision-based ESS for the Gaussian mixture.
-#' @examples
-#' prior <- RBesT::mixnorm(
-#'   informative = c(0.5, 0.48, 0.12),
-#'   vague = c(0.5, 0, 1.2),
-#'   sigma = 2
-#' )
-#' gaussian_mix_precision_ess(prior)
-#' @export
+#' @keywords internal
 gaussian_mix_precision_ess <- function(mix, level = 0.95) {
   # Precision-based matching method for ESS estimation, for Gaussian mixtures only.
   sigma <- RBesT::sigma(mix)
@@ -70,17 +56,7 @@ gaussian_mix_precision_ess <- function(mix, level = 0.95) {
 #' @param rbest_model A RBesT model object.
 #' @param target_data Target data containing sample information.
 #' @return The prior moment-based ESS for the Bayesian model.
-#' @examples
-#' prior <- RBesT::mixnorm(
-#'   informative = c(0.5, 0.48, 0.12),
-#'   vague = c(0.5, 0, 1.2),
-#'   sigma = 2
-#' )
-#' target_data <- list(summary_measure_likelihood = "normal", sample_size_per_arm = 46)
-#' # The function takes the posterior after the target study is observed.
-#' posterior <- RBesT::postmix(prior, m = 0.37, se = 0.42)
-#' prior_moment_ess(posterior, target_data)
-#' @export
+#' @keywords internal
 prior_moment_ess <- function(rbest_model, target_data) {
   if (is.null(rbest_model)) {
     stop("The posterior is NULL")
@@ -102,17 +78,7 @@ prior_moment_ess <- function(rbest_model, target_data) {
 #' @param target_data Target data containing sample information.
 #' @param level Level of the credible interval used for precision matching.
 #' @return The prior precision-based ESS for the Bayesian model.
-#' @examples
-#' prior <- RBesT::mixnorm(
-#'   informative = c(0.5, 0.48, 0.12),
-#'   vague = c(0.5, 0, 1.2),
-#'   sigma = 2
-#' )
-#' target_data <- list(summary_measure_likelihood = "normal", sample_size_per_arm = 46)
-#' # The function takes the posterior after the target study is observed.
-#' posterior <- RBesT::postmix(prior, m = 0.37, se = 0.42)
-#' prior_precision_ess(posterior, target_data)
-#' @export
+#' @keywords internal
 prior_precision_ess <- function(rbest_model, target_data, level = 0.95) {
   if (target_data$summary_measure_likelihood == "normal") {
     posterior_precision_ess <- gaussian_mix_precision_ess(rbest_model, level = level)
@@ -131,15 +97,7 @@ prior_precision_ess <- function(rbest_model, target_data, level = 0.95) {
 #' @param rbest_model A RBesT model object.
 #' @param target_data Target data containing sample information.
 #' @return The prior moment-based ESS for the Bayesian model.
-#' @examples
-#' prior <- RBesT::mixnorm(
-#'   informative = c(0.5, 0.48, 0.12),
-#'   vague = c(0.5, 0, 1.2),
-#'   sigma = 2
-#' )
-#' target_data <- list(summary_measure_likelihood = "normal", sample_size_per_arm = 46)
-#' prior_ess_elir(prior, target_data)
-#' @export
+#' @keywords internal
 prior_ess_elir <- function(rbest_model, target_data) {
   if (is.null(rbest_model)) {
     stop("The prior is NULL")
@@ -182,15 +140,7 @@ prior_ess_elir <- function(rbest_model, target_data) {
 #' @param sample_size_per_arm Per-arm sample size of the target study.
 #' @param level Level of the credible interval.
 #' @return A list with the `moment` and `precision` effective sample sizes.
-#' @examples
-#' normal_reference_ess(
-#'   reference_scale = 2,
-#'   posterior_sd = 0.11,
-#'   lower = 0.25,
-#'   upper = 0.69,
-#'   sample_size_per_arm = 46
-#' )
-#' @export
+#' @keywords internal
 normal_reference_ess <- function(reference_scale,
                                  posterior_sd,
                                  lower,

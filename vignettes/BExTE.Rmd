@@ -1,0 +1,63 @@
+---
+title: "Get started with BExTE"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Get started with BExTE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+BExTE borrows information from a source study (for example, adults) to analyse a target study (for example, children). A typical analysis takes five steps.
+
+```{r}
+library(BExTE)
+```
+
+**1. Describe the source study.** Here, the adult Belimumab trial: 218 of 562 control and 285 of 563 treated patients responded.
+
+```{r}
+src <- source_data(n_control = 562, n_treatment = 563,
+                   responses_control = 218, responses_treatment = 285,
+                   name = "Belimumab adults")
+src
+```
+
+By default, the effect is the log odds ratio, and a positive effect is a benefit. `source_data(config = ...)` reads the same information from a YAML file.
+
+**2. Choose a borrowing prior.** Each method has its own builder: `separate_prior()`, `pooling_prior()`, `power_prior()`, `npp()`, `npp_kl()`, `rmp()`, `egidi_mixture()`, `commensurate_prior()`, `commensurate_power_prior()`, `eb_power_prior()`, `pvalue_power_prior()`, `pdccpp()` and `test_then_pool()`. See `?borrowing_priors`.
+
+```{r}
+prior <- rmp(src, weight = 0.5)
+prior
+```
+
+**3. Analyse the target study.**
+
+```{r}
+tgt <- target_data(n_control = 39, n_treatment = 53,
+                   responses_control = 17, responses_treatment = 28)
+post <- posterior(prior, tgt)
+post
+quantile(post, c(0.025, 0.5, 0.975))
+```
+
+**4. Measure the borrowing and decide.** `ess()` gives the effective sample size of the prior, in target patients per arm. `decision()` defines when the trial succeeds.
+
+```{r}
+ess(post)
+success <- decision(critical_value = 0.975)
+success(post)
+```
+
+**5. Plan the trial.** Before the target study runs, `oc_frequentist()` gives the type I error rate and the power at fixed true effects. `oc_bayesian()` averages over a design prior.
+
+```{r}
+set.seed(1)
+oc_frequentist(prior, success, n_per_arm = 46, drift = c(-0.48, 0), n_rep = 200)
+```
+
+The vignette "Plan a trial: operating characteristics" shows more.

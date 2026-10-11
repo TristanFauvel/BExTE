@@ -18,11 +18,4 @@ The precision-based ESS for the Gaussian mixture.
 This function calculates the precision-based ESS for a Gaussian mixture distribution.
 It takes a mixture object and an optional prior reference scale as input and returns the ESS.
 }
-\examples{
-prior <- RBesT::mixnorm(
-  informative = c(0.5, 0.48, 0.12),
-  vague = c(0.5, 0, 1.2),
-  sigma = 2
-)
-gaussian_mix_precision_ess(prior)
-}
+\keyword{internal}

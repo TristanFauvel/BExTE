@@ -18,6 +18,4 @@ The average type 1 error.
 This function calculates the average type 1 error based on the preposterior probability of false positive
 and the prior probability of no benefit.
 }
-\examples{
-NA
-}
+\keyword{internal}

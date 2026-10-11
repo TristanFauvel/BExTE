@@ -181,21 +181,7 @@ time_to_event_standard_deviation <- function(control_parameter,
 #'
 #' @return A named numeric vector with elements `control` and `treatment`.
 #'
-#' @examples
-#' config <- yaml::yaml.load_file(
-#'   system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
-#' )
-#' time_to_event_expected_events(config, sample_size_per_arm = 83)
-#'
-#' # With loss to follow-up and Weibull event times
-#' time_to_event_expected_events(
-#'   config,
-#'   sample_size_per_arm = 83,
-#'   dropout_probability = 0.1,
-#'   event_time_distribution = "weibull"
-#' )
-#'
-#' @export
+#' @keywords internal
 time_to_event_expected_events <- function(case_study_config,
                                           sample_size_per_arm,
                                           control_drift = 0,
@@ -432,21 +418,7 @@ time_to_event_cox_limit <- function(control_parameter,
 #'
 #' @return The post-delay log hazard ratio, beta.
 #'
-#' @examples
-#' # Hazard ratio after a 6-month delay that keeps a Cox estimand of log(0.675)
-#' time_to_event_delayed_log_hr(
-#'   log_hr = log(0.675),
-#'   control_parameter = 0.534,
-#'   event_time_distribution = "exponential",
-#'   weibull_shape = NULL,
-#'   delay = 0.5,
-#'   accrual_period = 3.41,
-#'   final_follow_up = 0.923,
-#'   max_follow_up_time = 1.846,
-#'   dropout_rate = 0
-#' )
-#'
-#' @export
+#' @keywords internal
 time_to_event_delayed_log_hr <- function(log_hr,
                                          control_parameter,
                                          event_time_distribution,

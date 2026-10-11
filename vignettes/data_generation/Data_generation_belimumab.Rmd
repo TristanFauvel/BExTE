@@ -28,7 +28,7 @@ library(ggplot2)
 ```{r}
 set.seed(42)
 case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
-format_case_study_config(case_study_config)
+BExTE:::format_case_study_config(case_study_config)
 ```
 
 # Initializing a BinaryTargetData object with a normal treatment effect summary measure distribution
@@ -44,7 +44,7 @@ We start by computing the rate in each arm, based on the drift in each arm (defi
 By default, the drift in the control arm is 0.
 
 ```{r}
-read_function_code(rate_from_drift_logOR)
+BExTE:::read_function_code(rate_from_drift_logOR)
 ```
 
 ```{r}
@@ -61,8 +61,8 @@ target_data <- BinaryTargetData$new(
 )
 
 # Recompute the rates via the log odds ratio drift, for illustration.
-target_data$control_rate <- rate_from_drift_logOR(control_drift, source_data$control_rate)
-target_data$treatment_rate <- rate_from_drift_logOR(treatment_drift, source_data$treatment_rate)
+target_data$control_rate <- BExTE:::rate_from_drift_logOR(control_drift, source_data$control_rate)
+target_data$treatment_rate <- BExTE:::rate_from_drift_logOR(treatment_drift, source_data$treatment_rate)
 ```
 ## Computing the mean and standard deviation of the logOR distribution
 
@@ -70,7 +70,7 @@ target_data$treatment_rate <- rate_from_drift_logOR(treatment_drift, source_data
 This allows us to compute the sampling standard deviation of the log OR:
 
 ```{r}
-read_function_code(standard_error_log_odds_ratio)
+BExTE:::read_function_code(standard_error_log_odds_ratio)
 ```
 
 Computing the mean the logOR distribution:
@@ -103,14 +103,14 @@ target_data$plot_sample(data)
 ### Implementation details
 
 ```{r}
-read_function_code(compute_ORs)
+BExTE:::read_function_code(compute_ORs)
 ```
 
 ```{r}
-read_function_code(sample_log_odds_ratios)
+BExTE:::read_function_code(sample_log_odds_ratios)
 ``` 
 ```{r}
-log_OR_samples <- sample_log_odds_ratios(
+log_OR_samples <- BExTE:::sample_log_odds_ratios(
   target_data$sample_size_control,
   target_data$sample_size_treatment,
   target_data$treatment_rate,
@@ -150,7 +150,7 @@ Notice how the sampling approximation leads to a similar distribution of the tre
 ### Implementation details
 
 ```{r}
-read_function_code(sample_aggregate_normal_data)
+BExTE:::read_function_code(sample_aggregate_normal_data)
 ```
 
 See [Data_generation_botox](../doc/Data_generation_botox.html) for details on aggregate normal data generation.

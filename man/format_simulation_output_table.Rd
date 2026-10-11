@@ -16,18 +16,4 @@ A data frame with one row per metric, suitable for printing.
 \description{
 Format simulation output as a printable table
 }
-\examples{
-metrics <- c("success_proba", "coverage", "mse", "bias", "posterior_mean",
-             "posterior_median", "precision", "interval_score", "ess_moment",
-             "ess_precision", "ess_elir")
-output <- list()
-for (metric in metrics) {
-  output[[metric]] <- 0.5
-  output[[paste0("conf_int_", metric, "_lower")]] <- 0.45
-  output[[paste0("conf_int_", metric, "_upper")]] <- 0.55
-}
-output$credible_interval_lower <- -0.1
-output$credible_interval_upper <- 0.9
-format_simulation_output_table(output)
-
-}
+\keyword{internal}

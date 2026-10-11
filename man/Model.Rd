@@ -826,7 +826,7 @@ available. Subclasses that know their posterior standard deviation and
 credible interval override this and evaluate the definitions directly.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Model$posterior_ess(target_data, simulation_config)}
+    \preformatted{Model$posterior_ess(target_data, simulation_config, level = 0.95)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -834,6 +834,7 @@ credible interval override this and evaluate the definitions directly.
     \describe{
       \item{\code{target_data}}{Target study data}
       \item{\code{simulation_config}}{Configuration of simulation study}
+      \item{\code{level}}{Level used for the precision-based ESS.}
     }
     \if{html}{\out{</div>}}
   }

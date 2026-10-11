@@ -52,23 +52,4 @@ This function computes the power of a test for a given significance level
 
 This function computes the power of a test for a given significance level
 }
-\examples{
-config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
-source_data <- SourceData$new(config)
-target_data <- TargetDataFactory$new()$create(
-  source_data = source_data,
-  case_study_config = config,
-  target_sample_size_per_arm = 50,
-  treatment_drift = 0,
-  summary_measure_likelihood = "normal"
-)
-compute_freq_power(
-  alpha = 0.025,
-  target_data = target_data,
-  frequentist_test = "t-test",
-  theta_0 = config$theta_0,
-  null_space = config$null_space,
-  simulation_config = list(seed = 1)
-)
-
-}
+\keyword{internal}

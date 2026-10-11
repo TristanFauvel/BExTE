@@ -35,10 +35,4 @@ variances, which the empirical Bayes power priors and the test-then-pool
 methods call once per replicate. \code{x} is the source study, whose summary
 statistics are fixed; \code{y} is the target study, which varies by replicate.
 }
-\examples{
-# One source study against three target replicates
-summary_t_test_p_value(
-  mean_x = 0.5, sd_x = 1, n_x = 100,
-  mean_y = c(0.3, 0.5, 0.8), sd_y = c(1, 1.1, 0.9), n_y = 50
-)
-}
+\keyword{internal}

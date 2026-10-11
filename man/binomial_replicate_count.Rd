@@ -40,21 +40,4 @@ exact interval is a closed-form function of the replicate count alone. As a
 last resort, when no standard error was stored for an interior estimate,
 the count is approximated from the width of the interval.
 }
-\examples{
-# From the Monte Carlo standard error of an estimate based on 1000 replicates
-binomial_replicate_count(
-  estimate = 0.05,
-  mcse = sqrt(0.05 * 0.95 / 1000),
-  conf_int_lower = NA,
-  conf_int_upper = NA
-)
-
-# No success: the upper bound of the exact interval gives the count
-binomial_replicate_count(
-  estimate = 0,
-  mcse = 0,
-  conf_int_lower = 0,
-  conf_int_upper = 1 - 0.025^(1 / 1000)
-)
-
-}
+\keyword{internal}

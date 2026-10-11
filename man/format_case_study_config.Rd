@@ -18,8 +18,4 @@ describe a case study.
 \description{
 Format a case study configuration as a printable table
 }
-\examples{
-config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
-format_case_study_config(config)
-
-}
+\keyword{internal}
