@@ -10,8 +10,10 @@ format_case_study_config(case_study_config)
 \item{case_study_config}{Case study configuration list.}
 }
 \value{
-A data frame with one row per configuration field, suitable for
-printing (used by the data-generation vignettes to describe a case study).
+An HTML table of class \code{kableExtra} (from \code{\link[knitr:kable]{knitr::kable()}} and
+kableExtra), with one row per configuration field, grouped into general,
+target and source settings. The data-generation vignettes print it to
+describe a case study.
 }
 \description{
 Format a case study configuration as a printable table

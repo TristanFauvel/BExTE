@@ -56,6 +56,7 @@ calibration_designs <- function() {
 }
 
 test_that("the exact type I error matches a large Monte Carlo estimate", {
+  skip_on_cran()
   n_draws <- 4e6
   set.seed(20240607)
 
@@ -338,6 +339,7 @@ test_that("a non-positive calibration parameter is rejected rather than silently
 })
 
 test_that("the search reproduces the reference implementation from the paper", {
+  skip_on_cran()
   # Verbatim from the script accompanying Nikolakopoulos, van der Tweel and
   # Roes (2018), "Dynamic borrowing through empirical power priors that control
   # type I error", Biometrics 74(3):874-880. Kept as the fidelity check on the

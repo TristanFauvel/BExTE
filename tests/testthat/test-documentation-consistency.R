@@ -11,6 +11,13 @@
 
 project_dir <- testthat::test_path("..", "..")
 
+## These checks read the package sources, which an installed package (as
+## under R CMD check) does not have.
+skip_if_not(
+  file.exists(file.path(project_dir, "_pkgdown.yml")),
+  "needs the package source tree"
+)
+
 namespace_exports <- function() {
   lines <- readLines(file.path(project_dir, "NAMESPACE"), warn = FALSE)
   sub("^export\\((.*)\\)$", "\\1", grep("^export\\(", lines, value = TRUE))

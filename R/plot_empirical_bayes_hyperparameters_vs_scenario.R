@@ -8,9 +8,39 @@
 #' @param xvars Variable on the x axis
 #' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
-#' @param parameters_combinations The combinations of parameters to filter the results by
+#' @param parameters_combinations The combinations of parameters to filter the
+#'   results by: a one-row data frame with a `parameters` column, or a single
+#'   parameters string.
 #'
 #' @return None
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' ## Synthetic results for the empirical Bayes power prior, whose power
+#' ## parameter is estimated from the target data
+#' eb <- expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' gamma <- round(plogis(-10 * abs(eb$drift)), 2)
+#' eb <- dplyr::mutate(eb, method = "EB_PP", parameters = "{'initial_prior': 'noninformative'}",
+#'   case_study = "botox", treatment_drift = drift, control_drift = 0,
+#'   source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   posterior_parameters = paste0("{'power_parameter': ", gamma,
+#'     ", 'conf_int_lower_power_parameter': ", gamma - 0.05,
+#'     ", 'conf_int_upper_power_parameter': ", gamma + 0.05, "}"))
+#' plot_empirical_bayes_hyperparameters_vs_drift(
+#'   eb, method = "EB_PP", case_study = "botox",
+#'   control_drift = FALSE, xvars = xvars, source_denominator_change_factor = 1,
+#'   target_to_source_std_ratio = 1, parameters_combinations = unique(eb[, "parameters"])
+#' )
+#' list.files(figures_dir, recursive = TRUE)
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
 #' @export
 plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
                                                method,
@@ -21,6 +51,9 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
                                                target_to_source_std_ratio,
                                                parameters_combinations) {
   check_plot_packages()
+  if (!is.data.frame(parameters_combinations)) {
+    parameters_combinations <- data.frame(parameters = parameters_combinations)
+  }
 
   if (nrow(parameters_combinations) >1){
     stop("The function was designed for a single parameters combination.")
@@ -205,6 +238,30 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
 #' @param results_metrics_df The data frame containing the results and metrics.
 #'
 #' @return None
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' ## Synthetic results for the empirical Bayes power prior, whose power
+#' ## parameter is estimated from the target data
+#' eb <- expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' gamma <- round(plogis(-10 * abs(eb$drift)), 2)
+#' eb <- dplyr::mutate(eb, method = "EB_PP", parameters = "{'initial_prior': 'noninformative'}",
+#'   case_study = "botox", treatment_drift = drift, control_drift = 0,
+#'   source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   posterior_parameters = paste0("{'power_parameter': ", gamma,
+#'     ", 'conf_int_lower_power_parameter': ", gamma - 0.05,
+#'     ", 'conf_int_upper_power_parameter': ", gamma + 0.05, "}"))
+#' empirical_bayes_parameters_plots(eb)
+#' list.files(figures_dir, recursive = TRUE)
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
 #' @export
 empirical_bayes_parameters_plots <- function(results_metrics_df) {
   check_plot_packages()
@@ -244,7 +301,7 @@ empirical_bayes_parameters_plots <- function(results_metrics_df) {
             )
 
           # Get the different parameters combinations studies for this method
-          parameters_combinations <- unique(results_metrics_df5[results_metrics_df5$method == method, "parameters"])
+          parameters_combinations <- unique(results_metrics_df5[results_metrics_df5$method == method, "parameters", drop = FALSE])
 
           for (i in seq_len(nrow(parameters_combinations))) {
             plot_empirical_bayes_hyperparameters_vs_drift(

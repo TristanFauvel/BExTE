@@ -197,6 +197,40 @@ plot_element_metric_vs_xvar <- function(plt,
 #'
 #' @return None
 #'
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' rmp_05 <- data.frame(prior_weight = 0.5, initial_prior = "noninformative",
+#'                      empirical_bayes = TRUE)
+#' plot_metric_vs_drift("success_proba", res, theta_0 = 0, case_study = "botox",
+#'                      method = "RMP", category = "target_sample_size_per_arm",
+#'                      control_drift = FALSE, target_sample_size_per_arm = 50,
+#'                      parameters_combinations = rmp_05, xvars = xvars,
+#'                      analysis_config = analysis_config)
+#' list.files(figures_dir, recursive = TRUE)
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
 #' @export
 plot_metric_vs_drift <- function(metric,
                                  results_metrics_df,
@@ -256,7 +290,7 @@ plot_metric_vs_drift <- function(metric,
           is.na(target_to_source_std_ratio),
       )
 
-    params <- get_parameters(results_df[, "parameters"])
+    params <- get_parameters(results_df[, "parameters", drop = FALSE])
 
     # Filter on the main parameter values of interest
     # TODO: remove this hard-coded part, use important_parameter_values instead
@@ -349,7 +383,7 @@ plot_metric_vs_drift <- function(metric,
     stop("Not implemented for this category")
   }
 
-  results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
+  results_df <- cbind(results_df, get_parameters(results_df[, "parameters", drop = FALSE]))
 
 
   if (category != "parameters") {
@@ -444,7 +478,7 @@ plot_metric_vs_drift <- function(metric,
                  linetype = "dashed",
                  color = "gray")
   } else {
-    case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+    case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
     source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
     # Not sorted: important_drift_values() returns the no-effect, partially
     # consistent and consistent drifts in that order, which is the order of the
@@ -697,6 +731,36 @@ plot_metric_vs_drift <- function(metric,
 #'
 #' @return None
 #'
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' plot_metric_vs_parameters(res, "success_proba", case_study = "botox",
+#'                           method = "RMP", target_sample_size_per_arm = 50,
+#'                           analysis_config = analysis_config)
+#' list.files(figures_dir, recursive = TRUE)
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
 #' @export
 plot_metric_vs_parameters <- function(results_metrics_df,
                                       metric,
@@ -731,7 +795,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
     return()
   }
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
   # Filter on important drift value
   source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
@@ -753,7 +817,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
     }
   }
 
-  parameters_df <- get_parameters(results_df[, "parameters"])
+  parameters_df <- get_parameters(results_df[, "parameters", drop = FALSE])
 
   methods_parameters <- methods_dict[[method]]
 
@@ -962,6 +1026,38 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 #'
 #' @return None
 #'
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' rmp_05 <- data.frame(prior_weight = 0.5, initial_prior = "noninformative",
+#'                      empirical_bayes = TRUE)
+#' plot_metric_vs_sample_size("success_proba", res, case_study = "botox",
+#'                            method = "RMP", parameters_combinations = rmp_05,
+#'                            analysis_config = analysis_config)
+#' list.files(figures_dir, recursive = TRUE)
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
 #' @export
 plot_metric_vs_sample_size <- function(metric,
                                        results_metrics_df,
@@ -997,12 +1093,12 @@ plot_metric_vs_sample_size <- function(metric,
     return()
   }
   # Format the parameters (from the json string)
-  results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
+  results_df <- cbind(results_df, get_parameters(results_df[, "parameters", drop = FALSE]))
 
   # Filter rows that match parameters_combinations
   results_df <- filter_to_parameter_combinations(results_df, parameters_combinations)
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
   # Filter on important drift value
   source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
@@ -1223,7 +1319,7 @@ plot_metric_vs_scenario <- function(results_metrics_df, metrics) {
         next
       }
       # Get the different parameters combinations studies for this method
-      parameters_combinations <- unique(get_parameters(filtered_results_metrics_df[filtered_results_metrics_df$method == method, "parameters"]))
+      parameters_combinations <- unique(get_parameters(filtered_results_metrics_df[filtered_results_metrics_df$method == method, "parameters", drop = FALSE]))
 
       if (method %in% c("separate", "pooling")) {
         add_baselines <- FALSE

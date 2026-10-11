@@ -16,6 +16,44 @@
 #'   combination gets its own column.
 #'
 #' @return Generates and saves tables in HTML, PDF, and LaTeX formats
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' tables_dir <- file.path(tempdir(), "bexte-tables")
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' \donttest{
+#' ## The tables are compiled with LaTeX and cropped with pdfcrop
+#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+#'   table_metric_vs_drift("success_proba", res, theta_0 = 0, case_study = "botox",
+#'                         method = "RMP", category = "parameters",
+#'                         control_drift = FALSE, target_sample_size_per_arm = 50,
+#'                         parameters_combinations = NULL, xvars = xvars)
+#'   print(list.files(tables_dir, recursive = TRUE))
+#' }
+#' }
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
+#' unlink(tables_dir, recursive = TRUE)
 #' @export
 #'
 #' @importFrom dplyr filter mutate select arrange rename group_by ungroup
@@ -64,7 +102,7 @@ table_metric_vs_drift <- function(metric,
       )
 
     # Make sure that the data are sorted according to the parameters values
-    params <- get_parameters(results_df[, "parameters"])
+    params <- get_parameters(results_df[, "parameters", drop = FALSE])
     column_names <- colnames(params)
     sorted_index <- do.call(order, lapply(params[column_names], as.factor))
     # Reorder the data :
@@ -120,7 +158,7 @@ table_metric_vs_drift <- function(metric,
     stop("Not implemented for this category")
   }
 
-  results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
+  results_df <- cbind(results_df, get_parameters(results_df[, "parameters", drop = FALSE]))
 
   if (category != "parameters") {
     # Filter rows that match parameters_combinations
@@ -364,6 +402,42 @@ table_metric_vs_drift <- function(metric,
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #'
 #' @return Generates and saves tables in HTML, PDF, and LaTeX formats
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' tables_dir <- file.path(tempdir(), "bexte-tables")
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' \donttest{
+#' ## The tables are compiled with LaTeX and cropped with pdfcrop
+#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+#'   table_metric_vs_parameters(res, "success_proba", case_study = "botox",
+#'                              method = "RMP", target_sample_size_per_arm = 50)
+#'   print(list.files(tables_dir, recursive = TRUE))
+#' }
+#' }
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
+#' unlink(tables_dir, recursive = TRUE)
 #' @export
 #'
 #' @importFrom dplyr filter mutate select arrange rename group_by ungroup
@@ -393,7 +467,7 @@ table_metric_vs_parameters <- function(results_metrics_df,
     return()
   }
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
   source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
   mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
@@ -414,7 +488,7 @@ table_metric_vs_parameters <- function(results_metrics_df,
     }
   }
 
-  parameters_df <- get_parameters(results_df[, "parameters"])
+  parameters_df <- get_parameters(results_df[, "parameters", drop = FALSE])
 
   methods_parameters <- methods_dict[[method]]
 
@@ -554,6 +628,42 @@ table_metric_vs_parameters <- function(results_metrics_df,
 #'   combination gets its own column.
 #'
 #' @return Generates and saves tables in HTML, PDF, and LaTeX formats
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' tables_dir <- file.path(tempdir(), "bexte-tables")
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' \donttest{
+#' ## The tables are compiled with LaTeX and cropped with pdfcrop
+#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+#'   table_metric_vs_sample_size("success_proba", res, case_study = "botox",
+#'                               method = "RMP")
+#'   print(list.files(tables_dir, recursive = TRUE))
+#' }
+#' }
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
+#' unlink(tables_dir, recursive = TRUE)
 #' @export
 #'
 #' @importFrom dplyr filter mutate select arrange rename group_by ungroup
@@ -580,9 +690,9 @@ table_metric_vs_sample_size <- function(metric,
         is.na(target_to_source_std_ratio)
     )
 
-  results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
+  results_df <- cbind(results_df, get_parameters(results_df[, "parameters", drop = FALSE]))
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
   source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
   mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
@@ -750,7 +860,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       )
 
     # Make sure that the data are sorted according to the parameters values
-    params <- get_parameters(results_df[, "parameters"])
+    params <- get_parameters(results_df[, "parameters", drop = FALSE])
     column_names <- colnames(params)
     sorted_index <- do.call(order, lapply(params[column_names], as.factor))
     # Reorder the data :
@@ -806,7 +916,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     stop("Not implemented for this category")
   }
 
-  results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
+  results_df <- cbind(results_df, get_parameters(results_df[, "parameters", drop = FALSE]))
 
   if (category != "parameters") {
     # Filter rows that match parameters_combinations
@@ -1047,6 +1157,42 @@ table_metric_vs_drift_scenario_cat <- function(metric,
 #' @param metrics A list of metrics to be analyzed
 #'
 #' @return Generates and saves multiple tables for different metrics and methods
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' tables_dir <- file.path(tempdir(), "bexte-tables")
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' \donttest{
+#' ## The tables are compiled with LaTeX and cropped with pdfcrop
+#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+#'   tables_metric_vs_scenario(res[res$method == "pooling", ],
+#'                             frequentist_metrics["success_proba"])
+#'   print(list.files(tables_dir, recursive = TRUE))
+#' }
+#' }
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
+#' unlink(tables_dir, recursive = TRUE)
 #' @export
 #'
 #' @importFrom dplyr filter
@@ -1079,7 +1225,7 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
       if (sum(filtered_results_metrics_df$method == method) == 0) {
         next
       }
-      parameters_combinations <- unique(get_parameters(filtered_results_metrics_df[filtered_results_metrics_df$method == method, "parameters"]))
+      parameters_combinations <- unique(get_parameters(filtered_results_metrics_df[filtered_results_metrics_df$method == method, "parameters", drop = FALSE]))
 
 
       for (metric in names(metrics)) {

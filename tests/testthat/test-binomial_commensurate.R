@@ -35,6 +35,7 @@ commensurate_target <- function(control, treatment, n = 71) {
 
 
 test_that("at a fixed commensurability the lattice matches brute-force integration", {
+  skip_on_cran()
   # The brute force integrates on its own continuous grid of 600 control rates
   # and 1201 effects, with the continuous truncation constants.
   sd_kernel <- 0.1

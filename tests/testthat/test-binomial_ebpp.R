@@ -51,6 +51,7 @@ ebpp_target_data <- function(successes_control, successes_treatment, n) {
 
 
 test_that("the marginal likelihood matches brute-force integration", {
+  skip_on_cran()
   # Small counts keep the nested integration quick. The marginal likelihood is
   # Z_T(gamma) / Z_S(gamma), each a triple integral over both control rates and
   # the risk difference.

@@ -109,7 +109,7 @@ test_that("every shipped configuration resolves to a usable setting", {
   # shipped configuration carries a value the resolver would reject at the
   # start of a multi-day run.
   configs <- list.files(
-    testthat::test_path("..", "..", "inst", "conf"),
+    system.file("conf", package = "BExTE"),
     pattern = "^scenarios_config[.]yml$", recursive = TRUE, full.names = TRUE
   )
   expect_gt(length(configs), 0)

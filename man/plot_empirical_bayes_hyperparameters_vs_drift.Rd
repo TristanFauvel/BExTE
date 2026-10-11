@@ -31,7 +31,9 @@ plot_empirical_bayes_hyperparameters_vs_drift(
 
 \item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 
-\item{parameters_combinations}{The combinations of parameters to filter the results by}
+\item{parameters_combinations}{The combinations of parameters to filter the
+results by: a one-row data frame with a \code{parameters} column, or a single
+parameters string.}
 }
 \value{
 None
@@ -46,7 +48,7 @@ for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
   source(system.file("conf", f, package = "BExTE"))
 source(system.file("conf/full/methods_config.R", package = "BExTE"))
 analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
 figures_dir <- file.path(tempdir(), "bexte-figures", "")
 remake_figures <- TRUE
 ## Synthetic results for the empirical Bayes power prior, whose power
@@ -59,7 +61,6 @@ eb <- dplyr::mutate(eb, method = "EB_PP", parameters = "{'initial_prior': 'nonin
   posterior_parameters = paste0("{'power_parameter': ", gamma,
     ", 'conf_int_lower_power_parameter': ", gamma - 0.05,
     ", 'conf_int_upper_power_parameter': ", gamma + 0.05, "}"))
-eb <- dplyr::as_tibble(eb)
 plot_empirical_bayes_hyperparameters_vs_drift(
   eb, method = "EB_PP", case_study = "botox",
   control_drift = FALSE, xvars = xvars, source_denominator_change_factor = 1,

@@ -746,8 +746,10 @@ format_parameters_to_json <- function(json_parameters, escape = FALSE) {
 #'
 #' @param case_study_config Case study configuration list.
 #'
-#' @return A data frame with one row per configuration field, suitable for
-#'   printing (used by the data-generation vignettes to describe a case study).
+#' @return An HTML table of class `kableExtra` (from [knitr::kable()] and
+#'   kableExtra), with one row per configuration field, grouped into general,
+#'   target and source settings. The data-generation vignettes print it to
+#'   describe a case study.
 #'
 #' @examples
 #' config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
@@ -1199,7 +1201,7 @@ load_data <- function(results_row, type, reload_data_objects = FALSE, case_studi
     if (is.null(case_studies_config_dir)) {
       case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
     }
-    case_study_config <- yaml::yaml.load_file(paste0(case_studies_config_dir, results_row$case_study, ".yml"))
+    case_study_config <- yaml::yaml.load_file(file.path(case_studies_config_dir, paste0(results_row$case_study, ".yml")))
 
     source_data <- SourceData$new(
       case_study_config = case_study_config,

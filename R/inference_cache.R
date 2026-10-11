@@ -22,6 +22,9 @@ inference_cache_store <- new.env(parent = emptyenv())
 #'
 #' @description Called between runs that must not share results, and by tests.
 #' @return `NULL`, invisibly.
+#' @examples
+#' inference_cache_reset()
+#' inference_cache_size()
 #' @export
 inference_cache_reset <- function() {
   rm(
@@ -34,6 +37,8 @@ inference_cache_reset <- function() {
 #' Number of analyses held in the cache
 #'
 #' @return The number of distinct analyses stored.
+#' @examples
+#' inference_cache_size()
 #' @export
 inference_cache_size <- function() {
   length(ls(envir = inference_cache_store, all.names = TRUE))

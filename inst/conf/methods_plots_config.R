@@ -121,7 +121,7 @@ empirical_bayes_hyperparameters <<- list(
     informative_prior_weight = list(
       parameter_name = "informative_prior_weight",
       parameter_label = "1 - psi",
-      parameter_notation = "$1 - \\hat\\psi$",
+      parameter_notation = "$1 - \\hat{\\psi}$",
       type = "continuous",
       range = c(0, 1),
       suffix = ""
@@ -129,7 +129,7 @@ empirical_bayes_hyperparameters <<- list(
     psi_weak = list(
       parameter_name = "psi_weak",
       parameter_label = "psi",
-      parameter_notation = "$\\hat\\psi$",
+      parameter_notation = "$\\hat{\\psi}$",
       type = "continuous",
       range = c(0, 1),
       suffix = ""

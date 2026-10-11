@@ -12,6 +12,12 @@
 #' @param mu Difference in means under the null hypothesis.
 #' @param alternative One of `"two.sided"`, `"less"` or `"greater"`.
 #' @return Vector of p-values.
+#' @examples
+#' # One source study against three target replicates
+#' summary_t_test_p_value(
+#'   mean_x = 0.5, sd_x = 1, n_x = 100,
+#'   mean_y = c(0.3, 0.5, 0.8), sd_y = c(1, 1.1, 0.9), n_y = 50
+#' )
 #' @export
 summary_t_test_p_value <- function(mean_x, sd_x, n_x, mean_y, sd_y, n_y,
                                    mu = 0, alternative = "two.sided") {

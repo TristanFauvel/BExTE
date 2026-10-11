@@ -20,6 +20,14 @@ Done (items 1 and 3–7 of part 1):
 - Every exported object has `@examples`.
   - Code that is slow or needs LaTeX is in `\donttest{}`. Stan code is in `\donttest{}`, with a check that cmdstanr and CmdStan are present.
   - `BinomialPDCCPP` uses `\dontrun{}`, because its inference takes several minutes.
+- The example writers found 7 bugs. All are fixed:
+  - Stan draws: `stan_draws_directory()` now puts them in the user cache folder (`tools::R_user_dir("BExTE", "cache")/stan/draws/`), next to the compiled models. Before, it used the package install folder, which CRAN forbids. A per-process `tempdir()` would not work, because the parent process clears the workers' draws.
+  - `ObservedTargetData` now sets `sample$standard_deviation` to SE × √(n per arm). Simulated data uses the same scale. `TestThenPoolDifference`, `TestThenPoolEquivalence` and `GaussianPValueBasedPP` now run on observed data. A new test file, `test-observed_target_data.R`, checks this. The examples no longer set the SD by hand.
+  - `run_simulation_env()`: every `dir.create()` call in `R/` is recursive, and the example no longer warns.
+  - `inst/conf/methods_plots_config.R` now writes `\\hat{\\psi}`, so the Egidi mixture plots render.
+  - Plain data frames: 31 `df[, "parameters"]` subsets now pass `drop = FALSE`. The two empirical-Bayes `_vs_drift` functions also accept `parameters_combinations` as a string. Every plot and table example now runs on a plain `data.frame`, and the examples no longer call `dplyr::as_tibble()`.
+  - Case-study paths: the 21 reads of a case-study config use `file.path()`, so `case_studies_config_dir` works with or without a trailing `/`. The examples no longer add one.
+  - `format_case_study_config()`: its docs now say that it returns a `kableExtra` HTML table.
 - CmdStan is optional (item 2 of part 1, item 3 of part 2):
   - `cmdstanr` and `posterior` are in `Suggests`. `bayesplot` is there too, because only the articles use it. RBesT imports `posterior`, so it is installed anyway.
   - Every Stan path goes through `compile_stan_model()`, which calls `check_stan_available()`. Without `cmdstanr` or CmdStan, the error tells the user to install them or to set `engine: quadrature`.
@@ -43,14 +51,6 @@ Still open:
   - `test-analysis_design_prior.R`;
   - `test-compute-bayesian-ocs.R`;
   - `test-simulation_time_to_event.R`.
-- Bugs the example writers found (not fixed):
-  - `Model$create()` writes Stan draws into the package install folder (`system.file(package = "BExTE")/stan/draws/`, via `stan_draws_directory()`). CRAN forbids this. Use `tempdir()` or `tools::R_user_dir()`.
-  - `ObservedTargetData` has no per-arm SD. So `TestThenPoolDifference`, `TestThenPoolEquivalence` and `GaussianPValueBasedPP` fail on observed data.
-  - `run_simulation_env()` calls `dir.create()` without `recursive = TRUE`.
-  - `inst/conf/methods_plots_config.R` writes `\\hat\\psi` for the Egidi mixture. latex2exp then fails with "invalid accent". Use `\\hat{\\psi}`.
-  - Several plot and table functions fail on a plain `data.frame`; they need a tibble.
-  - `case_studies_config_dir` must end in `/`.
-  - `format_case_study_config()` returns kable HTML, but its docs say it returns a data frame.
 - Examples change global state on purpose: the plot and table examples source configs into `.GlobalEnv`. They restore options and the theme afterwards.
 - The lattice code uses about 4 BLAS threads. Set `OPENBLAS_NUM_THREADS=2` in CI, so the CPU-to-elapsed-time ratio stays below CRAN's limit.
 

@@ -109,7 +109,7 @@ forest_subplot_sweet_spot <- function(data,
     ) +
     ggplot2::scale_y_continuous(breaks = widths$row, labels = labels)
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
   source_treatment_effect_estimate <- unique(data$source_treatment_effect_estimate)[1]
   # Not sorted: important_drift_values() returns the no-effect, partially
   # consistent and consistent drifts in that order, which is the order of the
@@ -370,7 +370,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
     # Keep only unique rows
     results_df <- unique(results_df)
 
-    case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+    case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
     boolean_filter <- c()
     # Sort by method before filtering on parameters

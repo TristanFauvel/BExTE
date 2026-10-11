@@ -56,6 +56,7 @@ commensurate_prior_models <- function() {
 }
 
 test_that("the prior density and CDF keep every part of the prior", {
+  skip_on_cran()
   # The earlier density integrated tau over [0.001, 100] and renormalised,
   # which kept 0.9% of an inverse_gamma(1/1000, 1) prior and 12% of a
   # Cauchy(0, 30) one.

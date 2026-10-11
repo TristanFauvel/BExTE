@@ -183,6 +183,33 @@ binomial_rmp_predictive_tables <- function(components, source_counts, n_control,
 #'
 #' @field w Prior weight of the informative component.
 #' @field method Method name.
+#' @examples
+#' # Source trial: 154/280 responders on control, 184/293 on treatment.
+#' source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+#'                      control_rate = 154 / 280, treatment_rate = 184 / 293,
+#'                      treatment_effect_estimate = 184 / 293 - 154 / 280,
+#'                      standard_error = 0.041)
+#' prior <- list(source = source_trial, method_parameters = list(
+#'   initial_prior = list("noninformative"),
+#'   prior_weight = list(0.5)
+#' ))
+#' mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+#'                     target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+#'                     rhat_threshold = 1.1, max_divergence_rate = 0.01,
+#'                     engine = "quadrature")
+#' # Target trial: 39/71 responders on control, 45/71 on treatment.
+#' target <- list(sample_size_control = 71, sample_size_treatment = 71,
+#'                sample = data.frame(sample_control_rate = 39 / 71,
+#'                                    sample_treatment_rate = 45 / 71))
+#' cache <- file.path(tempdir(), "bexte-cache")
+#' model <- BinomialRMP$new(prior = prior, mcmc_config = mcmc_config)
+#' model$prior <- prior
+#' model$n_lattice <- 100L
+#' withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$inference(target))
+#' model$credible_interval(level = 0.95)
+#' # Posterior weight of the informative component.
+#' model$posterior_parameters$prior_weight
+#' unlink(cache, recursive = TRUE)
 #' @export
 BinomialRMP <- R6::R6Class(
   "BinomialRMP",
@@ -268,6 +295,32 @@ BinomialRMP <- R6::R6Class(
 #' @field empirical_bayes_from_sample The prior is a function of the
 #'   replicate's sample alone.
 #' @field method Method name.
+#' @examples
+#' # Source trial: 154/280 responders on control, 184/293 on treatment.
+#' source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+#'                      control_rate = 154 / 280, treatment_rate = 184 / 293,
+#'                      treatment_effect_estimate = 184 / 293 - 154 / 280,
+#'                      standard_error = 0.041)
+#' prior <- list(source = source_trial, method_parameters = list(
+#'   initial_prior = list("noninformative")
+#' ))
+#' mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+#'                     target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+#'                     rhat_threshold = 1.1, max_divergence_rate = 0.01,
+#'                     engine = "quadrature")
+#' # Target trial: 39/71 responders on control, 45/71 on treatment.
+#' target <- list(sample_size_control = 71, sample_size_treatment = 71,
+#'                sample = data.frame(sample_control_rate = 39 / 71,
+#'                                    sample_treatment_rate = 45 / 71))
+#' cache <- file.path(tempdir(), "bexte-cache")
+#' model <- BinomialEgidiMixture$new(prior = prior, mcmc_config = mcmc_config)
+#' model$prior <- prior
+#' model$n_lattice <- 100L
+#' withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$inference(target))
+#' # Weight of the weak component chosen for these data.
+#' model$selection$psi_weak
+#' model$credible_interval(level = 0.95)
+#' unlink(cache, recursive = TRUE)
 #' @export
 BinomialEgidiMixture <- R6::R6Class(
   "BinomialEgidiMixture",

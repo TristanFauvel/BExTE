@@ -36,6 +36,18 @@ PAPER_TABLE_S1_CASE_STUDIES <- c(
 #'
 #' @return The path of the written `.tex` file.
 #'
+#' @examples
+#' \donttest{
+#' # The table is compiled with LaTeX and cropped with pdfcrop.
+#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+#'   tables_dir <- file.path(tempdir(), "bexte-tables")
+#'   table_drift_ranges_and_sample_sizes(
+#'     case_studies_config_dir = system.file("conf/case_studies", package = "BExTE"),
+#'     tables_dir = tables_dir
+#'   )
+#'   unlink(tables_dir, recursive = TRUE)
+#' }
+#' }
 #' @export
 table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_dir) {
   check_table_packages()
@@ -97,6 +109,19 @@ table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_
 #'
 #' @return The path of the written `.tex` file.
 #'
+#' @examples
+#' \donttest{
+#' # The table is compiled with LaTeX and cropped with pdfcrop.
+#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+#'   tables_dir <- file.path(tempdir(), "bexte-tables")
+#'   table_case_study_summary(
+#'     case_studies = c("botox", "belimumab"),
+#'     case_studies_config_dir = system.file("conf/case_studies", package = "BExTE"),
+#'     tables_dir = tables_dir
+#'   )
+#'   unlink(tables_dir, recursive = TRUE)
+#' }
+#' }
 #' @export
 table_case_study_summary <- function(case_studies, case_studies_config_dir, tables_dir) {
   check_table_packages()

@@ -25,7 +25,7 @@ for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
   source(system.file("conf", f, package = "BExTE"))
 source(system.file("conf/full/methods_config.R", package = "BExTE"))
 analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
 figures_dir <- file.path(tempdir(), "bexte-figures", "")
 remake_figures <- TRUE
 tables_dir <- file.path(tempdir(), "bexte-tables")
@@ -43,7 +43,6 @@ res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = d
   success_proba = plogis(20 * target_treatment_effect - 4),
   conf_int_success_proba_lower = success_proba - 0.02,
   conf_int_success_proba_upper = success_proba + 0.02)
-res <- dplyr::as_tibble(res)
 ## Type I error rate: the success probability at no treatment effect
 tie <- res[res$target_treatment_effect == 0, c("parameters", "target_sample_size_per_arm",
                                                "method", "success_proba")]

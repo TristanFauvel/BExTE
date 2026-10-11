@@ -26,6 +26,23 @@
 #' @return A list with `weights`, `means` and `sds` describing the prior
 #'   mixture, and `power_parameter`, the quadrature nodes themselves, which are
 #'   the power parameter values each component corresponds to.
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = case_study_config,
+#'   method = "NPP",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     power_parameter_mean = 0.5,
+#'     power_parameter_std = 0.2
+#'   ),
+#'   source_data = ObservedSourceData$new(case_study_config)
+#' )
+#' mixture <- npp_prior_mixture(model, n_nodes = 20)
+#' sum(mixture$weights)
+#' head(cbind(power_parameter = mixture$power_parameter, sd = mixture$sds))
 #' @export
 npp_prior_mixture <- function(model, n_nodes = 60L) {
   p <- model$p

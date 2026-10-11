@@ -57,6 +57,7 @@ test_that("a scale mixture no larger than the rule is left as it is", {
 
 
 test_that("compression leaves every fast-path output unchanged", {
+  skip_on_cran()
   priors <- c(
     commensurate_configured_priors(),
     list(list(family = "inverse_gamma", alpha = 1 / 1000, beta = 1))

@@ -343,6 +343,17 @@ combine_parameters <- function(method) {
 #'   files.
 #'
 #' @return A list of simulation scenarios.
+#' @examples
+#' config_dir <- paste0(system.file("conf/full", package = "BExTE"), "/")
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
+#' # Keep one case study, one method and a coarse drift grid.
+#' scenarios_config$case_studies <- "botox"
+#' scenarios_config$methods <- "separate"
+#' scenarios_config$ndrift <- 3
+#' cases <- simulation_scenarios(config_dir, scenarios_config, case_studies_config_dir)
+#' nrow(cases)
+#' head(cases[, c("case_study", "method", "target_sample_size_per_arm", "drift")])
 #' @export
 simulation_scenarios <- function(config_dir, scenarios_config, case_studies_config_dir) {
   source(paste0(config_dir, "methods_config.R"))
@@ -372,7 +383,7 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
   scenarios_configurations <- list()
 
   for (case_study in case_studies) {
-    case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+    case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
     source_data <- ObservedSourceData$new(case_study_config)
 
     sampling_approximation <- case_study_config$sampling_approximation
@@ -386,7 +397,7 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
 
     source_treatment_effect_estimate <- source_data$treatment_effect_estimate
 
-    case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+    case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
     mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
     drift_range <- sort(c(drift_range, mandatory_drift_values))

@@ -17,15 +17,17 @@ test_that("stan_draws_directory gives each process its own directory", {
 })
 
 
-test_that("stan_draws_directory sits under the package stan/draws directory", {
+test_that("stan_draws_directory sits under the user cache, not the package", {
   path <- stan_draws_directory("belimumab", "RMP", process_id = 1L)
 
   expect_identical(basename(dirname(path)), "draws")
   expect_identical(basename(dirname(dirname(path))), "stan")
-  # system.file() returns "" for a directory that is absent from the installed
-  # package, which would put the draws at the filesystem root.
-  expect_false(startsWith(path, "/stan"))
-  expect_true(nzchar(dirname(dirname(dirname(path)))))
+  # A package must not write into its own installation.
+  expect_identical(
+    dirname(dirname(dirname(path))),
+    tools::R_user_dir("BExTE", "cache")
+  )
+  expect_false(startsWith(path, system.file(package = "BExTE")))
 })
 
 

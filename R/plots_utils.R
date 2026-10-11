@@ -315,6 +315,12 @@ process_method_parameters_label <- function(row,
 #'
 #' @param parameters_df The dataframe containing parameters in JSON strings.
 #' @return An R dataframe with parsed parameters.
+#' @examples
+#' parameters_df <- data.frame(parameters = c(
+#'   "{'prior_weight': 0.5, 'initial_prior': 'noninformative'}",
+#'   "{'prior_weight': 1, 'initial_prior': 'noninformative'}"
+#' ))
+#' get_parameters(parameters_df)
 #' @export
 get_parameters <- function(parameters_df) {
   if ("posterior_parameters" %in% colnames(parameters_df)) {

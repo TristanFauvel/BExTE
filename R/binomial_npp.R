@@ -476,6 +476,37 @@ binomial_npp_posterior <- function(kernels,
 #'
 #' @field n_lattice Number of lattice points on the response rates.
 #' @field quadrature_available The posterior is computed by quadrature.
+#' @examples
+#' # Source trial: 154/280 responders on control, 184/293 on treatment.
+#' source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+#'                      control_rate = 154 / 280, treatment_rate = 184 / 293,
+#'                      treatment_effect_estimate = 184 / 293 - 154 / 280,
+#'                      standard_error = 0.041)
+#' prior <- list(source = source_trial, method_parameters = list(
+#'   initial_prior = list("noninformative"),
+#'   prior_weight = list(0.5)
+#' ))
+#' mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+#'                     target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+#'                     rhat_threshold = 1.1, max_divergence_rate = 0.01,
+#'                     engine = "quadrature")
+#' # Target trial: 39/71 responders on control, 45/71 on treatment.
+#' target <- list(sample_size_control = 71, sample_size_treatment = 71,
+#'                sample = data.frame(sample_control_rate = 39 / 71,
+#'                                    sample_treatment_rate = 45 / 71))
+#' cache <- file.path(tempdir(), "bexte-cache")
+#' # BinomialLatticePrior is a base class; BinomialRMP is one of its subclasses.
+#' model <- BinomialRMP$new(prior = prior, mcmc_config = mcmc_config)
+#' model$prior <- prior
+#' model$n_lattice <- 100L
+#' inherits(model, "BinomialLatticePrior")
+#' withr::with_envvar(c(BEXTE_CACHE_DIR = cache), {
+#'   prior_grid <- model$quadrature_prior()
+#'   conditional <- model$prior_given_control_rate(0.55)
+#' })
+#' prior_grid$mean
+#' conditional$cdf(0)
+#' unlink(cache, recursive = TRUE)
 #' @export
 BinomialLatticePrior <- R6::R6Class(
   "BinomialLatticePrior",
@@ -622,6 +653,36 @@ BinomialLatticePrior <- R6::R6Class(
 #' @field p Shape parameter of the Beta prior.
 #' @field q Shape parameter of the Beta prior.
 #' @field method Name of the method.
+#' @examples
+#' # Source trial: 154/280 responders on control, 184/293 on treatment.
+#' source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+#'                      control_rate = 154 / 280, treatment_rate = 184 / 293,
+#'                      treatment_effect_estimate = 184 / 293 - 154 / 280,
+#'                      standard_error = 0.041)
+#' prior <- list(source = source_trial, method_parameters = list(
+#'   initial_prior = list("noninformative"),
+#'   power_parameter_mean = list(0.5), power_parameter_std = list(0.2)
+#' ))
+#' mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+#'                     target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+#'                     rhat_threshold = 1.1, max_divergence_rate = 0.01,
+#'                     engine = "quadrature")
+#' # Target trial: 39/71 responders on control, 45/71 on treatment.
+#' target <- list(sample_size_control = 71, sample_size_treatment = 71,
+#'                sample = data.frame(sample_control_rate = 39 / 71,
+#'                                    sample_treatment_rate = 45 / 71))
+#' cache <- file.path(tempdir(), "bexte-cache")
+#' model <- BinomialNPP$new(prior = prior, mcmc_config = mcmc_config)
+#' model$prior <- prior
+#' model$n_lattice <- 100L
+#' # Shapes of the Beta prior on the power parameter.
+#' c(model$p, model$q)
+#' \donttest{
+#' withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$inference(target))
+#' model$credible_interval(level = 0.95)
+#' model$posterior_parameters
+#' }
+#' unlink(cache, recursive = TRUE)
 #' @export
 BinomialNPP <- R6::R6Class(
   "BinomialNPP",
@@ -706,6 +767,39 @@ BinomialNPP <- R6::R6Class(
 #' @field null_space The null hypothesis space, which gives the benefit direction.
 #' @field calibration The result of [calibrate_npp_kl()] for this scenario.
 #' @field calibration_settings The criterion settings read from the method parameters.
+#' @examples
+#' # Source trial: 154/280 responders on control, 184/293 on treatment.
+#' source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+#'                      control_rate = 154 / 280, treatment_rate = 184 / 293,
+#'                      treatment_effect_estimate = 184 / 293 - 154 / 280,
+#'                      standard_error = 0.041)
+#' prior <- list(source = source_trial, method_parameters = list(
+#'   initial_prior = list("noninformative")
+#' ))
+#' mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+#'                     target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+#'                     rhat_threshold = 1.1, max_divergence_rate = 0.01,
+#'                     engine = "quadrature")
+#' # Target trial: 39/71 responders on control, 45/71 on treatment.
+#' target <- list(sample_size_control = 71, sample_size_treatment = 71,
+#'                sample = data.frame(sample_control_rate = 39 / 71,
+#'                                    sample_treatment_rate = 45 / 71))
+#' cache <- file.path(tempdir(), "bexte-cache")
+#' # The calibration reads the design: arm size, control rate and SD.
+#' target$sample_size_per_arm <- 71
+#' target$control_rate <- 39 / 71
+#' target$standard_deviation <- 0.69
+#' model <- BinomialNPP_KL$new(prior = prior, theta_0 = 0, null_space = "left",
+#'                             mcmc_config = mcmc_config)
+#' model$prior <- prior
+#' model$n_lattice <- 100L
+#' withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$calibrate_for_design(target))
+#' c(model$power_parameter_mean, model$power_parameter_std)
+#' \donttest{
+#' withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$inference(target))
+#' model$credible_interval(level = 0.95)
+#' }
+#' unlink(cache, recursive = TRUE)
 #' @export
 BinomialNPP_KL <- R6::R6Class(
   "BinomialNPP_KL",

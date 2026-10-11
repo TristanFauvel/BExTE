@@ -78,6 +78,7 @@ setup_relative_plot_globals <- function(figures_dir) {
 }
 
 test_that("forest_plot writes a distinctly named file when relative_to_separate is TRUE", {
+  skip_on_cran()
   df <- relative_fixture()
   withr::with_tempdir({
     setup_relative_plot_globals(file.path(getwd(), ""))

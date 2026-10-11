@@ -77,6 +77,15 @@ write_run_progress <- function(path,
 #' @param total Number of scenarios the run covers.
 #'
 #' @return A list with `path`, `starting(case_study, method)` and `tick(n)`.
+#' @examples
+#' # The tracker writes ./logs/<env>/progress.json, so work in a temporary directory.
+#' old_wd <- setwd(tempdir())
+#' tracker <- run_progress_tracker("example", total = 4)
+#' tracker$starting(case_study = "botox", method = "separate")
+#' tracker$tick(2)
+#' jsonlite::read_json(tracker$path)
+#' unlink(file.path("logs", "example"), recursive = TRUE)
+#' setwd(old_wd)
 #' @export
 run_progress_tracker <- function(env, total) {
   path <- run_progress_path(env)

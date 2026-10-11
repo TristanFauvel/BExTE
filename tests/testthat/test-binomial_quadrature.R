@@ -367,6 +367,7 @@ test_that("the p-value-based power prior discards its prior when the power param
 # ---- Sharing analyses between equal replicates ---------------------------------
 
 test_that("an empirical Bayes quadrature model is cached, and the cache changes nothing", {
+  skip_on_cran()
   samples <- quadrature_samples(
     successes_control = c(20, 24, 20, 24, 20),
     successes_treatment = c(30, 26, 30, 26, 30)

@@ -273,6 +273,25 @@ assert_target_data_numbers <- function(target_data) {
 #'
 #' @return A list containing the power and its confidence interval.
 #'
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+#' source_data <- SourceData$new(config)
+#' target_data <- TargetDataFactory$new()$create(
+#'   source_data = source_data,
+#'   case_study_config = config,
+#'   target_sample_size_per_arm = 50,
+#'   treatment_drift = 0,
+#'   summary_measure_likelihood = "normal"
+#' )
+#' compute_freq_power(
+#'   alpha = 0.025,
+#'   target_data = target_data,
+#'   frequentist_test = "t-test",
+#'   theta_0 = config$theta_0,
+#'   null_space = config$null_space,
+#'   simulation_config = list(seed = 1)
+#' )
+#'
 #' @export
 compute_freq_power <- function(alpha,
                                target_data,
@@ -368,6 +387,14 @@ compute_freq_power <- function(alpha,
 #'   prediction, and estimation. Journal of the American Statistical
 #'   Association, 102(477), 359-378, equation 43.
 #'
+#' @examples
+#' # The second interval misses the true value and gets a penalty
+#' interval_score(
+#'   lower = c(-0.1, 0.4, 0.0),
+#'   upper = c(0.5, 0.9, 0.8),
+#'   true_value = 0.3
+#' )
+#'
 #' @export
 interval_score <- function(lower, upper, true_value, confidence_level = 0.95) {
   if (length(lower) != length(upper)) {
@@ -414,6 +441,26 @@ interval_score <- function(lower, upper, true_value, confidence_level = 0.95) {
 #'   `NULL` simulates them. Ignored when the power has a closed form.
 #'
 #' @return The power of the test.
+#'
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+#' source_data <- SourceData$new(config)
+#' target_data <- TargetDataFactory$new()$create(
+#'   source_data = source_data,
+#'   case_study_config = config,
+#'   target_sample_size_per_arm = 50,
+#'   treatment_drift = 0,
+#'   summary_measure_likelihood = "normal"
+#' )
+#' compute_freq_power_pooling(
+#'   alpha = 0.025,
+#'   target_data = target_data,
+#'   source_data = source_data,
+#'   frequentist_test = "t-test",
+#'   theta_0 = config$theta_0,
+#'   null_space = config$null_space,
+#'   simulation_config = list(seed = 1)
+#' )
 #'
 #' @export
 compute_freq_power_pooling <- function(alpha,
@@ -626,6 +673,33 @@ sample_equivalent_tie <- function(alpha, n_samples) {
 #'   form.
 #'
 #' @return A list with the power, its interval, and the number of draws used.
+#'
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+#' source_data <- SourceData$new(config)
+#' target_data <- TargetDataFactory$new()$create(
+#'   source_data = source_data,
+#'   case_study_config = config,
+#'   target_sample_size_per_arm = 50,
+#'   treatment_drift = 0,
+#'   summary_measure_likelihood = "normal"
+#' )
+#' # A type I error of 0.03, estimated from 1000 replicates
+#' alpha <- list(
+#'   mean = 0.03,
+#'   conf_int_lower = 0.020,
+#'   conf_int_upper = 0.043,
+#'   n_replicates = 1000
+#' )
+#' set.seed(1)
+#' compute_power_with_tie_ci(
+#'   alpha = alpha,
+#'   target_data = target_data,
+#'   frequentist_test = "t-test",
+#'   theta_0 = config$theta_0,
+#'   null_space = config$null_space,
+#'   simulation_config = list(seed = 1)
+#' )
 #'
 #' @export
 compute_power_with_tie_ci <- function(alpha,
@@ -890,6 +964,34 @@ equivalent_tie_design_p_values <- function(design_rows,
 #'   work warrants it.
 #'
 #' @return The final results data frame with power and frequentist test columns added.
+#'
+#' @examples
+#' # Bayesian results for two Botox scenarios: the null (effect 0) and the
+#' # effect seen in the source study (0.2)
+#' results <- data.frame(
+#'   method = "separate", parameters = "{}", case_study = "botox",
+#'   control_drift = 0, treatment_drift = c(-0.2, 0),
+#'   source_denominator = NA_real_, source_denominator_change_factor = 1,
+#'   target_to_source_std_ratio = 1, target_sample_size_per_arm = 50,
+#'   theta_0 = 0, null_space = "left", sampling_approximation = FALSE,
+#'   summary_measure_likelihood = "normal", endpoint = "continuous",
+#'   source_sample_size_treatment = 233, source_sample_size_control = 235,
+#'   source_standard_error = 0.1, source_treatment_effect_estimate = 0.2,
+#'   equivalent_source_sample_size_per_arm = 234,
+#'   target_treatment_effect = c(0, 0.2),
+#'   success_proba = c(0.03, 0.6),
+#'   mcse_success_proba = c(0.0054, 0.0155),
+#'   conf_int_success_proba_lower = c(0.020, 0.569),
+#'   conf_int_success_proba_upper = c(0.043, 0.630)
+#' )
+#' set.seed(1)
+#' out <- frequentist_power_at_equivalent_tie(
+#'   results,
+#'   analysis_config = list(frequentist_test = "t-test"),
+#'   simulation_config = list(seed = 1)
+#' )
+#' out[, c("target_treatment_effect", "tie",
+#'         "frequentist_power_at_equivalent_tie")]
 #'
 #' @export
 frequentist_power_at_equivalent_tie <- function(results, analysis_config, simulation_config, parallelization = FALSE, n_replicates = 1000, trial_cache = NULL, cluster = NULL) {

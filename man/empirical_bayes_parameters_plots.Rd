@@ -23,7 +23,7 @@ for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
   source(system.file("conf", f, package = "BExTE"))
 source(system.file("conf/full/methods_config.R", package = "BExTE"))
 analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
 figures_dir <- file.path(tempdir(), "bexte-figures", "")
 remake_figures <- TRUE
 ## Synthetic results for the empirical Bayes power prior, whose power
@@ -36,7 +36,6 @@ eb <- dplyr::mutate(eb, method = "EB_PP", parameters = "{'initial_prior': 'nonin
   posterior_parameters = paste0("{'power_parameter': ", gamma,
     ", 'conf_int_lower_power_parameter': ", gamma - 0.05,
     ", 'conf_int_upper_power_parameter': ", gamma + 0.05, "}"))
-eb <- dplyr::as_tibble(eb)
 empirical_bayes_parameters_plots(eb)
 list.files(figures_dir, recursive = TRUE)
 options(old_options); ggplot2::theme_set(old_theme)

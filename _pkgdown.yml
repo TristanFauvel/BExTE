@@ -15,7 +15,7 @@ articles:
 - title: Simulation
   desc: Vignettes describing simulation-based estimation of OCs
   contents:
-  - simulation/simulation_illustration_high_level
+  - simulation_illustration_high_level
   - simulation/simulation_illustration_low_level
   - simulation/Precision_based_ESS
 
@@ -52,9 +52,9 @@ articles:
   - methods/NPP
   - methods/NPP_KL
   - methods/PDCCPP
-  - methods/Pooling
+  - Pooling
   - methods/Pooling_study
-  - methods/Separate
+  - Separate
   # methods/Test_then_pool is excluded (leading underscore): same root
   # cause as Empirical_Bayes_Power_Prior above - model$plot_test_vs_drift()
   # -> self$test() -> self$test_pvalue() needs

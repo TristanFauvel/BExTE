@@ -2,6 +2,27 @@
 #' @description A class representing the design prior for Bayesian borrowing.
 #' @field design_prior_type Type of design prior.
 #' @field RBesT_model RBesT version of the model.
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' simulation_config <- yaml::read_yaml(
+#'   system.file("conf/simulation_config.yml", package = "BExTE")
+#' )
+#' design_prior <- DesignPrior$new()$create(
+#'   design_prior_type = "source_posterior",
+#'   model = NULL,
+#'   source_data = source_data,
+#'   case_study_config = cfg,
+#'   simulation_config = simulation_config,
+#'   mcmc_config = NULL,
+#'   case_study = "belimumab"
+#' )
+#' class(design_prior)[1]
+#' design_prior$cdf(0)
+#' set.seed(1)
+#' design_prior$sample(3)
 #' @export
 DesignPrior <- R6::R6Class(
   "DesignPrior",
@@ -184,6 +205,24 @@ truncated_design_prior <- function(design_prior, lower, upper) {
 #' @description A class representing the unit information design prior for Bayesian borrowing.
 #' @field parameters Parameters for the prior
 #' @field summary_measure_likelihood Treatment effect distribution
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' simulation_config <- yaml::read_yaml(
+#'   system.file("conf/simulation_config.yml", package = "BExTE")
+#' )
+#' design_prior <- UnitInformationDesignPrior$new(
+#'   source_data = source_data,
+#'   case_study_config = cfg,
+#'   case_study = "belimumab",
+#'   simulation_config = simulation_config
+#' )
+#' design_prior$parameters
+#' design_prior$pdf(c(0, 0.5))
+#' set.seed(1)
+#' design_prior$sample(3)
 #' @export
 UnitInformationDesignPrior <- R6::R6Class(
   "UnitInformationDesignPrior",
@@ -365,6 +404,23 @@ UnitInformationDesignPrior <- R6::R6Class(
 #' @field n_successes_treatment Number of successes in the treatment arm
 #' @field n_control Number of participants in the control arm
 #' @field n_treatment Number of participants in the treatment arm
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' simulation_config <- yaml::read_yaml(
+#'   system.file("conf/simulation_config.yml", package = "BExTE")
+#' )
+#' design_prior <- SourcePosteriorDesignPrior$new(
+#'   source_data = source_data,
+#'   case_study_config = cfg,
+#'   simulation_config = simulation_config
+#' )
+#' design_prior$parameters
+#' design_prior$cdf(0)
+#' set.seed(1)
+#' design_prior$sample(3)
 #' @export
 SourcePosteriorDesignPrior <- R6::R6Class(
   "SourcePosteriorDesignPrior",
@@ -497,6 +553,34 @@ SourcePosteriorDesignPrior <- R6::R6Class(
 #' @title AnalysisPriorDesignPrior class
 #' @description A class representing the analysis prior design prior for Bayesian borrowing.
 #' @field model Model used to define the analysis prior
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' simulation_config <- yaml::read_yaml(
+#'   system.file("conf/simulation_config.yml", package = "BExTE")
+#' )
+#' # The analysis prior of a normalised power prior model
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "NPP",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     power_parameter_mean = 0.5,
+#'     power_parameter_std = sqrt(1 / 12)
+#'   ),
+#'   source_data = source_data
+#' )
+#' design_prior <- AnalysisPriorDesignPrior$new(
+#'   model = model,
+#'   case_study_config = cfg,
+#'   simulation_config = simulation_config,
+#'   mcmc_config = NULL
+#' )
+#' design_prior$cdf(0)
+#' set.seed(1)
+#' design_prior$sample(3)
 #' @export
 AnalysisPriorDesignPrior <- R6::R6Class(
   "AnalysisPriorDesignPrior",

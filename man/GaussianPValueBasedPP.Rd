@@ -8,22 +8,16 @@ This class represents a p-value based power prior method.
 It inherits from the GaussianEmpiricalBayesPP class.
 }
 \examples{
-# The equivalence test reads the sampling standard deviation of a
-# simulated target trial.
 cfg <- yaml::yaml.load_file(
   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
 )
 source_data <- ObservedSourceData$new(cfg)
-set.seed(1)
-target_data <- TargetDataFactory$new()$create(
-  source_data = source_data,
-  case_study_config = cfg,
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = cfg$target$treatment_effect,
+  treatment_effect_standard_error = cfg$target$standard_error,
   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
-  control_drift = 0,
-  treatment_drift = 0,
   summary_measure_likelihood = cfg$summary_measure_likelihood
 )
-target_data$sample <- target_data$generate(1)
 model <- Model$new()$create(
   case_study_config = cfg,
   method = "p_value_based_PP",

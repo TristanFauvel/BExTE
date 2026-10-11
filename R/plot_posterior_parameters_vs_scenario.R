@@ -27,7 +27,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 
   source_treatment_effect_estimate <- unique(results_metrics_df$source_treatment_effect_estimate)[1]
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
   mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
 
@@ -37,8 +37,8 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 
   color_map <- viridis::viridis(length(mandatory_drift_values))
 
-  posterior_parameters_df <- get_parameters(results_metrics_df[, "posterior_parameters"])
-  prior_parameters_df <- get_parameters(results_metrics_df[, "parameters"])
+  posterior_parameters_df <- get_parameters(results_metrics_df[, "posterior_parameters", drop = FALSE])
+  prior_parameters_df <- get_parameters(results_metrics_df[, "parameters", drop = FALSE])
 
   # Loop over the prior parameters
   k <- 0
@@ -211,6 +211,43 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 #'
 #' @return None
 #'
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' ## The RMP updates its prior weight: add the posterior weight it reports
+#' w <- round(plogis(-10 * abs(res$drift)), 2)
+#' res$posterior_parameters <- ifelse(res$method == "RMP", paste0(
+#'   "{'prior_weight': ", w, ", 'conf_int_lower_prior_weight': ", w - 0.05,
+#'   ", 'conf_int_upper_prior_weight': ", w + 0.05, "}"), "[]")
+#' plot_posterior_parameters_vs_drift(res, method = "RMP", case_study = "botox",
+#'                                    target_sample_size_per_arm = 50,
+#'                                    control_drift = FALSE, xvars = xvars,
+#'                                    source_denominator_change_factor = 1,
+#'                                    target_to_source_std_ratio = 1)
+#' list.files(figures_dir, recursive = TRUE)
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
 #' @export
 plot_posterior_parameters_vs_drift <- function(results_metrics_df,
                                                method,
@@ -245,7 +282,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
       dplyr::filter(control_drift == 0)
   }
 
-  posterior_parameters_names <- colnames(get_parameters(results_metrics_df[, "posterior_parameters"]))
+  posterior_parameters_names <- colnames(get_parameters(results_metrics_df[, "posterior_parameters", drop = FALSE]))
 
 
   reference_values_all_parameters <- list()
@@ -277,7 +314,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
   parameters_names <- names(methods_dict[[method]])
 
   if (is_commensurate_method(method)){
-    parameters_combinations <- get_parameters(results_metrics_df[, "parameters"])
+    parameters_combinations <- get_parameters(results_metrics_df[, "parameters", drop = FALSE])
   }
 
   for (key in parameters_names) {
@@ -302,7 +339,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
 
       # Filter the results dataframe based on the filter conditions
       # Create a boolean filter for df1
-      prior_parameters_df <- get_parameters(results_metrics_df[, "parameters"])
+      prior_parameters_df <- get_parameters(results_metrics_df[, "parameters", drop = FALSE])
       boolean_filter <- create_boolean_filter(prior_parameters_df, filter_conditions, exclude_key = key)
 
 
@@ -312,9 +349,9 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
       results_metrics_subdf <- results_metrics_df
     }
 
-    posterior_parameters_df <- get_parameters(results_metrics_subdf[, "posterior_parameters"])
+    posterior_parameters_df <- get_parameters(results_metrics_subdf[, "posterior_parameters", drop = FALSE])
 
-    prior_parameters_df <- get_parameters(results_metrics_subdf[, "parameters"])
+    prior_parameters_df <- get_parameters(results_metrics_subdf[, "parameters", drop = FALSE])
 
     # Get the labels for the prior parameters
     parameters_labels <- unname(sapply(seq_len(nrow(results_metrics_subdf)), function(i) {
@@ -423,7 +460,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     plt <- plt + ggplot2::labs(x = xvar[["label"]], y = latex2exp::TeX(sprintf("Posterior %s", methods_dict[[method]][[key]][["parameter_notation"]])))
 
 
-    case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+    case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
     source_treatment_effect_estimate <- unique(results_metrics_df$source_treatment_effect_estimate)[1]
     # Not sorted: important_drift_values() returns the no-effect, partially
     # consistent and consistent drifts in that order, which is the order of the

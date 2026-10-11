@@ -115,6 +115,7 @@ test_that("the power parameter rule integrates the Beta prior", {
 })
 
 test_that("without target data the power parameter keeps its prior", {
+  skip_on_cran()
   for (std in c(0.2, 0.4)) {
     shapes <- npp_beta_shapes(0.5, std)
     kernels <- do.call(binomial_npp_prior_kernels, c(npp_source, list(
@@ -127,6 +128,7 @@ test_that("without target data the power parameter keeps its prior", {
 })
 
 test_that("the power parameter moves towards zero as the target conflicts", {
+  skip_on_cran()
   shapes <- npp_beta_shapes(0.5, 0.2)
   kernels <- do.call(binomial_npp_prior_kernels, c(npp_source, list(
     gamma_rule = npp_gamma_rule(shapes$p, shapes$q), n_lattice = 300L
@@ -138,6 +140,7 @@ test_that("the power parameter moves towards zero as the target conflicts", {
 })
 
 test_that("a finer power parameter rule changes nothing", {
+  skip_on_cran()
   shapes <- npp_beta_shapes(0.5, 0.4)
   posterior <- function(rule) {
     kernels <- do.call(binomial_npp_prior_kernels, c(npp_source, list(
@@ -219,6 +222,7 @@ test_that("the prior given a control rate stays within the admissible effects", 
 })
 
 test_that("replicates with the same counts share one analysis", {
+  skip_on_cran()
   inference_cache_reset()
   model <- BinomialNPP$new(prior = npp_prior(), mcmc_config = npp_mcmc_config())
   model$prior <- npp_prior()

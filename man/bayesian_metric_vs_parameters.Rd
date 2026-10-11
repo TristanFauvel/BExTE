@@ -48,7 +48,7 @@ for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
   source(system.file("conf", f, package = "BExTE"))
 source(system.file("conf/full/methods_config.R", package = "BExTE"))
 analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
 figures_dir <- file.path(tempdir(), "bexte-figures", "")
 remake_figures <- TRUE
 ## Synthetic Bayesian results: 3 methods, 3 design priors, 2 sample sizes
@@ -67,7 +67,6 @@ bayes <- dplyr::mutate(bayes, case_study = "botox", source_denominator_change_fa
   equivalent_source_sample_size_per_arm = 234)
 set.seed(1)
 for (m in names(bayesian_metrics)) bayes[[m]] <- round(runif(nrow(bayes)), 3)
-bayes <- dplyr::as_tibble(bayes)
 bayesian_metric_vs_parameters(bayes, "average_power", case_study = "botox",
                               method = "RMP", target_sample_size_per_arm = 50)
 list.files(figures_dir, recursive = TRUE)

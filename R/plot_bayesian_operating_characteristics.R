@@ -14,6 +14,37 @@
 #'
 #' @return None
 #'
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' ## Synthetic Bayesian results: 3 methods, 3 design priors, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' bayes <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(design_prior_type = c("analysis_prior", "source_posterior", "ui_design_prior"),
+#'               target_sample_size_per_arm = c(50, 100), stringsAsFactors = FALSE)
+#' )
+#' bayes <- dplyr::mutate(bayes, case_study = "botox", source_denominator_change_factor = 1,
+#'   target_to_source_std_ratio = 1, source_treatment_effect_estimate = 0.2,
+#'   source_standard_error = 0.1, endpoint = "continuous", summary_measure_likelihood = "normal",
+#'   source_sample_size_control = 235, source_sample_size_treatment = 233,
+#'   equivalent_source_sample_size_per_arm = 234)
+#' set.seed(1)
+#' for (m in names(bayesian_metrics)) bayes[[m]] <- round(runif(nrow(bayes)), 3)
+#' bayesian_metric_vs_parameters(bayes, "average_power", case_study = "botox",
+#'                               method = "RMP", target_sample_size_per_arm = 50)
+#' list.files(figures_dir, recursive = TRUE)
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
 #' @export
 bayesian_metric_vs_parameters <- function(results_metrics_df,
                                           metric,
@@ -38,7 +69,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
         is.na(target_to_source_std_ratio)
     )
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
   # Filter on important drift value
   source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
@@ -75,7 +106,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
   design_priors <- unlist(unique(results_df[, "label"]))
 
 
-  parameters_df <- get_parameters(results_df[, "parameters"])
+  parameters_df <- get_parameters(results_df[, "parameters", drop = FALSE])
 
   methods_parameters <- methods_dict[[method]]
 
@@ -268,6 +299,39 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
 #'
 #' @return None
 #'
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' ## Synthetic Bayesian results: 3 methods, 3 design priors, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' bayes <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(design_prior_type = c("analysis_prior", "source_posterior", "ui_design_prior"),
+#'               target_sample_size_per_arm = c(50, 100), stringsAsFactors = FALSE)
+#' )
+#' bayes <- dplyr::mutate(bayes, case_study = "botox", source_denominator_change_factor = 1,
+#'   target_to_source_std_ratio = 1, source_treatment_effect_estimate = 0.2,
+#'   source_standard_error = 0.1, endpoint = "continuous", summary_measure_likelihood = "normal",
+#'   source_sample_size_control = 235, source_sample_size_treatment = 233,
+#'   equivalent_source_sample_size_per_arm = 234)
+#' set.seed(1)
+#' for (m in names(bayesian_metrics)) bayes[[m]] <- round(runif(nrow(bayes)), 3)
+#' rmp_05 <- data.frame(prior_weight = 0.5, initial_prior = "noninformative",
+#'                      empirical_bayes = TRUE)
+#' bayesian_metric_vs_sample_size("average_power", bayes, case_study = "botox",
+#'                                method = "RMP", parameters_combinations = rmp_05)
+#' list.files(figures_dir, recursive = TRUE)
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
 #' @export
 bayesian_metric_vs_sample_size <- function(metric,
                                            input_df,
@@ -338,7 +402,7 @@ bayesian_metric_vs_sample_size <- function(metric,
       dplyr::filter(method == !!method)
 
     # Format the parameters (from the json string)
-    results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
+    results_df <- cbind(results_df, get_parameters(results_df[, "parameters", drop = FALSE]))
     # Filter rows that match parameters_combinations
     results_df <- filter_to_parameter_combinations(results_df, parameters_combinations)
 
@@ -466,7 +530,7 @@ bayesian_metric_vs_sample_size <- function(metric,
     return()
   }
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
   # # Filter on important drift value
   # source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
@@ -672,7 +736,7 @@ bayesian_ocs_plots <- function(results_metrics_df, metrics) {
           results_df3 <- results_df2 %>%
             dplyr::filter(method == !!method, )
 
-          parameters_combinations <- unique(get_parameters(results_df3[, "parameters"]))
+          parameters_combinations <- unique(get_parameters(results_df3[, "parameters", drop = FALSE]))
 
           if (method %in% c("separate", "pooling")) {
             add_baselines <- FALSE

@@ -26,6 +26,7 @@ npp_test_model <- function(power_parameter_std = 0.2) {
 }
 
 test_that("the vectorised NPP kernel reproduces the scalar kernel", {
+  skip_on_cran()
   fixture <- npp_test_model()
   target_data <- TargetDataFactory$new()$create(
     source_data = fixture$source_data,
@@ -140,6 +141,7 @@ test_that("npp_prior_mixture recovers the Beta prior mean of the power parameter
 })
 
 test_that("the quadrature mixture reproduces the posterior moments of the nested integration", {
+  skip_on_cran()
   for (std in c(0.1, 0.2, 0.4)) {
     fixture <- npp_test_model(std)
     model <- fixture$model

@@ -49,6 +49,9 @@ standard_error_log_odds_ratio <- function(n_control_nonresponders,
 #' @return The success rate in the corresponding arm of the target study
 #'
 #' @keywords internal
+#' @examples
+#' # A drift of 0.5 on the log odds scale, from a source rate of 0.4
+#' rate_from_drift_logOR(arm_drift = 0.5, source_rate = 0.4)
 #' @export
 rate_from_drift_logOR <- function(arm_drift, source_rate) {
   source_odds <- source_rate / (1 - source_rate)
@@ -73,6 +76,9 @@ rate_from_drift_logOR <- function(arm_drift, source_rate) {
 #'
 #' @return The rate in the corresponding arm of the target study
 #' @keywords internal
+#' @examples
+#' # A rate 0.8 times the source rate of 0.534 events per year
+#' rate_from_drift_logRR(arm_drift = log(0.8), source_rate = 0.534)
 #' @export
 rate_from_drift_logRR <- function(arm_drift, source_rate) {
   return(source_rate * exp(arm_drift))
@@ -96,6 +102,14 @@ sample_negative_binomial <- function(n, mu, k) {
 #' @param n_treatment_responders Number of responders in the treatment arm
 #'
 #' @return A list containing the log odds ratio, treatment rate, control rate, and standard error of the log odds ratio
+#'
+#' @examples
+#' compute_ORs(
+#'   n_control = 100,
+#'   n_treatment = 100,
+#'   n_control_responders = 40,
+#'   n_treatment_responders = 55
+#' )
 #'
 #' @export
 #' @keywords internal
@@ -169,6 +183,17 @@ compute_log_odds_ratio_from_counts <- function(n_control_responders,
 #' @param n_replicates Number of replicates to sample
 #'
 #' @return A list containing the sampled log odds ratios and the standard error of the log odds ratio
+#' @examples
+#' set.seed(1)
+#' draws <- sample_log_odds_ratios(
+#'   n_control = 100,
+#'   n_treatment = 100,
+#'   treatment_rate = 0.55,
+#'   control_rate = 0.4,
+#'   n_replicates = 5
+#' )
+#' draws$log_odds_ratio
+#' draws$std_err_log_odds_ratio
 #' @export
 sample_log_odds_ratios <- function(n_control,
                                    n_treatment,
@@ -202,6 +227,14 @@ sample_log_odds_ratios <- function(n_control,
 #'   standard deviation. The standard error and standard deviation are the
 #'   replicate's own estimates, drawn around the true `variance`, not the true
 #'   values themselves.
+#' @examples
+#' set.seed(1)
+#' sample_aggregate_normal_data(
+#'   mean = 0.2,
+#'   variance = 1,
+#'   n_replicates = 5,
+#'   n_samples_per_arm = 50
+#' )
 #' @export
 sample_aggregate_normal_data <- function(mean,
                                          variance,
@@ -246,6 +279,9 @@ sample_aggregate_normal_data <- function(mean,
 #' @param n_replicates Number of replicates to sample
 #'
 #' @return A vector of sampled rates
+#' @examples
+#' set.seed(1)
+#' sample_aggregate_binary_data(rate = 0.3, n = 100, n_replicates = 5)
 #' @export
 sample_aggregate_binary_data <- function(rate, n, n_replicates) {
   n_successes <- rbinom(n_replicates, n, rate)
@@ -258,6 +294,16 @@ sample_aggregate_binary_data <- function(rate, n, n_replicates) {
 #'
 #' @importFrom R6 R6Class
 #' @importFrom stats pexp
+#'
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+#' source_data <- SourceData$new(config)
+#' source_data$treatment_effect_estimate
+#' source_data$standard_error
+#'
+#' # Change the control odds of the source study
+#' source_data_odds <- SourceData$new(config, source_denominator = 0.5)
+#' source_data_odds$control_rate
 #'
 #' @export
 SourceData <- R6::R6Class("SourceData",
@@ -354,6 +400,12 @@ SourceData <- R6::R6Class("SourceData",
 #' @field control_rate numeric. The rate of success (1s) in the control arm of the source data (for binary endpoint).
 #' @field treatment_rate numeric. The rate of success (1s) in the treatment arm of the source data (for binary endpoint).
 #' @field equivalent_source_sample_size_per_arm numeric. Equivalent sample size per arm.
+#'
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+#' observed <- ObservedSourceData$new(config)
+#' observed$treatment_effect_estimate
+#' str(observed$to_dict())
 #'
 #' @export
 ObservedSourceData <- R6::R6Class(
@@ -477,6 +529,20 @@ ObservedSourceData <- R6::R6Class(
 
 #' @title TargetDataFactory class
 #' @description A factory class for creating different types of target data objects.
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+#' source_data <- SourceData$new(config)
+#' factory <- TargetDataFactory$new()
+#' target_data <- factory$create(
+#'   source_data = source_data,
+#'   case_study_config = config,
+#'   target_sample_size_per_arm = 50,
+#'   treatment_drift = 0.1,
+#'   summary_measure_likelihood = config$summary_measure_likelihood
+#' )
+#' class(target_data)
+#' set.seed(1)
+#' target_data$generate(n_replicates = 3)
 #' @export
 TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
   #' @description Creates a target data object based on the source data and configuration.
@@ -588,6 +654,20 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
 #'   data and for design-stage quantities such as the analytical power and the
 #'   KL-NPP calibration.
 #' @field sample The sample data.
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+#' source_data <- SourceData$new(config)
+#' # TargetData is the base class; use a subclass such as
+#' # ContinuousTargetData to generate data.
+#' target_data <- TargetData$new(
+#'   source_data = source_data,
+#'   sampling_approximation = FALSE,
+#'   target_sample_size_per_arm = 50,
+#'   treatment_drift = 0.1,
+#'   summary_measure_likelihood = "normal"
+#' )
+#' target_data$drift
+#' target_data$treatment_effect
 #' @export
 TargetData <- R6::R6Class(
   "TargetData",
@@ -719,6 +799,21 @@ TargetData <- R6::R6Class(
 #'   a normal likelihood whose variance is the replicate's squared standard
 #'   error, plugged in as if it were exact, so the uncertainty in the variance
 #'   estimate is ignored.
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+#' source_data <- SourceData$new(config)
+#' target_data <- ContinuousTargetData$new(
+#'   source_data = source_data,
+#'   sampling_approximation = FALSE,
+#'   target_sample_size_per_arm = 50,
+#'   control_drift = 0,
+#'   treatment_drift = 0.1,
+#'   summary_measure_likelihood = "normal",
+#'   target_to_source_std_ratio = 1
+#' )
+#' str(target_data$to_dict())
+#' set.seed(1)
+#' target_data$generate(n_replicates = 3)
 #' @export
 ContinuousTargetData <- R6::R6Class(
   "ContinuousTargetData",
@@ -801,6 +896,20 @@ ContinuousTargetData <- R6::R6Class(
 #' @description A class for binary target data objects.
 #' @field control_rate Rate in the control arm of the target study
 #' @field treatment_rate Rate in the treatment arm of the target study
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+#' source_data <- SourceData$new(config)
+#' target_data <- BinaryTargetData$new(
+#'   source_data = source_data,
+#'   sampling_approximation = FALSE,
+#'   target_sample_size_per_arm = 46,
+#'   control_drift = 0,
+#'   treatment_drift = 0,
+#'   summary_measure_likelihood = "normal"
+#' )
+#' c(control = target_data$control_rate, treatment = target_data$treatment_rate)
+#' set.seed(1)
+#' target_data$generate(n_replicates = 3)
 #' @export
 BinaryTargetData <- R6::R6Class(
   "BinaryTargetData",
@@ -1121,6 +1230,10 @@ negative_binomial_inverse_dispersion <- function(input_data, rate_estimate) {
 #'
 #' @param input_data The data for which the rate parameter and standard error need to be estimated.
 #' @return A list containing the rate estimate, standard error of the rate estimate, and standard error of the log(rate) estimate.
+#' @examples
+#' set.seed(1)
+#' counts <- stats::rnbinom(100, size = 0.8, mu = 1.7)
+#' negative_binomial_regression(counts)
 #' @export
 negative_binomial_regression <- function(input_data) {
   if (length(input_data) == 0 || anyNA(input_data) ||
@@ -1376,6 +1489,27 @@ RecurrentEventTargetData <- R6::R6Class(
 #' @field treatment_delay Time before the treatment effect starts, in years; 0 for proportional hazards
 #' @field late_log_hr Log hazard ratio once the effect has started, chosen so that
 #'   the Cox model's large-sample limit equals the treatment effect
+#'
+#' @examples
+#' config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
+#' )
+#' source_data <- SourceData$new(config)
+#' target_data <- TimeToEventTargetData$new(
+#'   source_data = source_data,
+#'   sampling_approximation = FALSE,
+#'   target_sample_size_per_arm = 83,
+#'   treatment_drift = 0,
+#'   summary_measure_likelihood = "normal",
+#'   max_follow_up_time = config$target$max_follow_up_time,
+#'   accrual_period = config$target$accrual_period,
+#'   final_follow_up = config$target$final_follow_up,
+#'   dropout_probability = 0.1
+#' )
+#' target_data$standard_deviation
+#' target_data$dropout_rate()
+#' set.seed(1)
+#' target_data$generate(n_replicates = 3)
 #'
 #' @export
 TimeToEventTargetData <- R6::R6Class(
@@ -1634,7 +1768,20 @@ TimeToEventTargetData <- R6::R6Class(
 #' @description A wrapper used for analyzing observed data (not used for simulation)
 #' @field summary_measure_likelihood Summary measure distribution
 #' @field sample_size_per_arm Sample size per arm in the target study
-#' @field sample Observed data sample
+#' @field sample Observed data sample: the treatment effect estimate, its
+#'   standard error and `standard_deviation`, the per-patient sampling standard
+#'   deviation `treatment_effect_standard_error * sqrt(sample_size_per_arm)`.
+#'   That is the scale the simulated samples report (see
+#'   `sample_aggregate_normal_data()`), and the frequentist tests of
+#'   test-then-pool and the p-value based power prior need it.
+#' @examples
+#' observed <- ObservedTargetData$new(
+#'   treatment_effect_estimate = 0.37,
+#'   treatment_effect_standard_error = 0.42,
+#'   target_sample_size_per_arm = 46,
+#'   summary_measure_likelihood = "normal"
+#' )
+#' observed$sample
 #' @export
 ObservedTargetData <- R6::R6Class(
   "ObservedTargetData",
@@ -1661,6 +1808,7 @@ ObservedTargetData <- R6::R6Class(
       self$sample_size_per_arm <- target_sample_size_per_arm
       self$sample$treatment_effect_estimate <- treatment_effect_estimate
       self$sample$treatment_effect_standard_error <- treatment_effect_standard_error
+      self$sample$standard_deviation <- treatment_effect_standard_error * sqrt(target_sample_size_per_arm)
     }
   )
 )

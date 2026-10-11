@@ -1,12 +1,7 @@
 ---
 title: "Simulation study logic - high level"
 date: "`r Sys.Date()`"
-output: 
-  html_document:
-    theme: cerulean
-    toc: yes
-    toc_float:
-      collapsed: true
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Simulation study logic - high level}
   %\VignetteEngine{knitr::rmarkdown}
@@ -22,11 +17,7 @@ It explains how to define a specific scenario (source and target study character
 The simulation study pipeline is designed in such a way that the complexity behind model creation and data generation is abstracted away, so that it is very easy for a new user to evaluate a specific method in arbitrary scenarios. This "high-level" description of the simulation study implementation is accompanied with a corresponding "low-level" description in another vignette, which describes in more details the components used at each step. 
  
 
-```{r, setwd, include=FALSE}
-# Set working directory, import functions
-
-root <- dirname(dirname(getwd()))
-knitr::opts_knit$set(root.dir = root)
+```{r, setup, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 library(BExTE)

@@ -104,6 +104,7 @@ test_that("interpolation adds nodes until it reaches its tolerance", {
 
 
 test_that("the conflict p-value finds every turning point without a grid", {
+  skip_on_cran()
   ## Random two-component predictives, including well separated and very
   ## unequal ones, where the density has one mode or two. The turning points
   ## are bracketed in closed form, so none can be missed however narrow the

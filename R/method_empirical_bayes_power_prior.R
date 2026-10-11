@@ -43,6 +43,17 @@ power_prior_variance <- function(source_standard_error, power_parameter,
 #' @param tolerance Tolerance for convergence of the estimation
 #' @param theta_0 True mean for type I error computation
 #' @return A matrix containing the calibration parameter and other related values
+#' @examples
+#' # Belimumab: 562 patients per arm in the source study, 46 in the target study
+#' findCalibrationParameter(
+#'   source_sample_size_per_arm = 562,
+#'   target_sample_size_per_arm = 46,
+#'   source_treatment_effect_estimate = 0.48,
+#'   desired_tie = 0.065,
+#'   significance_level = 0.05,
+#'   target_data_sampling_variance = 0.42^2 * 46,
+#'   source_data_sampling_variance = 0.12^2 * 562
+#' )
 #' @export
 findCalibrationParameter <- function(n_iter = 1e6,
                                      source_sample_size_per_arm,
@@ -211,6 +222,28 @@ log_grid_interpolation <- function(f, x, n_nodes = 100L) {
 #' @field summary_measure_likelihood The summary measure distribution.
 #' @field null_space Null hypothesis space.
 #' @field empirical_bayes Boolean indicating if empirical Bayes is used.
+#' @examples
+#' # GaussianEmpiricalBayesPP is a parent class. Its subclasses, such as
+#' # GaussianGravestockEBPP, set the power parameter from the target data.
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = cfg$target$treatment_effect,
+#'   treatment_effect_standard_error = cfg$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "EB_PP",
+#'   method_parameters = list(initial_prior = "noninformative"),
+#'   source_data = source_data
+#' )
+#' inherits(model, "GaussianEmpiricalBayesPP")
+#' model$inference(target_data)
+#' model$posterior_parameters$power_parameter
 #' @export
 GaussianEmpiricalBayesPP <- R6::R6Class(
   classname = "GaussianEmpiricalBayesPP",
@@ -384,6 +417,27 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
 #'
 #' @format R6Class object.
 #' @field method Method name
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = cfg$target$treatment_effect,
+#'   treatment_effect_standard_error = cfg$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "EB_PP",
+#'   method_parameters = list(initial_prior = "noninformative"),
+#'   source_data = source_data
+#' )
+#' class(model)[1]
+#' model$inference(target_data)
+#' model$posterior_parameters$power_parameter
+#' model$credible_interval(0.95)
 #' @export
 GaussianGravestockEBPP <- R6::R6Class(
   classname = "GaussianGravestockEBPP",
@@ -508,6 +562,33 @@ GaussianGravestockEBPP <- R6::R6Class(
 #' @format R6Class object.
 #' @field null_space Side of the null hypothesis space
 #' @field method Method name
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = cfg$target$treatment_effect,
+#'   treatment_effect_standard_error = cfg$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "PDCCPP",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     empirical_bayes = FALSE,
+#'     desired_tie = 0.065,
+#'     significance_level = 0.05,
+#'     tolerance = 1e-4,
+#'     n_iter = 1e6
+#'   ),
+#'   source_data = source_data
+#' )
+#' class(model)[1]
+#' model$inference(target_data)
+#' model$posterior_parameters$power_parameter
 #' @export
 GaussianPDCCPP <- R6::R6Class(
   classname = "GaussianPDCCPP",
@@ -762,6 +843,30 @@ GaussianPDCCPP <- R6::R6Class(
 #'
 #' @field shape_parameter The shape parameter for the method.
 #' @field method Method name
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = cfg$target$treatment_effect,
+#'   treatment_effect_standard_error = cfg$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "p_value_based_PP",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     shape_parameter = 0.5,
+#'     equivalence_margin = 0.1
+#'   ),
+#'   source_data = source_data
+#' )
+#' class(model)[1]
+#' model$inference(target_data)
+#' model$posterior_parameters$power_parameter
 #' @export
 GaussianPValueBasedPP <- R6::R6Class(
   classname = "GaussianPValueBasedPP",
@@ -948,6 +1053,38 @@ GaussianPValueBasedPP <- R6::R6Class(
 #' @field method Method name
 #' @field prior_var Prior variance
 #' @field mcmc_config MCMC configuration
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' set.seed(1)
+#' target_data <- TargetDataFactory$new()$create(
+#'   source_data = source_data,
+#'   case_study_config = cfg,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   control_drift = 0,
+#'   treatment_drift = 0,
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' target_data$sample <- target_data$generate(1)
+#' mcmc_config <- yaml::read_yaml(
+#'   system.file("conf/full/mcmc_config.yml", package = "BExTE")
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "p_value_based_PP",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     shape_parameter = 1,
+#'     equivalence_margin = 0.1
+#'   ),
+#'   source_data = source_data,
+#'   mcmc_config = mcmc_config
+#' )
+#' class(model)[1]
+#' model$inference(target_data)
+#' model$posterior_parameters$power_parameter
 #' @export
 BinomialPValueBasedPP <- R6::R6Class(
   classname = "BinomialPValueBasedPP",

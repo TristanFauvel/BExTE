@@ -37,6 +37,7 @@ test_that("legend placement follows method names, including inline math labels",
 })
 
 test_that("spanning legends fit without counting their size repeatedly", {
+  skip_on_cran()
   fixture <- make_vs_tie_legend_plot()
   legend <- vs_tie_legend_grid(fixture$plot, fixture$methods)
   for (i in seq_along(legend$grobs)) {

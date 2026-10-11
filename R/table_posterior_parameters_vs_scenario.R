@@ -13,6 +13,50 @@
 #'
 #' @return This function does not return a value. It creates and saves tables in HTML, PDF, and LaTeX formats.
 #'
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' tables_dir <- file.path(tempdir(), "bexte-tables")
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' ## The RMP updates its prior weight: add the posterior weight it reports
+#' w <- round(plogis(-10 * abs(res$drift)), 2)
+#' res$posterior_parameters <- ifelse(res$method == "RMP", paste0(
+#'   "{'prior_weight': ", w, ", 'conf_int_lower_prior_weight': ", w - 0.05,
+#'   ", 'conf_int_upper_prior_weight': ", w + 0.05, "}"), "[]")
+#' \donttest{
+#' ## The tables are compiled with LaTeX and cropped with pdfcrop
+#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+#'   table_posterior_parameters_vs_drift(res, method = "RMP", case_study = "botox",
+#'                                       target_sample_size_per_arm = 50,
+#'                                       control_drift = FALSE, xvars = xvars,
+#'                                       source_denominator_change_factor = 1,
+#'                                       target_to_source_std_ratio = 1)
+#'   print(list.files(tables_dir, recursive = TRUE))
+#' }
+#' }
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
+#' unlink(tables_dir, recursive = TRUE)
 #' @export
 table_posterior_parameters_vs_drift <- function(results_metrics_df,
                                                 method,
@@ -49,11 +93,11 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
 
   source_treatment_effect_estimate <- unique(results_metrics_df$source_treatment_effect_estimate)[1]
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
 
   # mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
 
-  posterior_parameters_df <- get_parameters(results_metrics_df[, "posterior_parameters"])
+  posterior_parameters_df <- get_parameters(results_metrics_df[, "posterior_parameters", drop = FALSE])
 
 
   posterior_parameters_df[] <- lapply(posterior_parameters_df, format_num, digits = 4, scientific = TRUE)
@@ -66,7 +110,7 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
     return()
   }
 
-  prior_parameters_df <- get_parameters(results_metrics_df[, "parameters"])
+  prior_parameters_df <- get_parameters(results_metrics_df[, "parameters", drop = FALSE])
   prior_parameters_df[] <- lapply(prior_parameters_df, format_num)
   # Identify columns with unique values and drop them
   cols_to_keep <- sapply(prior_parameters_df, function(col) length(unique(col)) > 1)
@@ -214,6 +258,46 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
 #' @return This function does not return a value. It calls other functions to create and save multiple tables.
 #'
 #'
+#' @examples
+#' ## Globals that the plot functions read, as in inst/scripts/plots.R
+#' old_options <- options(); old_theme <- ggplot2::theme_get()
+#' for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+#'   source(system.file("conf", f, package = "BExTE"))
+#' source(system.file("conf/full/methods_config.R", package = "BExTE"))
+#' analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+#' case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
+#' figures_dir <- file.path(tempdir(), "bexte-figures", "")
+#' remake_figures <- TRUE
+#' tables_dir <- file.path(tempdir(), "bexte-tables")
+#' ## Synthetic results: Botox case study, 3 methods, 5 drifts, 2 sample sizes
+#' rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+#'               ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+#' res <- merge(
+#'   data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+#'              parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+#'   expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+#' )
+#' res <- dplyr::mutate(res, case_study = "botox", theta_0 = 0, treatment_drift = drift,
+#'   control_drift = 0, source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+#'   source_treatment_effect_estimate = 0.2, target_treatment_effect = 0.2 + drift,
+#'   success_proba = plogis(20 * target_treatment_effect - 4),
+#'   conf_int_success_proba_lower = success_proba - 0.02,
+#'   conf_int_success_proba_upper = success_proba + 0.02)
+#' ## The RMP updates its prior weight: add the posterior weight it reports
+#' w <- round(plogis(-10 * abs(res$drift)), 2)
+#' res$posterior_parameters <- ifelse(res$method == "RMP", paste0(
+#'   "{'prior_weight': ", w, ", 'conf_int_lower_prior_weight': ", w - 0.05,
+#'   ", 'conf_int_upper_prior_weight': ", w + 0.05, "}"), "[]")
+#' \donttest{
+#' ## The tables are compiled with LaTeX and cropped with pdfcrop
+#' if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+#'   posterior_parameters_tables(res[res$method == "RMP", ], frequentist_metrics)
+#'   print(list.files(tables_dir, recursive = TRUE))
+#' }
+#' }
+#' options(old_options); ggplot2::theme_set(old_theme)
+#' unlink(figures_dir, recursive = TRUE)
+#' unlink(tables_dir, recursive = TRUE)
 #' @export
 posterior_parameters_tables <- function(results_metrics_df, metrics) {
   check_table_packages()

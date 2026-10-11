@@ -435,6 +435,13 @@ npp_kl_cache_store <- new.env(parent = emptyenv())
 #' @description Called by tests, and by any run that must not reuse an earlier
 #' run's calibrations.
 #' @return `NULL`, invisibly.
+#' @examples
+#' calibration <- calibrate_npp_kl(
+#'   theta_source = 0.48, se_source = 0.12, se_target_expected = 0.42
+#' )
+#' npp_kl_calibration_cache_size()
+#' npp_kl_calibration_cache_reset()
+#' npp_kl_calibration_cache_size()
 #' @export
 npp_kl_calibration_cache_reset <- function() {
   rm(
@@ -447,6 +454,13 @@ npp_kl_calibration_cache_reset <- function() {
 #' Number of calibrations held in the cache
 #'
 #' @return The number of distinct calibrations stored.
+#' @examples
+#' calibration <- calibrate_npp_kl(
+#'   theta_source = 0.48, se_source = 0.12, se_target_expected = 0.42
+#' )
+#' npp_kl_calibration_cache_size()
+#' npp_kl_calibration_cache_reset()
+#' npp_kl_calibration_cache_size()
 #' @export
 npp_kl_calibration_cache_size <- function() {
   length(ls(envir = npp_kl_cache_store, all.names = TRUE))
@@ -504,6 +518,15 @@ npp_kl_calibration_cache_size <- function() {
 #'   `theta_target_compatible` and `theta_target_mtd`, the `d_mtd`,
 #'   `d_mtd_multiplier`, `lambda_kl`, `c_target` and `se_target_expected` used,
 #'   and a `calibration_id` identifying the calibration unit.
+#' @examples
+#' calibration <- calibrate_npp_kl(
+#'   theta_source = 0.48,
+#'   se_source = 0.12,
+#'   se_target_expected = 0.42,
+#'   theta_null = 0,
+#'   benefit_sign = 1
+#' )
+#' calibration[c("alpha_gamma", "beta_gamma", "d_mtd")]
 #' @export
 calibrate_npp_kl <- function(theta_source,
                              se_source,

@@ -19,7 +19,10 @@
 ^renv\.lock$
 ^results$
 ^tables$
-^tests$
 ^user_configs$
 ^\.pre-commit-config\.yaml$
 ^specs$
+^CRAN_READINESS\.md$
+^vignettes/(methods|simulation|data_generation|replications)$
+^vignettes/.*\.html$
+^tests/test_scripts\.R$

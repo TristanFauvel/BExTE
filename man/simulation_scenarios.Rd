@@ -22,7 +22,7 @@ Generate simulation scenarios based on the configuration directory.
 }
 \examples{
 config_dir <- paste0(system.file("conf/full", package = "BExTE"), "/")
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
 scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
 # Keep one case study, one method and a coarse drift grid.
 scenarios_config$case_studies <- "botox"

@@ -778,7 +778,7 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
   mcmc_config <- read_config(paste0(config_dir, "/mcmc_config.yml"), mcmc_config_schema)
 
   for (case_study in case_studies) {
-    case_study_config <- yaml::yaml.load_file(paste0(case_studies_config_dir, case_study, ".yml"))
+    case_study_config <- yaml::yaml.load_file(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
     results_df_0 <- results_freq_df %>%
       dplyr::filter(case_study == !!case_study)
     null_space <- case_study_config$null_space

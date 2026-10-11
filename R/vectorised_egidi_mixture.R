@@ -830,6 +830,16 @@ egidi_select_weak_weight_binomial <- function(table_informative, table_weak,
 #' @return A list with the selected and posterior weights, the three conflict
 #'   p-values, the conflict flags, the posterior mixture and its summaries, the
 #'   probability of success, and numerical diagnostics.
+#' @examples
+#' fit <- fit_egidi_mixture(
+#'   theta_target_hat = -0.4,
+#'   se_target = 0.42,
+#'   informative_component = list(mean = 0.48, sd = 0.12),
+#'   weak_component = list(mean = 0, sd = 0.42 * sqrt(46))
+#' )
+#' fit$psi_weak
+#' fit$pvalue_selected
+#' fit$credible_interval
 #' @export
 fit_egidi_mixture <- function(theta_target_hat,
                               se_target,

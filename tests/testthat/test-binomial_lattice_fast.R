@@ -45,6 +45,7 @@ lattice_fast_modes <- list(
 
 
 test_that("the power prior posterior is the original one on every route", {
+  skip_on_cran()
   for (case_name in names(lattice_fast_cases)) {
     case <- lattice_fast_cases[[case_name]]
     arguments <- c(list(case$gamma), as.list(case$source), as.list(case$target))
@@ -113,6 +114,7 @@ test_that("the posterior given a control rate is the original one", {
 })
 
 test_that("the empirical Bayes power prior terms are the original ones", {
+  skip_on_cran()
   cases <- list(c(aprepitant_source, 71, 39, 71, 33), c(aprepitant_source, 143, 79, 143, 0),
                 c(aprepitant_source, 47, 20, 47, 30), c(12, 7, 12, 9, 10, 4, 10, 2),
                 c(aprepitant_source, 286, 10, 286, 280),
@@ -292,12 +294,14 @@ lattice_fast_counts <- function(n, size) {
 }
 
 test_that("the data-driven binomial methods decide as before at 47 per arm", {
+  skip_on_cran()
   for (method in names(lattice_fast_method_parameters)) {
     expect_same_analyses(method, 47, lattice_fast_counts(47, 8))
   }
 })
 
 test_that("the data-driven binomial methods decide as before at 286 per arm", {
+  skip_on_cran()
   for (method in names(lattice_fast_method_parameters)) {
     counts <- lattice_fast_counts(286, 2)
     counts <- rbind(counts, data.frame(control = c(150, 160, 140), treatment = c(170, 165, 180)))

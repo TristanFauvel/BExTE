@@ -2,7 +2,7 @@
 # with the normal criterion, analysed with the binomial normalized power prior.
 
 kl_config <- function() {
-  yaml::read_yaml(testthat::test_path("..", "..", "inst", "conf", "case_studies", "aprepitant.yml"))
+  yaml::read_yaml(system.file("conf", "case_studies", "aprepitant.yml", package = "BExTE"))
 }
 
 kl_mcmc_config <- function() {

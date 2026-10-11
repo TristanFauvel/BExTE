@@ -29,6 +29,26 @@
 #' @field summary_measure_likelihood Likelihood familly, that is, the distribution used to model the summary measure of the treatment effect.
 #' @field n_components_mixture_approx Number of mixture components used for the mixture approximation
 #' @field aic_penalty_parameter_mixture_approx AIC penalty parameter used for the mixture approximation
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = case_study_config,
+#'   method = "pooling",
+#'   method_parameters = list(initial_prior = "noninformative"),
+#'   source_data = source_data
+#' )
+#' class(model)
+#' model$inference(target_data = target_data)
+#' model$credible_interval(level = 0.95)
 #' @export
 Model <- R6::R6Class(
   "Model",
@@ -1939,6 +1959,25 @@ empty_summary_rows <- function() {
 #' @field post_var Posterior variance
 #' @field posterior_parameters Posterior parameters
 #'
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' prior <- list(
+#'   source = as.list(source_data),
+#'   method_parameters = list(initial_prior = "noninformative")
+#' )
+#' model <- GaussianConjugate$new(prior = prior)
+#' c(prior_mean = model$prior_mean, prior_sd = sqrt(model$prior_var))
+#' model$prior_pdf(c(0, 0.5, 1))
+#' model$sample_prior(5)
 #' @export
 GaussianConjugate <- R6::R6Class(
   "GaussianConjugate",
@@ -2262,6 +2301,27 @@ GaussianPooling <- R6::R6Class(
 #' @title Model_RBesT
 #' @description An R6 class representing a Bayesian model using RBesT.
 #' @field posterior_summary Summary of the posterior distribution
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = case_study_config,
+#'   method = "separate",
+#'   method_parameters = list(initial_prior = "noninformative"),
+#'   source_data = source_data
+#' )
+#' inherits(model, "Model_RBesT")
+#' model$inference(target_data = target_data)
+#' model$RBesT_posterior
+#' model$posterior_cdf(0)
 #' @export
 Model_RBesT <- R6::R6Class(
   "Model_RBesT",
@@ -2486,6 +2546,25 @@ Model_RBesT <- R6::R6Class(
 #' @title GaussianSeparate_RBesT
 #' @description An R6 class representing a separate Gaussian model using RBesT.
 #' @field method Method name
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' prior <- list(
+#'   source = as.list(source_data),
+#'   method_parameters = list(initial_prior = "noninformative")
+#' )
+#' model <- GaussianSeparate_RBesT$new(prior = prior)
+#' model$prior <- prior
+#' model$inference(target_data = target_data)
+#' model$credible_interval(level = 0.95)
 #' @export
 GaussianSeparate_RBesT <- R6::R6Class(
   "GaussianSeparate_RBesT",
@@ -2535,6 +2614,25 @@ GaussianSeparate_RBesT <- R6::R6Class(
 #' @title GaussianPooling_RBesT
 #' @description An R6 class representing a pooled Gaussian model using RBesT.
 #' @field method Method name
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' prior <- list(
+#'   source = as.list(source_data),
+#'   method_parameters = list(initial_prior = "noninformative")
+#' )
+#' model <- GaussianPooling_RBesT$new(prior = prior)
+#' model$prior <- prior
+#' model$inference(target_data = target_data)
+#' model$credible_interval(level = 0.95)
 #' @export
 GaussianPooling_RBesT <- R6::R6Class(
   "GaussianPooling_RBesT",
@@ -2614,6 +2712,48 @@ GaussianPooling_RBesT <- R6::R6Class(
 #' @field posterior_pdf_approx  Approximation to the posterior probability density function
 #' @field posterior_cdf_approx  Approximation to the posterior cumulative density function
 #'
+#' @examples
+#' prior <- list(
+#'   source = list(
+#'     sample_size_control = 562, sample_size_treatment = 563,
+#'     control_rate = 218 / 562, treatment_rate = 285 / 563
+#'   ),
+#'   method_parameters = list(initial_prior = "noninformative")
+#' )
+#' target_data <- list(
+#'   sample_size_control = 39, sample_size_treatment = 53,
+#'   sample = list(sample_control_rate = 17 / 39, sample_treatment_rate = 28 / 53)
+#' )
+#' prior$method_parameters$power_parameter <- 0.5
+#' mcmc_config <- yaml::yaml.load_file(
+#'   system.file("conf/full/mcmc_config.yml", package = "BExTE")
+#' )
+#' # BinomialCPP is a subclass of MCMCModel. With the default quadrature
+#' # engine it computes the posterior without Stan.
+#' model <- BinomialCPP$new(prior = prior, mcmc_config = mcmc_config)
+#' model$prior <- prior
+#' inherits(model, "MCMCModel")
+#' model$uses_quadrature()
+#' model$inference(target_data)
+#' model$credible_interval(level = 0.95)
+#' \donttest{
+#' # The Stan engine samples with MCMC and needs CmdStan.
+#' if (requireNamespace("cmdstanr", quietly = TRUE) &&
+#'     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error")) {
+#'   mcmc_config$engine <- "stan"
+#'   mcmc_config$num_chains <- 2
+#'   mcmc_config$parallel_chains <- 2
+#'   mcmc_config$chain_length <- 1000
+#'   mcmc_config$target_ess <- 1000
+#'   model <- BinomialCPP$new(prior = prior, mcmc_config = mcmc_config)
+#'   model$prior <- prior
+#'   model$draws_dir <- file.path(tempdir(), "bexte-example")
+#'   dir.create(model$draws_dir, showWarnings = FALSE)
+#'   model$inference(target_data)
+#'   model$credible_interval(level = 0.95)
+#'   unlink(model$draws_dir, recursive = TRUE)
+#' }
+#' }
 #' @export
 MCMCModel <- R6::R6Class(
   "MCMCModel",
@@ -3023,6 +3163,21 @@ MCMCModel <- R6::R6Class(
 #' prior on each arm response rate. The posterior is available in closed form,
 #' so it inherits from the `BinomialConjugate` class rather than sampling.
 #' @field method Method name
+#' @examples
+#' prior <- list(
+#'   source = list(
+#'     sample_size_control = 562, sample_size_treatment = 563,
+#'     control_rate = 218 / 562, treatment_rate = 285 / 563
+#'   ),
+#'   method_parameters = list(initial_prior = "noninformative")
+#' )
+#' target_data <- list(
+#'   sample_size_control = 39, sample_size_treatment = 53,
+#'   sample = list(sample_control_rate = 17 / 39, sample_treatment_rate = 28 / 53)
+#' )
+#' model <- BinomialSeparate$new(prior = prior)
+#' model$inference(target_data)
+#' model$credible_interval(level = 0.95)
 #' @export
 BinomialSeparate <- R6::R6Class(
   "BinomialSeparate",
@@ -3056,6 +3211,21 @@ BinomialSeparate <- R6::R6Class(
 #' available in closed form, so it inherits from the `BinomialConjugate` class
 #' rather than sampling.
 #' @field method Method name
+#' @examples
+#' prior <- list(
+#'   source = list(
+#'     sample_size_control = 562, sample_size_treatment = 563,
+#'     control_rate = 218 / 562, treatment_rate = 285 / 563
+#'   ),
+#'   method_parameters = list(initial_prior = "noninformative")
+#' )
+#' target_data <- list(
+#'   sample_size_control = 39, sample_size_treatment = 53,
+#'   sample = list(sample_control_rate = 17 / 39, sample_treatment_rate = 28 / 53)
+#' )
+#' model <- BinomialPooling$new(prior = prior)
+#' model$inference(target_data)
+#' model$credible_interval(level = 0.95)
 #' @export
 BinomialPooling <- R6::R6Class(
   "BinomialPooling",

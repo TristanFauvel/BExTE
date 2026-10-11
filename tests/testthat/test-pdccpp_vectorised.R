@@ -86,6 +86,7 @@ test_that("the PDCCPP takes the vectorised path", {
 
 
 test_that("the vectorised PDCCPP agrees with the per-replicate path", {
+  skip_on_cran()
   vectorised <- pdccpp_simulation(pdccpp_botox())
   per_replicate <- pdccpp_simulation(pdccpp_botox(per_replicate = TRUE))
 
@@ -101,6 +102,7 @@ test_that("the vectorised PDCCPP agrees with the per-replicate path", {
 
 
 test_that("the vectorised power parameter is closer to the exact calibration than a per-replicate search", {
+  skip_on_cran()
   # Near the borrowing cut-off the power parameter is very sensitive to the
   # calibration, so a search stopped at the configured 1e-4 moves it by up to
   # about 5e-3. The vectorised path searches its few nodes to 1e-9.

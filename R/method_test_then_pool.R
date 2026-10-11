@@ -10,6 +10,25 @@
 #' @field source_standard_error Source standard error
 #' @field method Method name
 #' @field empirical_bayes Indicator that the method uses empirical Bayes
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' prior <- list(
+#'   source = as.list(source_data),
+#'   method_parameters = list(initial_prior = "noninformative")
+#' )
+#' # TestThenPool is the base class: its subclasses define the test.
+#' model <- TestThenPool$new(prior = prior)
+#' class(model$pooling)
+#' class(model$separate)
 #' @export
 TestThenPool <- R6::R6Class(
   "TestThenPool",
@@ -440,6 +459,31 @@ TestThenPool <- R6::R6Class(
 #' @details The TestThenPoolEquivalence class provides methods for testing and inference in equivalence trials using the Test-Then-Pool framework.
 #' @field significance_level Significance level for the test
 #' @field method Method name
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = case_study_config,
+#'   method = "test_then_pool_equivalence",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     significance_level = 0.1,
+#'     equivalence_margin = 0.5
+#'   ),
+#'   source_data = source_data
+#' )
+#' model$test_pvalue(target_data)
+#' model$inference(target_data = target_data)
+#' model$pool
+#' model$credible_interval(level = 0.95)
 #' @export
 TestThenPoolEquivalence <- R6::R6Class(
   classname = "TestThenPoolEquivalence",
@@ -627,6 +671,30 @@ TestThenPoolEquivalence <- R6::R6Class(
 #' @details The TestThenPoolDifference class provides methods for testing and inference in difference trials using the Test-Then-Pool framework.
 #' @field significance_level Significance level for the test
 #' @field method Method name
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = case_study_config,
+#'   method = "test_then_pool_difference",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     significance_level = 0.1
+#'   ),
+#'   source_data = source_data
+#' )
+#' model$test_pvalue(target_data)
+#' model$inference(target_data = target_data)
+#' model$pool
+#' model$credible_interval(level = 0.95)
 #' @export
 TestThenPoolDifference <- R6::R6Class(
   "TestThenPoolDifference",

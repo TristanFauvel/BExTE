@@ -53,6 +53,31 @@ mixture_variance <- function(w, sigma2A, muA, sigma2B, muB) {
 #' @field info_posterior_variance The variance of the informative posterior distribution.
 #' @field method Method name
 #'
+#' @examples
+#' case_study_config <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(case_study_config)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = case_study_config$target$treatment_effect,
+#'   treatment_effect_standard_error = case_study_config$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = case_study_config,
+#'   method = "RMP",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     prior_weight = 0.5,
+#'     empirical_bayes = FALSE
+#'   ),
+#'   source_data = source_data
+#' )
+#' class(model)
+#' model$inference(target_data = target_data)
+#' c(prior_weight = model$w, posterior_weight = model$wpost)
+#' model$credible_interval(level = 0.95)
 #' @export
 GaussianRMP_RBesT <- R6::R6Class(
   "GaussianRMP_RBesT",

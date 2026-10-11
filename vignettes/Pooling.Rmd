@@ -1,14 +1,7 @@
 ---
 title: "Pooling"
 date: "`r Sys.Date()`"
-output:
-  html_document:
-    theme: cerulean
-    toc: yes
-    toc_float:
-      collapsed: yes  
-  pdf_document:
-    toc: yes
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Pooling}
   %\VignetteEngine{knitr::rmarkdown}
@@ -68,8 +61,6 @@ Pooling the data is equivalent to defining a Gaussian prior with mean and standa
 ## Set working directory and load packages
 
 ```{r setup, warning=F, message=F, include = FALSE}
-root <- dirname(dirname(getwd()))
-knitr::opts_knit$set(root.dir = root, warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 library(BExTE)

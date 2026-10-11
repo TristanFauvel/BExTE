@@ -5,6 +5,13 @@
 #'
 #' @param mix A mixture object.
 #' @return The moment-based ESS for the Gaussian mixture.
+#' @examples
+#' prior <- RBesT::mixnorm(
+#'   informative = c(0.5, 0.48, 0.12),
+#'   vague = c(0.5, 0, 1.2),
+#'   sigma = 2
+#' )
+#' gaussian_mix_moment_ess(prior)
 #' @export
 gaussian_mix_moment_ess <- function(mix) {
   sigma <- RBesT::sigma(mix)
@@ -25,6 +32,13 @@ gaussian_mix_moment_ess <- function(mix) {
 #'
 #' @param mix A mixture object.
 #' @return The precision-based ESS for the Gaussian mixture.
+#' @examples
+#' prior <- RBesT::mixnorm(
+#'   informative = c(0.5, 0.48, 0.12),
+#'   vague = c(0.5, 0, 1.2),
+#'   sigma = 2
+#' )
+#' gaussian_mix_precision_ess(prior)
 #' @export
 gaussian_mix_precision_ess <- function(mix) {
   # Precision-based matching method for ESS estimation, for Gaussian mixtures only.
@@ -56,6 +70,16 @@ gaussian_mix_precision_ess <- function(mix) {
 #' @param rbest_model A RBesT model object.
 #' @param target_data Target data containing sample information.
 #' @return The prior moment-based ESS for the Bayesian model.
+#' @examples
+#' prior <- RBesT::mixnorm(
+#'   informative = c(0.5, 0.48, 0.12),
+#'   vague = c(0.5, 0, 1.2),
+#'   sigma = 2
+#' )
+#' target_data <- list(summary_measure_likelihood = "normal", sample_size_per_arm = 46)
+#' # The function takes the posterior after the target study is observed.
+#' posterior <- RBesT::postmix(prior, m = 0.37, se = 0.42)
+#' prior_moment_ess(posterior, target_data)
 #' @export
 prior_moment_ess <- function(rbest_model, target_data) {
   if (is.null(rbest_model)) {
@@ -77,6 +101,16 @@ prior_moment_ess <- function(rbest_model, target_data) {
 #' @param rbest_model A RBesT model object.
 #' @param target_data Target data containing sample information.
 #' @return The prior precision-based ESS for the Bayesian model.
+#' @examples
+#' prior <- RBesT::mixnorm(
+#'   informative = c(0.5, 0.48, 0.12),
+#'   vague = c(0.5, 0, 1.2),
+#'   sigma = 2
+#' )
+#' target_data <- list(summary_measure_likelihood = "normal", sample_size_per_arm = 46)
+#' # The function takes the posterior after the target study is observed.
+#' posterior <- RBesT::postmix(prior, m = 0.37, se = 0.42)
+#' prior_precision_ess(posterior, target_data)
 #' @export
 prior_precision_ess <- function(rbest_model, target_data) {
   if (target_data$summary_measure_likelihood == "normal") {
@@ -96,6 +130,14 @@ prior_precision_ess <- function(rbest_model, target_data) {
 #' @param rbest_model A RBesT model object.
 #' @param target_data Target data containing sample information.
 #' @return The prior moment-based ESS for the Bayesian model.
+#' @examples
+#' prior <- RBesT::mixnorm(
+#'   informative = c(0.5, 0.48, 0.12),
+#'   vague = c(0.5, 0, 1.2),
+#'   sigma = 2
+#' )
+#' target_data <- list(summary_measure_likelihood = "normal", sample_size_per_arm = 46)
+#' prior_ess_elir(prior, target_data)
 #' @export
 prior_ess_elir <- function(rbest_model, target_data) {
   if (is.null(rbest_model)) {
@@ -138,6 +180,14 @@ prior_ess_elir <- function(rbest_model, target_data) {
 #' @param upper Upper bound of the 95% credible interval.
 #' @param sample_size_per_arm Per-arm sample size of the target study.
 #' @return A list with the `moment` and `precision` effective sample sizes.
+#' @examples
+#' normal_reference_ess(
+#'   reference_scale = 2,
+#'   posterior_sd = 0.11,
+#'   lower = 0.25,
+#'   upper = 0.69,
+#'   sample_size_per_arm = 46
+#' )
 #' @export
 normal_reference_ess <- function(reference_scale,
                                  posterior_sd,

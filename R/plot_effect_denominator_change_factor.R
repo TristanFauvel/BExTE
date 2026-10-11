@@ -1,5 +1,3 @@
-library(dplyr)
-library(ggplot2)
 
 plot_effect_denominator_change <- function(results_df, metric, figures_dir, treatment_effect = NULL, design_prior = NULL){
 

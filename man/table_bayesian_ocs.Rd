@@ -33,7 +33,7 @@ for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
   source(system.file("conf", f, package = "BExTE"))
 source(system.file("conf/full/methods_config.R", package = "BExTE"))
 analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+case_studies_config_dir <- system.file("conf/case_studies", package = "BExTE")
 figures_dir <- file.path(tempdir(), "bexte-figures", "")
 remake_figures <- TRUE
 tables_dir <- file.path(tempdir(), "bexte-tables")
@@ -53,7 +53,6 @@ bayes <- dplyr::mutate(bayes, case_study = "botox", source_denominator_change_fa
   equivalent_source_sample_size_per_arm = 234)
 set.seed(1)
 for (m in names(bayesian_metrics)) bayes[[m]] <- round(runif(nrow(bayes)), 3)
-bayes <- dplyr::as_tibble(bayes)
 \donttest{
 ## The tables are compiled with LaTeX and cropped with pdfcrop
 if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {

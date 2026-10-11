@@ -221,6 +221,7 @@ test_that("filling a power prior ELIR node leaves the caller's random numbers al
 
 
 test_that("the p-value based power prior rescales the interpolated unit ELIR", {
+  skip_on_cran()
   power_prior_elir_cache_reset()
   model <- p_value_power_prior_model()
   target_data <- speedup_target_data(speedup_samples(12, 18))

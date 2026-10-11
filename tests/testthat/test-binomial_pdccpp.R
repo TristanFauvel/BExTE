@@ -34,6 +34,7 @@ test_that("the power parameter rule is equation (9) of Nikolakopoulos et al.", {
 })
 
 test_that("the null table reproduces the analysis' decisions", {
+  skip_on_cran()
   withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
   table <- small_null_table()
   arm <- function(rate) seq.int(stats::qbinom(1e-10 / 4, 20, rate),
@@ -56,6 +57,7 @@ test_that("the null table reproduces the analysis' decisions", {
 })
 
 test_that("the calibration is the largest parameter within the desired type I error", {
+  skip_on_cran()
   withr::local_envvar(BEXTE_CACHE_DIR = withr::local_tempdir())
   table <- small_null_table()
   calibration <- pdccpp_binomial_calibrate(table, 0.065, pdccpp_source$estimate, pdccpp_source$se)
@@ -73,6 +75,7 @@ test_that("the calibration is the largest parameter within the desired type I er
 })
 
 test_that("the null table is read back from the cache", {
+  skip_on_cran()
   directory <- withr::local_tempdir()
   withr::local_envvar(BEXTE_CACHE_DIR = directory)
   first <- pdccpp_binomial_null_table(280L, 154L, 293L, 184L, 10L, 10L, control_rate = 0.55,
