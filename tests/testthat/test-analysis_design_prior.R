@@ -91,6 +91,42 @@ test_that("SourcePosteriorDesignPrior samples its binomial risk difference", {
   expect_equal(design_prior$cdf(1), 1, tolerance = 1e-6)
 })
 
+test_that("SourcePosteriorDesignPrior gives the binomial risk difference density and CDF", {
+  design_prior <- SourcePosteriorDesignPrior$new(
+    source_data = list(
+      summary_measure_likelihood = "binomial",
+      standard_error = 0.2,
+      treatment_effect_estimate = 0.2,
+      control_rate = 0.2,
+      treatment_rate = 0.4,
+      sample_size_control = 10,
+      sample_size_treatment = 10
+    ),
+    case_study_config = list(),
+    simulation_config = list()
+  )
+
+  # Control rate ~ Beta(3, 9) and treatment rate ~ Beta(5, 7), independent.
+  reference_pdf <- function(x) {
+    stats::integrate(
+      function(v) stats::dbeta(v, 3, 9) * stats::dbeta(v + x, 5, 7),
+      lower = max(0, -x), upper = min(1, 1 - x), rel.tol = 1e-12
+    )$value
+  }
+  reference_cdf <- function(x) {
+    stats::integrate(
+      function(v) stats::dbeta(v, 3, 9) * stats::pbeta(v + x, 5, 7),
+      lower = 0, upper = 1, rel.tol = 1e-12
+    )$value
+  }
+
+  x <- c(-0.5, -0.1, 0, 0.17, 0.4, 0.8)
+  expect_equal(design_prior$pdf(x), vapply(x, reference_pdf, numeric(1)), tolerance = 1e-8)
+  expect_equal(design_prior$cdf(x), vapply(x, reference_cdf, numeric(1)), tolerance = 1e-8)
+  expect_equal(design_prior$pdf(c(-1.5, 1.5)), c(0, 0))
+  expect_equal(design_prior$cdf(c(-1.5, 1.5)), c(0, 1))
+})
+
 
 test_that("UnitInformationDesignPrior carries one patient's worth of information", {
   # The binomial branch rescales the shape parameters of a Beta mixture fitted

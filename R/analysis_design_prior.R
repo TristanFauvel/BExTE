@@ -180,47 +180,6 @@ truncated_design_prior <- function(design_prior, lower, upper) {
 }
 
 
-binomial_product_integral <- function(x,
-                                      alpha_control,
-                                      beta_control,
-                                      alpha_treatment,
-                                      beta_treatment) {
-  epsilon <- 1e-8
-  lower_limit <- max(epsilon, -x + epsilon)
-  upper_limit <- min(1 - epsilon, 1 - x - epsilon)
-
-  # Handle cases where lower_limit > upper_limit
-  if (lower_limit >= upper_limit) {
-    return(0)
-  }
-
-  # Perform integration with error handling
-  result <- tryCatch({
-    integrate(
-      function(y) {
-        # Ensure y is within [0, 1] to avoid non-finite values
-        valid_range <- (y >= 0) &
-          (y <= 1) & ((y + x) >= 0) & ((y + x) <= 1)
-        # Return 0 for out-of-bound values
-        ifelse(
-          valid_range,
-          dbeta(y, alpha_control, beta_control) * dbeta(y + x, alpha_treatment, beta_treatment),
-          0
-        )
-      },
-      lower = lower_limit,
-      upper = upper_limit,
-      subdivisions = 1000,
-      rel.tol = .Machine$double.eps ^ 0.25
-    )$value
-  }, error = function(e) {
-    warning(paste("Integration failed at x =", x, ":", e$message))
-    futile.logger::flog.error(paste("Integration failed at x =", x, ":", e$message))
-    return(NA)
-  })
-  return(result)
-}
-
 #' @title UnitInformationDesignPrior class
 #' @description A class representing the unit information design prior for Bayesian borrowing.
 #' @field parameters Parameters for the prior
@@ -477,7 +436,14 @@ SourcePosteriorDesignPrior <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         return(pnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
-        return(integrate(self$pdf, lower = -1, upper = x)$value)
+        shape1 <- 1 + self$n_successes_treatment
+        shape2 <- 1 + self$n_treatment - self$n_successes_treatment
+        return(beta_difference_expectation(
+          x,
+          shape1 = 1 + self$n_successes_control,
+          shape2 = 1 + self$n_control - self$n_successes_control,
+          treatment_function = function(rate) stats::pbeta(rate, shape1, shape2)
+        ))
       } else {
         stop("Not implemented for other distributions.")
       }
@@ -513,16 +479,14 @@ SourcePosteriorDesignPrior <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         return(dnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
-        # PDF for each arm
-        return(sapply(x, function(x) {
-          binomial_product_integral(
-            x,
-            alpha_control = 1 + self$n_successes_control,
-            beta_control = 1 + self$n_control - self$n_successes_control,
-            alpha_treatment = 1 + self$n_successes_treatment,
-            beta_treatment = 1 + self$n_treatment - self$n_successes_treatment
-          )
-        }))
+        shape1 <- 1 + self$n_successes_treatment
+        shape2 <- 1 + self$n_treatment - self$n_successes_treatment
+        return(beta_difference_expectation(
+          x,
+          shape1 = 1 + self$n_successes_control,
+          shape2 = 1 + self$n_control - self$n_successes_control,
+          treatment_function = function(rate) stats::dbeta(rate, shape1, shape2)
+        ))
       } else {
         stop("Not implemented for other distributions.")
       }
