@@ -27,6 +27,8 @@
 # test compares the two paths on exactly the same case study.
 
 test_that("the commensurate fast path agrees with the Stan fit it replaces", {
+  skip_on_cran()
+  skip_if_not_installed("cmdstanr")
   skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"
@@ -136,6 +138,8 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
 
 
 test_that("both paths report a tau moment that does not exist as infinite", {
+  skip_on_cran()
+  skip_if_not_installed("cmdstanr")
   skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"

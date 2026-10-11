@@ -33,3 +33,15 @@ posterior component has variance \eqn{1/(1/s_k^2 + 1/se_i^2)}, mean
 \eqn{v_{ik}(\mu_k/s_k^2 + m_i/se_i^2)} and weight proportional to
 \eqn{w_k \, N(m_i; \mu_k, s_k^2 + se_i^2)}.
 }
+\examples{
+# A two-component prior shared by three replicates.
+posterior <- normal_mixture_posterior(
+  weights = c(0.5, 0.5),
+  means = c(0.48, 0),
+  sds = c(0.12, 1.2),
+  estimate = c(0.1, 0.37, 0.9),
+  standard_error = 0.42
+)
+posterior$weights
+posterior$means
+}

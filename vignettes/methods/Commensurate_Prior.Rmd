@@ -32,7 +32,12 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 library(BExTE)
 library(ggplot2)
-library(cmdstanr)
+# The Stan sections run only where 'cmdstanr', 'CmdStan' and 'bayesplot' are
+# installed. The rest of the article needs none of them.
+has_stan <- requireNamespace("cmdstanr", quietly = TRUE) &&
+  !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error") &&
+  requireNamespace("bayesplot", quietly = TRUE) &&
+  requireNamespace("posterior", quietly = TRUE)
 ```
 
 ## Mathematical description of the model
@@ -79,10 +84,11 @@ $$
 Because the posterior is an ordinary conjugate update of a normal mixture over
 $\tau$, the simulation does not fit this model with Stan for every replicate:
 `vectorised_replicate_inference()` discretises $p(\tau)$ on a quadrature rule
-and updates the whole mixture at once. The Stan program below remains the
-reference implementation, and is what `inference()` uses for a single data set.
+and updates the whole mixture at once. `inference()` uses the same
+quadrature for a single data set. The Stan program below remains as a
+reference implementation.
 
-## Implementation of the model in Stan
+## Data and model
 
 ```{r}
 case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
@@ -116,73 +122,116 @@ model <- model$create(
   source_data = source_data,
   mcmc_config = mcmc_config
 )
-
-print(model$stan_model_code)
 ```
 
-```{r, results='hide'}
+## Posterior by quadrature
+
+By default, `inference()` integrates over the borrowing parameters by
+quadrature. It needs no C++ toolchain and no 'CmdStan'.
+
+```{r}
 model$inference(target_data)
+model$posterior_parameters
+model$credible_interval(level = 0.95)
+```
+
+```{r}
+treatment_effect <- seq(-0.5, 1.5, length.out = 400)
+ggplot(
+  data.frame(
+    treatment_effect = treatment_effect,
+    density = model$posterior_pdf(treatment_effect)
+  ),
+  aes(treatment_effect, density)
+) +
+  geom_line() +
+  labs(x = "Target treatment effect", y = "Posterior density")
+```
+
+## Reference implementation in Stan
+
+Set `engine: stan` in the MCMC configuration to sample the same posterior with
+Stan. This needs 'cmdstanr' and 'CmdStan', so the chunks below run only where
+they are installed.
+
+```{r, eval = has_stan}
+stan_config <- mcmc_config
+stan_config$engine <- "stan"
+
+stan_model <- Model$new()$create(
+  case_study_config = case_study_config,
+  method = "commensurate_prior",
+  method_parameters = method_parameters,
+  source_data = source_data,
+  mcmc_config = stan_config
+)
+
+print(stan_model$stan_model_code)
+```
+
+```{r, results='hide', eval = has_stan}
+stan_model$inference(target_data)
 ```
 
 In the inference method, the data are prepared for use with Stan using the same
 `prepare_data()` as the commensurate power prior - the two Stan programs share a
 data block:
-```{r} 
-data <- model$prepare_data(target_data)
+```{r, eval = has_stan}
+data <- stan_model$prepare_data(target_data)
 ```
 Then, draws are sampled from the posterior following the configuration specified in mcmc_config.
 
-```{r}
-bayesplot::mcmc_hist(model$fit$draws("target_treatment_effect"), binwidth = 0.001)
+```{r, eval = has_stan}
+bayesplot::mcmc_hist(stan_model$fit$draws("target_treatment_effect"), binwidth = 0.001)
 ```
 
-```{r}
-posterior <- model$fit$draws("target_treatment_effect")
+```{r, eval = has_stan}
+posterior <- stan_model$fit$draws("target_treatment_effect")
 bayesplot::color_scheme_set("blue")
 bayesplot::mcmc_dens(posterior, pars = c("target_treatment_effect"))
 ```
 
 Posterior distribution of the heterogeneity parameter. There is no power
 parameter to plot alongside it:
-```{r}
-posterior <- model$fit$draws("tau")
+```{r, eval = has_stan}
+posterior <- stan_model$fit$draws("tau")
 bayesplot::color_scheme_set("blue")
 bayesplot::mcmc_dens(posterior, pars = c("tau"))
 ```
 
-```{r}
+```{r, eval = has_stan}
 library(posterior)
-draws_array <- as_draws_array(model$fit)
+draws_array <- as_draws_array(stan_model$fit)
 ```
 
-```{r}
+```{r, eval = has_stan}
 library(bayesplot)
 mcmc_trace(draws_array, pars = c("tau", "target_treatment_effect"))
 ```
 
-```{r}
+```{r, eval = has_stan}
 mcmc_acf(draws_array, pars = c("tau", "target_treatment_effect"))
 ```
 
-```{r}
-mcmc_diagnostics <- model$fit$diagnostic_summary()
+```{r, eval = has_stan}
+mcmc_diagnostics <- stan_model$fit$diagnostic_summary()
 
-n_draws <- mcmc_config$chain_length * mcmc_config$num_chains
+n_draws <- stan_config$chain_length * stan_config$num_chains
 
 # MCMC Effective Sample Size
-mcmc_ess <- bayesplot::neff_ratio(model$fit) * n_draws
+mcmc_ess <- bayesplot::neff_ratio(stan_model$fit) * n_draws
 
 mcmc_ess <- mcmc_ess[["target_treatment_effect"]]
 print(mcmc_ess)
 ```
 
-```{r}
-rhat_values <- bayesplot::rhat(model$fit)
+```{r, eval = has_stan}
+rhat_values <- bayesplot::rhat(stan_model$fit)
 rhat <- rhat_values["target_treatment_effect"]
 print(rhat)
 ```
 
-```{r}
+```{r, eval = has_stan}
 # number of divergences reported is the sum of the per chain values
 n_divergences <- sum(mcmc_diagnostics$num_divergent)
 print(n_divergences)

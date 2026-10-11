@@ -6,6 +6,13 @@
 \description{
 This class represents the observed source data used for Bayesian borrowing in clinical studies.
 }
+\examples{
+config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+observed <- ObservedSourceData$new(config)
+observed$treatment_effect_estimate
+str(observed$to_dict())
+
+}
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
   \describe{

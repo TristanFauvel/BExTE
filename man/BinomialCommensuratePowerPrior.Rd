@@ -10,6 +10,35 @@ study instead of a normal approximation of the risk difference; see the
 comment at the top of \code{R/binomial_commensurate.R} for the model. The
 posterior is computed on the lattice of \link{BinomialLatticePrior}.
 }
+\examples{
+# Source trial: 154/280 responders on control, 184/293 on treatment.
+source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+                     control_rate = 154 / 280, treatment_rate = 184 / 293,
+                     treatment_effect_estimate = 184 / 293 - 154 / 280,
+                     standard_error = 0.041)
+prior <- list(source = source_trial, method_parameters = list(
+  initial_prior = list("noninformative"),
+  heterogeneity_prior = list(family = "half_normal", std_dev = 1)
+))
+mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+                    target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+                    rhat_threshold = 1.1, max_divergence_rate = 0.01,
+                    engine = "quadrature")
+# Target trial: 39/71 responders on control, 45/71 on treatment.
+target <- list(sample_size_control = 71, sample_size_treatment = 71,
+               sample = data.frame(sample_control_rate = 39 / 71,
+                                   sample_treatment_rate = 45 / 71))
+cache <- file.path(tempdir(), "bexte-cache")
+model <- BinomialCommensuratePowerPrior$new(prior = prior, mcmc_config = mcmc_config)
+model$prior <- prior
+# A coarse lattice keeps the example fast.
+model$n_lattice <- 100L
+model$n_tau_nodes <- 12L
+withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$inference(target))
+model$post_mean
+model$posterior_parameters
+unlink(cache, recursive = TRUE)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:BinomialLatticePrior]{BinomialLatticePrior}} -> \code{BinomialCommensuratePowerPrior}
 }

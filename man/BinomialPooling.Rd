@@ -9,6 +9,22 @@ them with a uniform prior on each arm response rate. The posterior is
 available in closed form, so it inherits from the \code{BinomialConjugate} class
 rather than sampling.
 }
+\examples{
+prior <- list(
+  source = list(
+    sample_size_control = 562, sample_size_treatment = 563,
+    control_rate = 218 / 562, treatment_rate = 285 / 563
+  ),
+  method_parameters = list(initial_prior = "noninformative")
+)
+target_data <- list(
+  sample_size_control = 39, sample_size_treatment = 53,
+  sample = list(sample_control_rate = 17 / 39, sample_treatment_rate = 28 / 53)
+)
+model <- BinomialPooling$new(prior = prior)
+model$inference(target_data)
+model$credible_interval(level = 0.95)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:BinomialConjugate]{BinomialConjugate}} -> \code{BinomialPooling}
 }

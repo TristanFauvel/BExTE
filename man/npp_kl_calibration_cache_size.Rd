@@ -12,3 +12,11 @@ The number of distinct calibrations stored.
 \description{
 Number of calibrations held in the cache
 }
+\examples{
+calibration <- calibrate_npp_kl(
+  theta_source = 0.48, se_source = 0.12, se_target_expected = 0.42
+)
+npp_kl_calibration_cache_size()
+npp_kl_calibration_cache_reset()
+npp_kl_calibration_cache_size()
+}

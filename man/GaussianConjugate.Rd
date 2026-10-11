@@ -6,6 +6,26 @@
 \description{
 This class represents a conjugate Gaussian model (Gaussian prior and Gaussian likelihood)
 }
+\examples{
+case_study_config <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(case_study_config)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = case_study_config$target$treatment_effect,
+  treatment_effect_standard_error = case_study_config$target$standard_error,
+  target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+  summary_measure_likelihood = case_study_config$summary_measure_likelihood
+)
+prior <- list(
+  source = as.list(source_data),
+  method_parameters = list(initial_prior = "noninformative")
+)
+model <- GaussianConjugate$new(prior = prior)
+c(prior_mean = model$prior_mean, prior_sd = sqrt(model$prior_var))
+model$prior_pdf(c(0, 0.5, 1))
+model$sample_prior(5)
+}
 \section{Super class}{
 \code{\link[BExTE:Model]{Model}} -> \code{GaussianConjugate}
 }

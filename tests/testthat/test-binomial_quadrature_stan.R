@@ -11,6 +11,8 @@
 # skipped wherever CmdStan is unavailable, as it is in CI.
 
 skip_without_cmdstan <- function() {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("cmdstanr")
   testthat::skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"
@@ -99,6 +101,7 @@ expect_quadrature_matches_stan <- function(stan_model, quadrature_model, target_
 
 
 test_that("the conditional power prior quadrature agrees with Stan", {
+  skip_on_cran()
   skip_without_cmdstan()
 
   for (gamma in c(0.5, 1)) {

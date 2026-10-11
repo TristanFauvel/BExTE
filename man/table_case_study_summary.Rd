@@ -19,3 +19,17 @@ The path of the written \code{.tex} file.
 \description{
 Summary of the clinical case studies (table S3)
 }
+\examples{
+\donttest{
+# The table is compiled with LaTeX and cropped with pdfcrop.
+if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+  tables_dir <- file.path(tempdir(), "bexte-tables")
+  table_case_study_summary(
+    case_studies = c("botox", "belimumab"),
+    case_studies_config_dir = system.file("conf/case_studies", package = "BExTE"),
+    tables_dir = tables_dir
+  )
+  unlink(tables_dir, recursive = TRUE)
+}
+}
+}

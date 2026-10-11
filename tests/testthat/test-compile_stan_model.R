@@ -66,11 +66,18 @@ recording_cmdstan_model <- function(calls) {
   }
 }
 
+# Mocking a cmdstanr binding needs the package itself, but not CmdStan, so the
+# availability check is stubbed out too.
 compile_with_recording <- function(calls, directory, code = "parameters { real x; }") {
+  testthat::skip_if_not_installed("cmdstanr")
   testthat::with_mocked_bindings(
-    compile_stan_model("a_model", code, stan_directory = directory),
-    cmdstan_model = recording_cmdstan_model(calls),
-    .package = "cmdstanr"
+    testthat::with_mocked_bindings(
+      compile_stan_model("a_model", code, stan_directory = directory),
+      cmdstan_model = recording_cmdstan_model(calls),
+      .package = "cmdstanr"
+    ),
+    check_stan_available = function() invisible(TRUE),
+    .package = "BExTE"
   )
 }
 
@@ -142,6 +149,7 @@ test_that("compile_stan_model caches the model outside the package library", {
 
 test_that("processes compiling the same new model at once all get a working one", {
   skip_on_cran()
+  skip_if_not_installed("cmdstanr")
   skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"
@@ -200,4 +208,10 @@ test_that("clear_stan_model_cache copes with a cache that does not exist yet", {
   absent <- file.path(withr::local_tempdir(), "never-created")
 
   expect_length(clear_stan_model_cache(absent), 0)
+})
+
+
+test_that("the Stan engine explains how to proceed without cmdstanr", {
+  expect_error(check_stan_available(has_cmdstanr = FALSE), "'cmdstanr'")
+  expect_error(check_stan_available(has_cmdstanr = FALSE), "engine: quadrature")
 })

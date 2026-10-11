@@ -1,15 +1,17 @@
 ## One-shot setup for BExTE.
 ##
-##   Rscript install.R
+##   Rscript install.R              # BExTE and its R dependencies
+##   Rscript install.R --with-stan  # also cmdstanr and CmdStan
 ##
 ## Run it either from a directory holding a release tarball
-## (BExTE_<version>.tar.gz) or from a source checkout. It installs BExTE's R
-## dependencies, BExTE itself, and CmdStan.
+## (BExTE_<version>.tar.gz) or from a source checkout.
 ##
-## CmdStan is the part that hand-rolled installs usually miss: cmdstanr is only
-## the R interface, and the Stan models are compiled to native binaries at run
-## time, so a C++ toolchain and a CmdStan installation both have to be present
-## before any MCMC method will run.
+## BExTE runs without Stan: every method computes its posterior by quadrature
+## or in closed form. Stan is an optional reference engine (`engine: stan` in
+## the MCMC configuration). It needs cmdstanr, which is only the R interface,
+## and a CmdStan installation, which needs a C++ toolchain.
+
+with_stan <- "--with-stan" %in% commandArgs(trailingOnly = TRUE)
 
 if (getRversion() < "4.0.0") {
   stop("BExTE needs R 4.0.0 or later; this is ", getRversion(), ".")
@@ -19,7 +21,7 @@ if (getRversion() < "4.0.0") {
 ## consistently honoured by the resolvers, so set the repository explicitly.
 options(repos = c(
   CRAN = "https://cloud.r-project.org",
-  stan = "https://stan-dev.r-universe.dev"
+  if (with_stan) c(stan = "https://stan-dev.r-universe.dev")
 ))
 
 if (!requireNamespace("pak", quietly = TRUE)) {
@@ -42,19 +44,25 @@ if (length(tarballs) > 0) {
   )
 }
 
-## cmdstanr ships no CmdStan of its own, and install_cmdstan() compiles it, so
-## check the toolchain before spending the build on a failure.
-cmdstan_installed <- !is.null(tryCatch(
-  cmdstanr::cmdstan_path(),
-  error = function(e) NULL
-))
+if (with_stan) {
+  if (!requireNamespace("cmdstanr", quietly = TRUE)) {
+    pak::pkg_install("cmdstanr", ask = FALSE)
+  }
 
-if (cmdstan_installed) {
-  message("CmdStan already present at ", cmdstanr::cmdstan_path(), ".")
-} else {
-  message("Installing CmdStan (this compiles, and takes a few minutes) ...")
-  cmdstanr::check_cmdstan_toolchain(fix = TRUE)
-  cmdstanr::install_cmdstan()
+  ## cmdstanr ships no CmdStan of its own, and install_cmdstan() compiles it,
+  ## so check the toolchain before spending the build on a failure.
+  cmdstan_installed <- !is.null(tryCatch(
+    cmdstanr::cmdstan_path(),
+    error = function(e) NULL
+  ))
+
+  if (cmdstan_installed) {
+    message("CmdStan already present at ", cmdstanr::cmdstan_path(), ".")
+  } else {
+    message("Installing CmdStan (this compiles, and takes a few minutes) ...")
+    cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+    cmdstanr::install_cmdstan()
+  }
 }
 
 message(

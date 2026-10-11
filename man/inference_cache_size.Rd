@@ -12,3 +12,6 @@ The number of distinct analyses stored.
 \description{
 Number of analyses held in the cache
 }
+\examples{
+inference_cache_size()
+}

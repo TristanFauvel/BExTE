@@ -6,6 +6,28 @@
 \description{
 A class representing the design prior for Bayesian borrowing.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+simulation_config <- yaml::read_yaml(
+  system.file("conf/simulation_config.yml", package = "BExTE")
+)
+design_prior <- DesignPrior$new()$create(
+  design_prior_type = "source_posterior",
+  model = NULL,
+  source_data = source_data,
+  case_study_config = cfg,
+  simulation_config = simulation_config,
+  mcmc_config = NULL,
+  case_study = "belimumab"
+)
+class(design_prior)[1]
+design_prior$cdf(0)
+set.seed(1)
+design_prior$sample(3)
+}
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
   \describe{

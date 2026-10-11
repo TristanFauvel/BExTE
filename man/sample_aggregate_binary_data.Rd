@@ -19,3 +19,7 @@ A vector of sampled rates
 \description{
 This function samples aggregate binary data based on the rate and sample size.
 }
+\examples{
+set.seed(1)
+sample_aggregate_binary_data(rate = 0.3, n = 100, n_replicates = 5)
+}

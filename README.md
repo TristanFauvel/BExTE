@@ -2,7 +2,7 @@
 
 [![R Package Build](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml)
 [![pkgdown](https://github.com/TristanFauvel/BExTE/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BExTE/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](DESCRIPTION)
 [![R >= 3.5.0](https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg)](https://www.r-project.org/)
 
@@ -18,21 +18,13 @@ A collection of R tools to :
 <div class="col"><a href="news/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📝 Changelog</h5><p class="card-text small text-muted">What changed in each release.</p></div></a></div>
 </div>
 
-Copyright 2024 Quinten Health, under exclusive licence to the European Medicines Agency. Sharing and distribution are prohibited.
-
-- Core contributor: Tristan Fauvel
-- Contributors: Pascal Godbillot
-- Project management: Marie Génin
-- Leads: Julien Tanniou, Billy Amzal
-- Sponsors: European Medicines Agency, Quinten Health
 
 ## Quick start
 
 ### Installation
 
-BExTE needs R >= 4.0 and, for the MCMC-based methods, a C++ toolchain and a
-CmdStan installation - the Stan models are compiled to native binaries the
-first time they are used. `install.R` handles all three.
+BExTE needs R >= 4.0. It needs no C++ toolchain and no CmdStan: every method
+computes its posterior by quadrature or in closed form.
 
 Download `BExTE_0.0.2.tar.gz` and `install.R` from the latest release into the
 same directory, then run:
@@ -41,8 +33,7 @@ same directory, then run:
 Rscript install.R
 ```
 
-That installs the dependencies, BExTE itself, and CmdStan if it is missing.
-Load the package with:
+That installs the dependencies and BExTE itself. Load the package with:
 
 ```r
 library(BExTE)
@@ -51,18 +42,29 @@ library(BExTE)
 <details>
 <summary>Installing by hand</summary>
 
-`cmdstanr` is not on CRAN, so its repository has to be declared before the
-dependencies will resolve:
+```r
+install.packages("pak")
+pak::pkg_install("local::/path/to/BExTE_0.0.2.tar.gz")
+```
+
+</details>
+
+<details>
+<summary>Optional: Stan as a reference engine</summary>
+
+Two families of methods can also sample their posterior with Stan, as a check
+on the quadrature: the binomial conditional power priors and the Gaussian
+commensurate priors. To use it, set `engine: stan` in the MCMC configuration
+and install `cmdstanr` and CmdStan. `cmdstanr` is not on CRAN:
 
 ```r
-options(repos = c(
-  CRAN = "https://cloud.r-project.org",
-  stan = "https://stan-dev.r-universe.dev"
-))
-install.packages("/path/to/BExTE_0.0.2.tar.gz", repos = NULL, type = "source")
+install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev",
+                                        getOption("repos")))
 cmdstanr::check_cmdstan_toolchain(fix = TRUE)
 cmdstanr::install_cmdstan()
 ```
+
+Alternatively, run `Rscript install.R --with-stan`.
 
 </details>
 

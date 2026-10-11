@@ -7,6 +7,31 @@
 This class represents a Gaussian model using the NPP (Noninformative Power Prior) approach.
 It inherits from the Model class.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = cfg$target$treatment_effect,
+  treatment_effect_standard_error = cfg$target$standard_error,
+  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  summary_measure_likelihood = cfg$summary_measure_likelihood
+)
+model <- Model$new()$create(
+  case_study_config = cfg,
+  method = "NPP",
+  method_parameters = list(
+    initial_prior = "noninformative",
+    power_parameter_mean = 0.5,
+    power_parameter_std = sqrt(1 / 12)
+  ),
+  source_data = source_data
+)
+class(model)[1]
+model$inference(target_data)
+model$posterior_parameters
+}
 \section{Super class}{
 \code{\link[BExTE:Model]{Model}} -> \code{GaussianNPP}
 }

@@ -10,7 +10,7 @@ This class represents a model with separate Gaussian components, inheriting from
 NA
 }
 \section{Super classes}{
-\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:GaussianConjugate]{GaussianConjugate}} -> \code{GaussianStaticBorrowing} -> \code{GaussianSeparate}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:GaussianConjugate]{GaussianConjugate}} -> \code{\link[BExTE:GaussianStaticBorrowing]{GaussianStaticBorrowing}} -> \code{GaussianSeparate}
 }
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
@@ -62,8 +62,8 @@ NA
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="sample_prior"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-sample_prior'><code>GaussianConjugate$sample_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-vectorised_posterior_parameters'><code>GaussianConjugate$vectorised_posterior_parameters()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-vectorised_replicate_inference'><code>GaussianConjugate$vectorised_replicate_inference()</code></a></span></li>
-  <li><code>GaussianStaticBorrowing$summary_rows()</code></li>
-  <li><code>GaussianStaticBorrowing$vectorised_prior_variance()</code></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianStaticBorrowing" data-id="summary_rows"><a href='../../BExTE/html/GaussianStaticBorrowing.html#method-GaussianStaticBorrowing-summary_rows'><code>GaussianStaticBorrowing$summary_rows()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianStaticBorrowing" data-id="vectorised_prior_variance"><a href='../../BExTE/html/GaussianStaticBorrowing.html#method-GaussianStaticBorrowing-vectorised_prior_variance'><code>GaussianStaticBorrowing$vectorised_prior_variance()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

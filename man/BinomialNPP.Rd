@@ -12,6 +12,37 @@ in \link{GaussianNPP}, and is integrated out exactly rather than through a
 normal approximation of the likelihood. The posterior is computed on a
 lattice of response rates; see \code{\link[=binomial_npp_prior_kernels]{binomial_npp_prior_kernels()}}.
 }
+\examples{
+# Source trial: 154/280 responders on control, 184/293 on treatment.
+source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+                     control_rate = 154 / 280, treatment_rate = 184 / 293,
+                     treatment_effect_estimate = 184 / 293 - 154 / 280,
+                     standard_error = 0.041)
+prior <- list(source = source_trial, method_parameters = list(
+  initial_prior = list("noninformative"),
+  power_parameter_mean = list(0.5), power_parameter_std = list(0.2)
+))
+mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+                    target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+                    rhat_threshold = 1.1, max_divergence_rate = 0.01,
+                    engine = "quadrature")
+# Target trial: 39/71 responders on control, 45/71 on treatment.
+target <- list(sample_size_control = 71, sample_size_treatment = 71,
+               sample = data.frame(sample_control_rate = 39 / 71,
+                                   sample_treatment_rate = 45 / 71))
+cache <- file.path(tempdir(), "bexte-cache")
+model <- BinomialNPP$new(prior = prior, mcmc_config = mcmc_config)
+model$prior <- prior
+model$n_lattice <- 100L
+# Shapes of the Beta prior on the power parameter.
+c(model$p, model$q)
+\donttest{
+withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$inference(target))
+model$credible_interval(level = 0.95)
+model$posterior_parameters
+}
+unlink(cache, recursive = TRUE)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:BinomialLatticePrior]{BinomialLatticePrior}} -> \code{BinomialNPP}
 }

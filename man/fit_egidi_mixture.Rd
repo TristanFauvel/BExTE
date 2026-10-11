@@ -77,3 +77,14 @@ log scale.
 The robust mixture prior parameterises its mixture by the weight on the
 informative component, so \code{w_informative_prior} is \code{1 - psi_weak}.
 }
+\examples{
+fit <- fit_egidi_mixture(
+  theta_target_hat = -0.4,
+  se_target = 0.42,
+  informative_component = list(mean = 0.48, sd = 0.12),
+  weak_component = list(mean = 0, sd = 0.42 * sqrt(46))
+)
+fit$psi_weak
+fit$pvalue_selected
+fit$credible_interval
+}

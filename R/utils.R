@@ -12,163 +12,163 @@ filter_to_parameter_combinations <- function(results_df, parameters_combinations
   merge(results_df, parameters_combinations)
 }
 
-frequentist_col_types <- cols(
-  method = col_character(),
-  parameters = col_character(),
-  target_sample_size_per_arm = col_double(),
-  drift = col_double(),
-  treatment_drift = col_double(),
-  control_drift = col_double(),
-  source_denominator = col_double(),
-  source_denominator_change_factor = col_double(),
-  case_study = col_character(),
-  parallelization = col_logical(),
-  sampling_approximation = col_logical(),
-  source_treatment_effect_estimate = col_double(),
-  target_treatment_effect = col_double(),
-  target_to_source_std_ratio = col_double(),
-  dropout_probability = col_double(),
-  event_time_distribution = col_character(),
-  treatment_delay = col_double(),
-  theta_0 = col_double(),
-  null_space = col_character(),
-  summary_measure_likelihood = col_character(),
-  target_standard_deviation = col_double(),
-  target_treatment_rate = col_double(),
-  target_control_rate = col_double(),
-  source_standard_error = col_double(),
-  source_sample_size_control = col_double(),
-  source_sample_size_treatment = col_double(),
-  equivalent_source_sample_size_per_arm = col_double(),
-  endpoint = col_character(),
-  source_control_rate = col_double(),
-  source_treatment_rate = col_double(),
-  rng_state = col_character(),
-  computation_time = col_double(),
-  success_proba = col_double(),
-  mcse_success_proba = col_double(),
-  conf_int_success_proba_lower = col_double(),
-  conf_int_success_proba_upper = col_double(),
-  coverage = col_double(),
-  conf_int_coverage_lower = col_double(),
-  conf_int_coverage_upper = col_double(),
-  mse = col_double(),
-  conf_int_mse_lower = col_double(),
-  conf_int_mse_upper = col_double(),
-  bias = col_double(),
-  conf_int_bias_lower = col_double(),
-  conf_int_bias_upper = col_double(),
-  posterior_mean = col_double(),
-  conf_int_posterior_mean_lower = col_double(),
-  conf_int_posterior_mean_upper = col_double(),
-  posterior_median = col_double(),
-  conf_int_posterior_median_lower = col_double(),
-  conf_int_posterior_median_upper = col_double(),
-  precision = col_double(),
-  conf_int_precision_lower = col_double(),
-  conf_int_precision_upper = col_double(),
-  interval_score = col_double(),
-  conf_int_interval_score_lower = col_double(),
-  conf_int_interval_score_upper = col_double(),
-  credible_interval_lower = col_double(),
-  credible_interval_upper = col_double(),
-  posterior_parameters = col_character(),
-  ess_moment = col_double(),
-  conf_int_ess_moment_lower = col_double(),
-  conf_int_ess_moment_upper = col_double(),
-  ess_precision = col_double(),
-  conf_int_ess_precision_lower = col_double(),
-  conf_int_ess_precision_upper = col_double(),
-  ess_elir = col_double(),
-  conf_int_ess_elir_lower = col_double(),
-  conf_int_ess_elir_upper = col_double(),
-  rhat = col_double(),
-  conf_int_rhat_lower = col_double(),
-  conf_int_rhat_upper = col_double(),
-  mcmc_ess = col_double(),
-  conf_int_mcmc_ess_lower = col_double(),
-  conf_int_mcmc_ess_upper = col_double(),
-  n_divergences = col_double(),
-  conf_int_n_divergences_lower = col_double(),
-  conf_int_n_divergences_upper = col_double(),
-  warning = col_logical(),
-  exact_ocs = col_logical(),
-  enumeration_omitted_mass = col_double(),
-  tie = col_double(),
-  mcse_tie = col_double(),
-  conf_int_tie_lower = col_double(),
-  conf_int_tie_upper = col_double(),
-  frequentist_power_at_equivalent_tie = col_double(),
-  frequentist_power_at_equivalent_tie_lower = col_double(),
-  frequentist_power_at_equivalent_tie_upper = col_double(),
-  frequentist_test = col_character(),
-  frequentist_reference_calibration = col_character(),
-  nominal_frequentist_power_separate = col_double(),
-  nominal_frequentist_power_separate_lower = col_double(),
-  nominal_frequentist_power_separate_upper = col_double(),
-  nominal_frequentist_power_pooling = col_double(),
-  nominal_frequentist_power_pooling_lower = col_double(),
-  nominal_frequentist_power_pooling_upper = col_double()
+frequentist_col_types <- readr::cols(
+  method = readr::col_character(),
+  parameters = readr::col_character(),
+  target_sample_size_per_arm = readr::col_double(),
+  drift = readr::col_double(),
+  treatment_drift = readr::col_double(),
+  control_drift = readr::col_double(),
+  source_denominator = readr::col_double(),
+  source_denominator_change_factor = readr::col_double(),
+  case_study = readr::col_character(),
+  parallelization = readr::col_logical(),
+  sampling_approximation = readr::col_logical(),
+  source_treatment_effect_estimate = readr::col_double(),
+  target_treatment_effect = readr::col_double(),
+  target_to_source_std_ratio = readr::col_double(),
+  dropout_probability = readr::col_double(),
+  event_time_distribution = readr::col_character(),
+  treatment_delay = readr::col_double(),
+  theta_0 = readr::col_double(),
+  null_space = readr::col_character(),
+  summary_measure_likelihood = readr::col_character(),
+  target_standard_deviation = readr::col_double(),
+  target_treatment_rate = readr::col_double(),
+  target_control_rate = readr::col_double(),
+  source_standard_error = readr::col_double(),
+  source_sample_size_control = readr::col_double(),
+  source_sample_size_treatment = readr::col_double(),
+  equivalent_source_sample_size_per_arm = readr::col_double(),
+  endpoint = readr::col_character(),
+  source_control_rate = readr::col_double(),
+  source_treatment_rate = readr::col_double(),
+  rng_state = readr::col_character(),
+  computation_time = readr::col_double(),
+  success_proba = readr::col_double(),
+  mcse_success_proba = readr::col_double(),
+  conf_int_success_proba_lower = readr::col_double(),
+  conf_int_success_proba_upper = readr::col_double(),
+  coverage = readr::col_double(),
+  conf_int_coverage_lower = readr::col_double(),
+  conf_int_coverage_upper = readr::col_double(),
+  mse = readr::col_double(),
+  conf_int_mse_lower = readr::col_double(),
+  conf_int_mse_upper = readr::col_double(),
+  bias = readr::col_double(),
+  conf_int_bias_lower = readr::col_double(),
+  conf_int_bias_upper = readr::col_double(),
+  posterior_mean = readr::col_double(),
+  conf_int_posterior_mean_lower = readr::col_double(),
+  conf_int_posterior_mean_upper = readr::col_double(),
+  posterior_median = readr::col_double(),
+  conf_int_posterior_median_lower = readr::col_double(),
+  conf_int_posterior_median_upper = readr::col_double(),
+  precision = readr::col_double(),
+  conf_int_precision_lower = readr::col_double(),
+  conf_int_precision_upper = readr::col_double(),
+  interval_score = readr::col_double(),
+  conf_int_interval_score_lower = readr::col_double(),
+  conf_int_interval_score_upper = readr::col_double(),
+  credible_interval_lower = readr::col_double(),
+  credible_interval_upper = readr::col_double(),
+  posterior_parameters = readr::col_character(),
+  ess_moment = readr::col_double(),
+  conf_int_ess_moment_lower = readr::col_double(),
+  conf_int_ess_moment_upper = readr::col_double(),
+  ess_precision = readr::col_double(),
+  conf_int_ess_precision_lower = readr::col_double(),
+  conf_int_ess_precision_upper = readr::col_double(),
+  ess_elir = readr::col_double(),
+  conf_int_ess_elir_lower = readr::col_double(),
+  conf_int_ess_elir_upper = readr::col_double(),
+  rhat = readr::col_double(),
+  conf_int_rhat_lower = readr::col_double(),
+  conf_int_rhat_upper = readr::col_double(),
+  mcmc_ess = readr::col_double(),
+  conf_int_mcmc_ess_lower = readr::col_double(),
+  conf_int_mcmc_ess_upper = readr::col_double(),
+  n_divergences = readr::col_double(),
+  conf_int_n_divergences_lower = readr::col_double(),
+  conf_int_n_divergences_upper = readr::col_double(),
+  warning = readr::col_logical(),
+  exact_ocs = readr::col_logical(),
+  enumeration_omitted_mass = readr::col_double(),
+  tie = readr::col_double(),
+  mcse_tie = readr::col_double(),
+  conf_int_tie_lower = readr::col_double(),
+  conf_int_tie_upper = readr::col_double(),
+  frequentist_power_at_equivalent_tie = readr::col_double(),
+  frequentist_power_at_equivalent_tie_lower = readr::col_double(),
+  frequentist_power_at_equivalent_tie_upper = readr::col_double(),
+  frequentist_test = readr::col_character(),
+  frequentist_reference_calibration = readr::col_character(),
+  nominal_frequentist_power_separate = readr::col_double(),
+  nominal_frequentist_power_separate_lower = readr::col_double(),
+  nominal_frequentist_power_separate_upper = readr::col_double(),
+  nominal_frequentist_power_pooling = readr::col_double(),
+  nominal_frequentist_power_pooling_lower = readr::col_double(),
+  nominal_frequentist_power_pooling_upper = readr::col_double()
 )
 
 
-bayesian_col_types <- cols(
-  case_study = col_character(),
-  method = col_character(),
-  target_sample_size_per_arm = col_double(),
-  parameters = col_character(),
-  source_denominator_change_factor = col_double(),
-  target_to_source_std_ratio = col_double(),
-  design_prior_type = col_character(),
-  prior_proba_success = col_double(),
-  prior_proba_no_benefit = col_double(),
-  prior_proba_benefit = col_double(),
-  prepost_proba_FP = col_double(),
-  prepost_proba_TP = col_double(),
-  average_tie = col_double(),
-  average_power = col_double(),
-  upper_bound_proba_FP = col_double(),
-  source_treatment_effect_estimate = col_double(),
-  source_standard_error = col_double(),
-  endpoint = col_character(),
-  summary_measure_likelihood = col_character(),
-  source_sample_size_control = col_double(),
-  source_sample_size_treatment = col_double(),
-  equivalent_source_sample_size_per_arm = col_double()
+bayesian_col_types <- readr::cols(
+  case_study = readr::col_character(),
+  method = readr::col_character(),
+  target_sample_size_per_arm = readr::col_double(),
+  parameters = readr::col_character(),
+  source_denominator_change_factor = readr::col_double(),
+  target_to_source_std_ratio = readr::col_double(),
+  design_prior_type = readr::col_character(),
+  prior_proba_success = readr::col_double(),
+  prior_proba_no_benefit = readr::col_double(),
+  prior_proba_benefit = readr::col_double(),
+  prepost_proba_FP = readr::col_double(),
+  prepost_proba_TP = readr::col_double(),
+  average_tie = readr::col_double(),
+  average_power = readr::col_double(),
+  upper_bound_proba_FP = readr::col_double(),
+  source_treatment_effect_estimate = readr::col_double(),
+  source_standard_error = readr::col_double(),
+  endpoint = readr::col_character(),
+  summary_measure_likelihood = readr::col_character(),
+  source_sample_size_control = readr::col_double(),
+  source_sample_size_treatment = readr::col_double(),
+  equivalent_source_sample_size_per_arm = readr::col_double()
 )
 
 
-sweet_spot_col_types <- cols(
-  method = col_character(),
-  parameters = col_character(),
-  target_sample_size_per_arm = col_double(),
-  control_drift = col_double(),
-  source_denominator = col_double(),
-  source_denominator_change_factor = col_double(),
-  case_study = col_character(),
-  parallelization = col_logical(),
-  sampling_approximation = col_logical(),
-  source_treatment_effect_estimate = col_double(),
-  target_to_source_std_ratio = col_double(),
-  dropout_probability = col_double(),
-  event_time_distribution = col_character(),
-  treatment_delay = col_double(),
-  theta_0 = col_double(),
-  null_space = col_character(),
-  summary_measure_likelihood = col_character(),
-  source_standard_error = col_double(),
-  source_sample_size_control = col_double(),
-  source_sample_size_treatment = col_double(),
-  equivalent_source_sample_size_per_arm = col_double(),
-  endpoint = col_character(),
-  source_control_rate = col_double(),
-  source_treatment_rate = col_double(),
-  sweet_spot_lower = col_double(),
-  sweet_spot_upper = col_double(),
-  sweet_spot_width = col_double(),
-  drift_range_upper = col_double(),
-  drift_range_lower = col_double(),
-  metric = col_character()
+sweet_spot_col_types <- readr::cols(
+  method = readr::col_character(),
+  parameters = readr::col_character(),
+  target_sample_size_per_arm = readr::col_double(),
+  control_drift = readr::col_double(),
+  source_denominator = readr::col_double(),
+  source_denominator_change_factor = readr::col_double(),
+  case_study = readr::col_character(),
+  parallelization = readr::col_logical(),
+  sampling_approximation = readr::col_logical(),
+  source_treatment_effect_estimate = readr::col_double(),
+  target_to_source_std_ratio = readr::col_double(),
+  dropout_probability = readr::col_double(),
+  event_time_distribution = readr::col_character(),
+  treatment_delay = readr::col_double(),
+  theta_0 = readr::col_double(),
+  null_space = readr::col_character(),
+  summary_measure_likelihood = readr::col_character(),
+  source_standard_error = readr::col_double(),
+  source_sample_size_control = readr::col_double(),
+  source_sample_size_treatment = readr::col_double(),
+  equivalent_source_sample_size_per_arm = readr::col_double(),
+  endpoint = readr::col_character(),
+  source_control_rate = readr::col_double(),
+  source_treatment_rate = readr::col_double(),
+  sweet_spot_lower = readr::col_double(),
+  sweet_spot_upper = readr::col_double(),
+  sweet_spot_width = readr::col_double(),
+  drift_range_upper = readr::col_double(),
+  drift_range_lower = readr::col_double(),
+  metric = readr::col_character()
 )
 
 
@@ -628,6 +628,20 @@ concatenate_simulation_results <- function(results_dir, ocs_filename) {
 #'
 #' @return A data frame with one row per metric, suitable for printing.
 #'
+#' @examples
+#' metrics <- c("success_proba", "coverage", "mse", "bias", "posterior_mean",
+#'              "posterior_median", "precision", "interval_score", "ess_moment",
+#'              "ess_precision", "ess_elir")
+#' output <- list()
+#' for (metric in metrics) {
+#'   output[[metric]] <- 0.5
+#'   output[[paste0("conf_int_", metric, "_lower")]] <- 0.45
+#'   output[[paste0("conf_int_", metric, "_upper")]] <- 0.55
+#' }
+#' output$credible_interval_lower <- -0.1
+#' output$credible_interval_upper <- 0.9
+#' format_simulation_output_table(output)
+#'
 #' @export
 format_simulation_output_table <- function(output) {
   # Extract the data
@@ -735,8 +749,13 @@ format_parameters_to_json <- function(json_parameters, escape = FALSE) {
 #' @return A data frame with one row per configuration field, suitable for
 #'   printing (used by the data-generation vignettes to describe a case study).
 #'
+#' @examples
+#' config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+#' format_case_study_config(config)
+#'
 #' @export
 format_case_study_config <- function(case_study_config) {
+  rlang::check_installed(c("knitr", "kableExtra"), reason = "to format tables.")
   if (case_study_config$endpoint == "continuous" ||
       case_study_config$endpoint == "recurrent_event") {
     data <- data.frame(
@@ -992,6 +1011,11 @@ stan_sampler_seed <- function() {
 #' backing another worker's fit. cmdstanr reads those files lazily, so give each
 #' process a directory of its own.
 #'
+#' The directories sit in the user cache directory, next to the compiled
+#' models: a package must not write into its own installation, and a
+#' per-process `tempdir()` would hide the workers' draws from the parent
+#' process that clears them.
+#'
 #' @param case_study Case study name.
 #' @param method Method name.
 #' @param process_id Identifier of the process writing the draws.
@@ -999,10 +1023,8 @@ stan_sampler_seed <- function() {
 #' @return Path of the directory, which is not created here.
 #' @noRd
 stan_draws_directory <- function(case_study, method, process_id = Sys.getpid()) {
-  # system.file() returns "" for a directory absent from the installed package,
-  # so build the path from the package root, which always exists.
   file.path(
-    system.file(package = "BExTE"),
+    tools::R_user_dir("BExTE", "cache"),
     "stan",
     "draws",
     paste0(tolower(case_study), "_", method, "_", process_id)
@@ -1022,6 +1044,14 @@ stan_draws_directory <- function(case_study, method, process_id = Sys.getpid()) 
 #' @param root Directory the per-process directories sit in.
 #'
 #' @return Paths of the directories that were removed, invisibly.
+#' @examples
+#' root <- file.path(tempdir(), "bexte-draws")
+#' dir.create(file.path(root, "belimumab_rmp_1234"), recursive = TRUE)
+#' dir.create(file.path(root, "belimumab_rmp_5678"))
+#' dir.create(file.path(root, "botox_rmp_1234"))
+#' clear_stan_draws("Belimumab", "rmp", root = root)
+#' list.files(root)
+#' unlink(root, recursive = TRUE)
 #' @export
 clear_stan_draws <- function(case_study,
                              method,
@@ -1067,6 +1097,13 @@ stan_model_directory <- function() {
 #' @param directory Directory holding the cached models.
 #'
 #' @return Paths of the files that were removed, invisibly.
+#' @examples
+#' directory <- file.path(tempdir(), "bexte-stan-cache")
+#' dir.create(directory)
+#' file.create(file.path(directory, c("model.stan", "model.exe")))
+#' clear_stan_model_cache(directory)
+#' list.files(directory)
+#' unlink(directory, recursive = TRUE)
 #' @export
 clear_stan_model_cache <- function(directory = stan_model_directory()) {
   cached <- list.files(directory, full.names = TRUE)
@@ -1074,8 +1111,48 @@ clear_stan_model_cache <- function(directory = stan_model_directory()) {
   invisible(cached)
 }
 
+#' Stop unless 'cmdstanr' and 'CmdStan' are installed
+#'
+#' 'cmdstanr' is only suggested, and 'CmdStan' needs a C++ toolchain, so
+#' neither may be present. Every model runs on quadrature by default; Stan is
+#' only needed when a configuration asks for `engine: stan`.
+#'
+#' @param has_cmdstanr Whether 'cmdstanr' is installed. An argument so that
+#'   tests can simulate its absence.
+#' @return `TRUE`, invisibly, when Stan can be used.
+#' @noRd
+check_stan_available <- function(
+    has_cmdstanr = requireNamespace("cmdstanr", quietly = TRUE)) {
+  if (!has_cmdstanr) {
+    stop(
+      "The Stan engine needs the 'cmdstanr' package, which is not installed. ",
+      "Install it from https://stan-dev.r-universe.dev, ",
+      "or set `engine: quadrature` in the MCMC configuration.",
+      call. = FALSE
+    )
+  }
+  cmdstan_found <- tryCatch(
+    {
+      cmdstanr::cmdstan_path()
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+  if (!cmdstan_found) {
+    stop(
+      "The Stan engine needs 'CmdStan', which was not found. ",
+      "Run cmdstanr::install_cmdstan(), ",
+      "or set `engine: quadrature` in the MCMC configuration.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
 compile_stan_model <- function(model_name, stan_model_code,
                                stan_directory = stan_model_directory()) {
+  check_stan_available()
+
   stan_model_file_path <- file.path(stan_directory, paste0(model_name, ".stan"))
   stan_exe_file_path <- file.path(stan_directory, paste0(model_name, ".exe"))
 
@@ -1331,6 +1408,9 @@ save_state <- function(iteration, scenario, worker_id = NULL, env) {
 #'
 #' @return `NULL`, invisibly; prints the function's source code as a side effect.
 #'
+#' @examples
+#' read_function_code(interval_score)
+#'
 #' @export
 read_function_code <- function(function_obj){
   function_name <- substitute(function_obj)
@@ -1367,6 +1447,12 @@ compare_ignore_na <- function(row, ref_row) {
 #' @return A summary data frame with one row per variable.
 #' @noRd
 summarise_posterior_draws <- function(draws) {
+  rlang::check_installed("posterior", reason = "to summarise MCMC draws.")
+  if (!requireNamespace("posterior", quietly = TRUE)) {
+    stop("Summarising Stan draws needs the 'posterior' package. ",
+         "Install it, or set `engine: quadrature` in the MCMC configuration.",
+         call. = FALSE)
+  }
   posterior::summarise_draws(
     draws,
     posterior::default_summary_measures(),

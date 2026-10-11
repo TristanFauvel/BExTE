@@ -15,3 +15,10 @@ An R dataframe with parsed parameters.
 \description{
 This function returns, for a dataframe containing parameters (in json strings) for a given method, an R dataframe.
 }
+\examples{
+parameters_df <- data.frame(parameters = c(
+  "{'prior_weight': 0.5, 'initial_prior': 'noninformative'}",
+  "{'prior_weight': 1, 'initial_prior': 'noninformative'}"
+))
+get_parameters(parameters_df)
+}

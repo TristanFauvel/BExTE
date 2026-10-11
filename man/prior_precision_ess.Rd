@@ -18,3 +18,14 @@ The prior precision-based ESS for the Bayesian model.
 This function calculates the prior precision-based ESS for a Bayesian model using the RBesT package.
 It takes a RBesT model object and target data as input and returns the prior precision-based ESS.
 }
+\examples{
+prior <- RBesT::mixnorm(
+  informative = c(0.5, 0.48, 0.12),
+  vague = c(0.5, 0, 1.2),
+  sigma = 2
+)
+target_data <- list(summary_measure_likelihood = "normal", sample_size_per_arm = 46)
+# The function takes the posterior after the target study is observed.
+posterior <- RBesT::postmix(prior, m = 0.37, se = 0.42)
+prior_precision_ess(posterior, target_data)
+}

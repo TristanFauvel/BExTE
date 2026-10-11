@@ -26,4 +26,13 @@ A list containing the log odds ratio, treatment rate, control rate, and standard
 \description{
 This function computes odds ratios based on the number of participants and responders in the control and treatment arms.
 }
+\examples{
+compute_ORs(
+  n_control = 100,
+  n_treatment = 100,
+  n_control_responders = 40,
+  n_treatment_responders = 55
+)
+
+}
 \keyword{internal}

@@ -44,3 +44,18 @@ effect - and hence the drift, the bias and the null hypothesis - of the
 proportional-hazards scenario it replaces. Under no effect beta is 0 and
 the two arms coincide.
 }
+\examples{
+# Hazard ratio after a 6-month delay that keeps a Cox estimand of log(0.675)
+time_to_event_delayed_log_hr(
+  log_hr = log(0.675),
+  control_parameter = 0.534,
+  event_time_distribution = "exponential",
+  weibull_shape = NULL,
+  delay = 0.5,
+  accrual_period = 3.41,
+  final_follow_up = 0.923,
+  max_follow_up_time = 1.846,
+  dropout_rate = 0
+)
+
+}

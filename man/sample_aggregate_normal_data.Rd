@@ -25,3 +25,12 @@ values themselves.
 \description{
 This function samples aggregate normal data based on the mean and variance.
 }
+\examples{
+set.seed(1)
+sample_aggregate_normal_data(
+  mean = 0.2,
+  variance = 1,
+  n_replicates = 5,
+  n_samples_per_arm = 50
+)
+}

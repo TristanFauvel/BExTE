@@ -12,6 +12,8 @@
 # wherever CmdStan is unavailable, as it is in CI.
 
 test_that("the commensurate prior fast path agrees with the Stan fit", {
+  skip_on_cran()
+  skip_if_not_installed("cmdstanr")
   skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"
@@ -120,6 +122,8 @@ test_that("the commensurate prior fast path agrees with the Stan fit", {
 
 
 test_that("the Stan fit borrows more than the power prior's does", {
+  skip_on_cran()
+  skip_if_not_installed("cmdstanr")
   skip_if_not(
     !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error"),
     "CmdStan is not installed"

@@ -43,3 +43,39 @@ None
 \description{
 Run simulations based on the given environment
 }
+\examples{
+\donttest{
+conf <- system.file("conf", package = "BExTE")
+simulation_config <- yaml::read_yaml(file.path(conf, "simulation_config.yml"))
+analysis_config <- yaml::read_yaml(file.path(conf, "analysis_config.yml"))
+metrics <- new.env()
+sys.source(file.path(conf, "metrics_config.R"), envir = metrics)
+# One case study, one method, two drift values and ten replicates, on one core.
+scenarios_config <- list(
+  n_replicates = 10, ndrift = 2, parallelization = FALSE,
+  denominator_change_factor = 1, sample_size_factors = 2,
+  target_to_source_std_ratio_range = 1,
+  case_studies = "botox", methods = "separate"
+)
+# The results go to ./results/<env>/, so run from a temporary directory.
+work_dir <- file.path(tempdir(), "bexte-example")
+dir.create(work_dir, showWarnings = FALSE)
+old_wd <- setwd(work_dir)
+old_options <- options(error = NULL)
+simulation_frequentist_ocs(
+  env = "example",
+  simulation_config = simulation_config,
+  scenarios_config = scenarios_config,
+  analysis_config = analysis_config,
+  config_dir = file.path(conf, "full", ""),
+  case_studies_config_dir = file.path(conf, "case_studies", ""),
+  logging_file_path = NULL,
+  frequentist_metrics = metrics$frequentist_metrics,
+  inference_metrics = metrics$inference_metrics
+)
+list.files("results/example", recursive = TRUE)
+options(old_options)
+setwd(old_wd)
+unlink(work_dir, recursive = TRUE)
+}
+}

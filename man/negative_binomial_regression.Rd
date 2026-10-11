@@ -16,3 +16,8 @@ A list containing the rate estimate, standard error of the rate estimate, and st
 This function estimates the rate parameter of an intercept-only
 negative binomial model and its standard error.
 }
+\examples{
+set.seed(1)
+counts <- stats::rnbinom(100, size = 0.8, mu = 1.7)
+negative_binomial_regression(counts)
+}

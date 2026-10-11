@@ -6,6 +6,21 @@
 \description{
 A base class for target data objects.
 }
+\examples{
+config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+source_data <- SourceData$new(config)
+# TargetData is the base class; use a subclass such as
+# ContinuousTargetData to generate data.
+target_data <- TargetData$new(
+  source_data = source_data,
+  sampling_approximation = FALSE,
+  target_sample_size_per_arm = 50,
+  treatment_drift = 0.1,
+  summary_measure_likelihood = "normal"
+)
+target_data$drift
+target_data$treatment_effect
+}
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
   \describe{

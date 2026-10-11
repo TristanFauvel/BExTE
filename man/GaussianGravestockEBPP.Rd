@@ -9,8 +9,30 @@ R6Class object.
 \description{
 This class inherits from GaussianEmpiricalBayesPP and implements the Gravestock's EBPP method.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = cfg$target$treatment_effect,
+  treatment_effect_standard_error = cfg$target$standard_error,
+  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  summary_measure_likelihood = cfg$summary_measure_likelihood
+)
+model <- Model$new()$create(
+  case_study_config = cfg,
+  method = "EB_PP",
+  method_parameters = list(initial_prior = "noninformative"),
+  source_data = source_data
+)
+class(model)[1]
+model$inference(target_data)
+model$posterior_parameters$power_parameter
+model$credible_interval(0.95)
+}
 \section{Super classes}{
-\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:GaussianConjugate]{GaussianConjugate}} -> \code{GaussianStaticBorrowing} -> \code{GaussianEmpiricalBayesPP} -> \code{GaussianGravestockEBPP}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:GaussianConjugate]{GaussianConjugate}} -> \code{\link[BExTE:GaussianStaticBorrowing]{GaussianStaticBorrowing}} -> \code{\link[BExTE:GaussianEmpiricalBayesPP]{GaussianEmpiricalBayesPP}} -> \code{GaussianGravestockEBPP}
 }
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
@@ -60,13 +82,13 @@ This class inherits from GaussianEmpiricalBayesPP and implements the Gravestock'
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="sample_posterior"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-sample_posterior'><code>GaussianConjugate$sample_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="sample_prior"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-sample_prior'><code>GaussianConjugate$sample_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-vectorised_replicate_inference'><code>GaussianConjugate$vectorised_replicate_inference()</code></a></span></li>
-  <li><code>GaussianStaticBorrowing$summary_rows()</code></li>
-  <li><code>GaussianEmpiricalBayesPP$empirical_bayes_update()</code></li>
-  <li><code>GaussianEmpiricalBayesPP$inference()</code></li>
-  <li><code>GaussianEmpiricalBayesPP$plot_power_parameter_vs_drift()</code></li>
-  <li><code>GaussianEmpiricalBayesPP$prior_pdf()</code></li>
-  <li><code>GaussianEmpiricalBayesPP$vectorised_posterior_parameters()</code></li>
-  <li><code>GaussianEmpiricalBayesPP$vectorised_prior_variance()</code></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianStaticBorrowing" data-id="summary_rows"><a href='../../BExTE/html/GaussianStaticBorrowing.html#method-GaussianStaticBorrowing-summary_rows'><code>GaussianStaticBorrowing$summary_rows()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="empirical_bayes_update"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-empirical_bayes_update'><code>GaussianEmpiricalBayesPP$empirical_bayes_update()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="inference"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-inference'><code>GaussianEmpiricalBayesPP$inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="plot_power_parameter_vs_drift"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-plot_power_parameter_vs_drift'><code>GaussianEmpiricalBayesPP$plot_power_parameter_vs_drift()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="prior_pdf"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-prior_pdf'><code>GaussianEmpiricalBayesPP$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-vectorised_posterior_parameters'><code>GaussianEmpiricalBayesPP$vectorised_posterior_parameters()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="vectorised_prior_variance"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-vectorised_prior_variance'><code>GaussianEmpiricalBayesPP$vectorised_prior_variance()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

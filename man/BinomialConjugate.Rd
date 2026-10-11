@@ -25,6 +25,26 @@ one-dimensional quadrature over the control rate - see
 \code{\link[=beta_difference_expectation]{beta_difference_expectation()}} - and inverted numerically for quantiles, so
 no Monte Carlo error enters the operating characteristics.
 }
+\examples{
+# BinomialConjugate is the base class of BinomialSeparate and BinomialPooling.
+prior <- list(
+  source = list(
+    sample_size_control = 562, sample_size_treatment = 563,
+    control_rate = 218 / 562, treatment_rate = 285 / 563
+  ),
+  method_parameters = list(initial_prior = "noninformative")
+)
+target_data <- list(
+  sample_size_control = 39, sample_size_treatment = 53,
+  sample = list(sample_control_rate = 17 / 39, sample_treatment_rate = 28 / 53)
+)
+model <- BinomialSeparate$new(prior = prior)
+inherits(model, "BinomialConjugate")
+model$inference(target_data)
+c(mean = model$post_mean, sd = sqrt(model$post_var))
+model$credible_interval(level = 0.95)
+model$posterior_cdf(0)
+}
 \section{Super class}{
 \code{\link[BExTE:Model]{Model}} -> \code{BinomialConjugate}
 }

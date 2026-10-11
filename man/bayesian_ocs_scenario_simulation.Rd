@@ -32,3 +32,29 @@ The results of the simulation.
 \description{
 This function simulates a scenario based on the provided inputs and returns the results of the simulation.
 }
+\examples{
+conf <- system.file("conf", package = "BExTE")
+config_dir <- file.path(conf, "full", "")
+case_studies_config_dir <- file.path(conf, "case_studies", "")
+simulation_config <- yaml::read_yaml(file.path(conf, "simulation_config.yml"))
+simulation_config$n_samples_design_prior <- 20
+# One scenario of the separate analysis of botox, with ten replicates.
+scenarios_config <- list(
+  n_replicates = 10, ndrift = 2, parallelization = FALSE,
+  denominator_change_factor = 1, sample_size_factors = 2,
+  target_to_source_std_ratio_range = 1,
+  case_studies = "botox", methods = "separate"
+)
+cases <- simulation_scenarios(config_dir, scenarios_config, case_studies_config_dir)
+bayes_filename <- tempfile(fileext = ".csv")
+result <- bayesian_ocs_scenario_simulation(
+  scenario = cases[1, ],
+  simulation_config = simulation_config,
+  scenarios_config = scenarios_config,
+  bayes_filename = bayes_filename,
+  config_dir = config_dir,
+  case_studies_config_dir = case_studies_config_dir
+)
+nrow(result)
+unlink(bayes_filename)
+}

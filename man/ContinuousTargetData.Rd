@@ -18,6 +18,22 @@ a normal likelihood whose variance is the replicate's squared standard
 error, plugged in as if it were exact, so the uncertainty in the variance
 estimate is ignored.
 }
+\examples{
+config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+source_data <- SourceData$new(config)
+target_data <- ContinuousTargetData$new(
+  source_data = source_data,
+  sampling_approximation = FALSE,
+  target_sample_size_per_arm = 50,
+  control_drift = 0,
+  treatment_drift = 0.1,
+  summary_measure_likelihood = "normal",
+  target_to_source_std_ratio = 1
+)
+str(target_data$to_dict())
+set.seed(1)
+target_data$generate(n_replicates = 3)
+}
 \section{Super class}{
 \code{\link[BExTE:TargetData]{TargetData}} -> \code{ContinuousTargetData}
 }

@@ -9,8 +9,31 @@ R6Class object.
 \description{
 This is a parent class for variants of empirical Bayes PP methods for normally distributed summary measure of the treatment effect.
 }
+\examples{
+# GaussianEmpiricalBayesPP is a parent class. Its subclasses, such as
+# GaussianGravestockEBPP, set the power parameter from the target data.
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = cfg$target$treatment_effect,
+  treatment_effect_standard_error = cfg$target$standard_error,
+  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  summary_measure_likelihood = cfg$summary_measure_likelihood
+)
+model <- Model$new()$create(
+  case_study_config = cfg,
+  method = "EB_PP",
+  method_parameters = list(initial_prior = "noninformative"),
+  source_data = source_data
+)
+inherits(model, "GaussianEmpiricalBayesPP")
+model$inference(target_data)
+model$posterior_parameters$power_parameter
+}
 \section{Super classes}{
-\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:GaussianConjugate]{GaussianConjugate}} -> \code{GaussianStaticBorrowing} -> \code{GaussianEmpiricalBayesPP}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:GaussianConjugate]{GaussianConjugate}} -> \code{\link[BExTE:GaussianStaticBorrowing]{GaussianStaticBorrowing}} -> \code{GaussianEmpiricalBayesPP}
 }
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
@@ -72,7 +95,7 @@ This is a parent class for variants of empirical Bayes PP methods for normally d
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="sample_posterior"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-sample_posterior'><code>GaussianConjugate$sample_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="sample_prior"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-sample_prior'><code>GaussianConjugate$sample_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianConjugate" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/GaussianConjugate.html#method-GaussianConjugate-vectorised_replicate_inference'><code>GaussianConjugate$vectorised_replicate_inference()</code></a></span></li>
-  <li><code>GaussianStaticBorrowing$summary_rows()</code></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianStaticBorrowing" data-id="summary_rows"><a href='../../BExTE/html/GaussianStaticBorrowing.html#method-GaussianStaticBorrowing-summary_rows'><code>GaussianStaticBorrowing$summary_rows()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

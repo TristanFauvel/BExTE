@@ -6,6 +6,21 @@
 \description{
 A factory class for creating different types of target data objects.
 }
+\examples{
+config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+source_data <- SourceData$new(config)
+factory <- TargetDataFactory$new()
+target_data <- factory$create(
+  source_data = source_data,
+  case_study_config = config,
+  target_sample_size_per_arm = 50,
+  treatment_drift = 0.1,
+  summary_measure_likelihood = config$summary_measure_likelihood
+)
+class(target_data)
+set.seed(1)
+target_data$generate(n_replicates = 3)
+}
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{

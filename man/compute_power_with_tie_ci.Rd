@@ -62,3 +62,31 @@ The reported bounds are quantiles of the resulting posterior for the power,
 not a frequentist confidence interval; they are stored under the existing
 \code{conf_int_power} name for continuity with the columns downstream.
 }
+\examples{
+config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
+source_data <- SourceData$new(config)
+target_data <- TargetDataFactory$new()$create(
+  source_data = source_data,
+  case_study_config = config,
+  target_sample_size_per_arm = 50,
+  treatment_drift = 0,
+  summary_measure_likelihood = "normal"
+)
+# A type I error of 0.03, estimated from 1000 replicates
+alpha <- list(
+  mean = 0.03,
+  conf_int_lower = 0.020,
+  conf_int_upper = 0.043,
+  n_replicates = 1000
+)
+set.seed(1)
+compute_power_with_tie_ci(
+  alpha = alpha,
+  target_data = target_data,
+  frequentist_test = "t-test",
+  theta_0 = config$theta_0,
+  null_space = config$null_space,
+  simulation_config = list(seed = 1)
+)
+
+}

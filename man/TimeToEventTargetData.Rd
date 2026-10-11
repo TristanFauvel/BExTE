@@ -13,6 +13,28 @@ uniformly over an accrual window, each may be followed for at most
 of recruitment. See \code{R/simulation_time_to_event.R} for the generator and the
 Cox fit.
 }
+\examples{
+config <- yaml::yaml.load_file(
+  system.file("conf/case_studies/teriflunomide.yml", package = "BExTE")
+)
+source_data <- SourceData$new(config)
+target_data <- TimeToEventTargetData$new(
+  source_data = source_data,
+  sampling_approximation = FALSE,
+  target_sample_size_per_arm = 83,
+  treatment_drift = 0,
+  summary_measure_likelihood = "normal",
+  max_follow_up_time = config$target$max_follow_up_time,
+  accrual_period = config$target$accrual_period,
+  final_follow_up = config$target$final_follow_up,
+  dropout_probability = 0.1
+)
+target_data$standard_deviation
+target_data$dropout_rate()
+set.seed(1)
+target_data$generate(n_replicates = 3)
+
+}
 \section{Super class}{
 \code{\link[BExTE:TargetData]{TargetData}} -> \code{TimeToEventTargetData}
 }

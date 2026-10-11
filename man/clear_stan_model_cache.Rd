@@ -18,3 +18,11 @@ The models are compiled on first use and cached in
 recompile them, which is what BExTEpaper's \code{scripts/main.R} does when its
 \code{delete_stan_files} switch is set.
 }
+\examples{
+directory <- file.path(tempdir(), "bexte-stan-cache")
+dir.create(directory)
+file.create(file.path(directory, c("model.stan", "model.exe")))
+clear_stan_model_cache(directory)
+list.files(directory)
+unlink(directory, recursive = TRUE)
+}

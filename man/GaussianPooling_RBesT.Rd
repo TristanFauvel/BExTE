@@ -6,6 +6,26 @@
 \description{
 An R6 class representing a pooled Gaussian model using RBesT.
 }
+\examples{
+case_study_config <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(case_study_config)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = case_study_config$target$treatment_effect,
+  treatment_effect_standard_error = case_study_config$target$standard_error,
+  target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+  summary_measure_likelihood = case_study_config$summary_measure_likelihood
+)
+prior <- list(
+  source = as.list(source_data),
+  method_parameters = list(initial_prior = "noninformative")
+)
+model <- GaussianPooling_RBesT$new(prior = prior)
+model$prior <- prior
+model$inference(target_data = target_data)
+model$credible_interval(level = 0.95)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:Model_RBesT]{Model_RBesT}} -> \code{GaussianPooling_RBesT}
 }

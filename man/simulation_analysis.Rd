@@ -55,3 +55,46 @@ This function performs a simulation analysis for a given environment using the s
 analysis configuration and configuration directory. It reads the output configuration,
 loads results, applies frequentist power analysis, and computes the sweet spot.
 }
+\examples{
+\donttest{
+conf <- system.file("conf", package = "BExTE")
+config_dir <- file.path(conf, "full", "")
+simulation_config <- yaml::read_yaml(file.path(conf, "simulation_config.yml"))
+analysis_config <- yaml::read_yaml(file.path(conf, "analysis_config.yml"))
+metrics <- new.env()
+sys.source(file.path(conf, "metrics_config.R"), envir = metrics)
+scenarios_config <- list(
+  n_replicates = 10, ndrift = 2, parallelization = FALSE,
+  denominator_change_factor = 1, sample_size_factors = 2,
+  target_to_source_std_ratio_range = 1,
+  case_studies = "botox", methods = "separate"
+)
+# Simulate a small environment in a temporary directory, then analyse it.
+work_dir <- file.path(tempdir(), "bexte-example")
+dir.create(work_dir, showWarnings = FALSE)
+old_wd <- setwd(work_dir)
+old_options <- options(error = NULL)
+simulation_frequentist_ocs(
+  env = "example", simulation_config = simulation_config,
+  scenarios_config = scenarios_config, analysis_config = analysis_config,
+  config_dir = config_dir,
+  case_studies_config_dir = file.path(conf, "case_studies", ""),
+  logging_file_path = NULL,
+  frequentist_metrics = metrics$frequentist_metrics,
+  inference_metrics = metrics$inference_metrics
+)
+file.copy("results/example/frequentist/botox/separate/results_frequentist.csv",
+          "results/example/results_frequentist.csv")
+simulation_analysis(
+  env = "example", analysis_config = analysis_config, config_dir = config_dir,
+  frequentist_metrics = metrics$frequentist_metrics,
+  to_compute = "sweet_spot",
+  case_studies_config_dir = file.path(conf, "case_studies", ""),
+  parallelization = FALSE, n_replicates = 10
+)
+list.files("results/example")
+options(old_options)
+setwd(old_wd)
+unlink(work_dir, recursive = TRUE)
+}
+}

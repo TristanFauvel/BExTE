@@ -41,3 +41,36 @@ None
 \description{
 This function plots a metric against the parameters for a given method, case study, and sample size.
 }
+\examples{
+## Globals that the plot functions read, as in inst/scripts/plots.R
+old_options <- options(); old_theme <- ggplot2::theme_get()
+for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+  source(system.file("conf", f, package = "BExTE"))
+source(system.file("conf/full/methods_config.R", package = "BExTE"))
+analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+figures_dir <- file.path(tempdir(), "bexte-figures", "")
+remake_figures <- TRUE
+## Synthetic Bayesian results: 3 methods, 3 design priors, 2 sample sizes
+rmp <- paste0("{'prior_weight': ", c(0, 0.5, 1),
+              ", 'initial_prior': 'noninformative', 'empirical_bayes': true}")
+bayes <- merge(
+  data.frame(method = c("separate", "pooling", rep("RMP", 3)),
+             parameters = c(rep("{'initial_prior': 'noninformative'}", 2), rmp)),
+  expand.grid(design_prior_type = c("analysis_prior", "source_posterior", "ui_design_prior"),
+              target_sample_size_per_arm = c(50, 100), stringsAsFactors = FALSE)
+)
+bayes <- dplyr::mutate(bayes, case_study = "botox", source_denominator_change_factor = 1,
+  target_to_source_std_ratio = 1, source_treatment_effect_estimate = 0.2,
+  source_standard_error = 0.1, endpoint = "continuous", summary_measure_likelihood = "normal",
+  source_sample_size_control = 235, source_sample_size_treatment = 233,
+  equivalent_source_sample_size_per_arm = 234)
+set.seed(1)
+for (m in names(bayesian_metrics)) bayes[[m]] <- round(runif(nrow(bayes)), 3)
+bayes <- dplyr::as_tibble(bayes)
+bayesian_metric_vs_parameters(bayes, "average_power", case_study = "botox",
+                              method = "RMP", target_sample_size_per_arm = 50)
+list.files(figures_dir, recursive = TRUE)
+options(old_options); ggplot2::theme_set(old_theme)
+unlink(figures_dir, recursive = TRUE)
+}

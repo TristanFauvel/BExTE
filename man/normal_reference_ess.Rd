@@ -39,3 +39,12 @@ Models whose posterior summary is available exactly, or already computed,
 evaluate these definitions directly rather than fitting a mixture to samples
 drawn from the posterior.
 }
+\examples{
+normal_reference_ess(
+  reference_scale = 2,
+  posterior_sd = 0.11,
+  lower = 0.25,
+  upper = 0.69,
+  sample_size_per_arm = 46
+)
+}

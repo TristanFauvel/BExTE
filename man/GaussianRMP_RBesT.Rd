@@ -14,6 +14,32 @@ This class extends the Model_RBesT class and provides methods for
 initializing the model, updating priors, calculating posterior moments,
 and converting distributions to RBesT format.
 }
+\examples{
+case_study_config <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(case_study_config)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = case_study_config$target$treatment_effect,
+  treatment_effect_standard_error = case_study_config$target$standard_error,
+  target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+  summary_measure_likelihood = case_study_config$summary_measure_likelihood
+)
+model <- Model$new()$create(
+  case_study_config = case_study_config,
+  method = "RMP",
+  method_parameters = list(
+    initial_prior = "noninformative",
+    prior_weight = 0.5,
+    empirical_bayes = FALSE
+  ),
+  source_data = source_data
+)
+class(model)
+model$inference(target_data = target_data)
+c(prior_weight = model$w, posterior_weight = model$wpost)
+model$credible_interval(level = 0.95)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:Model_RBesT]{Model_RBesT}} -> \code{GaussianRMP_RBesT}
 }

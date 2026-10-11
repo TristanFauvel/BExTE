@@ -29,3 +29,15 @@ A list containing the sampled log odds ratios and the standard error of the log 
 \description{
 This function samples log odds ratios based on the number of participants and responders in the control and treatment arms.
 }
+\examples{
+set.seed(1)
+draws <- sample_log_odds_ratios(
+  n_control = 100,
+  n_treatment = 100,
+  treatment_rate = 0.55,
+  control_rate = 0.4,
+  n_replicates = 5
+)
+draws$log_odds_ratio
+draws$std_err_log_odds_ratio
+}

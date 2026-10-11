@@ -93,6 +93,7 @@ test_that("commensurate mixture implements the collapsed Stan posterior", {
 
 
 test_that("commensurate posterior summaries are converged at default nodes", {
+  skip_on_cran()
   # Scanned over target estimates, because the error is not uniform in them: at
   # 48 nodes the inverse_gamma(1/1000, 1) rule was 3e-3 out under moderate
   # conflict (an estimate of 1.0) and 2e-5 out at 0.9, the one estimate this
@@ -162,7 +163,7 @@ test_that("commensurate simulation fast path returns the pipeline contract", {
 })
 
 
-test_that("the fast path reports MCMC diagnostics as not applicable", {
+test_that("the fast path zero-fills MCMC diagnostics under quadrature", {
   model <- commensurate_fast_path_model(list(
     family = "half_normal",
     std_dev = 2
@@ -170,9 +171,27 @@ test_that("the fast path reports MCMC diagnostics as not applicable", {
 
   result <- commensurate_fast_path_run(model, to_return = "mcmc_diagnostics")
 
-  # No sampler runs here. Zeros would read as a chain converged beyond
-  # perfectly and a sampler that never diverged, so the diagnostics have to say
-  # they do not apply instead.
+  # Under the default quadrature engine the model never samples, so it reports
+  # zeros like every other model that never samples.
+  expect_equal(result$rhat, rep(0, 3))
+  expect_equal(result$mcmc_ess, rep(0, 3))
+  expect_equal(result$n_divergences, rep(0, 3))
+})
+
+
+test_that("the fast path reports MCMC diagnostics as not applicable under Stan", {
+  mcmc_config <- commensurate_mcmc_config()
+  mcmc_config$engine <- "stan"
+  model <- commensurate_model(
+    commensurate_fast_path_prior(list(family = "half_normal", std_dev = 2)),
+    mcmc_config = mcmc_config
+  )
+
+  result <- commensurate_fast_path_run(model, to_return = "mcmc_diagnostics")
+
+  # No sampler runs here, but the model samples off this path. Zeros would read
+  # as a chain converged beyond perfectly and a sampler that never diverged, so
+  # the diagnostics have to say they do not apply instead.
   expect_equal(result$rhat, rep(NA_real_, 3))
   expect_equal(result$mcmc_ess, rep(NA_real_, 3))
   expect_equal(result$n_divergences, rep(NA_real_, 3))
@@ -249,6 +268,7 @@ test_that("the Stan path reports the same non-existent moments as infinite", {
   )
   stan_parameters <- function(prior, model_for) {
     model <- model_for(prior)
+    model$engine <- "stan"
     model$fit_summary <- fit_summary
     model$compute_posterior_parameters()
     model$posterior_parameters

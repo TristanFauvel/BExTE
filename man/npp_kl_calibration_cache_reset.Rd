@@ -13,3 +13,11 @@ npp_kl_calibration_cache_reset()
 Called by tests, and by any run that must not reuse an earlier
 run's calibrations.
 }
+\examples{
+calibration <- calibrate_npp_kl(
+  theta_source = 0.48, se_source = 0.12, se_target_expected = 0.42
+)
+npp_kl_calibration_cache_size()
+npp_kl_calibration_cache_reset()
+npp_kl_calibration_cache_size()
+}

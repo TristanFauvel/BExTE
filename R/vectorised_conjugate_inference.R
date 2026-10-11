@@ -231,6 +231,17 @@ vectorised_test_decision <- function(posterior_weights, posterior_means,
 #' @param standard_error Vector of per-replicate standard errors.
 #' @return A list of three `n_replicates x n_components` matrices: `weights`,
 #'   `means` and `sds` of the posterior mixture.
+#' @examples
+#' # A two-component prior shared by three replicates.
+#' posterior <- normal_mixture_posterior(
+#'   weights = c(0.5, 0.5),
+#'   means = c(0.48, 0),
+#'   sds = c(0.12, 1.2),
+#'   estimate = c(0.1, 0.37, 0.9),
+#'   standard_error = 0.42
+#' )
+#' posterior$weights
+#' posterior$means
 #' @export
 normal_mixture_posterior <- function(weights, means, sds, estimate, standard_error) {
   n_replicates <- length(estimate)
@@ -336,6 +347,12 @@ shared_normal_mixture_posterior <- function(weights, means, sds,
 #' @param probs Probabilities at which to evaluate the quantile function.
 #' @return A list with `mean` and `sd` vectors of length `n_replicates`, and a
 #'   `n_replicates x length(probs)` matrix of `quantiles`.
+#' @examples
+#' # One replicate, with a two-component mixture.
+#' weights <- matrix(c(0.5, 0.5), nrow = 1)
+#' means <- matrix(c(0.48, 0), nrow = 1)
+#' sds <- matrix(c(0.12, 1.2), nrow = 1)
+#' normal_mixture_summary(weights, means, sds)
 #' @export
 normal_mixture_summary <- function(weights, means, sds, probs = c(0.025, 0.5, 0.975)) {
   mixture_mean <- rowSums(weights * means)
@@ -352,6 +369,56 @@ normal_mixture_summary <- function(weights, means, sds, probs = c(0.025, 0.5, 0.
   quantiles <- matrix(quantiles, nrow = nrow(weights), ncol = length(probs))
 
   list(mean = mixture_mean, sd = mixture_sd, quantiles = quantiles)
+}
+
+#' Tabulate one normal mixture as a grid posterior
+#'
+#' @description Evaluates the mixture density and distribution function
+#' exactly on a grid that covers every component with weight, and returns them
+#' in the shape [grid_posterior()] gives, so that the `grid_posterior_*`
+#' helpers read it. The mean and variance are the closed-form mixture moments.
+#' The grid spacing is a twentieth of the narrowest weighted component's
+#' standard deviation, with at least 4001 points.
+#'
+#' @param weights Vector of mixture weights.
+#' @param means Vector of component means.
+#' @param sds Vector of component standard deviations.
+#' @param n_sds Number of standard deviations the grid extends beyond each
+#'   component mean.
+#' @return A list with `grid`, `density`, `cdf`, `mean` and `variance`.
+#' @keywords internal
+normal_mixture_grid_posterior <- function(weights, means, sds, n_sds = 10) {
+  weighted <- weights > max(weights) * 1e-14
+  lower <- min(means[weighted] - n_sds * sds[weighted])
+  upper <- max(means[weighted] + n_sds * sds[weighted])
+  n_points <- min(
+    max(4001L, ceiling(20 * (upper - lower) / min(sds[weighted]))),
+    2e5L
+  )
+  grid <- seq(lower, upper, length.out = n_points)
+
+  weights <- weights[weighted] / sum(weights[weighted])
+  means <- means[weighted]
+  sds <- sds[weighted]
+  # Accumulated one component at a time: a points-by-components matrix would
+  # take gigabytes on the finest grids.
+  density <- numeric(n_points)
+  cdf <- numeric(n_points)
+  for (k in seq_along(weights)) {
+    density <- density + weights[k] * stats::dnorm(grid, means[k], sds[k])
+    cdf <- cdf + weights[k] * stats::pnorm(grid, means[k], sds[k])
+  }
+
+  mixture_mean <- sum(weights * means)
+  mixture_variance <- sum(weights * (sds^2 + means^2)) - mixture_mean^2
+
+  list(
+    grid = grid,
+    density = density,
+    cdf = cdf,
+    mean = mixture_mean,
+    variance = mixture_variance
+  )
 }
 
 #' Invert a normal mixture CDF for every replicate at once
@@ -472,6 +539,16 @@ normal_mixture_quantile <- function(weights, means, sds, p,
 #' @param n_nodes Number of Gauss-Legendre nodes per panel.
 #' @param spread How many standard deviations each component's panels reach.
 #' @return Vector of ELIR effective sample sizes, one per replicate.
+#' @examples
+#' # A robust mixture prior shared by every replicate.
+#' normal_mixture_elir_ess(
+#'   weights = c(0.5, 0.5),
+#'   means = c(0.48, 0),
+#'   sds = c(0.12, 1.2),
+#'   sigma = 2
+#' )
+#' # A single normal component: the ELIR is sigma^2 / sd^2.
+#' normal_mixture_elir_ess(weights = 1, means = 0.48, sds = 0.12, sigma = 2)
 #' @export
 normal_mixture_elir_ess <- function(weights, means, sds, sigma,
                                     n_nodes = 40L, spread = 9) {

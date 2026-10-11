@@ -6,6 +6,17 @@
 \description{
 This class represents the source data used for Bayesian borrowing. It processes the source data to compute necessary statistics for various endpoints.
 }
+\examples{
+config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+source_data <- SourceData$new(config)
+source_data$treatment_effect_estimate
+source_data$standard_error
+
+# Change the control odds of the source study
+source_data_odds <- SourceData$new(config, source_denominator = 0.5)
+source_data_odds$control_rate
+
+}
 \section{Super class}{
 \code{\link[BExTE:ObservedSourceData]{ObservedSourceData}} -> \code{SourceData}
 }

@@ -27,3 +27,12 @@ runs to gigabytes for the larger case studies, so a finished run clears
 them. The prefix is taken from \code{stan_draws_directory()} rather than
 rebuilt here, so the two cannot drift apart.
 }
+\examples{
+root <- file.path(tempdir(), "bexte-draws")
+dir.create(file.path(root, "belimumab_rmp_1234"), recursive = TRUE)
+dir.create(file.path(root, "belimumab_rmp_5678"))
+dir.create(file.path(root, "botox_rmp_1234"))
+clear_stan_draws("Belimumab", "rmp", root = root)
+list.files(root)
+unlink(root, recursive = TRUE)
+}

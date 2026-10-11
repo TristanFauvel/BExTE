@@ -17,6 +17,38 @@ prior families, the Stan program and the quadrature mixture are all the same
 machinery, selected by \code{borrows_power_parameter}. Only the members that
 mention \eqn{\gamma} are overridden here.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+prior <- list(
+  source = as.list(source_data),
+  method_parameters = list(
+    initial_prior = "noninformative",
+    heterogeneity_prior = list(family = "half_normal", std_dev = 5)
+  )
+)
+mcmc_config <- yaml::read_yaml(
+  system.file("conf/full/mcmc_config.yml", package = "BExTE")
+)
+mcmc_config$num_chains <- 2
+mcmc_config$parallel_chains <- 2
+# Creating the model does not compile Stan code.
+model <- GaussianCommensuratePrior$new(prior = prior, mcmc_config = mcmc_config)
+model$prior <- prior
+model$prior_pdf(c(0, 0.5, 1))
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = cfg$target$treatment_effect,
+  treatment_effect_standard_error = cfg$target$standard_error,
+  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  summary_measure_likelihood = cfg$summary_measure_likelihood
+)
+# inference() uses quadrature by default, so it needs no CmdStan.
+model$inference(target_data)
+model$posterior_parameters
+model$credible_interval(level = 0.95)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:GaussianCommensuratePowerPrior]{GaussianCommensuratePowerPrior}} -> \code{GaussianCommensuratePrior}
 }
@@ -37,7 +69,6 @@ mention \eqn{\gamma} are overridden here.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-GaussianCommensuratePrior-initialize}{\code{GaussianCommensuratePrior$new()}}
-    \item \href{#method-GaussianCommensuratePrior-compute_posterior_parameters}{\code{GaussianCommensuratePrior$compute_posterior_parameters()}}
     \item \href{#method-GaussianCommensuratePrior-joint_prior_pdf}{\code{GaussianCommensuratePrior$joint_prior_pdf()}}
     \item \href{#method-GaussianCommensuratePrior-clone}{\code{GaussianCommensuratePrior$clone()}}
   }
@@ -73,15 +104,16 @@ mention \eqn{\gamma} are overridden here.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_ess"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_ess'><code>MCMCModel$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_median"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_median'><code>MCMCModel$posterior_median()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>MCMCModel$posterior_pdf()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_posterior'><code>MCMCModel$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_prior'><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-stan_sampler'><code>MCMCModel$stan_sampler()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="summary_rows"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-summary_rows'><code>MCMCModel$summary_rows()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="uses_quadrature"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-uses_quadrature'><code>MCMCModel$uses_quadrature()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="compute_posterior_parameters"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-compute_posterior_parameters'><code>GaussianCommensuratePowerPrior$compute_posterior_parameters()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="prepare_data"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-prepare_data'><code>GaussianCommensuratePowerPrior$prepare_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="prior_cdf"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-prior_cdf'><code>GaussianCommensuratePowerPrior$prior_cdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="prior_pdf"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-prior_pdf'><code>GaussianCommensuratePowerPrior$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="quadrature_posterior"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-quadrature_posterior'><code>GaussianCommensuratePowerPrior$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="sample_prior"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-sample_prior'><code>GaussianCommensuratePowerPrior$sample_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="tau_posterior_moments"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-tau_posterior_moments'><code>GaussianCommensuratePowerPrior$tau_posterior_moments()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianCommensuratePowerPrior" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/GaussianCommensuratePowerPrior.html#method-GaussianCommensuratePowerPrior-vectorised_replicate_inference'><code>GaussianCommensuratePowerPrior$vectorised_replicate_inference()</code></a></span></li>
@@ -103,18 +135,6 @@ mention \eqn{\gamma} are overridden here.
       \item{\code{prior}}{The prior object}
       \item{\code{mcmc_config}}{The MCMC configuration parameters}
     }
-    \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianCommensuratePrior-compute_posterior_parameters"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianCommensuratePrior-compute_posterior_parameters}{}}}
-\subsection{\code{GaussianCommensuratePrior$compute_posterior_parameters()}}{
-  Compute posterior parameters
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianCommensuratePrior$compute_posterior_parameters()}
     \if{html}{\out{</div>}}
   }
 }

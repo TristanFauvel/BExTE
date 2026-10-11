@@ -6,6 +6,38 @@
 \description{
 This class represents a Gaussian Commensurate Power Prior model.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+prior <- list(
+  source = as.list(source_data),
+  method_parameters = list(
+    initial_prior = "noninformative",
+    heterogeneity_prior = list(family = "half_normal", std_dev = 5)
+  )
+)
+mcmc_config <- yaml::read_yaml(
+  system.file("conf/full/mcmc_config.yml", package = "BExTE")
+)
+mcmc_config$num_chains <- 2
+mcmc_config$parallel_chains <- 2
+# Creating the model does not compile Stan code.
+model <- GaussianCommensuratePowerPrior$new(prior = prior, mcmc_config = mcmc_config)
+model$prior <- prior
+model$prior_pdf(c(0, 0.5, 1))
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = cfg$target$treatment_effect,
+  treatment_effect_standard_error = cfg$target$standard_error,
+  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  summary_measure_likelihood = cfg$summary_measure_likelihood
+)
+# inference() uses quadrature by default, so it needs no CmdStan.
+model$inference(target_data)
+model$posterior_parameters
+model$credible_interval(level = 0.95)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{GaussianCommensuratePowerPrior}
 }
@@ -20,6 +52,12 @@ This class represents a Gaussian Commensurate Power Prior model.
 
     \item{\code{stan_model_prefix}}{Prefix of the compiled Stan model's name}
 
+    \item{\code{quadrature_available}}{Always \code{TRUE}: \code{inference()} uses quadrature
+unless the MCMC configuration sets \code{engine: stan}.}
+
+    \item{\code{quadrature_parameter_summary}}{Posterior means and standard deviations
+of the borrowing parameters from the last quadrature inference.}
+
     \item{\code{summary_variables}}{Variables to summarise from the posterior draws}
   }
   \if{html}{\out{</div>}}
@@ -30,6 +68,7 @@ This class represents a Gaussian Commensurate Power Prior model.
     \item \href{#method-GaussianCommensuratePowerPrior-initialize}{\code{GaussianCommensuratePowerPrior$new()}}
     \item \href{#method-GaussianCommensuratePowerPrior-prepare_data}{\code{GaussianCommensuratePowerPrior$prepare_data()}}
     \item \href{#method-GaussianCommensuratePowerPrior-vectorised_replicate_inference}{\code{GaussianCommensuratePowerPrior$vectorised_replicate_inference()}}
+    \item \href{#method-GaussianCommensuratePowerPrior-quadrature_posterior}{\code{GaussianCommensuratePowerPrior$quadrature_posterior()}}
     \item \href{#method-GaussianCommensuratePowerPrior-compute_posterior_parameters}{\code{GaussianCommensuratePowerPrior$compute_posterior_parameters()}}
     \item \href{#method-GaussianCommensuratePowerPrior-tau_posterior_moments}{\code{GaussianCommensuratePowerPrior$tau_posterior_moments()}}
     \item \href{#method-GaussianCommensuratePowerPrior-sample_prior}{\code{GaussianCommensuratePowerPrior$sample_prior()}}
@@ -70,7 +109,6 @@ This class represents a Gaussian Commensurate Power Prior model.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_ess"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_ess'><code>MCMCModel$posterior_ess()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_median"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_median'><code>MCMCModel$posterior_median()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>MCMCModel$posterior_pdf()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_posterior'><code>MCMCModel$quadrature_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="quadrature_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-quadrature_prior'><code>MCMCModel$quadrature_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="stan_sampler"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-stan_sampler'><code>MCMCModel$stan_sampler()</code></a></span></li>
@@ -123,8 +161,8 @@ This class represents a Gaussian Commensurate Power Prior model.
 \subsection{\code{GaussianCommensuratePowerPrior$vectorised_replicate_inference()}}{
   Run all simulation replicates through a quadrature mixture
 instead of launching one Stan fit per replicate. The Stan implementation
-remains available through \code{inference()} for reference and single-data-set
-analyses.
+remains available through \code{inference()} with \code{engine: stan}, as a
+reference.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{GaussianCommensuratePowerPrior$vectorised_replicate_inference(
@@ -154,10 +192,38 @@ analyses.
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-GaussianCommensuratePowerPrior-quadrature_posterior"></a>}}
+\if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-quadrature_posterior}{}}}
+\subsection{\code{GaussianCommensuratePowerPrior$quadrature_posterior()}}{
+  The posterior of the treatment effect by quadrature, the
+same mixture the simulations use, for one target data set. Conditional
+on the borrowing parameters the posterior is normal, so it is the
+conjugate update of \code{\link[=commensurate_prior_mixture]{commensurate_prior_mixture()}}. The density and the
+distribution function are exact at the grid points, and so are the
+moments.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{GaussianCommensuratePowerPrior$quadrature_posterior(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \code{\link[=grid_posterior]{grid_posterior()}} list.
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GaussianCommensuratePowerPrior-compute_posterior_parameters"></a>}}
 \if{latex}{\out{\hypertarget{method-GaussianCommensuratePowerPrior-compute_posterior_parameters}{}}}
 \subsection{\code{GaussianCommensuratePowerPrior$compute_posterior_parameters()}}{
-  Compute posterior parameters
+  Compute posterior parameters, from the quadrature weights or
+from the Stan draws, depending on the engine.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{GaussianCommensuratePowerPrior$compute_posterior_parameters()}

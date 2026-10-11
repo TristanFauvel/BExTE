@@ -41,6 +41,15 @@ that interval. That is the full width, not the half width the \code{precision}
 operating characteristic reports, so the two are not on the same scale.
 Smaller is better.
 }
+\examples{
+# The second interval misses the true value and gets a penalty
+interval_score(
+  lower = c(-0.1, 0.4, 0.0),
+  upper = c(0.5, 0.9, 0.8),
+  true_value = 0.3
+)
+
+}
 \references{
 Winkler, R. L. (1972). A decision-theoretic approach to interval
 estimation. Journal of the American Statistical Association, 67(337),

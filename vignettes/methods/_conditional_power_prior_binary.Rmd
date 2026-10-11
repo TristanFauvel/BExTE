@@ -30,7 +30,12 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 library(BExTE)
 library(ggplot2)
-library(cmdstanr)
+# The Stan chunks run only where 'cmdstanr', 'CmdStan' and 'bayesplot' are
+# installed. The package itself computes this posterior by quadrature.
+has_stan <- requireNamespace("cmdstanr", quietly = TRUE) &&
+  !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error") &&
+  requireNamespace("bayesplot", quietly = TRUE) &&
+  requireNamespace("posterior", quietly = TRUE)
 ```
 
 ## Load the data for the Aprepitant case study
@@ -74,7 +79,7 @@ This is the model of `BinomialCPP`. The package computes its posterior by numeri
 
 Let us define the Stan model:
 
-```{r}
+```{r, eval = has_stan}
 stan_model_code <- "
 data {
   int<lower = 0> n_treatment_source; // number of patients in the treatment group of the source study
@@ -129,7 +134,7 @@ mod <- cmdstanr::cmdstan_model(stan_file_path)
 
 ## Fit the model with $\gamma  = 0.5$ 
 
-```{r, results='hide'}
+```{r, results='hide', eval = has_stan}
 # Specify the parameters
 data_list <- list(
   gamma = 0.5,
@@ -153,29 +158,29 @@ fit <- mod$sample(
 )
 ```
 
-```{r}
+```{r, eval = has_stan}
 bayesplot::mcmc_hist(fit$draws("treatment_effect"), binwidth = 0.001) + xlim(-1, 1)
 ```
 
 
-```{r}
+```{r, eval = has_stan}
 library(posterior)
 draws_array <- as_draws_array(fit)
 ```
 
-```{r}
+```{r, eval = has_stan}
 library(bayesplot)
 mcmc_trace(draws_array, pars = c("control_rate_target", "treatment_rate_source", "treatment_effect"))
 ```
 
-```{r}
+```{r, eval = has_stan}
 mcmc_acf(draws_array, pars = c("control_rate_target", "treatment_rate_source", "treatment_effect"))
 ```
 
  
 ## Fit the model with $\gamma  = 0$ (no borrowing) 
 
-```{r, results='hide'}
+```{r, results='hide', eval = has_stan}
 # Specify the parameters
 data_list <- list(
   gamma = 0,
@@ -199,13 +204,13 @@ fit <- mod$sample(
 )
 ```
 
-```{r}
+```{r, eval = has_stan}
 bayesplot::mcmc_hist(fit$draws("treatment_effect"), binwidth = 0.001) + xlim(-1, 1)
 ```
 
 ## Fit the model with $\gamma  = 1$ (pooling) 
 
-```{r, results='hide'}
+```{r, results='hide', eval = has_stan}
 # Specify the parameters
 data_list <- list(
   gamma = 1,
@@ -229,7 +234,7 @@ fit <- mod$sample(
 )
 ```
 
-```{r}
+```{r, eval = has_stan}
 bayesplot::mcmc_hist(fit$draws("treatment_effect"), binwidth = 0.001) + xlim(-1, 1)
 ```
 

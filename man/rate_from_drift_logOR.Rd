@@ -17,4 +17,8 @@ The success rate in the corresponding arm of the target study
 \description{
 This function calculates the success rate in the target study arm based on the drift (defined on the log scale) and the success rate in the arm of interest in the source study.
 }
+\examples{
+# A drift of 0.5 on the log odds scale, from a source rate of 0.4
+rate_from_drift_logOR(arm_drift = 0.5, source_rate = 0.4)
+}
 \keyword{internal}

@@ -6,6 +6,21 @@
 \description{
 A class for binary target data objects.
 }
+\examples{
+config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+source_data <- SourceData$new(config)
+target_data <- BinaryTargetData$new(
+  source_data = source_data,
+  sampling_approximation = FALSE,
+  target_sample_size_per_arm = 46,
+  control_drift = 0,
+  treatment_drift = 0,
+  summary_measure_likelihood = "normal"
+)
+c(control = target_data$control_rate, treatment = target_data$treatment_rate)
+set.seed(1)
+target_data$generate(n_replicates = 3)
+}
 \section{Super class}{
 \code{\link[BExTE:TargetData]{TargetData}} -> \code{BinaryTargetData}
 }

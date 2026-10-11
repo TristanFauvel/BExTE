@@ -6,6 +6,15 @@
 \description{
 A wrapper used for analyzing observed data (not used for simulation)
 }
+\examples{
+observed <- ObservedTargetData$new(
+  treatment_effect_estimate = 0.37,
+  treatment_effect_standard_error = 0.42,
+  target_sample_size_per_arm = 46,
+  summary_measure_likelihood = "normal"
+)
+observed$sample
+}
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
   \describe{
@@ -13,7 +22,12 @@ A wrapper used for analyzing observed data (not used for simulation)
 
     \item{\code{sample_size_per_arm}}{Sample size per arm in the target study}
 
-    \item{\code{sample}}{Observed data sample}
+    \item{\code{sample}}{Observed data sample: the treatment effect estimate, its
+standard error and \code{standard_deviation}, the per-patient sampling standard
+deviation \code{treatment_effect_standard_error * sqrt(sample_size_per_arm)}.
+That is the scale the simulated samples report (see
+\code{sample_aggregate_normal_data()}), and the frequentist tests of
+test-then-pool and the p-value based power prior need it.}
   }
   \if{html}{\out{</div>}}
 }

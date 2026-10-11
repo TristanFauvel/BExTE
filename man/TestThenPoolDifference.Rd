@@ -9,6 +9,31 @@ This class extends the TestThenPool class to implement the Test-Then-Pool framew
 \details{
 The TestThenPoolDifference class provides methods for testing and inference in difference trials using the Test-Then-Pool framework.
 }
+\examples{
+case_study_config <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(case_study_config)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = case_study_config$target$treatment_effect,
+  treatment_effect_standard_error = case_study_config$target$standard_error,
+  target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+  summary_measure_likelihood = case_study_config$summary_measure_likelihood
+)
+model <- Model$new()$create(
+  case_study_config = case_study_config,
+  method = "test_then_pool_difference",
+  method_parameters = list(
+    initial_prior = "noninformative",
+    significance_level = 0.1
+  ),
+  source_data = source_data
+)
+model$test_pvalue(target_data)
+model$inference(target_data = target_data)
+model$pool
+model$credible_interval(level = 0.95)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:TestThenPool]{TestThenPool}} -> \code{TestThenPoolDifference}
 }

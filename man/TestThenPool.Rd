@@ -9,6 +9,26 @@ This class implements the Test-Then-Pool framework for Bayesian borrowing in cli
 \details{
 The TestThenPool class provides methods for testing and inference with the Test-then-Pool method.
 }
+\examples{
+case_study_config <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(case_study_config)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = case_study_config$target$treatment_effect,
+  treatment_effect_standard_error = case_study_config$target$standard_error,
+  target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+  summary_measure_likelihood = case_study_config$summary_measure_likelihood
+)
+prior <- list(
+  source = as.list(source_data),
+  method_parameters = list(initial_prior = "noninformative")
+)
+# TestThenPool is the base class: its subclasses define the test.
+model <- TestThenPool$new(prior = prior)
+class(model$pooling)
+class(model$separate)
+}
 \section{Super class}{
 \code{\link[BExTE:Model]{Model}} -> \code{TestThenPool}
 }

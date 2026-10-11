@@ -16,6 +16,39 @@ The calibration needs the design, which \link{Model}\verb{$calibrate_for_design(
 records, and the critical value the analysis decides at, which is only
 known once a replicate is analysed, so it runs at the first replicate.
 }
+\examples{
+# Source trial: 154/280 responders on control, 184/293 on treatment.
+source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+                     control_rate = 154 / 280, treatment_rate = 184 / 293,
+                     treatment_effect_estimate = 184 / 293 - 154 / 280,
+                     standard_error = 0.041)
+prior <- list(source = source_trial, method_parameters = list(
+  initial_prior = list("noninformative"),
+  desired_tie = list(0.065), significance_level = list(0.05)
+))
+mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+                    target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+                    rhat_threshold = 1.1, max_divergence_rate = 0.01,
+                    engine = "quadrature")
+# Target trial: 39/71 responders on control, 45/71 on treatment.
+target <- list(sample_size_control = 71, sample_size_treatment = 71,
+               sample = data.frame(sample_control_rate = 39 / 71,
+                                   sample_treatment_rate = 45 / 71))
+cache <- file.path(tempdir(), "bexte-cache")
+model <- BinomialPDCCPP$new(prior = prior, theta_0 = 0, null_space = "left",
+                            mcmc_config = mcmc_config)
+model$prior <- prior
+# Record the design: 71 patients per arm, control rate 0.55.
+target$control_rate <- 0.55
+model$calibrate_for_design(target)
+model$design
+\dontrun{
+# The exact calibration on the type I error takes several minutes.
+withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$inference(target))
+model$posterior_parameters
+}
+unlink(cache, recursive = TRUE)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:BinomialCPP]{BinomialCPP}} -> \code{BinomialPDCCPP}
 }

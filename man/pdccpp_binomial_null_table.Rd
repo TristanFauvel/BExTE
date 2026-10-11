@@ -53,8 +53,8 @@ on a grid of 21 power parameters, and each crossing of \code{critical_value} is
 refined by \code{uniroot}. Pairs whose total probability is below \code{tail_mass}
 are omitted, as in \code{BinaryTargetData$enumerate_support()}.
 
-The table depends on the source counts and the design alone, so it is
-saved under \code{\link[=pdccpp_binomial_cache_dir]{pdccpp_binomial_cache_dir()}} and read back by any process
-that needs it; \code{workers} computes it in parallel.
+The table depends on the source counts and the design alone, so
+\code{\link[=disk_cached]{disk_cached()}} saves it under its \code{pdccpp_binomial} subdirectory, and any
+process that needs it reads it back; \code{workers} computes it in parallel.
 }
 \keyword{internal}

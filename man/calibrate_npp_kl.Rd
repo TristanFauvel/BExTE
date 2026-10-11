@@ -84,3 +84,13 @@ before any replicate is generated; every replicate of that scenario is then
 analysed under the same prior, and only the target estimate and its standard
 error vary between them.
 }
+\examples{
+calibration <- calibrate_npp_kl(
+  theta_source = 0.48,
+  se_source = 0.12,
+  se_target_expected = 0.42,
+  theta_null = 0,
+  benefit_sign = 1
+)
+calibration[c("alpha_gamma", "beta_gamma", "d_mtd")]
+}

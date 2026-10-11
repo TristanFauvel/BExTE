@@ -9,6 +9,39 @@ R6Class object.
 \description{
 This is a parent class for variants of empirical Bayes PP methods for normally distributed summary measure of the treatment effect.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+set.seed(1)
+target_data <- TargetDataFactory$new()$create(
+  source_data = source_data,
+  case_study_config = cfg,
+  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  control_drift = 0,
+  treatment_drift = 0,
+  summary_measure_likelihood = cfg$summary_measure_likelihood
+)
+target_data$sample <- target_data$generate(1)
+mcmc_config <- yaml::read_yaml(
+  system.file("conf/full/mcmc_config.yml", package = "BExTE")
+)
+model <- Model$new()$create(
+  case_study_config = cfg,
+  method = "p_value_based_PP",
+  method_parameters = list(
+    initial_prior = "noninformative",
+    shape_parameter = 1,
+    equivalence_margin = 0.1
+  ),
+  source_data = source_data,
+  mcmc_config = mcmc_config
+)
+class(model)[1]
+model$inference(target_data)
+model$posterior_parameters$power_parameter
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:BinomialCPP]{BinomialCPP}} -> \code{BinomialPValueBasedPP}
 }

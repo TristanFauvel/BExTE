@@ -28,8 +28,38 @@ generated. \code{p} and \code{q} are left \code{NULL} until then: a model analys
 has been calibrated would otherwise silently use whatever placeholder stood
 in for them.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+set.seed(1)
+target_data <- TargetDataFactory$new()$create(
+  source_data = source_data,
+  case_study_config = cfg,
+  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  control_drift = 0,
+  treatment_drift = 0,
+  summary_measure_likelihood = cfg$summary_measure_likelihood
+)
+target_data$sample <- target_data$generate(1)
+model <- Model$new()$create(
+  case_study_config = cfg,
+  method = "NPP_KL",
+  method_parameters = list(
+    initial_prior = "noninformative", lambda_kl = 0.5, c_target = 10,
+    d_mtd_rule = "source_to_null", d_mtd_multiplier = 1
+  ),
+  source_data = source_data
+)
+# Fix the prior on the power parameter from the design, then analyse.
+model$calibrate_for_design(target_data)
+c(p = model$p, q = model$q)
+model$inference(target_data)
+model$posterior_parameters[c("power_parameter_mean", "power_parameter_std")]
+}
 \section{Super classes}{
-\code{\link[BExTE:Model]{Model}} -> \code{GaussianNPP} -> \code{GaussianNPP_KL}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:GaussianNPP]{GaussianNPP}} -> \code{GaussianNPP_KL}
 }
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
@@ -83,17 +113,17 @@ in for them.
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
-  <li><code>GaussianNPP$credible_interval()</code></li>
-  <li><code>GaussianNPP$normalizing_constant_power_parameter()</code></li>
-  <li><code>GaussianNPP$plot_power_parameter_posterior_pdf()</code></li>
-  <li><code>GaussianNPP$plot_power_parameter_vs_drift()</code></li>
-  <li><code>GaussianNPP$posterior_cdf()</code></li>
-  <li><code>GaussianNPP$posterior_median()</code></li>
-  <li><code>GaussianNPP$posterior_pdf()</code></li>
-  <li><code>GaussianNPP$power_parameter_posterior_pdf()</code></li>
-  <li><code>GaussianNPP$sample_posterior()</code></li>
-  <li><code>GaussianNPP$summary_rows()</code></li>
-  <li><code>GaussianNPP$unnormalized_posterior_power_parameter_pdf()</code></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="credible_interval"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-credible_interval'><code>GaussianNPP$credible_interval()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="normalizing_constant_power_parameter"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-normalizing_constant_power_parameter'><code>GaussianNPP$normalizing_constant_power_parameter()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="plot_power_parameter_posterior_pdf"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-plot_power_parameter_posterior_pdf'><code>GaussianNPP$plot_power_parameter_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="plot_power_parameter_vs_drift"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-plot_power_parameter_vs_drift'><code>GaussianNPP$plot_power_parameter_vs_drift()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="posterior_cdf"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-posterior_cdf'><code>GaussianNPP$posterior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="posterior_median"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-posterior_median'><code>GaussianNPP$posterior_median()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="posterior_pdf"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-posterior_pdf'><code>GaussianNPP$posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="power_parameter_posterior_pdf"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-power_parameter_posterior_pdf'><code>GaussianNPP$power_parameter_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="sample_posterior"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-sample_posterior'><code>GaussianNPP$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="summary_rows"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-summary_rows'><code>GaussianNPP$summary_rows()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianNPP" data-id="unnormalized_posterior_power_parameter_pdf"><a href='../../BExTE/html/GaussianNPP.html#method-GaussianNPP-unnormalized_posterior_power_parameter_pdf'><code>GaussianNPP$unnormalized_posterior_power_parameter_pdf()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

@@ -12,3 +12,7 @@ inference_cache_reset()
 \description{
 Called between runs that must not share results, and by tests.
 }
+\examples{
+inference_cache_reset()
+inference_cache_size()
+}

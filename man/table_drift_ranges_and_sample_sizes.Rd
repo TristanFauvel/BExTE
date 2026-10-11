@@ -24,9 +24,21 @@ directory happens to hold.
 
 The sample-size columns are the nominal totals \code{floor(N_S / k)}, as the
 paper prints them. The simulation puts \verb{floor(N_S / (2k))} patients in
-each arm, so the total it actually simulates can be one or two lower -
-see \code{\link[=paper_sample_size_per_arm]{paper_sample_size_per_arm()}}.
+each arm, so the total it actually simulates can be one or two lower.
 
 Every case study is listed whatever the selection, because the paper's
 table always has all six rows.
+}
+\examples{
+\donttest{
+# The table is compiled with LaTeX and cropped with pdfcrop.
+if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+  tables_dir <- file.path(tempdir(), "bexte-tables")
+  table_drift_ranges_and_sample_sizes(
+    case_studies_config_dir = system.file("conf/case_studies", package = "BExTE"),
+    tables_dir = tables_dir
+  )
+  unlink(tables_dir, recursive = TRUE)
+}
+}
 }

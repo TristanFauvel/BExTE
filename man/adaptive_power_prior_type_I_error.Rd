@@ -51,3 +51,17 @@ and its boundary is explicit. Outside them the borrowing weight varies, and
 clearing its denominator turns the boundary condition into a degree-six
 polynomial, so \code{\link[base:polyroot]{base::polyroot()}} locates every crossing at once.
 }
+\examples{
+# Type I error for two values of the calibration parameter
+sapply(c(1, 2), function(calibration_parameter) {
+  adaptive_power_prior_type_I_error(
+    calibration_parameter = calibration_parameter,
+    source_sample_size_per_arm = 562,
+    target_sample_size_per_arm = 46,
+    source_treatment_effect_estimate = 0.48,
+    significance_level = 0.05,
+    target_data_sampling_variance = 0.42^2 * 46,
+    source_data_sampling_variance = 0.12^2 * 562
+  )
+})
+}

@@ -29,3 +29,15 @@ against the frequentist power at equivalent type I error, with an interval
 that accounts for the uncertainty of both estimates rather than shifting
 the success probability interval by the comparator's point estimate.
 }
+\examples{
+results <- data.frame(
+  success_proba = c(0.80, 0.70, 0.60),
+  conf_int_success_proba_lower = c(0.77, 0.67, 0.57),
+  conf_int_success_proba_upper = c(0.83, 0.73, 0.63),
+  frequentist_power_at_equivalent_tie = c(0.70, 0.69, 0.70),
+  frequentist_power_at_equivalent_tie_lower = c(0.67, 0.66, 0.67),
+  frequentist_power_at_equivalent_tie_upper = c(0.73, 0.72, 0.73)
+)
+add_power_difference_columns(results)
+
+}

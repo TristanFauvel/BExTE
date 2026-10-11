@@ -6,6 +6,35 @@
 \description{
 A class representing the analysis prior design prior for Bayesian borrowing.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+simulation_config <- yaml::read_yaml(
+  system.file("conf/simulation_config.yml", package = "BExTE")
+)
+# The analysis prior of a normalised power prior model
+model <- Model$new()$create(
+  case_study_config = cfg,
+  method = "NPP",
+  method_parameters = list(
+    initial_prior = "noninformative",
+    power_parameter_mean = 0.5,
+    power_parameter_std = sqrt(1 / 12)
+  ),
+  source_data = source_data
+)
+design_prior <- AnalysisPriorDesignPrior$new(
+  model = model,
+  case_study_config = cfg,
+  simulation_config = simulation_config,
+  mcmc_config = NULL
+)
+design_prior$cdf(0)
+set.seed(1)
+design_prior$sample(3)
+}
 \section{Super class}{
 \code{\link[BExTE:DesignPrior]{DesignPrior}} -> \code{AnalysisPriorDesignPrior}
 }

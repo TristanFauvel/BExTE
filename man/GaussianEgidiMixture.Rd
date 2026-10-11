@@ -31,6 +31,28 @@ and is what distinguishes the method from a robust mixture prior with a
 prespecified weight. \code{psi_weak} should not be described as a prior probability
 chosen before the target data were observed.
 }
+\examples{
+case_study_config <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(case_study_config)
+target_data <- ObservedTargetData$new(
+  treatment_effect_estimate = case_study_config$target$treatment_effect,
+  treatment_effect_standard_error = case_study_config$target$standard_error,
+  target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+  summary_measure_likelihood = case_study_config$summary_measure_likelihood
+)
+model <- Model$new()$create(
+  case_study_config = case_study_config,
+  method = "egidi_empirical_mixture",
+  method_parameters = list(initial_prior = "noninformative", alpha_pc = 0.05),
+  source_data = source_data
+)
+class(model)
+model$inference(target_data = target_data)
+model$posterior_parameters[, c("psi_weak", "pvalue_selected")]
+model$credible_interval(level = 0.95)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:Model_RBesT]{Model_RBesT}} -> \code{\link[BExTE:GaussianRMP_RBesT]{GaussianRMP_RBesT}} -> \code{GaussianEgidiMixture}
 }

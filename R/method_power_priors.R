@@ -7,6 +7,35 @@
 #' @field stan_prior_code Stan code for the prior
 #' @field fixed_power_parameter Whether the power parameter is the same for
 #'   every replicate, so that the posterior is read off a cached prior kernel.
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' set.seed(1)
+#' target_data <- TargetDataFactory$new()$create(
+#'   source_data = source_data,
+#'   case_study_config = cfg,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   control_drift = 0,
+#'   treatment_drift = 0,
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' target_data$sample <- target_data$generate(1)
+#' mcmc_config <- yaml::read_yaml(
+#'   system.file("conf/full/mcmc_config.yml", package = "BExTE")
+#' )
+#' # The default engine computes the posterior by quadrature, without Stan.
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "conditional_power_prior",
+#'   method_parameters = list(initial_prior = "noninformative", power_parameter = 0.5),
+#'   source_data = source_data,
+#'   mcmc_config = mcmc_config
+#' )
+#' class(model)[1]
+#' model$inference(target_data)
+#' model$credible_interval(0.95)
 #' @export
 BinomialCPP <- R6::R6Class(
   "BinomialCPP",
@@ -294,6 +323,30 @@ BinomialCPP <- R6::R6Class(
 #' @field method Name of the method
 #' @field summary_measure_likelihood Summary measure likelihood
 #'
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = cfg$target$treatment_effect,
+#'   treatment_effect_standard_error = cfg$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "NPP",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     power_parameter_mean = 0.5,
+#'     power_parameter_std = sqrt(1 / 12)
+#'   ),
+#'   source_data = source_data
+#' )
+#' class(model)[1]
+#' model$inference(target_data)
+#' model$posterior_parameters
 #' @export
 GaussianNPP <- R6::R6Class(
   "GaussianNPP",
@@ -751,6 +804,7 @@ GaussianNPP <- R6::R6Class(
     #' @param target_data Target study data
     #' @return A plot
     plot_power_parameter_posterior_pdf = function(target_data) {
+      check_plot_packages()
       x_values <- seq(0, 1, length.out = 100)
 
       posterior_pdf <- self$power_parameter_posterior_pdf(x_values, target_data)
@@ -758,7 +812,7 @@ GaussianNPP <- R6::R6Class(
       df <- data.frame(x = x_values, posterior_pdf = posterior_pdf)
 
       plt <- ggplot2::ggplot(df, ggplot2::aes(x = x_values)) +
-        geom_line(ggplot2::aes(y = posterior_pdf),
+        ggplot2::geom_line(ggplot2::aes(y = posterior_pdf),
                   color = "red",
                   size = 1) +
         ggplot2::labs(
@@ -767,10 +821,10 @@ GaussianNPP <- R6::R6Class(
           y = "Density",
           labels = c("Posterior pdf")
         ) +
-        theme_minimal() +
-        scale_color_manual(values = c("red")) +
-        guides(color = guide_legend(title = NULL)) +
-        scale_fill_manual(
+        ggplot2::theme_minimal() +
+        ggplot2::scale_color_manual(values = c("red")) +
+        ggplot2::guides(color = ggplot2::guide_legend(title = NULL)) +
+        ggplot2::scale_fill_manual(
           name = "PDF",
           labels = c("Posterior pdf"),
           values = c("red")
@@ -791,6 +845,7 @@ GaussianNPP <- R6::R6Class(
                                              min_drift,
                                              max_drift,
                                              resolution) {
+      check_plot_packages()
       # Generate a sequence of differences
       drifts <- seq(min_drift, max_drift, length.out = resolution)
 
@@ -806,10 +861,10 @@ GaussianNPP <- R6::R6Class(
       plot_data <- data.frame(Drift = drifts, PowerParameter = power_parameters)
 
       # Plot using ggplot2
-      ggplot(plot_data, aes(x = Drift, y = PowerParameter)) +
-        geom_line(color = "blue") +
-        labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
-        theme_minimal()
+      ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
+        ggplot2::geom_line(color = "blue") +
+        ggplot2::labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
+        ggplot2::theme_minimal()
     }
   )
 )
@@ -846,6 +901,35 @@ GaussianNPP <- R6::R6Class(
 #' @field null_space The null hypothesis space, which gives the benefit direction
 #' @field calibration The result of [calibrate_npp_kl()] for this scenario
 #' @field calibration_settings The criterion settings read from the method parameters
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' set.seed(1)
+#' target_data <- TargetDataFactory$new()$create(
+#'   source_data = source_data,
+#'   case_study_config = cfg,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   control_drift = 0,
+#'   treatment_drift = 0,
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' target_data$sample <- target_data$generate(1)
+#' model <- Model$new()$create(
+#'   case_study_config = cfg,
+#'   method = "NPP_KL",
+#'   method_parameters = list(
+#'     initial_prior = "noninformative", lambda_kl = 0.5, c_target = 10,
+#'     d_mtd_rule = "source_to_null", d_mtd_multiplier = 1
+#'   ),
+#'   source_data = source_data
+#' )
+#' # Fix the prior on the power parameter from the design, then analyse.
+#' model$calibrate_for_design(target_data)
+#' c(p = model$p, q = model$q)
+#' model$inference(target_data)
+#' model$posterior_parameters[c("power_parameter_mean", "power_parameter_std")]
 #' @export
 GaussianNPP_KL <- R6::R6Class(
   "GaussianNPP_KL",
@@ -1230,7 +1314,42 @@ commensurate_stan_code <- function(with_power_parameter) {
 #' @field heterogeneity_prior_family Heterogeneity prior family (half_normal, inverse_gamma)
 #' @field borrows_power_parameter Whether the model samples a power parameter
 #' @field stan_model_prefix Prefix of the compiled Stan model's name
+#' @field quadrature_available Always `TRUE`: `inference()` uses quadrature
+#'   unless the MCMC configuration sets `engine: stan`.
+#' @field quadrature_parameter_summary Posterior means and standard deviations
+#'   of the borrowing parameters from the last quadrature inference.
 #'
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' prior <- list(
+#'   source = as.list(source_data),
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     heterogeneity_prior = list(family = "half_normal", std_dev = 5)
+#'   )
+#' )
+#' mcmc_config <- yaml::read_yaml(
+#'   system.file("conf/full/mcmc_config.yml", package = "BExTE")
+#' )
+#' mcmc_config$num_chains <- 2
+#' mcmc_config$parallel_chains <- 2
+#' # Creating the model does not compile Stan code.
+#' model <- GaussianCommensuratePowerPrior$new(prior = prior, mcmc_config = mcmc_config)
+#' model$prior <- prior
+#' model$prior_pdf(c(0, 0.5, 1))
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = cfg$target$treatment_effect,
+#'   treatment_effect_standard_error = cfg$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' # inference() uses quadrature by default, so it needs no CmdStan.
+#' model$inference(target_data)
+#' model$posterior_parameters
+#' model$credible_interval(level = 0.95)
 #' @export
 GaussianCommensuratePowerPrior <- R6::R6Class(
   "GaussianCommensuratePowerPrior",
@@ -1248,6 +1367,12 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
     # posterior summary, so they have to be summarised alongside the treatment
     # effect.
     summary_variables = c("target_treatment_effect", "tau", "power_parameter"),
+    # inference() integrates over the borrowing parameters by quadrature unless
+    # the MCMC configuration asks for `engine: stan`, so CmdStan is optional.
+    quadrature_available = TRUE,
+    # Posterior summaries of the borrowing parameters from the last quadrature
+    # inference, read by compute_posterior_parameters().
+    quadrature_parameter_summary = NULL,
 
     #' @description Initialize the GaussianCommensuratePowerPrior object
     #'
@@ -1266,7 +1391,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
 
       # Named rather than compiled: simulations run every replicate through the
       # quadrature mixture and never sample, so the program is only compiled if
-      # inference() is asked for a Stan fit - see MCMCModel$stan_sampler().
+      # the configuration asks for `engine: stan` - see MCMCModel$stan_sampler().
       self$stan_model_name <- paste0(
         self$stan_model_prefix, "_", self$heterogeneity_prior_family
       )
@@ -1334,8 +1459,8 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
     },
     #' @description Run all simulation replicates through a quadrature mixture
     #' instead of launching one Stan fit per replicate. The Stan implementation
-    #' remains available through `inference()` for reference and single-data-set
-    #' analyses.
+    #' remains available through `inference()` with `engine: stan`, as a
+    #' reference.
     #' @param target_data Target study data
     #' @param samples Generated target-study replicates
     #' @param to_return Requested simulation outputs
@@ -1433,15 +1558,52 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
         results
       })
     },
-    #' @description Compute posterior parameters
-    compute_posterior_parameters = function() {
-      self$posterior_parameters <- c(
-        self$tau_posterior_moments(),
-        list(
-          power_parameter_mean = self$fit_summary[self$fit_summary$variable == "power_parameter", "mean"] %>% dplyr::pull(mean),
-          power_parameter_std = self$fit_summary[self$fit_summary$variable == "power_parameter", "sd"] %>% dplyr::pull(sd)
-        )
+    #' @description The posterior of the treatment effect by quadrature, the
+    #' same mixture the simulations use, for one target data set. Conditional
+    #' on the borrowing parameters the posterior is normal, so it is the
+    #' conjugate update of [commensurate_prior_mixture()]. The density and the
+    #' distribution function are exact at the grid points, and so are the
+    #' moments.
+    #' @param target_data Target study data
+    #' @return A [grid_posterior()] list.
+    quadrature_posterior = function(target_data) {
+      prior_mixture <- commensurate_prior_mixture(self)
+      posterior <- normal_mixture_posterior(
+        weights = prior_mixture$weights,
+        means = prior_mixture$means,
+        sds = prior_mixture$sds,
+        estimate = target_data$sample$treatment_effect_estimate,
+        standard_error = target_data$sample$treatment_effect_standard_error
       )
+
+      self$quadrature_parameter_summary <- commensurate_parameter_summary(
+        posterior_weights = posterior$weights,
+        mixture = prior_mixture,
+        heterogeneity_prior_family = self$heterogeneity_prior_family,
+        heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior,
+        borrows_power_parameter = self$borrows_power_parameter
+      )
+
+      normal_mixture_grid_posterior(
+        weights = drop(posterior$weights),
+        means = drop(posterior$means),
+        sds = drop(posterior$sds)
+      )
+    },
+    #' @description Compute posterior parameters, from the quadrature weights or
+    #' from the Stan draws, depending on the engine.
+    compute_posterior_parameters = function() {
+      if (self$uses_quadrature()) {
+        self$posterior_parameters <- as.list(self$quadrature_parameter_summary)
+        return(invisible(NULL))
+      }
+      parameters <- self$tau_posterior_moments()
+      if (self$borrows_power_parameter) {
+        power_summary <- self$fit_summary[self$fit_summary$variable == "power_parameter", ]
+        parameters$power_parameter_mean <- power_summary$mean
+        parameters$power_parameter_std <- power_summary$sd
+      }
+      self$posterior_parameters <- parameters
     },
     #' @description Posterior mean and standard deviation of tau from the Stan
     #' draws, reported as `Inf` where the moment does not exist, exactly as
@@ -1622,6 +1784,37 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
 #' @field borrows_power_parameter Always `FALSE` for this model
 #' @field stan_model_prefix Prefix of the compiled Stan model's name
 #'
+#' @examples
+#' cfg <- yaml::yaml.load_file(
+#'   system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+#' )
+#' source_data <- ObservedSourceData$new(cfg)
+#' prior <- list(
+#'   source = as.list(source_data),
+#'   method_parameters = list(
+#'     initial_prior = "noninformative",
+#'     heterogeneity_prior = list(family = "half_normal", std_dev = 5)
+#'   )
+#' )
+#' mcmc_config <- yaml::read_yaml(
+#'   system.file("conf/full/mcmc_config.yml", package = "BExTE")
+#' )
+#' mcmc_config$num_chains <- 2
+#' mcmc_config$parallel_chains <- 2
+#' # Creating the model does not compile Stan code.
+#' model <- GaussianCommensuratePrior$new(prior = prior, mcmc_config = mcmc_config)
+#' model$prior <- prior
+#' model$prior_pdf(c(0, 0.5, 1))
+#' target_data <- ObservedTargetData$new(
+#'   treatment_effect_estimate = cfg$target$treatment_effect,
+#'   treatment_effect_standard_error = cfg$target$standard_error,
+#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   summary_measure_likelihood = cfg$summary_measure_likelihood
+#' )
+#' # inference() uses quadrature by default, so it needs no CmdStan.
+#' model$inference(target_data)
+#' model$posterior_parameters
+#' model$credible_interval(level = 0.95)
 #' @export
 GaussianCommensuratePrior <- R6::R6Class(
   "GaussianCommensuratePrior",
@@ -1647,11 +1840,6 @@ GaussianCommensuratePrior <- R6::R6Class(
         heterogeneity_parameter_mean = NA,
         heterogeneity_parameter_std = NA
       )
-    },
-
-    #' @description Compute posterior parameters
-    compute_posterior_parameters = function() {
-      self$posterior_parameters <- self$tau_posterior_moments()
     },
 
     #' @description Joint prior p.d.f. of the treatment effect and the

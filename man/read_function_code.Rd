@@ -16,3 +16,7 @@ read_function_code(function_obj)
 Used by the vignettes to display the implementation of key
 functions inline, next to their explanation.
 }
+\examples{
+read_function_code(interval_score)
+
+}

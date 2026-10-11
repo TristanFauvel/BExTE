@@ -134,64 +134,48 @@ export(tables_metric_vs_scenario)
 export(time_to_event_delayed_log_hr)
 export(time_to_event_expected_events)
 export(upper_bound_proba_FP_MC)
-import(R6)
-import(assertions)
-import(dplyr)
-import(extrafont)
-import(foreach)
-import(ggplot2)
-import(parallel)
-import(readr)
-import(rlang)
-import(stringr)
-import(tidyr)
-import(viridis)
-import(yaml)
-importFrom(Bolstad2,sintegral)
-importFrom(HDInterval,inverseCDF)
 importFrom(R6,R6Class)
-importFrom(doParallel,registerDoParallel)
+importFrom(assertions,assert_whole_number)
 importFrom(dplyr,
+  "%>%",
+  across,
+  all_of,
+  any_of,
   arrange,
   bind_rows,
+  case_when,
+  distinct,
+  everything,
   filter,
+  first,
   group_by,
+  left_join,
   mutate,
+  mutate_if,
+  n_distinct,
+  pull,
   rename,
+  rename_with,
+  row_number,
+  rowwise,
   select,
-  ungroup
-)
-importFrom(foreach,"%dopar%")
-importFrom(ggnewscale,new_scale_color)
-importFrom(gridExtra,grid.arrange)
-importFrom(jsonlite,
-  toJSON,
-  write_json
-)
-importFrom(latex2exp,TeX)
-importFrom(parallel,
-  clusterEvalQ,
-  clusterExport,
-  detectCores,
-  makeCluster,
-  stopCluster
-)
-importFrom(progress,progress_bar)
-importFrom(purrr,imap)
-importFrom(pwr,
-  ES.h,
-  pwr.2p2n.test,
-  pwr.norm.test,
-  pwr.t.test
+  summarize,
+  ungroup,
+  where
 )
 importFrom(readr,
   read_csv,
   write_csv
 )
-importFrom(rlang,sym)
-importFrom(stats,pexp)
-importFrom(truncnorm,rtruncnorm)
-importFrom(yaml,
-  read_yaml,
-  yaml.load_file
+importFrom(rlang,
+  ":=",
+  duplicate,
+  sym
 )
+importFrom(stats,pexp)
+importFrom(tidyr,
+  pivot_wider,
+  unite,
+  unnest
+)
+importFrom(yaml,read_yaml)

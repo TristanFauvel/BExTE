@@ -6,6 +6,36 @@
 \description{
 A class representing a Binomial Conditional Power Prior model.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+set.seed(1)
+target_data <- TargetDataFactory$new()$create(
+  source_data = source_data,
+  case_study_config = cfg,
+  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  control_drift = 0,
+  treatment_drift = 0,
+  summary_measure_likelihood = cfg$summary_measure_likelihood
+)
+target_data$sample <- target_data$generate(1)
+mcmc_config <- yaml::read_yaml(
+  system.file("conf/full/mcmc_config.yml", package = "BExTE")
+)
+# The default engine computes the posterior by quadrature, without Stan.
+model <- Model$new()$create(
+  case_study_config = cfg,
+  method = "conditional_power_prior",
+  method_parameters = list(initial_prior = "noninformative", power_parameter = 0.5),
+  source_data = source_data,
+  mcmc_config = mcmc_config
+)
+class(model)[1]
+model$inference(target_data)
+model$credible_interval(0.95)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{BinomialCPP}
 }

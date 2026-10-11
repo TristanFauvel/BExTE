@@ -13,6 +13,40 @@ and the target data are analysed with the binomial normalized power prior,
 \link{BinomialNPP}, under that prior. The shape parameters are \code{NULL} until
 \link{Model}\verb{$calibrate_for_design()} has run.
 }
+\examples{
+# Source trial: 154/280 responders on control, 184/293 on treatment.
+source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
+                     control_rate = 154 / 280, treatment_rate = 184 / 293,
+                     treatment_effect_estimate = 184 / 293 - 154 / 280,
+                     standard_error = 0.041)
+prior <- list(source = source_trial, method_parameters = list(
+  initial_prior = list("noninformative")
+))
+mcmc_config <- list(num_chains = 1L, parallel_chains = 1L, tune = 1L,
+                    target_accept = 0.8, chain_length = 1L, target_ess = 1L,
+                    rhat_threshold = 1.1, max_divergence_rate = 0.01,
+                    engine = "quadrature")
+# Target trial: 39/71 responders on control, 45/71 on treatment.
+target <- list(sample_size_control = 71, sample_size_treatment = 71,
+               sample = data.frame(sample_control_rate = 39 / 71,
+                                   sample_treatment_rate = 45 / 71))
+cache <- file.path(tempdir(), "bexte-cache")
+# The calibration reads the design: arm size, control rate and SD.
+target$sample_size_per_arm <- 71
+target$control_rate <- 39 / 71
+target$standard_deviation <- 0.69
+model <- BinomialNPP_KL$new(prior = prior, theta_0 = 0, null_space = "left",
+                            mcmc_config = mcmc_config)
+model$prior <- prior
+model$n_lattice <- 100L
+withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$calibrate_for_design(target))
+c(model$power_parameter_mean, model$power_parameter_std)
+\donttest{
+withr::with_envvar(c(BEXTE_CACHE_DIR = cache), model$inference(target))
+model$credible_interval(level = 0.95)
+}
+unlink(cache, recursive = TRUE)
+}
 \section{Super classes}{
 \code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{\link[BExTE:BinomialLatticePrior]{BinomialLatticePrior}} -> \code{\link[BExTE:BinomialNPP]{BinomialNPP}} -> \code{BinomialNPP_KL}
 }

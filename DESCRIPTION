@@ -7,70 +7,64 @@ Date: 2024-09-23
 Authors@R: c(person("Tristan", "Fauvel", email = "t.fauvel@quinten-health.com", role =  c("aut", "cre")), person("Pascal", "Godbillot", role=c("aut")) ) 
 Depends:
     R (>= 4.0.0)
-Imports: 
-    dplyr, 
-    tidyr,
-    readr,
-    parallel,
-    yaml,
-    purrr,
-    jsonlite,
-    foreach,
-    doParallel,
-    progress,
-    doSNOW,
-    cmdstanr,  
-    extrafont,
-    latex2exp,
-    truncnorm,
-    RBesT,
-    R6,
-    HDInterval,
-    pwr,
-    ggnewscale,
-    ggplot2,
-    viridis,  
-    stringr,
-    assertions,  
+Imports:
+    assertions,
     Bolstad2,
-    grid,
-    gridExtra,
-    rlang,
-    kableExtra,
-    bayesplot,
-    posterior,
     BSDA,
+    dplyr,
     extraDistr,
     futile.logger,
-    ParallelLogger,
+    HDInterval,
     Hmisc,
-    knitr,
+    jsonlite,
+    parallel,
+    progress,
+    pwr,
+    R6,
+    RBesT,
+    readr,
+    rlang,
     statmod,
-    tinytex,
+    tidyr,
     tools,
-    withr
-License: GPL-3 | file LICENSE
+    withr,
+    yaml
+License: GPL (>= 3)
 Additional_repositories: https://stan-dev.r-universe.dev/
-LazyData: true
-Biarch: true
-NeedsCompilation: yes
-UseLTO: true
 URL: https://github.com/TristanFauvel/BExTE, https://tristanfauvel.github.io/BExTE/
 BugReports: https://github.com/TristanFauvel/BExTE/issues
 Suggests:
+    bayesplot,
+    broom,
+    callr,
+    cmdstanr,
+    devtools,
+    doSNOW,
+    foreach,
+    ggnewscale,
+    ggplot2,
+    glue,
+    grid,
+    gridExtra,
+    kableExtra,
+    knitr,
+    latex2exp,
+    pkgload,
+    posterior,
+    purrr,
+    ragg,
     rmarkdown,
+    scales,
+    stringr,
     survival,
     testthat (>= 3.2.0),
-    scales,
-    broom,
-    glue,
-    ragg,
+    tibble,
+    tidyverse,
     tikzDevice,
-    devtools,
-    callr,
-    tidyverse
+    tinytex,
+    viridis
 VignetteBuilder: knitr
-SystemRequirements: GNU make, pandoc (>= 1.12.3), pngquant, C++17
+SystemRequirements: pandoc (>= 1.12.3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.0

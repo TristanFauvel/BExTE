@@ -7,6 +7,49 @@
 This class represents a Bayesian borrowing model using MCMC sampling.
 It inherits from the Model class.
 }
+\examples{
+prior <- list(
+  source = list(
+    sample_size_control = 562, sample_size_treatment = 563,
+    control_rate = 218 / 562, treatment_rate = 285 / 563
+  ),
+  method_parameters = list(initial_prior = "noninformative")
+)
+target_data <- list(
+  sample_size_control = 39, sample_size_treatment = 53,
+  sample = list(sample_control_rate = 17 / 39, sample_treatment_rate = 28 / 53)
+)
+prior$method_parameters$power_parameter <- 0.5
+mcmc_config <- yaml::yaml.load_file(
+  system.file("conf/full/mcmc_config.yml", package = "BExTE")
+)
+# BinomialCPP is a subclass of MCMCModel. With the default quadrature
+# engine it computes the posterior without Stan.
+model <- BinomialCPP$new(prior = prior, mcmc_config = mcmc_config)
+model$prior <- prior
+inherits(model, "MCMCModel")
+model$uses_quadrature()
+model$inference(target_data)
+model$credible_interval(level = 0.95)
+\donttest{
+# The Stan engine samples with MCMC and needs CmdStan.
+if (requireNamespace("cmdstanr", quietly = TRUE) &&
+    !inherits(try(cmdstanr::cmdstan_path(), silent = TRUE), "try-error")) {
+  mcmc_config$engine <- "stan"
+  mcmc_config$num_chains <- 2
+  mcmc_config$parallel_chains <- 2
+  mcmc_config$chain_length <- 1000
+  mcmc_config$target_ess <- 1000
+  model <- BinomialCPP$new(prior = prior, mcmc_config = mcmc_config)
+  model$prior <- prior
+  model$draws_dir <- file.path(tempdir(), "bexte-example")
+  dir.create(model$draws_dir, showWarnings = FALSE)
+  model$inference(target_data)
+  model$credible_interval(level = 0.95)
+  unlink(model$draws_dir, recursive = TRUE)
+}
+}
+}
 \section{Super class}{
 \code{\link[BExTE:Model]{Model}} -> \code{MCMCModel}
 }

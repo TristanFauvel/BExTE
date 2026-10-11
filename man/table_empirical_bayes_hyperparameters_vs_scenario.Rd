@@ -18,3 +18,36 @@ This function does not return a value. It calls other functions to create and sa
 \description{
 This function tables for hyperparameters updated using Empirical Bayes across different case studies, methods, and sample sizes.
 }
+\examples{
+## Globals that the plot functions read, as in inst/scripts/plots.R
+old_options <- options(); old_theme <- ggplot2::theme_get()
+for (f in c("plots_config.R", "methods_plots_config.R", "metrics_config.R"))
+  source(system.file("conf", f, package = "BExTE"))
+source(system.file("conf/full/methods_config.R", package = "BExTE"))
+analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
+figures_dir <- file.path(tempdir(), "bexte-figures", "")
+remake_figures <- TRUE
+tables_dir <- file.path(tempdir(), "bexte-tables")
+## Synthetic results for the empirical Bayes power prior, whose power
+## parameter is estimated from the target data
+eb <- expand.grid(drift = c(-0.3, -0.2, -0.1, 0, 0.1), target_sample_size_per_arm = c(50, 100))
+gamma <- round(plogis(-10 * abs(eb$drift)), 2)
+eb <- dplyr::mutate(eb, method = "EB_PP", parameters = "{'initial_prior': 'noninformative'}",
+  case_study = "botox", treatment_drift = drift, control_drift = 0,
+  source_denominator_change_factor = 1, target_to_source_std_ratio = 1,
+  posterior_parameters = paste0("{'power_parameter': ", gamma,
+    ", 'conf_int_lower_power_parameter': ", gamma - 0.05,
+    ", 'conf_int_upper_power_parameter': ", gamma + 0.05, "}"))
+eb <- dplyr::as_tibble(eb)
+\donttest{
+## The tables are compiled with LaTeX and cropped with pdfcrop
+if (nzchar(Sys.which("pdflatex")) && nzchar(Sys.which("pdfcrop"))) {
+  table_empirical_bayes_hyperparameters_vs_scenario(eb, frequentist_metrics)
+  print(list.files(tables_dir, recursive = TRUE))
+}
+}
+options(old_options); ggplot2::theme_set(old_theme)
+unlink(figures_dir, recursive = TRUE)
+unlink(tables_dir, recursive = TRUE)
+}

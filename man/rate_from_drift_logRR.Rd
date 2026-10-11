@@ -17,4 +17,8 @@ The rate in the corresponding arm of the target study
 \description{
 This function calculates the rate in the target study arm based on the drift (defined on the log scale) and the rate in the arm of interest in the source study.
 }
+\examples{
+# A rate 0.8 times the source rate of 0.534 events per year
+rate_from_drift_logRR(arm_drift = log(0.8), source_rate = 0.534)
+}
 \keyword{internal}

@@ -6,6 +6,24 @@
 \description{
 A class representing the source posterior design prior for Bayesian borrowing.
 }
+\examples{
+cfg <- yaml::yaml.load_file(
+  system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+source_data <- ObservedSourceData$new(cfg)
+simulation_config <- yaml::read_yaml(
+  system.file("conf/simulation_config.yml", package = "BExTE")
+)
+design_prior <- SourcePosteriorDesignPrior$new(
+  source_data = source_data,
+  case_study_config = cfg,
+  simulation_config = simulation_config
+)
+design_prior$parameters
+design_prior$cdf(0)
+set.seed(1)
+design_prior$sample(3)
+}
 \section{Super class}{
 \code{\link[BExTE:DesignPrior]{DesignPrior}} -> \code{SourcePosteriorDesignPrior}
 }

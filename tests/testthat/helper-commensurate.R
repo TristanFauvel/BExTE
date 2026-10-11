@@ -178,6 +178,8 @@ commensurate_equivalence_mcmc_config <- function(chain_length = 4000L) {
     max_chain_length = chain_length,
     target_ess = 1L,
     rhat_threshold = 1.5,
-    max_divergence_rate = 1
+    max_divergence_rate = 1,
+    # inference() would otherwise use quadrature, and compare it with itself.
+    engine = "stan"
   )
 }

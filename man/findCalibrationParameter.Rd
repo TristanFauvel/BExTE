@@ -51,3 +51,15 @@ The function finds the calibration parameter by the same bisection search as
 the original, but evaluates the type I error at each step exactly rather than
 by simulation. The result is deterministic.
 }
+\examples{
+# Belimumab: 562 patients per arm in the source study, 46 in the target study
+findCalibrationParameter(
+  source_sample_size_per_arm = 562,
+  target_sample_size_per_arm = 46,
+  source_treatment_effect_estimate = 0.48,
+  desired_tie = 0.065,
+  significance_level = 0.05,
+  target_data_sampling_variance = 0.42^2 * 46,
+  source_data_sampling_variance = 0.12^2 * 562
+)
+}
