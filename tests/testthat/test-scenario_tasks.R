@@ -8,8 +8,9 @@ task_cases <- function(designs = 2, drifts = 5, weights = 1) {
   grid <- expand.grid(
     drift = seq(-0.2, 0.2, length.out = drifts),
     prior_weight = seq_len(weights),
-    target_sample_size_per_arm = 40 + 10 * seq_len(designs)
+    target_sample_size_control = 40 + 10 * seq_len(designs)
   )
+  grid$target_sample_size_treatment <- 2 * grid$target_sample_size_control
   grid$treatment_drift <- grid$drift
   grid$control_drift <- 0
   grid$target_treatment_effect <- 0.3 + grid$drift
@@ -29,7 +30,7 @@ test_that("the drifts of one design and parameter setting form one task", {
 
   expect_length(tasks, 12)
   for (task in tasks) {
-    design <- unique(cases[task, c("target_sample_size_per_arm", "prior_weight")])
+    design <- unique(cases[task, c(target_size_columns, "prior_weight")])
     expect_equal(nrow(design), 1)
     expect_length(task, 5)
   }

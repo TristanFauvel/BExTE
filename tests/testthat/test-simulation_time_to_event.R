@@ -223,7 +223,7 @@ test_that("the Cox fit recovers the treatment effect under both distributions", 
 
       samples <- BExTE:::simulate_time_to_event_trial(
         n_replicates = 3000,
-        sample_size_per_arm = 185,
+        sample_size_control = 185,
         control_parameter = parameters$control,
         treatment_parameter = parameters$treatment,
         event_time_distribution = distribution,
@@ -297,7 +297,7 @@ test_that("the design standard deviation matches the spread of the estimates", {
 
     samples <- BExTE:::simulate_time_to_event_trial(
       n_replicates = 3000,
-      sample_size_per_arm = n,
+      sample_size_control = n,
       control_parameter = control,
       treatment_parameter = treatment,
       event_time_distribution = "exponential",
@@ -408,12 +408,12 @@ test_that("the sensitivity designs are simulated only at the reference point", {
   # The whole grid runs under the primary design.
   expect_setequal(grid$source_denominator_change_factor[primary],
                   unlist(scenarios_config$denominator_change_factor))
-  expect_length(unique(grid$target_sample_size_per_arm[primary]),
+  expect_length(unique(grid$target_sample_size_control[primary]),
                 length(unlist(scenarios_config$sample_size_factors)))
 
   # The sensitivity designs run at one trial size and one source denominator,
   # but still across the whole drift range.
-  expect_equal(unique(grid$target_sample_size_per_arm[!primary]), expected_size)
+  expect_equal(unique(grid$target_sample_size_control[!primary]), expected_size)
   expect_equal(unique(grid$source_denominator_change_factor[!primary]),
                reference$denominator_change_factor)
   expect_setequal(grid$drift[!primary], grid$drift[primary])
@@ -575,7 +575,7 @@ test_that("the delayed trial's Cox estimate is centred on the treatment effect",
   source <- SourceData$new(case_study_config = cfg, source_denominator = cfg$source$control_rate)
   set.seed(11)
   target <- TargetDataFactory$new()$create(
-    source_data = source, case_study_config = cfg, target_sample_size_per_arm = 123,
+    source_data = source, case_study_config = cfg, target_sample_size_control = 123, target_sample_size_treatment = 123,
     treatment_drift = 0, control_drift = 0, summary_measure_likelihood = "normal",
     treatment_delay = 0.461538
   )
@@ -594,7 +594,7 @@ test_that("a delay is refused under the sampling approximation", {
   cfg$sampling_approximation <- TRUE
   source <- SourceData$new(case_study_config = cfg, source_denominator = cfg$source$control_rate)
   target <- TargetDataFactory$new()$create(
-    source_data = source, case_study_config = cfg, target_sample_size_per_arm = 123,
+    source_data = source, case_study_config = cfg, target_sample_size_control = 123, target_sample_size_treatment = 123,
     treatment_drift = 0, control_drift = 0, summary_measure_likelihood = "normal",
     treatment_delay = 0.230769
   )
@@ -622,13 +622,13 @@ test_that("the delay is a sensitivity axis, simulated one at a time", {
   delayed <- grid[grid$treatment_delay > 0, ]
   expect_setequal(unique(delayed$treatment_delay), c(0.230769, 0.461538))
   expect_equal(unique(delayed$case_study), "teriflunomide")
-  expect_equal(unique(delayed$target_sample_size_per_arm), 123)
+  expect_equal(unique(delayed$target_sample_size_control), 123)
   # Nothing else moves off the primary design alongside the delay.
   expect_true(all(delayed$control_drift == 0 & delayed$dropout_probability == 0 &
                     delayed$event_time_distribution == "exponential"))
   # Seven sensitivity designs besides the primary one.
   teriflunomide <- grid[grid$case_study == "teriflunomide" &
-                          grid$target_sample_size_per_arm == 123 &
+                          grid$target_sample_size_control == 123 &
                           grid$source_denominator_change_factor == 1, ]
   expect_equal(nrow(unique(teriflunomide[, c("control_drift", "dropout_probability",
                                              "event_time_distribution", "treatment_delay")])), 8)

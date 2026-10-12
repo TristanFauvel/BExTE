@@ -61,7 +61,8 @@ mixture_variance <- function(w, sigma2A, muA, sigma2B, muB) {
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -140,7 +141,7 @@ GaussianRMP_RBesT <- R6::R6Class(
     empirical_bayes_update = function(target_data) {
       if (self$empirical_bayes) {
         self$vague_prior_variance <- (target_data$sample$treatment_effect_standard_error ^
-                                        2) * target_data$sample_size_per_arm # sample standard deviation in the target study
+                                        2) * target_effective_arm_size(target_data) # sample standard deviation in the target study
 
         # information provided by a single subject per arm in the target study (as explained in the protocol)
         # Note that in Best et al, 2021 (Mepolizumab), this is the information provided by a single subject in the target study
@@ -305,7 +306,7 @@ GaussianRMP_RBesT <- R6::R6Class(
       }
 
       vague_variance <- if (self$empirical_bayes) {
-        samples$treatment_effect_standard_error^2 * target_data$sample_size_per_arm
+        samples$treatment_effect_standard_error^2 * target_effective_arm_size(target_data)
       } else {
         self$vague_prior_variance
       }

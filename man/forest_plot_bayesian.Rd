@@ -18,6 +18,6 @@ dark mode, or NULL for the publication figure.}
 None
 }
 \description{
-This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
+This function generates a forest plot based on the provided results dataframe, selected case study, and selected target arm sizes.
 }
 \keyword{internal}

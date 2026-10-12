@@ -15,11 +15,14 @@ test_that("commensurate Stan model updates borrowing parameters with target data
 })
 
 
-test_that("commensurate sample sizes must be positive", {
-  stan_code <- commensurate_stan_model()$stan_model_code
-
-  expect_match(stan_code, "int<lower=1> NS", fixed = TRUE)
-  expect_match(stan_code, "int<lower=1> NT", fixed = TRUE)
+test_that("commensurate sample sizes are positive and need not be whole numbers", {
+  # They are equivalent sample sizes per arm, 2 / (1 / n_C + 1 / n_T), which
+  # are not whole numbers when the arms differ.
+  for (stan_code in c(commensurate_stan_model()$stan_model_code,
+                      commensurate_prior_stan_model()$stan_model_code)) {
+    expect_match(stan_code, "real<lower=0> NS", fixed = TRUE)
+    expect_match(stan_code, "real<lower=0> NT", fixed = TRUE)
+  }
 })
 
 

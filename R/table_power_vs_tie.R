@@ -5,7 +5,8 @@
 #'
 #' @param results_metrics_df A data frame containing the results and metrics.
 #' @param case_study The specific case study to filter the results.
-#' @param target_sample_size_per_arm The target sample size per arm to filter the results.
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes to filter the results.
 #' @param treatment_effect Character string specifying the treatment effect: "consistent", "partially_consistent", or "no_effect".
 #' @param power_difference Logical; if TRUE, calculate power difference instead of power.
 #' @param metrics A vector of metric names (not used in the current implementation).
@@ -18,7 +19,8 @@
 #' @keywords internal
 table_power_vs_tie <- function(results_metrics_df,
                                case_study,
-                               target_sample_size_per_arm,
+                               target_sample_size_control,
+                               target_sample_size_treatment,
                                treatment_effect,
                                power_difference,
                                metrics,
@@ -27,7 +29,8 @@ table_power_vs_tie <- function(results_metrics_df,
   check_table_packages()
   results_df <- results_metrics_df %>%
     dplyr::filter(
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       case_study == !!case_study,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
@@ -125,16 +128,15 @@ table_power_vs_tie <- function(results_metrics_df,
         case_study,
         "_",
         power_label,
-        "target_sample_size_per_arm_",
-        target_sample_size_per_arm,
+        target_size_label(target_sample_size_control, target_sample_size_treatment, "file"),
         "_",
         treatment_effect
       )
 
   title <-  sprintf(
-      "%s, $N_T/2 = %s$, %s",
+      "%s, %s, %s",
       stringr::str_to_title(case_study),
-      target_sample_size_per_arm,
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "latex"),
       treatment_effect_label
     )
 
@@ -174,16 +176,20 @@ power_vs_tie_tables <- function(results_metrics_df, metrics) {
 
   for (case_study in case_studies) {
     # Get the list of target sample sizes
-    target_sample_sizes <- unique(results_metrics_df$target_sample_size_per_arm[results_metrics_df$case_study == case_study])
+    target_sample_sizes <- unique(
+      results_metrics_df[results_metrics_df$case_study == case_study, target_size_columns, drop = FALSE]
+    )
 
-    for (target_sample_size in target_sample_sizes) {
+    for (size_index in seq_len(nrow(target_sample_sizes))) {
+      target_sample_size <- target_sample_sizes[size_index, , drop = FALSE]
       for (treatment_effect in treatment_effects) {
         for (source_denominator_change_factor in unique(results_metrics_df$source_denominator_change_factor)){
           for (target_to_source_std_ratio in unique(results_metrics_df$target_to_source_std_ratio)){
             table_power_vs_tie(
               results_metrics_df,
               case_study,
-              target_sample_size,
+              target_sample_size$target_sample_size_control,
+              target_sample_size$target_sample_size_treatment,
               treatment_effect = treatment_effect,
               power_difference = FALSE,
               metrics = metrics,
@@ -194,7 +200,8 @@ power_vs_tie_tables <- function(results_metrics_df, metrics) {
             table_power_vs_tie(
               results_metrics_df,
               case_study,
-              target_sample_size,
+              target_sample_size$target_sample_size_control,
+              target_sample_size$target_sample_size_treatment,
               treatment_effect = treatment_effect,
               power_difference = TRUE,
               metrics = metrics,

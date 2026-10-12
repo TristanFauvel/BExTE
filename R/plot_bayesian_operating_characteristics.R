@@ -6,7 +6,8 @@
 #' @param metric The metric to plot.
 #' @param case_study The case study to plot the metric for.
 #' @param method The method to plot the metric for.
-#' @param target_sample_size_per_arm The target sample size per arm to plot the metric for.
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes to plot the metric for.
 #' @param theta_0 Boundary of the null hypothesis space.
 #' @param add_baselines A logical value indicating whether to add baselines to the plot.
 #' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
@@ -19,7 +20,8 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
                                           metric,
                                           case_study = "belimumab",
                                           method = "RMP",
-                                          target_sample_size_per_arm = 93,
+                                          target_sample_size_control,
+                                          target_sample_size_treatment,
                                           theta_0 = NULL,
                                           add_baselines = FALSE,
                                           source_denominator_change_factor = 1,
@@ -30,7 +32,8 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
   results_df <- results_metrics_df %>%
     dplyr::filter(
       case_study == !!case_study,
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       method == !!method,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
@@ -141,11 +144,11 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
 
       plot_title <-
         sprintf(
-          "%s, %s, %s $N_T/2 = $ %s",
+          "%s, %s, %s %s",
           stringr::str_to_title(case_study),
           methods_labels[[method]]$full_name,
           other_params_label,
-          target_sample_size_per_arm
+          target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
         )
 
       plot_title <- format_title(title = plot_title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -222,8 +225,8 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
         method,
         "_",
         selected_metric_name,
-        "_vs_parameters_target_sample_size_per_arm_",
-        target_sample_size_per_arm
+        "_vs_parameters_target_",
+        target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
       )
 
       if (other_params_str != ""){
@@ -366,7 +369,7 @@ bayesian_metric_vs_sample_size <- function(metric,
       method,
       "_",
       selected_metric_name,
-      "_vs_target_sample_size_per_arm_",
+      "_vs_target_sample_size_",
       convert_params_to_str(methods_dict[[method]], parameters_combinations)
     )
 
@@ -404,7 +407,7 @@ bayesian_metric_vs_sample_size <- function(metric,
       case_study,
       "_",
       selected_metric_name,
-      "_vs_target_sample_size_per_arm_all_methods_",
+      "_vs_target_sample_size_all_methods_",
       design_prior
     )
 
@@ -495,8 +498,12 @@ bayesian_metric_vs_sample_size <- function(metric,
 
   selected_label <- selected_metric$label
 
+  # The x-axis is the total target sample size.
+  results_df$target_sample_size_total <- results_df$target_sample_size_control +
+    results_df$target_sample_size_treatment
+
   # Calculate the range of the x-axis
-  x_range <- range(results_df$target_sample_size_per_arm)
+  x_range <- range(results_df$target_sample_size_total)
   x_width <- diff(x_range)
   # Set a relative cap size (necessary, otherwise the cap size will depend on the x-axis width)
   cap_size <- x_width * relative_error_cap_width # Adjust relative_error_cap_width to control the relative cap size
@@ -518,14 +525,14 @@ bayesian_metric_vs_sample_size <- function(metric,
       plt <- ggplot2::ggplot(
         results_df,
         ggplot2::aes(
-          x = target_sample_size_per_arm,
+          x = target_sample_size_total,
           y = !!selected_metric_name
         )
       ) +
         ggplot2::geom_point() +
         # geom_point(position = position_dodge(width = cap_size / 2)) +
         ggplot2::geom_line() +
-        ggplot2::scale_x_continuous(name = "Target study sample size per arm") +
+        ggplot2::scale_x_continuous(name = "Target sample size (total)") +
         ggplot2::scale_y_continuous(name = selected_label)
     } else {
       # Produce the plot
@@ -534,7 +541,7 @@ bayesian_metric_vs_sample_size <- function(metric,
       plt <- ggplot2::ggplot(
         results_df,
         ggplot2::aes(
-          x = target_sample_size_per_arm,
+          x = target_sample_size_total,
           y = !!selected_metric_name,
           group = as.factor(label),
           color = as.factor(label)
@@ -543,7 +550,7 @@ bayesian_metric_vs_sample_size <- function(metric,
         ggplot2::geom_point() +
         # geom_point(position = position_dodge(width = cap_size / 2)) +
         ggplot2::geom_line() +
-        ggplot2::scale_x_continuous(name = "Target study sample size per arm") +
+        ggplot2::scale_x_continuous(name = "Target sample size (total)") +
         ggplot2::scale_y_continuous(name = selected_label) +
         ggplot2::labs(color = labels_title) +
         ggplot2::scale_color_manual(values = color_map,
@@ -562,7 +569,7 @@ bayesian_metric_vs_sample_size <- function(metric,
     plt <- ggplot2::ggplot(
       results_df,
       ggplot2::aes(
-        x = target_sample_size_per_arm,
+        x = target_sample_size_total,
         y = !!selected_metric_name,
         group = factor(parameters_labels, levels = unique(results_df$parameters_labels)),
         color = factor(parameters_labels, levels = unique(results_df$parameters_labels)),
@@ -573,7 +580,7 @@ bayesian_metric_vs_sample_size <- function(metric,
     plt <- plt +
       ggplot2::geom_point(size = 1) + # Adjust size if needed
       ggplot2::geom_line() +
-      ggplot2::scale_x_continuous(name = "Target study sample size per arm") +
+      ggplot2::scale_x_continuous(name = "Target sample size (total)") +
       ggplot2::scale_y_continuous(name = selected_label) +
       ggplot2::labs(color = "Methods") +
       ggplot2::scale_color_viridis_d(labels = parameters_labels, guide = "legend") +
@@ -680,16 +687,17 @@ bayesian_ocs_plots <- function(results_metrics_df, metrics) {
             add_baselines <- TRUE
           }
 
-          target_sample_sizes_per_arm <- unique(results_df3$target_sample_size_per_arm)
+          target_sample_sizes <- unique(results_df3[, target_size_columns, drop = FALSE])
 
 
           for (metric in names(metrics)) {
-            for (sample_size_per_arm in target_sample_sizes_per_arm) {
+            for (size_index in seq_len(nrow(target_sample_sizes))) {
               bayesian_metric_vs_parameters(
                 results_metrics_df = results_df3,
                 case_study = case_study,
                 method = method,
-                target_sample_size_per_arm = sample_size_per_arm,
+                target_sample_size_control = target_sample_sizes$target_sample_size_control[size_index],
+                target_sample_size_treatment = target_sample_sizes$target_sample_size_treatment[size_index],
                 metric = metric,
                 theta_0 = theta_0,
                 source_denominator_change_factor = source_denominator_change_factor,

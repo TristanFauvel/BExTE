@@ -15,7 +15,8 @@ source_data <- ObservedSourceData$new(case_study_config)
 target_data <- ObservedTargetData$new(
   treatment_effect_estimate = case_study_config$target$treatment_effect,
   treatment_effect_standard_error = case_study_config$target$standard_error,
-  target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+  target_sample_size_control = case_study_config$target$control,
+  target_sample_size_treatment = case_study_config$target$treatment,
   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 )
 model <- Model$new()$create(
@@ -720,7 +721,8 @@ outcomes the enumeration leaves out.}
   confidence_level,
   null_space,
   n_samples_design_prior,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   case_study_config,
   target_to_source_std_ratio,
   dropout_probability = 0,
@@ -744,7 +746,8 @@ outcomes the enumeration leaves out.}
       \item{\code{confidence_level}}{Confidence level for the credible interval}
       \item{\code{null_space}}{The null space for hypothesis testing}
       \item{\code{n_samples_design_prior}}{Number of samples from the design prior}
-      \item{\code{target_sample_size_per_arm}}{Sample size per arm in the target study}
+      \item{\code{target_sample_size_control}}{Sample size of the control arm in the target study.}
+      \item{\code{target_sample_size_treatment}}{Sample size of the treatment arm in the target study.}
       \item{\code{case_study_config}}{Configuration of the case study}
       \item{\code{target_to_source_std_ratio}}{Ratio between the target and source study standard deviation}
       \item{\code{dropout_probability}}{Probability of loss to follow-up over the maximum

@@ -33,7 +33,8 @@ pdccpp_target_data_at <- function(treatment_effect_estimate) {
   ObservedTargetData$new(
     treatment_effect_estimate = treatment_effect_estimate,
     treatment_effect_standard_error = 0.284,
-    target_sample_size_per_arm = 52,
+    target_sample_size_control = 52,
+    target_sample_size_treatment = 52,
     summary_measure_likelihood = "normal"
   )
 }

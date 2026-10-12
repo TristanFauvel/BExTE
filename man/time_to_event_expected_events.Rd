@@ -6,7 +6,8 @@
 \usage{
 time_to_event_expected_events(
   case_study_config,
-  sample_size_per_arm,
+  sample_size_control,
+  sample_size_treatment = sample_size_control,
   control_drift = 0,
   dropout_probability = 0,
   event_time_distribution = "exponential",
@@ -17,7 +18,10 @@ time_to_event_expected_events(
 \arguments{
 \item{case_study_config}{A time-to-event case study configuration.}
 
-\item{sample_size_per_arm}{Number of patients in each arm.}
+\item{sample_size_control}{Number of patients in the control arm.}
+
+\item{sample_size_treatment}{Number of patients in the treatment arm.
+Defaults to \code{sample_size_control}.}
 
 \item{control_drift}{Control-arm heterogeneity, kappa, on the log scale.}
 

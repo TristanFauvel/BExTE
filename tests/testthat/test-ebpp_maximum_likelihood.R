@@ -52,7 +52,7 @@ test_that("EB_PP maximises the marginal likelihood of the power parameter", {
   for (deviation in c(0, 0.05, 0.12, 0.2, 0.3, 0.5, 0.8, -0.3, -0.6)) {
     estimate <- m0 + deviation
     got <- f$model$power_parameter_estimation(
-      ObservedTargetData$new(estimate, f$se_target, f$n1, "normal")
+      ObservedTargetData$new(estimate, f$se_target, f$n1, summary_measure_likelihood = "normal")
     )
     expect_equal(got, maximise(estimate), tolerance = 1e-4,
                  label = sprintf("power parameter at deviation %g", deviation))
@@ -68,7 +68,7 @@ test_that("EB_PP borrows in full inside one predictive standard deviation", {
 
   borrows_fully <- function(deviation) {
     f$model$power_parameter_estimation(
-      ObservedTargetData$new(m0 + deviation, f$se_target, f$n1, "normal")
+      ObservedTargetData$new(m0 + deviation, f$se_target, f$n1, summary_measure_likelihood = "normal")
     ) == 1
   }
   lower <- 0
@@ -84,7 +84,8 @@ test_that("the vectorised EB_PP estimator reproduces the scalar one", {
   f <- ebpp_fixture()
   target_data <- TargetDataFactory$new()$create(
     source_data = f$source_data, case_study_config = f$case_study_config,
-    target_sample_size_per_arm = f$n1, control_drift = 0, treatment_drift = 0,
+    target_sample_size_control = f$n1,
+    target_sample_size_treatment = f$n1, control_drift = 0, treatment_drift = 0,
     summary_measure_likelihood = "normal", target_to_source_std_ratio = 1
   )
   set.seed(3)
@@ -94,7 +95,8 @@ test_that("the vectorised EB_PP estimator reproduces the scalar one", {
   scalar <- vapply(seq_len(nrow(samples)), function(r) {
     f$model$power_parameter_estimation(ObservedTargetData$new(
       samples$treatment_effect_estimate[r],
-      samples$treatment_effect_standard_error[r], f$n1, "normal"
+      samples$treatment_effect_standard_error[r], f$n1,
+      summary_measure_likelihood = "normal"
     ))
   }, numeric(1))
 

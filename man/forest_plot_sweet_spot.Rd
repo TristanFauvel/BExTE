@@ -15,5 +15,5 @@ forest_plot_sweet_spot(results_freq_df, x_metric)
 None
 }
 \description{
-This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
+This function generates a forest plot based on the provided results dataframe, selected case study, and selected target arm sizes.
 }

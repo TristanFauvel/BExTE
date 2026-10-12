@@ -48,13 +48,13 @@ npp_target_data <- function(successes_control, successes_treatment, n) {
   treatment_rate <- successes_treatment / n
   list(
     summary_measure_likelihood = "binomial",
-    sample_size_per_arm = n,
     sample_size_control = n,
     sample_size_treatment = n,
     sample = data.frame(
       sample_control_rate = control_rate,
       sample_treatment_rate = treatment_rate,
-      sample_size_per_arm = n,
+      sample_size_control = n,
+      sample_size_treatment = n,
       treatment_effect_estimate = treatment_rate - control_rate,
       treatment_effect_standard_error = sqrt(
         treatment_rate * (1 - treatment_rate) / n + control_rate * (1 - control_rate) / n

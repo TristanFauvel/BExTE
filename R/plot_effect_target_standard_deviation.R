@@ -86,7 +86,13 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
   results_df$method <- methods
   methods <- unique(methods)
 
-  target_sample_size_per_arm <- unique(results_df$target_sample_size_per_arm)
+  target_sizes <- unique(results_df[, target_size_columns, drop = FALSE])
+  size_title <- target_size_label(
+    target_sizes$target_sample_size_control, target_sizes$target_sample_size_treatment, "latex"
+  )
+  size_file <- target_size_label(
+    target_sizes$target_sample_size_control, target_sizes$target_sample_size_treatment, "file"
+  )
 
   if (any(metric %in% names(frequentist_metrics)) || any(metric %in% names(inference_metrics))) {
     treatment_effects_labels <- list(
@@ -115,9 +121,9 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
     }
 
     plot_title <- sprintf(
-      "%s, $N_T/2 = $%s, %s",
+      "%s, %s, %s",
       stringr::str_to_title(unique(results_df$case_study)),
-      target_sample_size_per_arm,
+      size_title,
       treatment_effects_labels[[treatment_effect]]
     )
 
@@ -128,8 +134,8 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
       "_vs_target_to_source_std_ratio",
       "_treatment_effect=",
       treatment_effect,
-      "_target_sample_size_per_arm=",
-      target_sample_size_per_arm
+      "_target_",
+      size_file
     )
 
   } else if (any(metric %in% names(bayesian_metrics))) {
@@ -145,9 +151,9 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
     }
 
     plot_title <- sprintf(
-      "%s, $N_T/2 = $%s, %s",
+      "%s, %s, %s",
       stringr::str_to_title(unique(results_df$case_study)),
-      unique(results_df$target_sample_size_per_arm),
+      size_title,
       design_prior_label
     )
 
@@ -156,8 +162,8 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
       "_",
       metric$name,
       "_vs_target_to_source_std_ratio",
-      "_target_sample_size_per_arm=",
-      target_sample_size_per_arm,
+      "_target_",
+      size_file,
       design_prior_label
     )
   } else {
@@ -254,7 +260,7 @@ plot_effect_standard_deviation <- function(results_df, metric, figures_dir, trea
 loop_plot_effect_target_standard_deviation <- function(results_df, metrics){
   check_plot_packages()
   # Define the columns that uniquely define a scenario
-  scenario_vars <- c("target_sample_size_per_arm",
+  scenario_vars <- c(target_size_columns,
                      "drift", "case_study") #"method", "parameters",
   existing_vars <- intersect(scenario_vars, colnames(results_df))
 
@@ -281,7 +287,8 @@ loop_plot_effect_target_standard_deviation <- function(results_df, metrics){
       filter(
         #method == scenario$method,
         #parameters == scenario$parameters,
-        target_sample_size_per_arm == scenario$target_sample_size_per_arm,
+        target_sample_size_control == scenario$target_sample_size_control,
+        target_sample_size_treatment == scenario$target_sample_size_treatment,
         if ("drift" %in% colnames(results_df)) drift == scenario$drift else TRUE,
         case_study == scenario$case_study
       )

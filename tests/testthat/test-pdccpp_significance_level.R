@@ -41,7 +41,8 @@ applied_multiplier <- function(model, source_data, n1, se_target) {
     model$power_parameter_estimation(ObservedTargetData$new(
       treatment_effect_estimate = source_data$treatment_effect_estimate + deviation,
       treatment_effect_standard_error = se_target,
-      target_sample_size_per_arm = n1,
+      target_sample_size_control = n1,
+      target_sample_size_treatment = n1,
       summary_measure_likelihood = "normal"
     )) == 1
   }
@@ -92,7 +93,8 @@ test_that("the simulation records the threshold it decides at", {
       source = list(control = 562, treatment = 563,
                     treatment_effect = 0.481, standard_error = 0.1208)
     ),
-    target_sample_size_per_arm = 52, control_drift = 0, treatment_drift = 0,
+    target_sample_size_control = 52,
+    target_sample_size_treatment = 52, control_drift = 0, treatment_drift = 0,
     summary_measure_likelihood = "normal", target_to_source_std_ratio = 1
   )
   set.seed(1)

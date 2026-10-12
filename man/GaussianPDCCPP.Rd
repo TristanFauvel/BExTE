@@ -17,7 +17,8 @@ source_data <- ObservedSourceData$new(cfg)
 target_data <- ObservedTargetData$new(
   treatment_effect_estimate = cfg$target$treatment_effect,
   treatment_effect_standard_error = cfg$target$standard_error,
-  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  target_sample_size_control = cfg$target$control,
+  target_sample_size_treatment = cfg$target$treatment,
   summary_measure_likelihood = cfg$summary_measure_likelihood
 )
 model <- Model$new()$create(
@@ -204,7 +205,8 @@ sampling variance
     \describe{
       \item{\code{target_data_sampling_variance}}{Target sampling variance, per
 patient.}
-      \item{\code{target_sample_size_per_arm}}{Target sample size per arm.}
+      \item{\code{target_sample_size_per_arm}}{Equivalent sample size per arm of the
+target study (see \code{effective_arm_size()}).}
       \item{\code{source_treatment_effect_estimate}}{Source estimate, after
 \code{hypothesis_space_transformation()}.}
       \item{\code{tolerance}}{Tolerance of the search; the configured one by default.}
@@ -244,7 +246,8 @@ Vectorised over its arguments, so it serves one replicate or all of them.
 transformation.}
       \item{\code{target_data_sampling_variance}}{Target sampling variances, per
 patient.}
-      \item{\code{target_sample_size_per_arm}}{Target sample size per arm.}
+      \item{\code{target_sample_size_per_arm}}{Equivalent sample size per arm of the
+target study (see \code{effective_arm_size()}).}
       \item{\code{calibration_parameter}}{Calibration parameters z_{1-c/2}.}
     }
     \if{html}{\out{</div>}}

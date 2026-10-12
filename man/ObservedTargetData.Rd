@@ -10,7 +10,8 @@ A wrapper used for analyzing observed data (not used for simulation)
 observed <- ObservedTargetData$new(
   treatment_effect_estimate = 0.37,
   treatment_effect_standard_error = 0.42,
-  target_sample_size_per_arm = 46,
+  target_sample_size_control = 39,
+  target_sample_size_treatment = 53,
   summary_measure_likelihood = "normal"
 )
 observed$sample
@@ -20,11 +21,15 @@ observed$sample
   \describe{
     \item{\code{summary_measure_likelihood}}{Summary measure distribution}
 
-    \item{\code{sample_size_per_arm}}{Sample size per arm in the target study}
+    \item{\code{sample_size_control}}{Sample size of the control arm in the target study}
+
+    \item{\code{sample_size_treatment}}{Sample size of the treatment arm in the target study}
 
     \item{\code{sample}}{Observed data sample: the treatment effect estimate, its
 standard error and \code{standard_deviation}, the per-patient sampling standard
-deviation \code{treatment_effect_standard_error * sqrt(sample_size_per_arm)}.
+deviation \code{treatment_effect_standard_error * sqrt(n)}, where \code{n} is the
+equivalent sample size per arm
+\code{2 / (1 / sample_size_control + 1 / sample_size_treatment)}.
 That is the scale the simulated samples report (see
 \code{sample_aggregate_normal_data()}), and the frequentist tests of
 test-then-pool and the p-value based power prior need it.}
@@ -48,7 +53,8 @@ test-then-pool and the p-value based power prior need it.}
     \preformatted{ObservedTargetData$new(
   treatment_effect_estimate,
   treatment_effect_standard_error,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment = target_sample_size_control,
   summary_measure_likelihood
 )}
     \if{html}{\out{</div>}}
@@ -58,7 +64,9 @@ test-then-pool and the p-value based power prior need it.}
     \describe{
       \item{\code{treatment_effect_estimate}}{The estimated treatment effect}
       \item{\code{treatment_effect_standard_error}}{The standard error of the treatment effect estimate}
-      \item{\code{target_sample_size_per_arm}}{The target sample size per treatment arm}
+      \item{\code{target_sample_size_control}}{The sample size of the control arm}
+      \item{\code{target_sample_size_treatment}}{The sample size of the treatment
+arm. Defaults to \code{target_sample_size_control}.}
       \item{\code{summary_measure_likelihood}}{The distribution of the summary measure (e.g., "normal", "binomial")}
     }
     \if{html}{\out{</div>}}

@@ -8,12 +8,14 @@ oc_bayesian(
   prior,
   decision,
   design_prior,
-  n_per_arm,
+  n_per_arm = NULL,
   n_rep = 100,
   n_draws = 200,
   target_to_source_std_ratio = 1,
   confidence_level = 0.95,
-  mcmc_config = NULL
+  mcmc_config = NULL,
+  n_control = NULL,
+  n_treatment = NULL
 )
 }
 \arguments{
@@ -25,7 +27,8 @@ also the one the methods that adapt to it use.}
 
 \item{design_prior}{A design prior, from \code{\link[=design_prior]{design_prior()}}.}
 
-\item{n_per_arm}{Target sample size per arm.}
+\item{n_per_arm}{Target sample size per arm, for a balanced design. Give
+either \code{n_per_arm}, or \code{n_control} and \code{n_treatment}.}
 
 \item{n_rep}{Number of simulated trials per draw from the design prior.}
 
@@ -38,6 +41,9 @@ sampling standard deviation (continuous endpoint).}
 reported.}
 
 \item{mcmc_config}{Optional MCMC settings, as in \code{\link[=posterior]{posterior()}}.}
+
+\item{n_control, n_treatment}{Target arm sizes, for a design whose arms
+differ. Use them in place of \code{n_per_arm}.}
 }
 \value{
 An object of class \code{bexte_oc_bayesian}: a one-row data frame.

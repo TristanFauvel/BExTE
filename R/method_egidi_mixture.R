@@ -137,7 +137,8 @@ egidi_method_settings <- function(method_parameters) {
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -197,7 +198,7 @@ GaussianEgidiMixture <- R6::R6Class(
     #' @param target_data A list containing the target data for the analysis.
     empirical_bayes_update = function(target_data) {
       standard_error <- target_data$sample$treatment_effect_standard_error
-      weak_variance <- standard_error^2 * target_data$sample_size_per_arm
+      weak_variance <- standard_error^2 * target_effective_arm_size(target_data)
 
       self$selection <- egidi_select_weak_weight(
         t_obs = target_data$sample$treatment_effect_estimate,
@@ -238,7 +239,7 @@ GaussianEgidiMixture <- R6::R6Class(
     vectorised_prior_components = function(target_data, samples) {
       n_replicates <- nrow(samples)
       standard_error <- samples$treatment_effect_standard_error
-      weak_variance <- standard_error^2 * target_data$sample_size_per_arm
+      weak_variance <- standard_error^2 * target_effective_arm_size(target_data)
 
       self$selection <- egidi_select_weak_weight(
         t_obs = samples$treatment_effect_estimate,

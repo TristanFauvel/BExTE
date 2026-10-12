@@ -39,7 +39,7 @@ drift <- 0.4
 target_sample_size_per_arm <- 100
 
 target_data <- TargetDataFactory$new()
-target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 ```
 
 ```{r}
@@ -86,7 +86,8 @@ samples <- BExTE:::sample_aggregate_normal_data(
   mean = target_data$treatment_effect,
   variance = target_data$standard_deviation^2,
   n_replicates = n_replicates,
-  n_samples_per_arm = target_data$sample_size_per_arm
+  n_control = target_data$sample_size_control,
+  n_treatment = target_data$sample_size_treatment
 )
 
 target_data$plot_sample(samples)

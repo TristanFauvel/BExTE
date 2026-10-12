@@ -26,13 +26,15 @@ recurrent_target_data <- list(
   endpoint = "recurrent_event",
   treatment_effect = -0.5,
   standard_deviation = 1,
-  sample_size_per_arm = 30,
+  sample_size_control = 30,
+  sample_size_treatment = 30,
   generate = function(n_replicates) {
     estimate <- rep_len(estimates, n_replicates)
     data.frame(
       treatment_effect_estimate = estimate,
       treatment_effect_standard_error = ifelse(is.na(estimate), NA_real_, 0.2),
-      sample_size_per_arm = 30,
+      sample_size_control = 30,
+      sample_size_treatment = 30,
       standard_deviation = ifelse(is.na(estimate), NA_real_, 0.2 * sqrt(30))
     )
   }
@@ -109,7 +111,8 @@ test_that("a scenario with no estimable replicate fails loudly", {
     data.frame(
       treatment_effect_estimate = rep(NA_real_, n_replicates),
       treatment_effect_standard_error = NA_real_,
-      sample_size_per_arm = 30,
+      sample_size_control = 30,
+      sample_size_treatment = 30,
       standard_deviation = NA_real_
     )
   }

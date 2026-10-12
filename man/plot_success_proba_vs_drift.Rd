@@ -10,7 +10,8 @@ plot_success_proba_vs_drift(
   theta_0,
   case_study,
   method,
-  target_sample_size_per_arm = NULL,
+  target_sample_size_control = NULL,
+  target_sample_size_treatment = NULL,
   target_to_source_std_ratio,
   source_denominator_change_factor = NULL,
   parameters_combinations = NULL,
@@ -30,7 +31,8 @@ plot_success_proba_vs_drift(
 
 \item{method}{The method name}
 
-\item{target_sample_size_per_arm}{The target sample size per arm}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes.}
 
 \item{target_to_source_std_ratio}{Ratio between the target and source studies sampling standard deviation.}
 

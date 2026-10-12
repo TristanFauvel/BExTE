@@ -785,8 +785,7 @@ BinomialNPP <- R6::R6Class(
 #'                sample = data.frame(sample_control_rate = 39 / 71,
 #'                                    sample_treatment_rate = 45 / 71))
 #' cache <- file.path(tempdir(), "bexte-cache")
-#' # The calibration reads the design: arm size, control rate and SD.
-#' target$sample_size_per_arm <- 71
+#' # The calibration reads the design: arm sizes, control rate and SD.
 #' target$control_rate <- 39 / 71
 #' target$standard_deviation <- 0.69
 #' model <- BinomialNPP_KL$new(prior = prior, theta_0 = 0, null_space = "left",

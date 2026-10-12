@@ -7,7 +7,7 @@ summary_attributes <- function(model) {
 }
 
 gaussian_target <- function(estimate = 0.3, standard_error = 0.15) {
-  list(sample_size_per_arm = 50,
+  list(sample_size_control = 50, sample_size_treatment = 50,
        sample = data.frame(treatment_effect_estimate = estimate,
                            treatment_effect_standard_error = standard_error))
 }
@@ -107,10 +107,12 @@ test_that("test-then-pool shows its pooling decision", {
   model <- TestThenPoolDifference$new(prior = prior)
   model$prior <- prior
   model$inference(list(
-    sample_size_per_arm = 50, summary_measure_likelihood = "normal",
+    sample_size_control = 50,
+    sample_size_treatment = 50, summary_measure_likelihood = "normal",
     sample = data.frame(treatment_effect_estimate = 0.4,
                         treatment_effect_standard_error = 0.2,
-                        sample_size_per_arm = 50, standard_deviation = 1.4)
+                        sample_size_control = 50,
+                        sample_size_treatment = 50, standard_deviation = 1.4)
   ))
 
   rows <- model$summary_rows()

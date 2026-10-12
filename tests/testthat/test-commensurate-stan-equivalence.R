@@ -40,7 +40,8 @@ test_that("the commensurate fast path agrees with the Stan fit it replaces", {
   target_data <- TargetDataFactory$new()$create(
     source_data = source_data,
     case_study_config = case_study_config,
-    target_sample_size_per_arm = 60,
+    target_sample_size_control = 60,
+    target_sample_size_treatment = 60,
     control_drift = 0,
     treatment_drift = 0,
     summary_measure_likelihood = "normal",
@@ -151,7 +152,8 @@ test_that("both paths report a tau moment that does not exist as infinite", {
   target_data <- TargetDataFactory$new()$create(
     source_data = source_data,
     case_study_config = case_study_config,
-    target_sample_size_per_arm = 60,
+    target_sample_size_control = 60,
+    target_sample_size_treatment = 60,
     control_drift = 0,
     treatment_drift = 0,
     summary_measure_likelihood = "normal",

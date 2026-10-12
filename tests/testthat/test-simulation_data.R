@@ -117,7 +117,8 @@ test_that("recurrent-event size parameter is used consistently", {
   target_data <- RecurrentEventTargetData$new(
     source_data = source_data,
     sampling_approximation = TRUE,
-    target_sample_size_per_arm = 50,
+    target_sample_size_control = 50,
+    target_sample_size_treatment = 50,
     control_drift = 0,
     treatment_drift = 0,
     summary_measure_likelihood = "normal",
@@ -160,7 +161,8 @@ test_that("recurrent-event size parameters must be positive", {
     RecurrentEventTargetData$new(
       source_data = source_data,
       sampling_approximation = TRUE,
-      target_sample_size_per_arm = 50,
+      target_sample_size_control = 50,
+      target_sample_size_treatment = 50,
       treatment_drift = 0,
       summary_measure_likelihood = "normal",
       k_treatment = 0

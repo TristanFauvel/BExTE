@@ -37,7 +37,8 @@ posterior <- function(prior, target, mcmc_config = NULL) {
   target_r6 <- api_target_r6(target, prior$source)
   model$calibrate_for_design(api_design_target(
     prior$source,
-    n_per_arm = target_r6$sample_size_per_arm
+    n_control = target_r6$sample_size_control,
+    n_treatment = target_r6$sample_size_treatment
   ))
   model$inference(target_r6)
 

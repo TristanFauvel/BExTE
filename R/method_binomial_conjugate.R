@@ -207,7 +207,7 @@ BinomialConjugate <- R6::R6Class(
         posterior_sd = sqrt(self$post_var),
         lower = interval[[1]],
         upper = interval[[2]],
-        sample_size_per_arm = target_data$sample_size_per_arm,
+        sample_size_per_arm = target_effective_arm_size(target_data),
         level = level
       ))
     },

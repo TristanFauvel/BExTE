@@ -1,6 +1,7 @@
 plot_metric_vs_ess <- function(results_metrics_df,
                          case_study,
-                         target_sample_size_per_arm,
+                         target_sample_size_control,
+                         target_sample_size_treatment,
                          treatment_effect,
                          ess_method,
                          metric,
@@ -22,8 +23,8 @@ plot_metric_vs_ess <- function(results_metrics_df,
     metric$name,
     "_vs_",
     ess_method$name,
-    "_sample_size=",
-    target_sample_size_per_arm,
+    "_",
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "file"),
     "_treatment_effect=",
     treatment_effect
   )
@@ -38,7 +39,8 @@ plot_metric_vs_ess <- function(results_metrics_df,
 
   results_df <- results_metrics_df %>%
     dplyr::filter(
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       case_study == !!case_study,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
@@ -93,9 +95,9 @@ plot_metric_vs_ess <- function(results_metrics_df,
   )
 
   plot_title <- sprintf(
-    "%s, $N_T/2 = $ %s, %s",
+    "%s, %s, %s",
     stringr::str_to_title(case_study),
-    target_sample_size_per_arm,
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "latex"),
     treatment_effects_labels[[treatment_effect]]
   )
 
@@ -116,8 +118,10 @@ plot_metric_vs_ess <- function(results_metrics_df,
   plt <- ggplot2::ggplot(results_df, ggplot2::aes(x = !!ess_name))
 
   if (metric$name == "mse" && ess_method$name == "ess_moment") {
+    # The ESS counts patients per arm of a balanced study, so the target is
+    # drawn at its equivalent sample size per arm.
     plt <- plt + ggplot2::geom_vline(
-      xintercept = target_sample_size_per_arm,
+      xintercept = effective_arm_size(target_sample_size_control, target_sample_size_treatment),
       color = "black",
       linetype = "dashed"
     )
@@ -242,17 +246,18 @@ plot_metrics_vs_ess <- function(results_metrics_df, frequentist_metrics, inferen
     }
 
 
-    target_sample_sizes <- unique(filtered_results_metrics_df$target_sample_size_per_arm)
+    target_sample_sizes <- unique(filtered_results_metrics_df[, target_size_columns, drop = FALSE])
 
     for (metric in frequentist_metrics) {
-      for (sample_size in target_sample_sizes) {
+      for (size_index in seq_len(nrow(target_sample_sizes))) {
         for (ess_method in  ess_methods){
           for (treatment_effect in treatment_effects){
             plot_metric_vs_ess(
               results_metrics_df = filtered_results_metrics_df,
               case_study = case_study,
               ess_method = inference_metrics[[ess_method]],
-              target_sample_size_per_arm = sample_size,
+              target_sample_size_control = target_sample_sizes$target_sample_size_control[size_index],
+              target_sample_size_treatment = target_sample_sizes$target_sample_size_treatment[size_index],
               treatment_effect = treatment_effect,
               metric = metric,
             )

@@ -1,5 +1,6 @@
 analytical_target_data <- list(
-  sample_size_per_arm = 30,
+  sample_size_control = 30,
+  sample_size_treatment = 30,
   treatment_effect = 0.5,
   standard_deviation = 1,
   summary_measure_likelihood = "normal",
@@ -7,7 +8,8 @@ analytical_target_data <- list(
 )
 
 simulated_target_data <- list(
-  sample_size_per_arm = 30,
+  sample_size_control = 30,
+  sample_size_treatment = 30,
   treatment_effect = 0.5,
   standard_deviation = 1,
   summary_measure_likelihood = "normal",
@@ -16,7 +18,8 @@ simulated_target_data <- list(
     data.frame(
       treatment_effect_estimate = rnorm(n_replicates, 0.5, 1 / sqrt(30)),
       standard_deviation = 1,
-      sample_size_per_arm = 30
+      sample_size_control = 30,
+      sample_size_treatment = 30
     )
   }
 )

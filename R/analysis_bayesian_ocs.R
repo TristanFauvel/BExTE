@@ -196,7 +196,8 @@ analysed_success_probability <- function(results) {
 #' @param prior_proba_no_benefit The prior probability of no benefit.
 #' @param source_data The source data.
 #' @param theta_0 The value of theta_0.
-#' @param target_sample_size_per_arm The target sample size per arm.
+#' @param target_sample_size_control Sample size of the control arm in the target study.
+#' @param target_sample_size_treatment Sample size of the treatment arm in the target study.
 #' @param case_study_config The case study configuration.
 #' @param target_to_source_std_ratio Ratio between target and source sampling standard deviations.
 #' @param dropout_probability Probability of loss to follow-up over the maximum follow-up
@@ -220,7 +221,8 @@ upper_bound_proba_FP_MC <- function(model,
                                     prior_proba_no_benefit,
                                     source_data,
                                     theta_0,
-                                    target_sample_size_per_arm,
+                                    target_sample_size_control,
+                                    target_sample_size_treatment,
                                     case_study_config,
                                     target_to_source_std_ratio,
                                     dropout_probability = 0,
@@ -240,7 +242,8 @@ upper_bound_proba_FP_MC <- function(model,
   target_data <- target_data$create(
     source_data = source_data,
     case_study_config = case_study_config,
-    target_sample_size_per_arm = target_sample_size_per_arm,
+    target_sample_size_control = target_sample_size_control,
+    target_sample_size_treatment = target_sample_size_treatment,
     treatment_drift = treatment_drift,
     control_drift = 0,
     summary_measure_likelihood = source_data$summary_measure_likelihood,
@@ -558,7 +561,8 @@ bayesian_ocs_for_combination <- function(job,
   source_denominator_change_factor <- job$source_denominator_change_factor
   target_to_source_std_ratio <- job$target_to_source_std_ratio
   method <- job$method
-  target_sample_size_per_arm <- job$target_sample_size_per_arm
+  target_sample_size_control <- job$target_sample_size_control
+  target_sample_size_treatment <- job$target_sample_size_treatment
   parameters_combination <- job$parameters_combination
   results_df <- job$results_df
 
@@ -615,7 +619,8 @@ bayesian_ocs_for_combination <- function(job,
   nominal_target_data <- TargetDataFactory$new()$create(
     source_data = source_data,
     case_study_config = case_study_config,
-    target_sample_size_per_arm = target_sample_size_per_arm,
+    target_sample_size_control = target_sample_size_control,
+    target_sample_size_treatment = target_sample_size_treatment,
     control_drift = column_or("control_drift", 0),
     treatment_drift = 0,
     summary_measure_likelihood =
@@ -635,7 +640,8 @@ bayesian_ocs_for_combination <- function(job,
       results_to_add <- data.frame(
         case_study = case_study,
         method = method,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         parameters = parameters_combination[1, ],
         source_denominator_change_factor = source_denominator_change_factor,
         target_to_source_std_ratio = target_to_source_std_ratio,
@@ -726,7 +732,8 @@ bayesian_ocs_for_combination <- function(job,
       results_to_add <- data.frame(
         case_study = case_study,
         method = method,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         parameters = parameters_combination[1, ],
         source_denominator_change_factor = source_denominator_change_factor,
         target_to_source_std_ratio = target_to_source_std_ratio,
@@ -820,11 +827,18 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
           results_df_3 <- results_df_2 %>%
             dplyr::filter(method == !!method)
 
-          target_sample_sizes <- unique(results_df_3$target_sample_size_per_arm)
+          target_sample_sizes <- unique(
+            results_df_3[, c("target_sample_size_control", "target_sample_size_treatment")]
+          )
 
-          for (target_sample_size_per_arm in target_sample_sizes) {
+          for (size_index in seq_len(nrow(target_sample_sizes))) {
+            target_sample_size_control <- target_sample_sizes$target_sample_size_control[size_index]
+            target_sample_size_treatment <- target_sample_sizes$target_sample_size_treatment[size_index]
             results_df_4 <- results_df_3 %>%
-              dplyr::filter(target_sample_size_per_arm == !!target_sample_size_per_arm)
+              dplyr::filter(
+                target_sample_size_control == !!target_sample_size_control,
+                target_sample_size_treatment == !!target_sample_size_treatment
+              )
 
             # Get the different parameters combinations studies for this method,
             # once per trial design. Control-arm heterogeneity, loss to follow-up
@@ -851,7 +865,8 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
                 source_denominator_change_factor = source_denominator_change_factor,
                 target_to_source_std_ratio = target_to_source_std_ratio,
                 method = method,
-                target_sample_size_per_arm = target_sample_size_per_arm,
+                target_sample_size_control = target_sample_size_control,
+                target_sample_size_treatment = target_sample_size_treatment,
                 parameters_combination = parameters_combinations[i, , drop = FALSE],
                 results_df = dplyr::inner_join(
                   results_df_4,

@@ -7,7 +7,8 @@
 operating_characteristic_vs_tie(
   results_metrics_df,
   case_study,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   treatment_effect,
   operating_characteristic,
   source_denominator_change_factor,
@@ -20,7 +21,8 @@ operating_characteristic_vs_tie(
 
 \item{case_study}{The case study name.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm.}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes.}
 
 \item{treatment_effect}{The treatment effect scenario ("consistent",
 "no_effect" or "partially_consistent").}

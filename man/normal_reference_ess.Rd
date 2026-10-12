@@ -23,7 +23,8 @@ of the target study.}
 
 \item{upper}{Upper bound of the credible interval.}
 
-\item{sample_size_per_arm}{Per-arm sample size of the target study.}
+\item{sample_size_per_arm}{Equivalent sample size per arm of the target
+study (see \code{effective_arm_size()}), the unit the ESS is counted in.}
 
 \item{level}{Level of the credible interval.}
 }

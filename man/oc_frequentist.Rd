@@ -7,13 +7,15 @@
 oc_frequentist(
   prior,
   decision,
-  n_per_arm,
+  n_per_arm = NULL,
   drift = 0,
   n_rep = 1000,
   control_drift = 0,
   target_to_source_std_ratio = 1,
   confidence_level = 0.95,
-  mcmc_config = NULL
+  mcmc_config = NULL,
+  n_control = NULL,
+  n_treatment = NULL
 )
 }
 \arguments{
@@ -23,7 +25,8 @@ builders.}
 \item{decision}{A decision rule, from \code{\link[=decision]{decision()}}. Its null hypothesis is
 also the one the methods that adapt to it use.}
 
-\item{n_per_arm}{Target sample size per arm.}
+\item{n_per_arm}{Target sample size per arm, for a balanced design. Give
+either \code{n_per_arm}, or \code{n_control} and \code{n_treatment}.}
 
 \item{drift}{Differences between the true target effect and the source
 effect, on the treatment effect scale. One row of results per value.}
@@ -40,6 +43,9 @@ sampling standard deviation (continuous endpoint).}
 reported.}
 
 \item{mcmc_config}{Optional MCMC settings, as in \code{\link[=posterior]{posterior()}}.}
+
+\item{n_control, n_treatment}{Target arm sizes, for a design whose arms
+differ. Use them in place of \code{n_per_arm}.}
 }
 \value{
 An object of class \code{bexte_oc_frequentist}: a data frame with one
@@ -69,6 +75,11 @@ set.seed(1)
 oc <- oc_frequentist(rmp(src, weight = 0.5), decision(0.975), n_per_arm = 46,
                      drift = c(-0.48, 0), n_rep = 100)
 oc
+
+# Two treated patients for each control
+oc_frequentist(rmp(src, weight = 0.5), decision(0.975),
+               n_control = 31, n_treatment = 62,
+               drift = 0, n_rep = 100)
 }
 \seealso{
 \code{\link[=oc_bayesian]{oc_bayesian()}} to average over a design prior instead of fixing

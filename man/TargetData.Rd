@@ -14,7 +14,8 @@ source_data <- SourceData$new(config)
 target_data <- TargetData$new(
   source_data = source_data,
   sampling_approximation = FALSE,
-  target_sample_size_per_arm = 50,
+  target_sample_size_control = 50,
+  target_sample_size_treatment = 50,
   treatment_drift = 0.1,
   summary_measure_likelihood = "normal"
 )
@@ -34,8 +35,6 @@ target_data$treatment_effect
 
     \item{\code{summary_measure_likelihood}}{The distribution of the summary measure.}
 
-    \item{\code{sample_size_per_arm}}{The target sample size per arm.}
-
     \item{\code{sample_size_control}}{The target sample size for the control group.}
 
     \item{\code{sample_size_treatment}}{The target sample size for the treatment group.}
@@ -47,7 +46,9 @@ target_data$treatment_effect
     \item{\code{standard_deviation}}{The true sampling standard deviation of the
 summary measure for one patient per arm, i.e. the data-generating value:
 the true standard error of the treatment-effect estimate is
-\code{standard_deviation / sqrt(sample_size_per_arm)}. It belongs to the
+\code{standard_deviation / sqrt(n)}, where \code{n} is the equivalent sample size
+per arm \code{2 / (1 / sample_size_control + 1 / sample_size_treatment)}
+(the arm size itself when both arms are equal). It belongs to the
 scenario, not to a replicate. A replicate's estimate of it is
 \code{sample$standard_deviation} (see \code{sample_aggregate_normal_data()}), which
 is what the analysis methods use; the true value is only used to generate
@@ -77,7 +78,8 @@ KL-NPP calibration.}
     \preformatted{TargetData$new(
   source_data,
   sampling_approximation,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment = target_sample_size_control,
   control_drift = 0,
   treatment_drift,
   summary_measure_likelihood
@@ -89,7 +91,9 @@ KL-NPP calibration.}
     \describe{
       \item{\code{source_data}}{The source data object.}
       \item{\code{sampling_approximation}}{The sampling approximation flag.}
-      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{target_sample_size_control}}{The target sample size of the control arm.}
+      \item{\code{target_sample_size_treatment}}{The target sample size of the
+treatment arm. Defaults to \code{target_sample_size_control}.}
       \item{\code{control_drift}}{The control drift.}
       \item{\code{treatment_drift}}{The treatment drift.}
       \item{\code{summary_measure_likelihood}}{The summary measure distribution.}

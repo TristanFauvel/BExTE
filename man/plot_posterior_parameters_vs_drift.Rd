@@ -8,7 +8,8 @@ plot_posterior_parameters_vs_drift(
   results_metrics_df,
   method,
   case_study,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   control_drift,
   xvars,
   source_denominator_change_factor,
@@ -22,7 +23,8 @@ plot_posterior_parameters_vs_drift(
 
 \item{case_study}{The case study to plot the parameters for.}
 
-\item{target_sample_size_per_arm}{The sample size to plot the parameters for.}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes.}
 
 \item{control_drift}{A logical value indicating whether to filter the data based on control drift.}
 

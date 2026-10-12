@@ -111,7 +111,7 @@ First, let's instantiate the target data object (and then we will see how to sam
 ```{r} 
 target_data <- TargetDataFactory$new()
 
-target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 ```
 
 ### Applying drift
@@ -140,7 +140,7 @@ self$standard_deviation <- BExTE:::standard_error_log_odds_ratio(
   self$sample_size_treatment * (1 - self$treatment_rate),
   self$sample_size_control * self$control_rate,
   self$sample_size_treatment * self$treatment_rate
-) * sqrt(self$sample_size_per_arm)
+) * sqrt(BExTE:::target_effective_arm_size(self))
 
 print(self$treatment_effect)
 print(self$standard_deviation)
@@ -153,15 +153,16 @@ Now, let's take a look at the `generate()` method of the `BinaryTargetData` clas
 
 ```{r}
 n_replicates <- scenarios_config$n_replicates
-samples <- BExTE:::sample_aggregate_normal_data(self$treatment_effect, self$standard_deviation^2, n_replicates, self$sample_size_per_arm)
+samples <- BExTE:::sample_aggregate_normal_data(self$treatment_effect, self$standard_deviation^2, n_replicates, self$sample_size_control, self$sample_size_treatment)
 
 samples <- data.frame(
   treatment_effect_estimate = samples$treatment_effect_estimate,
   treatment_effect_standard_error = samples$treatment_effect_standard_error,
-  sample_size_per_arm = samples$sample_size_per_arm
+  sample_size_control = samples$sample_size_control,
+  sample_size_treatment = samples$sample_size_treatment
 )
 ```
-Note that the whole implementation always assumes that the number of participants in each arm of the target study is the same. 
+The arms of the target study can have different sizes. The standard error of the summary measure is then the per-patient standard deviation divided by the square root of the equivalent sample size per arm, $2 / (1/n_C + 1/n_T)$. 
 
 What `sample_aggregate_normal_data` does is that is returns a sample mean and a sample variance for normally distributed data (we proceed this way because the sample mean and sample variance are not independent): 
  
@@ -179,7 +180,7 @@ So, the "samples" correspond, for each replicate, to the corresponding sample me
 ```{r}
 log_OR_samples <- BExTE:::sample_log_odds_ratios(self$sample_size_control, self$sample_size_treatment, self$treatment_rate, self$control_rate, n_replicates)
 
-samples <- data.frame(treatment_effect_estimate = log_OR_samples$log_odds_ratio, treatment_effect_standard_error = log_OR_samples$std_err_log_odds_ratio, sample_size_per_arm = self$sample_size_per_arm)
+samples <- data.frame(treatment_effect_estimate = log_OR_samples$log_odds_ratio, treatment_effect_standard_error = log_OR_samples$std_err_log_odds_ratio, sample_size_control = self$sample_size_control, sample_size_treatment = self$sample_size_treatment)
 ```
  
 ### Estimation of OCs based on the samples

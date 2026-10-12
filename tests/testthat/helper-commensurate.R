@@ -136,7 +136,7 @@ commensurate_fast_path_run <- function(model, to_return,
                                        confidence_level = 0.95,
                                        samples = commensurate_replicate_samples()) {
   model$vectorised_replicate_inference(
-    target_data = list(sample_size_per_arm = 60),
+    target_data = list(sample_size_control = 60, sample_size_treatment = 60),
     samples = samples,
     to_return = to_return,
     critical_value = critical_value,

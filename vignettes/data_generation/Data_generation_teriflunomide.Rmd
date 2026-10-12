@@ -103,7 +103,7 @@ target_data <- TargetDataFactory$new()
 target_data <- target_data$create(
   source_data = source_data,
   case_study_config = case_study_config,
-  target_sample_size_per_arm = target_sample_size_per_arm,
+  target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm,
   control_drift = control_drift,
   treatment_drift = treatment_drift,
   summary_measure_likelihood = source_data$summary_measure_likelihood,
@@ -242,7 +242,7 @@ heterogeneity enters as $b_c(\kappa) = b_c \exp(-\kappa/q)$.
 weibull_data <- TargetDataFactory$new()$create(
   source_data = source_data,
   case_study_config = case_study_config,
-  target_sample_size_per_arm = target_sample_size_per_arm,
+  target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm,
   control_drift = control_drift,
   treatment_drift = treatment_drift,
   summary_measure_likelihood = source_data$summary_measure_likelihood,
@@ -279,7 +279,7 @@ approximate_config$sampling_approximation <- TRUE
 approximate_data <- TargetDataFactory$new()$create(
   source_data = source_data,
   case_study_config = approximate_config,
-  target_sample_size_per_arm = target_sample_size_per_arm,
+  target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm,
   control_drift = control_drift,
   treatment_drift = treatment_drift,
   summary_measure_likelihood = source_data$summary_measure_likelihood

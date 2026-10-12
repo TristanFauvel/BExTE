@@ -253,7 +253,12 @@ config_frequentist <- list(
     accepted_values = c("Normal", "binomial"),
     not_missing = TRUE
   ),
-  target_sample_size_per_arm = list(
+  target_sample_size_control = list(
+    type = "numeric",
+    range = c(0, Inf),
+    not_missing = TRUE
+  ),
+  target_sample_size_treatment = list(
     type = "numeric",
     range = c(0, Inf),
     not_missing = TRUE
@@ -457,7 +462,12 @@ config_bayesian <- list(
     not_missing = TRUE
   ),
   parameters = list(type = "character", not_missing = TRUE),
-  target_sample_size_per_arm = list(
+  target_sample_size_control = list(
+    type = "numeric",
+    range = c(0, Inf),
+    not_missing = TRUE
+  ),
+  target_sample_size_treatment = list(
     type = "numeric",
     range = c(0, Inf),
     not_missing = TRUE

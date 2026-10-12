@@ -9,7 +9,8 @@ upper_bound_proba_FP_MC(
   prior_proba_no_benefit,
   source_data,
   theta_0,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   case_study_config,
   target_to_source_std_ratio,
   dropout_probability = 0,
@@ -33,7 +34,9 @@ upper_bound_proba_FP_MC(
 
 \item{theta_0}{The value of theta_0.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm.}
+\item{target_sample_size_control}{Sample size of the control arm in the target study.}
+
+\item{target_sample_size_treatment}{Sample size of the treatment arm in the target study.}
 
 \item{case_study_config}{The case study configuration.}
 

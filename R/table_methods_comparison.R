@@ -121,14 +121,15 @@ generate_comparison_table <- function(results_df,
     )
 
   case_study <- unique(df$case_study)
-  target_sample_size_per_arm <- unique(df$target_sample_size_per_arm)
+  target_sample_size_control <- unique(df$target_sample_size_control)
+  target_sample_size_treatment <- unique(df$target_sample_size_treatment)
   target_to_source_std_ratio <- unique(df$target_to_source_std_ratio)
   source_denominator_change_factor <- unique(df$source_denominator_change_factor)
 
   title <- sprintf(
-      "%s, $N_T/2 = $ %s",
+      "%s, %s",
       stringr::str_to_title(case_study),
-      target_sample_size_per_arm
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
     )
   title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor, as_latex = TRUE)
 
@@ -141,8 +142,8 @@ generate_comparison_table <- function(results_df,
     case_study,
     "_",
     x_metric,
-    "_table_target_sample_size_per_arm_",
-    target_sample_size_per_arm
+    "_table_",
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
   )
 
   filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -190,10 +191,10 @@ table_methods_comparison <- function(results_metrics_df, metrics) {
       results_df1 <- results_metrics_df %>% dplyr::filter(
         case_study == !!case_study
       )
-      target_sample_sizes <- unique(results_df1$target_sample_size_per_arm)
-      for (target_sample_size_per_arm in target_sample_sizes) {
-        results_df2 <- results_df1 %>% dplyr::filter(
-          target_sample_size_per_arm == !!target_sample_size_per_arm
+      target_sample_sizes <- unique(results_df1[, target_size_columns, drop = FALSE])
+      for (size_index in seq_len(nrow(target_sample_sizes))) {
+        results_df2 <- dplyr::semi_join(
+          results_df1, target_sample_sizes[size_index, , drop = FALSE], by = target_size_columns
         )
         source_denominator_change_factors <- unique(results_df2$source_denominator_change_factor)
         for (source_denominator_change_factor in source_denominator_change_factors){

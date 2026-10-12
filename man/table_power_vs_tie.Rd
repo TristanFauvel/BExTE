@@ -7,7 +7,8 @@
 table_power_vs_tie(
   results_metrics_df,
   case_study,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   treatment_effect,
   power_difference,
   metrics,
@@ -20,7 +21,8 @@ table_power_vs_tie(
 
 \item{case_study}{The specific case study to filter the results.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm to filter the results.}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes to filter the results.}
 
 \item{treatment_effect}{Character string specifying the treatment effect: "consistent", "partially_consistent", or "no_effect".}
 

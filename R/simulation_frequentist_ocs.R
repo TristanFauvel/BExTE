@@ -24,7 +24,9 @@ frequentist_ocs_scenario_simulation <- function(scenario,
                                                 inference_metrics) {
   set.seed(simulation_config$seed)
 
-  target_sample_size_per_arm <- scenario$target_sample_size_per_arm[[1]]
+  target_sample_size_control <- scenario$target_sample_size_control[[1]]
+
+  target_sample_size_treatment <- scenario$target_sample_size_treatment[[1]]
   treatment_drift <- scenario$treatment_drift[[1]]
   control_drift <- scenario$control_drift[[1]]
   case_study <- scenario$case_study[[1]]
@@ -79,7 +81,8 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   target_data <- target_data$create(
     source_data = source_data,
     case_study_config = case_study_config,
-    target_sample_size_per_arm = target_sample_size_per_arm,
+    target_sample_size_control = target_sample_size_control,
+    target_sample_size_treatment = target_sample_size_treatment,
     control_drift = control_drift,
     treatment_drift = treatment_drift,
     summary_measure_likelihood = summary_measure_likelihood,
@@ -143,7 +146,8 @@ frequentist_ocs_scenario_simulation <- function(scenario,
 
   expected_colnames_target <- c(
     "summary_measure_likelihood",
-    "target_sample_size_per_arm",
+    "target_sample_size_control",
+    "target_sample_size_treatment",
     "target_treatment_effect",
     "target_standard_deviation",
     "target_treatment_rate",
@@ -249,6 +253,28 @@ case_study_factors <- function(scenarios_config, case_study) {
     return(scenarios_config$sample_size_factors)
   }
   per_case_study[[case_study]]
+}
+
+## The ratio of the treatment to the control arm size of a case study's
+## target study.
+##
+## scenarios_config$case_study_target_allocation_ratio, when present, maps a
+## case study to its own ratio. Otherwise the run-wide target_allocation_ratio
+## applies, and a config that sets neither has equal arms.
+target_allocation_ratio <- function(scenarios_config, case_study) {
+  per_case_study <- scenarios_config$case_study_target_allocation_ratio
+  ratio <- if (!is.null(per_case_study) && !is.null(per_case_study[[case_study]])) {
+    as.numeric(unlist(per_case_study[[case_study]]))
+  } else if (!is.null(scenarios_config$target_allocation_ratio)) {
+    scenarios_config$target_allocation_ratio
+  } else {
+    1
+  }
+  if (length(ratio) != 1 || !is.finite(ratio) || ratio <= 0) {
+    stop("The target allocation ratio of ", case_study,
+         " should be a single positive number.", call. = FALSE)
+  }
+  ratio
 }
 
 ## The number of replicates to simulate a given case study with.

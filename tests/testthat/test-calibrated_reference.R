@@ -27,7 +27,7 @@ test_that("calibration removes the gain a t-test on a normal statistic gives", {
   standard_error <- 0.1
   trials <- function(mean) {
     data.frame(treatment_effect_estimate = rnorm(40000, mean, standard_error),
-               standard_deviation = standard_error * sqrt(n), sample_size_per_arm = n)
+               standard_deviation = standard_error * sqrt(n), sample_size_control = n, sample_size_treatment = n)
   }
   null_trials <- trials(0)
   alternative_trials <- trials(2.2 * standard_error)
@@ -59,7 +59,8 @@ exact_aprepitant <- function(n, treatment_drift) {
   source_data <- SourceData$new(case_study_config)
   TargetDataFactory$new()$create(
     source_data = source_data, case_study_config = case_study_config,
-    target_sample_size_per_arm = n, control_drift = 0, treatment_drift = treatment_drift,
+    target_sample_size_control = n,
+    target_sample_size_treatment = n, control_drift = 0, treatment_drift = treatment_drift,
     summary_measure_likelihood = case_study_config$summary_measure_likelihood
   )
 }
@@ -107,7 +108,8 @@ test_that("an enumerated design's reference is priced exactly, without simulatio
     method = "separate", parameters = "{}", control_drift = 0,
     source_denominator = NA_real_, source_denominator_change_factor = 1,
     case_study = "aprepitant", target_to_source_std_ratio = NA_real_,
-    target_sample_size_per_arm = 40, theta_0 = 0, null_space = "left",
+    target_sample_size_control = 40,
+    target_sample_size_treatment = 40, theta_0 = 0, null_space = "left",
     sampling_approximation = FALSE, summary_measure_likelihood = "binomial",
     source_sample_size_treatment = 293, source_sample_size_control = 280,
     endpoint = "binary", source_standard_error = 0.04,

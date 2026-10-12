@@ -14,7 +14,8 @@
 #'   builders.
 #' @param decision A decision rule, from [decision()]. Its null hypothesis is
 #'   also the one the methods that adapt to it use.
-#' @param n_per_arm Target sample size per arm.
+#' @param n_per_arm Target sample size per arm, for a balanced design. Give
+#'   either `n_per_arm`, or `n_control` and `n_treatment`.
 #' @param drift Differences between the true target effect and the source
 #'   effect, on the treatment effect scale. One row of results per value.
 #' @param n_rep Number of simulated trials per drift value.
@@ -25,6 +26,8 @@
 #' @param confidence_level Level of the credible intervals whose coverage is
 #'   reported.
 #' @param mcmc_config Optional MCMC settings, as in [posterior()].
+#' @param n_control,n_treatment Target arm sizes, for a design whose arms
+#'   differ. Use them in place of `n_per_arm`.
 #'
 #' @return An object of class `bexte_oc_frequentist`: a data frame with one
 #'   row per drift value. The main columns are `drift`, `true_effect`,
@@ -44,17 +47,25 @@
 #' oc <- oc_frequentist(rmp(src, weight = 0.5), decision(0.975), n_per_arm = 46,
 #'                      drift = c(-0.48, 0), n_rep = 100)
 #' oc
+#'
+#' # Two treated patients for each control
+#' oc_frequentist(rmp(src, weight = 0.5), decision(0.975),
+#'                n_control = 31, n_treatment = 62,
+#'                drift = 0, n_rep = 100)
 #' @export
 oc_frequentist <- function(prior,
                            decision,
-                           n_per_arm,
+                           n_per_arm = NULL,
                            drift = 0,
                            n_rep = 1000,
                            control_drift = 0,
                            target_to_source_std_ratio = 1,
                            confidence_level = 0.95,
-                           mcmc_config = NULL) {
-  setup <- api_check_oc_args(prior, decision, n_per_arm, n_rep)
+                           mcmc_config = NULL,
+                           n_control = NULL,
+                           n_treatment = NULL) {
+  setup <- api_check_oc_args(prior, decision, n_per_arm, n_rep, n_control, n_treatment)
+  arms <- setup$arms
   if (!is.numeric(drift) || length(drift) == 0 || anyNA(drift)) {
     stop("`drift` should be a numeric vector with no missing values.", call. = FALSE)
   }
@@ -69,7 +80,7 @@ oc_frequentist <- function(prior,
     # calibration of some methods depends on the design.
     model <- api_create_model(prior, mcmc_config, config = setup$config)
     target <- api_design_target(
-      setup$source, n_per_arm,
+      setup$source, arms$control, arms$treatment,
       drift = treatment_drift,
       control_drift = control_drift,
       target_to_source_std_ratio = target_to_source_std_ratio
@@ -93,7 +104,8 @@ oc_frequentist <- function(prior,
       drift = treatment_drift,
       true_effect = true_effect,
       null_true = api_in_null(true_effect, setup$theta_0, setup$null_space),
-      n_per_arm = n_per_arm,
+      n_control = arms$control,
+      n_treatment = arms$treatment,
       lapply(scalars, unname),
       check.names = FALSE
     )
@@ -166,13 +178,16 @@ design_prior <- function(type = c("source_posterior", "unit_information", "analy
 oc_bayesian <- function(prior,
                         decision,
                         design_prior,
-                        n_per_arm,
+                        n_per_arm = NULL,
                         n_rep = 100,
                         n_draws = 200,
                         target_to_source_std_ratio = 1,
                         confidence_level = 0.95,
-                        mcmc_config = NULL) {
-  setup <- api_check_oc_args(prior, decision, n_per_arm, n_rep)
+                        mcmc_config = NULL,
+                        n_control = NULL,
+                        n_treatment = NULL) {
+  setup <- api_check_oc_args(prior, decision, n_per_arm, n_rep, n_control, n_treatment)
+  arms <- setup$arms
   if (!inherits(design_prior, "bexte_design_prior")) {
     stop("`design_prior` should come from design_prior().", call. = FALSE)
   }
@@ -193,7 +208,7 @@ oc_bayesian <- function(prior,
          "so it cannot be a design prior. Use another `design_prior()` type.", call. = FALSE)
   }
   model$calibrate_for_design(api_design_target(
-    setup$source, n_per_arm,
+    setup$source, arms$control, arms$treatment,
     target_to_source_std_ratio = target_to_source_std_ratio
   ))
   sampler <- DesignPrior$new()$create(
@@ -217,7 +232,8 @@ oc_bayesian <- function(prior,
     confidence_level = confidence_level,
     null_space = setup$null_space,
     n_samples_design_prior = n_draws,
-    target_sample_size_per_arm = n_per_arm,
+    target_sample_size_control = arms$control,
+    target_sample_size_treatment = arms$treatment,
     case_study_config = setup$config,
     target_to_source_std_ratio = target_to_source_std_ratio,
     simulation_config = simulation_config,
@@ -228,7 +244,8 @@ oc_bayesian <- function(prior,
 
   out <- data.frame(
     design_prior = design_prior$type,
-    n_per_arm = n_per_arm,
+    n_control = arms$control,
+    n_treatment = arms$treatment,
     lapply(result, function(x) unname(unlist(x))),
     check.names = FALSE
   )
@@ -247,18 +264,20 @@ oc_bayesian <- function(prior,
 #'   configuration, so the methods that adapt to the hypothesis and the
 #'   decision rule use the same one.
 #'
-#' @return A list with the `source`, the `config` to create models from, and
-#'   the `theta_0`, `null_space` and `critical_value` of the decision.
+#' @return A list with the `source`, the `config` to create models from,
+#'   the `theta_0`, `null_space` and `critical_value` of the decision, and the
+#'   target `arms` (`control` and `treatment` sizes).
 #' @keywords internal
 #' @noRd
-api_check_oc_args <- function(prior, decision, n_per_arm, n_rep) {
+api_check_oc_args <- function(prior, decision, n_per_arm, n_rep,
+                              n_control = NULL, n_treatment = NULL) {
   if (!inherits(prior, "bexte_prior")) {
     stop("`prior` should come from a prior builder such as npp() or rmp().", call. = FALSE)
   }
   if (!inherits(decision, "bexte_decision")) {
     stop("`decision` should come from decision().", call. = FALSE)
   }
-  check_positive(n_per_arm, "n_per_arm")
+  arms <- api_target_arms(n_per_arm, n_control, n_treatment)
   check_positive(n_rep, "n_rep")
   source <- prior$source
   hypothesis <- api_hypothesis(decision, source$config)
@@ -270,8 +289,33 @@ api_check_oc_args <- function(prior, decision, n_per_arm, n_rep) {
     config = config,
     theta_0 = hypothesis$theta_0,
     null_space = hypothesis$null_space,
-    critical_value = attr(decision, "critical_value")
+    critical_value = attr(decision, "critical_value"),
+    arms = arms
   )
+}
+
+
+#' Target arm sizes from the OC function arguments
+#'
+#' @return A list with `control` and `treatment` sizes.
+#' @keywords internal
+#' @noRd
+api_target_arms <- function(n_per_arm, n_control, n_treatment) {
+  split_given <- !is.null(n_control) || !is.null(n_treatment)
+  if (!is.null(n_per_arm) && split_given) {
+    stop("Give either `n_per_arm`, or `n_control` and `n_treatment`, not both.", call. = FALSE)
+  }
+  if (!is.null(n_per_arm)) {
+    check_positive(n_per_arm, "n_per_arm")
+    return(list(control = n_per_arm, treatment = n_per_arm))
+  }
+  if (is.null(n_control) || is.null(n_treatment)) {
+    stop("Give the target sample size: `n_per_arm`, or both `n_control` and `n_treatment`.",
+         call. = FALSE)
+  }
+  check_positive(n_control, "n_control")
+  check_positive(n_treatment, "n_treatment")
+  list(control = n_control, treatment = n_treatment)
 }
 
 

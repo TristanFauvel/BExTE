@@ -14,7 +14,8 @@ kl_mcmc_config <- function() {
 kl_design <- function(config, source_data, drift) {
   TargetDataFactory$new()$create(
     source_data = source_data, case_study_config = config,
-    target_sample_size_per_arm = 71, control_drift = 0,
+    target_sample_size_control = 71,
+    target_sample_size_treatment = 71, control_drift = 0,
     treatment_drift = drift, summary_measure_likelihood = config$summary_measure_likelihood
   )
 }
@@ -76,6 +77,6 @@ test_that("the binomial calibration is close to the normal one", {
 })
 
 test_that("a continuous endpoint keeps the design's standard error", {
-  design <- list(standard_deviation = 2, sample_size_per_arm = 100)
+  design <- list(standard_deviation = 2, sample_size_control = 100, sample_size_treatment = 100)
   expect_equal(npp_kl_expected_target_se(design, list()), 0.2)
 })

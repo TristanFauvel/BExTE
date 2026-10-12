@@ -55,13 +55,13 @@ test_that("check_colnames reports every mismatched column, not only the first", 
 
 
 test_that("check_colnames accepts an integer column where the spec asks for numeric", {
-  df <- data.frame(target_sample_size_per_arm = 50L)
+  df <- data.frame(target_sample_size_control = 50L, target_sample_size_treatment = 50L)
 
   expect_silent(
     check_colnames(
       df,
-      "target_sample_size_per_arm",
-      types = c(target_sample_size_per_arm = "numeric")
+      c("target_sample_size_control", "target_sample_size_treatment"),
+      types = c(target_sample_size_control = "numeric", target_sample_size_treatment = "numeric")
     )
   )
 })

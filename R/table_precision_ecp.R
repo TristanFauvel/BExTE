@@ -5,7 +5,8 @@
 table_precision_ecp <- function(results_df, tables_dir) {
   check_table_packages()
   required <- c(
-    "case_study", "target_sample_size_per_arm", "method", "parameters",
+    "case_study", "target_sample_size_control", "target_sample_size_treatment",
+    "method", "parameters",
     "target_to_source_std_ratio", "source_denominator_change_factor",
     "source_treatment_effect_estimate", "target_treatment_effect",
     "precision", "conf_int_precision_lower", "conf_int_precision_upper",
@@ -17,7 +18,7 @@ table_precision_ecp <- function(results_df, tables_dir) {
     stop("Precision/ECP table is missing columns: ", paste(missing, collapse = ", "))
   }
   if (!nrow(results_df) || length(unique(results_df$case_study)) != 1L ||
-      length(unique(results_df$target_sample_size_per_arm)) != 1L) {
+      nrow(unique(results_df[, target_size_columns, drop = FALSE])) != 1L) {
     stop("Precision/ECP table needs one nonempty case-study and sample-size slice.")
   }
 
@@ -69,11 +70,12 @@ table_precision_ecp <- function(results_df, tables_dir) {
   rownames(table_data) <- NULL
 
   case_study <- unique(rows$case_study)
-  sample_size <- unique(rows$target_sample_size_per_arm)
+  n_control <- unique(rows$target_sample_size_control)
+  n_treatment <- unique(rows$target_sample_size_treatment)
   directory <- file.path(tables_dir, case_study)
   dir.create(directory, recursive = TRUE, showWarnings = FALSE)
-  filename <- paste0(case_study, "_precision_ecp_table_target_sample_size_per_arm_",
-                     sample_size)
+  filename <- paste0(case_study, "_precision_ecp_table_",
+                     target_size_label(n_control, n_treatment, "file"))
   filename <- format_filename(
     filename, case_study,
     target_to_source_std_ratio = unique(rows$target_to_source_std_ratio),
@@ -82,8 +84,8 @@ table_precision_ecp <- function(results_df, tables_dir) {
   file_path <- file.path(directory, filename)
   title <- paste0(
     "Belimumab: mean half-width of the 95% credible interval (precision), ",
-    "empirical coverage probability (ECP) and interval score, $N_T/2 = ",
-    sample_size, "$"
+    "empirical coverage probability (ECP) and interval score, ",
+    target_size_label(n_control, n_treatment, "latex")
   )
   export_table(table_data, ncollapses = 0, title = title, file_path = file_path)
   invisible(file_path)

@@ -37,7 +37,8 @@ pdccpp_fixture <- function(desired_tie = 0.065,
     ObservedTargetData$new(
       treatment_effect_estimate = treatment_effect_estimate,
       treatment_effect_standard_error = target_standard_error,
-      target_sample_size_per_arm = target_sample_size_per_arm,
+      target_sample_size_control = target_sample_size_per_arm,
+      target_sample_size_treatment = target_sample_size_per_arm,
       summary_measure_likelihood = "normal"
     )
   }
@@ -163,7 +164,8 @@ test_that("Gravestock's EBPP applies a cut-off of one predictive standard deviat
       treatment_effect_estimate =
         source_data$treatment_effect_estimate + deviation,
       treatment_effect_standard_error = target_standard_error,
-      target_sample_size_per_arm = target_sample_size_per_arm,
+      target_sample_size_control = target_sample_size_per_arm,
+      target_sample_size_treatment = target_sample_size_per_arm,
       summary_measure_likelihood = "normal"
     )) == 1
   }

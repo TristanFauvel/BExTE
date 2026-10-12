@@ -24,7 +24,7 @@ rmp_mcmc_config <- function() {
 rmp_target <- function(control, treatment, n = 71) {
   control_rate <- control / n
   treatment_rate <- treatment / n
-  list(sample_size_control = n, sample_size_treatment = n, sample_size_per_arm = n,
+  list(sample_size_control = n, sample_size_treatment = n,
        sample = data.frame(
          sample_control_rate = control_rate, sample_treatment_rate = treatment_rate,
          treatment_effect_estimate = treatment_rate - control_rate,

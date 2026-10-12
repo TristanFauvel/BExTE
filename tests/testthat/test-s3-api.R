@@ -19,7 +19,7 @@ r6_posterior <- function(source, target, method, method_parameters) {
     mcmc_config = api_default_config("full/mcmc_config.yml")
   )
   target_r6 <- api_target_r6(target, source)
-  model$calibrate_for_design(api_design_target(source, target_r6$sample_size_per_arm))
+  model$calibrate_for_design(api_design_target(source, target_r6$sample_size_control, target_r6$sample_size_treatment))
   model$inference(target_r6)
   model
 }

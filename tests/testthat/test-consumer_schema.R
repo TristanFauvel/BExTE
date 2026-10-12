@@ -1,8 +1,8 @@
 test_that("the shared consumer columns are the ones every results frame carries", {
   expect_setequal(
     required_colnames_consumer,
-    c("case_study", "method", "parameters", "target_sample_size_per_arm",
-      "source_denominator_change_factor")
+    c("case_study", "method", "parameters", "target_sample_size_control",
+      "target_sample_size_treatment", "source_denominator_change_factor")
   )
 })
 
@@ -16,7 +16,8 @@ test_that("forest_plot_methods_comparison rejects a frame missing an identity co
   df <- data.frame(
     method = "conjugate",
     parameters = "{}",
-    target_sample_size_per_arm = 50,
+    target_sample_size_control = 50,
+    target_sample_size_treatment = 50,
     source_denominator_change_factor = 1,
     stringsAsFactors = FALSE
   )
@@ -32,7 +33,8 @@ test_that("power_vs_tie_tables rejects a frame missing an identity column", {
   df <- data.frame(
     case_study = "botox",
     parameters = "{}",
-    target_sample_size_per_arm = 50,
+    target_sample_size_control = 50,
+    target_sample_size_treatment = 50,
     source_denominator_change_factor = 1,
     stringsAsFactors = FALSE
   )
@@ -49,7 +51,8 @@ test_that("bayesian_ocs_plots rejects an identity column of the wrong type", {
     case_study = 1,
     method = "conjugate",
     parameters = "{}",
-    target_sample_size_per_arm = 50,
+    target_sample_size_control = 50,
+    target_sample_size_treatment = 50,
     source_denominator_change_factor = 1,
     stringsAsFactors = FALSE
   )

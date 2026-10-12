@@ -41,6 +41,6 @@ S45-S47), which would otherwise share one file.}
 None
 }
 \description{
-This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
+This function generates a forest plot based on the provided results dataframe, selected case study, and selected target arm sizes.
 }
 \keyword{internal}

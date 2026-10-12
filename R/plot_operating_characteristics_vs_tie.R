@@ -186,7 +186,8 @@ vs_tie_compose <- function(plt, labels, width, height) {
 #'
 #' @param results_metrics_df The dataframe containing the results and metrics.
 #' @param case_study The case study name.
-#' @param target_sample_size_per_arm The target sample size per arm.
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes.
 #' @param treatment_effect The treatment effect scenario ("consistent",
 #'   "no_effect" or "partially_consistent").
 #' @param operating_characteristic The metric to plot, as an entry of
@@ -202,7 +203,8 @@ vs_tie_compose <- function(plt, labels, width, height) {
 operating_characteristic_vs_tie <- function(
     results_metrics_df,
     case_study,
-    target_sample_size_per_arm,
+    target_sample_size_control,
+    target_sample_size_treatment,
     treatment_effect,
     operating_characteristic,
     source_denominator_change_factor,
@@ -218,7 +220,8 @@ operating_characteristic_vs_tie <- function(
 
   results_df <- results_metrics_df %>%
     dplyr::filter(
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       case_study == !!case_study,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
@@ -266,8 +269,8 @@ operating_characteristic_vs_tie <- function(
     case_study,
     "_",
     operating_characteristic$name,
-    "_vs_tie_sample_size=",
-    target_sample_size_per_arm,
+    "_vs_tie_",
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "file"),
     "_treatment_effect=",
     treatment_effect
   )
@@ -306,9 +309,9 @@ operating_characteristic_vs_tie <- function(
   )
 
   plot_title <- sprintf(
-    "%s, $N_T/2 = $%s, %s",
+    "%s, %s, %s",
     stringr::str_to_title(case_study),
-    target_sample_size_per_arm,
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "latex"),
     treatment_effects_labels[[treatment_effect]]
   )
 
@@ -531,10 +534,11 @@ operating_characteristics_vs_tie_plots <- function(results_metrics_df, metrics) 
     results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study == case_study,]
 
     # Get the list of target sample sizes
-    target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
+    target_sample_sizes <- unique(results_metrics_df1[, target_size_columns, drop = FALSE])
 
-    for (target_sample_size in target_sample_sizes) {
-      results_metrics_df2 <- results_metrics_df1[results_metrics_df1$target_sample_size_per_arm == target_sample_size,]
+    for (size_index in seq_len(nrow(target_sample_sizes))) {
+      target_sample_size <- target_sample_sizes[size_index, , drop = FALSE]
+      results_metrics_df2 <- dplyr::semi_join(results_metrics_df1, target_sample_size, by = target_size_columns)
 
       for (treatment_effect in treatment_effects) {
 
@@ -560,7 +564,8 @@ operating_characteristics_vs_tie_plots <- function(results_metrics_df, metrics) 
               operating_characteristic_vs_tie(
                 results_metrics_df4,
                 case_study,
-                target_sample_size,
+                target_sample_size$target_sample_size_control,
+                target_sample_size$target_sample_size_treatment,
                 treatment_effect = treatment_effect,
                 operating_characteristic = operating_characteristic,
                 source_denominator_change_factor = source_denominator_change_factor,
@@ -576,7 +581,8 @@ operating_characteristics_vs_tie_plots <- function(results_metrics_df, metrics) 
 
 bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
                                                      case_study,
-                                                     target_sample_size_per_arm,
+                                                     target_sample_size_control,
+                                                     target_sample_size_treatment,
                                                      operating_characteristic,
                                                      source_denominator_change_factor,
                                                      target_to_source_std_ratio,
@@ -591,7 +597,8 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
 
   results_df <- results_metrics_df %>%
     dplyr::filter(
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       case_study == !!case_study,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
@@ -647,16 +654,16 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
       case_study,
       "_", design_prior_type, "_",
       operating_characteristic$name,
-      "_vs_", design_prior_type_tie, "_", tie_type, "_sample_size=",
-      target_sample_size_per_arm
+      "_vs_", design_prior_type_tie, "_", tie_type, "_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     )
   } else {
     filename <- paste0(
       case_study,
       "_",
       operating_characteristic$name,
-      "_vs_", tie_type, "_sample_size=",
-      target_sample_size_per_arm
+      "_vs_", tie_type, "_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     )
   }
 
@@ -704,9 +711,9 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
   }
 
   plot_title <- sprintf(
-    "%s, $N_T/2 = $%s, %s",
+    "%s, %s, %s",
     stringr::str_to_title(case_study),
-    target_sample_size_per_arm,
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "latex"),
     design_prior_label
   )
 
@@ -912,10 +919,11 @@ bayesian_operating_characteristics_vs_tie_plots <- function(results_bayes_df, re
     results_metrics_df1 <- results_bayes_df_merged[results_bayes_df_merged$case_study == case_study,]
 
     # Get the list of target sample sizes
-    target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
+    target_sample_sizes <- unique(results_metrics_df1[, target_size_columns, drop = FALSE])
 
-    for (target_sample_size in target_sample_sizes) {
-      results_metrics_df2 <- results_metrics_df1[results_metrics_df1$target_sample_size_per_arm == target_sample_size,]
+    for (size_index in seq_len(nrow(target_sample_sizes))) {
+      target_sample_size <- target_sample_sizes[size_index, , drop = FALSE]
+      results_metrics_df2 <- dplyr::semi_join(results_metrics_df1, target_sample_size, by = target_size_columns)
 
       target_to_source_std_ratios <- unique(results_metrics_df2$target_to_source_std_ratio)
 
@@ -943,7 +951,8 @@ bayesian_operating_characteristics_vs_tie_plots <- function(results_bayes_df, re
               bayesian_operating_characteristic_vs_tie(
                 results_metrics_df4,
                 case_study,
-                target_sample_size,
+                target_sample_size$target_sample_size_control,
+                target_sample_size$target_sample_size_treatment,
                 operating_characteristic = operating_characteristic,
                 source_denominator_change_factor = source_denominator_change_factor,
                 target_to_source_std_ratio = target_to_source_std_ratio,
@@ -955,7 +964,8 @@ bayesian_operating_characteristics_vs_tie_plots <- function(results_bayes_df, re
                 bayesian_operating_characteristic_vs_tie(
                   results_metrics_df4,
                   case_study,
-                  target_sample_size,
+                  target_sample_size$target_sample_size_control,
+                  target_sample_size$target_sample_size_treatment,
                   operating_characteristic = operating_characteristic,
                   source_denominator_change_factor = source_denominator_change_factor,
                   target_to_source_std_ratio = target_to_source_std_ratio,

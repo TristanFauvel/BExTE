@@ -10,7 +10,8 @@ plot_metric_vs_drift_methods(
   results_metrics_df,
   theta_0,
   case_study,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   xvars,
   target_to_source_std_ratio = 1,
   join_points = FALSE,
@@ -26,7 +27,8 @@ plot_metric_vs_drift_methods(
 
 \item{case_study}{The case study name}
 
-\item{target_sample_size_per_arm}{The target sample size per arm}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes.}
 
 \item{xvars}{A list of x-variables for control drift and treatment drift}
 

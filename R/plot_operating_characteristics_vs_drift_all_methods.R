@@ -128,7 +128,8 @@ plot_element_metric_vs_xvar_methods <- function(plt,
 #' @param results_metrics_df The dataframe containing the results and metrics
 #' @param theta_0 The true treatment effect
 #' @param case_study The case study name
-#' @param target_sample_size_per_arm The target sample size per arm
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes.
 #' @param xvars A list of x-variables for control drift and treatment drift
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #' @param join_points Whether to join the point with a line or not.
@@ -141,7 +142,8 @@ plot_metric_vs_drift_methods <- function(metric,
                                  results_metrics_df,
                                  theta_0,
                                  case_study,
-                                 target_sample_size_per_arm,
+                                 target_sample_size_control,
+                                 target_sample_size_treatment,
                                  xvars,
                                  target_to_source_std_ratio = 1,
                                  join_points = FALSE,
@@ -283,9 +285,9 @@ plot_metric_vs_drift_methods <- function(metric,
     ggplot2::labs(linetype = "Treatment effect")
 
   title <- sprintf(
-          "%s, $N_T/2 = %s$",
+          "%s, %s",
           stringr::str_to_title(case_study),
-          target_sample_size_per_arm
+          target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
         )
 
   figure_name <- paste0(
@@ -294,8 +296,8 @@ plot_metric_vs_drift_methods <- function(metric,
     selected_metric_name,
     "_vs_",
     xvar_name,
-    "_all_methods_target_sample_size_",
-    target_sample_size_per_arm
+    "_all_methods_target_",
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
   )
 
   title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -495,14 +497,18 @@ plot_metric_vs_sample_size_methods <- function(metric,
   selected_metric_uncertainty_upper <- rlang::sym(paste0(selected_metric$metric_uncertainty, "_upper"))
   selected_label <- selected_metric$label
 
+  # The x-axis is the total target sample size.
+  results_df$target_sample_size_total <- results_df$target_sample_size_control +
+    results_df$target_sample_size_treatment
+
   # Calculate the range of the x-axis
-  x_range <- range(results_df$target_sample_size_per_arm)
+  x_range <- range(results_df$target_sample_size_total)
   x_width <- diff(x_range)
   # Set a relative cap size (necessary, otherwise the cap size will depend on the x-axis width)
   cap_size <- x_width * relative_error_cap_width # Adjust relative_error_cap_width to control the relative cap size
 
   # Calculate minimum difference between x-values
-  x_values <- sort(unique(results_df$target_sample_size_per_arm))
+  x_values <- sort(unique(results_df$target_sample_size_total))
   if (length(x_values) > 1) {
     x_diffs <- diff(x_values)
     min_x_diff <- min(x_diffs)
@@ -526,7 +532,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
     group_by(parameters_labels) %>%
     mutate(
       jitter_offset = jitter(0, amount = 4)[1],  # Generate a single jitter offset per group
-      jittered_x = target_sample_size_per_arm + jitter_offset  # Add the same offset to all rows in the group
+      jittered_x = target_sample_size_total + jitter_offset  # Add the same offset to all rows in the group
     ) %>%
     ungroup()
 
@@ -542,7 +548,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
 
 
   # Initialize the plot
-  plt <- ggplot2::ggplot(mapping = ggplot2::aes(x = target_sample_size_per_arm, y = !!selected_metric_name))
+  plt <- ggplot2::ggplot(mapping = ggplot2::aes(x = target_sample_size_total, y = !!selected_metric_name))
 
   # Iterate over each method and add layers
   plt <- plt + purrr::imap(results_df_split, function(df_subset, method_name) {
@@ -625,7 +631,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
     ) +
     ggplot2::labs(
       title = plot_title,
-      x = "Target study sample size per arm",
+      x = "Target sample size (total)",
       y = selected_label
     )
 
@@ -654,7 +660,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
   fig_height_in <- plot.size[2]*1.5
 
   # plt <- plt +
-  #   ggplot2::labs(title = title, x = "Target study sample size per arm",
+  #   ggplot2::labs(title = title, x = "Target sample size (total)",
   #                 y = selected_label)
 
   directory <- paste0(figures_dir, case_study)
@@ -667,7 +673,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
     "_", target_treatment_effect,
     "_",
     selected_metric_name,
-    "_vs_target_sample_size_per_arm_all_methods"
+    "_vs_target_sample_size_all_methods"
   )
 
   figure_name <- format_filename(filename = figure_name, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -728,7 +734,7 @@ plot_metric_vs_scenario_methods <- function(results_metrics_df, metrics) {
 
     theta_0 <- case_study_config$theta_0
 
-    target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
+    target_sample_sizes <- unique(results_metrics_df1[, target_size_columns, drop = FALSE])
 
     for (metric in names(metrics)) {
       if (!(metric %in% c("tie"))){
@@ -743,10 +749,13 @@ plot_metric_vs_scenario_methods <- function(results_metrics_df, metrics) {
                   is.na(target_to_source_std_ratio),
               )
 
-            for (target_sample_size_per_arm in target_sample_sizes) {
+            for (size_index in seq_len(nrow(target_sample_sizes))) {
+              target_sample_size_control <- target_sample_sizes$target_sample_size_control[size_index]
+              target_sample_size_treatment <- target_sample_sizes$target_sample_size_treatment[size_index]
               results_metrics_df4 <- results_metrics_df3 %>%
                 dplyr::filter(
-                  target_sample_size_per_arm == !!target_sample_size_per_arm
+                  target_sample_size_control == !!target_sample_size_control,
+                  target_sample_size_treatment == !!target_sample_size_treatment
                 )
 
 
@@ -760,7 +769,8 @@ plot_metric_vs_scenario_methods <- function(results_metrics_df, metrics) {
                 theta_0 = theta_0,
                 source_denominator_change_factor = source_denominator_change_factor,
                 target_to_source_std_ratio = target_to_source_std_ratio,
-                target_sample_size_per_arm = target_sample_size_per_arm,
+                target_sample_size_control = target_sample_size_control,
+                target_sample_size_treatment = target_sample_size_treatment,
                 xvars = xvars,
                 join_points= FALSE
               )

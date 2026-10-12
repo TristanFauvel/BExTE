@@ -21,7 +21,8 @@ the manuscript. Must be positive.}
 
 \item{source_sample_size_per_arm}{Sample size per arm in the source study}
 
-\item{target_sample_size_per_arm}{Sample size per arm in the target study}
+\item{target_sample_size_per_arm}{Equivalent sample size per arm of the target
+study, \code{2 / (1 / n_C + 1 / n_T)} (see \code{effective_arm_size()})}
 
 \item{source_treatment_effect_estimate}{Treatment effect estimate in the source study}
 

@@ -9,7 +9,8 @@ bayesian_metric_vs_parameters(
   metric,
   case_study = "belimumab",
   method = "RMP",
-  target_sample_size_per_arm = 93,
+  target_sample_size_control,
+  target_sample_size_treatment,
   theta_0 = NULL,
   add_baselines = FALSE,
   source_denominator_change_factor = 1,
@@ -25,7 +26,8 @@ bayesian_metric_vs_parameters(
 
 \item{method}{The method to plot the metric for.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm to plot the metric for.}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes to plot the metric for.}
 
 \item{theta_0}{Boundary of the null hypothesis space.}
 

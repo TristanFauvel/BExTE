@@ -221,7 +221,8 @@ lattice_fast_model <- function(method, n) {
   )
   target_data <- TargetDataFactory$new()$create(
     source_data = source_data, case_study_config = case_study_config,
-    target_sample_size_per_arm = n, control_drift = 0,
+    target_sample_size_control = n,
+    target_sample_size_treatment = n, control_drift = 0,
     treatment_drift = case_study_config$theta_0 - source_data$treatment_effect_estimate,
     summary_measure_likelihood = case_study_config$summary_measure_likelihood
   )

@@ -7,7 +7,8 @@
 table_bayesian_metrics(
   results_metrics_df,
   case_study,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   source_denominator_change_factor = 1,
   target_to_source_std_ratio = 1
 )
@@ -17,7 +18,8 @@ table_bayesian_metrics(
 
 \item{case_study}{Character string specifying the case study.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm.}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes.}
 
 \item{source_denominator_change_factor}{The source denominator change factor of the scenario to keep.}
 

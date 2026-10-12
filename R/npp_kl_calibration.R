@@ -784,7 +784,7 @@ npp_kl_settings <- function(parameters, null_space) {
 #' @keywords internal
 npp_kl_expected_target_se <- function(target_data, source) {
   if (!inherits(target_data, "BinaryTargetData")) {
-    return(target_data$standard_deviation / sqrt(target_data$sample_size_per_arm))
+    return(target_data$standard_deviation / sqrt(target_effective_arm_size(target_data)))
   }
   control_rate <- target_data$control_rate
   # The treatment rate at zero treatment drift, on either scale.

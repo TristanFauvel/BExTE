@@ -18,7 +18,8 @@
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' prior <- list(
@@ -467,7 +468,8 @@ TestThenPool <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -514,7 +516,7 @@ TestThenPoolEquivalence <- R6::R6Class(
     test_pvalue = function(target_data, test_type = "t-test") {
       assert_single_number(target_data$sample$treatment_effect_estimate)
       assert_single_number(target_data$sample$treatment_effect_standard_error)
-      assert_single_number(target_data$sample_size_per_arm)
+      assert_single_number(target_effective_arm_size(target_data))
 
       if (!(
         self$summary_measure_likelihood == "normal" ||
@@ -535,7 +537,7 @@ TestThenPoolEquivalence <- R6::R6Class(
           ),
           sigma.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
 
         # Equivalent to :
@@ -560,7 +562,7 @@ TestThenPoolEquivalence <- R6::R6Class(
           ),
           sigma.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
 
         # Equivalent to :
@@ -580,7 +582,7 @@ TestThenPoolEquivalence <- R6::R6Class(
           ),
           s.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
 
         # H0b : θS - θT < -λ
@@ -594,7 +596,7 @@ TestThenPoolEquivalence <- R6::R6Class(
           ),
           s.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
       } else {
         stop("Not implemented for this test. Must be either 't-test' or 'z-test'.")
@@ -643,7 +645,7 @@ TestThenPoolEquivalence <- R6::R6Class(
           n_x = self$prior$source$equivalent_source_sample_size_per_arm,
           mean_y = samples$treatment_effect_estimate,
           sd_y = samples$standard_deviation,
-          n_y = target_data$sample_size_per_arm,
+          n_y = target_effective_arm_size(target_data),
           mu = mu,
           alternative = alternative
         )
@@ -679,7 +681,8 @@ TestThenPoolEquivalence <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -719,7 +722,7 @@ TestThenPoolDifference <- R6::R6Class(
     test_pvalue = function(target_data, test_type = "t-test") {
       assert_single_number(target_data$sample$treatment_effect_estimate)
       assert_single_number(target_data$sample$treatment_effect_standard_error)
-      assert_single_number(target_data$sample_size_per_arm)
+      assert_single_number(target_effective_arm_size(target_data))
 
       if (!(
         self$summary_measure_likelihood == "normal" ||
@@ -741,7 +744,7 @@ TestThenPoolDifference <- R6::R6Class(
           ),
           sigma.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
       } else if (test_type == "t-test") {
         test_result <- BSDA::tsum.test(
@@ -754,7 +757,7 @@ TestThenPoolDifference <- R6::R6Class(
           ),
           s.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
       } else {
         stop("Not implemented for this test. Must be either 't-test' or 'z-test'.")
@@ -797,7 +800,7 @@ TestThenPoolDifference <- R6::R6Class(
         n_x = self$prior$source$equivalent_source_sample_size_per_arm,
         mean_y = samples$treatment_effect_estimate,
         sd_y = samples$standard_deviation,
-        n_y = target_data$sample_size_per_arm,
+        n_y = target_effective_arm_size(target_data),
         mu = 0,
         alternative = "two.sided"
       )

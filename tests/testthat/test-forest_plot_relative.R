@@ -88,7 +88,7 @@ test_that("forest_plot writes a distinctly named file when relative_to_separate 
     written <- list.files(getwd(), pattern = "\\.png$", recursive = TRUE)
     expect_equal(written, paste0(
       "botox/botox_relative_success_proba_forest_plot_",
-      "target_sample_size_per_arm_234_target_to_source_std_ratio=1.png"
+      "target_nc=234_nt=234_target_to_source_std_ratio=1.png"
     ))
   })
 })

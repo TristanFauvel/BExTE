@@ -4,23 +4,36 @@
 \alias{sample_aggregate_normal_data}
 \title{Sample aggregate normal data based on the mean and variance}
 \usage{
-sample_aggregate_normal_data(mean, variance, n_replicates, n_samples_per_arm)
+sample_aggregate_normal_data(
+  mean,
+  variance,
+  n_replicates,
+  n_control,
+  n_treatment = n_control
+)
 }
 \arguments{
 \item{mean}{The mean of the normal distribution}
 
-\item{variance}{The variance of the normal distribution}
+\item{variance}{The per-patient sampling variance of the summary measure:
+the variance of the estimate is \code{variance / n}, where \code{n} is the
+equivalent sample size per arm \code{2 / (1 / n_control + 1 / n_treatment)}.}
 
 \item{n_replicates}{Number of replicates to sample}
 
-\item{n_samples_per_arm}{Number of samples per replicate}
+\item{n_control}{Number of patients in the control arm}
+
+\item{n_treatment}{Number of patients in the treatment arm. Defaults to
+\code{n_control}, a balanced study.}
 }
 \value{
 A data frame with one row per replicate: the treatment-effect
-estimate, its standard error, the sample size per arm and the sample
+estimate, its standard error, the arm sizes and the sample
 standard deviation. The standard error and standard deviation are the
 replicate's own estimates, drawn around the true \code{variance}, not the true
-values themselves.
+values themselves. The sample variance has \code{n - 1} degrees of freedom,
+as for \code{n} paired differences, which is the convention the frequentist
+tests on these summaries follow.
 }
 \description{
 This function samples aggregate normal data based on the mean and variance.

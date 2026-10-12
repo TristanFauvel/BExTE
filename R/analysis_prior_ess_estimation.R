@@ -66,7 +66,7 @@ prior_moment_ess <- function(rbest_model, target_data) {
                                      method = "moment",
                                      sigma = RBesT::sigma(rbest_model))
 
-  return(posterior_moment_ess - target_data$sample_size_per_arm)
+  return(posterior_moment_ess - target_effective_arm_size(target_data))
 }
 
 #' Calculate the prior precision-based Effective Sample Size (ESS) for a Bayesian model.
@@ -85,7 +85,7 @@ prior_precision_ess <- function(rbest_model, target_data, level = 0.95) {
   } else if (target_data$summary_measure_likelihood == "binomial") {
     posterior_precision_ess <- gaussian_mix_precision_ess(rbest_model, level = level)
   }
-  return(posterior_precision_ess - target_data$sample_size_per_arm)
+  return(posterior_precision_ess - target_effective_arm_size(target_data))
 }
 
 
@@ -137,7 +137,8 @@ prior_ess_elir <- function(rbest_model, target_data) {
 #' @param posterior_sd Standard deviation of the posterior treatment effect.
 #' @param lower Lower bound of the credible interval.
 #' @param upper Upper bound of the credible interval.
-#' @param sample_size_per_arm Per-arm sample size of the target study.
+#' @param sample_size_per_arm Equivalent sample size per arm of the target
+#'   study (see `effective_arm_size()`), the unit the ESS is counted in.
 #' @param level Level of the credible interval.
 #' @return A list with the `moment` and `precision` effective sample sizes.
 #' @keywords internal

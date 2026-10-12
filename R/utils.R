@@ -15,7 +15,8 @@ filter_to_parameter_combinations <- function(results_df, parameters_combinations
 frequentist_col_types <- readr::cols(
   method = readr::col_character(),
   parameters = readr::col_character(),
-  target_sample_size_per_arm = readr::col_double(),
+  target_sample_size_control = readr::col_double(),
+  target_sample_size_treatment = readr::col_double(),
   drift = readr::col_double(),
   treatment_drift = readr::col_double(),
   control_drift = readr::col_double(),
@@ -115,7 +116,8 @@ frequentist_col_types <- readr::cols(
 bayesian_col_types <- readr::cols(
   case_study = readr::col_character(),
   method = readr::col_character(),
-  target_sample_size_per_arm = readr::col_double(),
+  target_sample_size_control = readr::col_double(),
+  target_sample_size_treatment = readr::col_double(),
   parameters = readr::col_character(),
   source_denominator_change_factor = readr::col_double(),
   target_to_source_std_ratio = readr::col_double(),
@@ -141,7 +143,8 @@ bayesian_col_types <- readr::cols(
 sweet_spot_col_types <- readr::cols(
   method = readr::col_character(),
   parameters = readr::col_character(),
-  target_sample_size_per_arm = readr::col_double(),
+  target_sample_size_control = readr::col_double(),
+  target_sample_size_treatment = readr::col_double(),
   control_drift = readr::col_double(),
   source_denominator = readr::col_double(),
   source_denominator_change_factor = readr::col_double(),
@@ -179,10 +182,36 @@ sweet_spot_col_types <- readr::cols(
 time_to_event_design_columns <- c("dropout_probability", "event_time_distribution",
                                   "treatment_delay")
 
+# The columns holding the target arm sizes. Together they identify the target
+# sample size of a scenario.
+target_size_columns <- c("target_sample_size_control", "target_sample_size_treatment")
+
+#' Replace the per-arm target sample size of older results by the arm sizes
+#'
+#' @description Results written before the target arms could differ carry a
+#'   single `target_sample_size_per_arm` column. Both arms had that size, so it
+#'   fills `target_sample_size_control` and `target_sample_size_treatment`.
+#'
+#' @param df A results data frame.
+#' @return `df` with the two arm-size columns and without the old one.
+#' @noRd
+upgrade_target_size_columns <- function(df) {
+  if (!"target_sample_size_per_arm" %in% names(df)) {
+    return(df)
+  }
+  for (column in target_size_columns) {
+    if (!column %in% names(df)) {
+      df[[column]] <- df$target_sample_size_per_arm
+    }
+  }
+  df$target_sample_size_per_arm <- NULL
+  df
+}
+
 # The columns that, together with the drift, identify one simulated scenario.
 # They are the key the analysis joins a method's results to the separate
 # analysis on, so a design axis missing here would make that join fan out.
-scenario_columns <- c("target_sample_size_per_arm", "control_drift", "source_denominator", "source_denominator_change_factor",
+scenario_columns <- c("target_sample_size_control", "target_sample_size_treatment", "control_drift", "source_denominator", "source_denominator_change_factor",
                       "case_study", "sampling_approximation", "source_treatment_effect_estimate",
                       "target_to_source_std_ratio", "dropout_probability", "event_time_distribution",
                       "treatment_delay", "theta_0", "null_space",
@@ -190,7 +219,7 @@ scenario_columns <- c("target_sample_size_per_arm", "control_drift", "source_den
                       "source_sample_size_treatment", "equivalent_source_sample_size_per_arm", "endpoint",
                       "source_control_rate", "source_treatment_rate")
 
-unique_scenario_columns <- c("case_study", "target_sample_size_per_arm", "source_denominator_change_factor",
+unique_scenario_columns <- c("case_study", "target_sample_size_control", "target_sample_size_treatment", "source_denominator_change_factor",
                       "target_to_source_std_ratio", "dropout_probability", "event_time_distribution",
                       "treatment_delay")
 
@@ -198,7 +227,7 @@ unique_scenario_columns <- c("case_study", "target_sample_size_per_arm", "source
 expected_colnames_scenario <- c(
   "method",
   "parameters",
-  "target_sample_size_per_arm",
+  "target_sample_size_control", "target_sample_size_treatment",
   "drift",
   "treatment_drift",
   "control_drift",
@@ -294,7 +323,8 @@ expected_coltypes <- c(
   # Scenario
   method = "character",
   parameters = "list|character",
-  target_sample_size_per_arm = "numeric",
+  target_sample_size_control = "numeric",
+  target_sample_size_treatment = "numeric",
   drift = "numeric",
   treatment_drift = "numeric",
   control_drift = "numeric",
@@ -365,7 +395,7 @@ required_colnames_consumer <- c(
   "case_study",
   "method",
   "parameters",
-  "target_sample_size_per_arm",
+  "target_sample_size_control", "target_sample_size_treatment",
   "source_denominator_change_factor"
 )
 
@@ -608,7 +638,7 @@ concatenate_simulation_results <- function(results_dir, ocs_filename) {
     if (grepl("\\.csv$", file_path)) {
       if (startsWith(basename(file_path), "results")) {
         # Read the CSV file
-        df <- read.csv(file_path, stringsAsFactors = FALSE)
+        df <- upgrade_target_size_columns(read.csv(file_path, stringsAsFactors = FALSE))
 
         # Concatenate to the global data frame
         df_results <- dplyr::bind_rows(df_results, df)
@@ -1205,7 +1235,8 @@ load_data <- function(results_row, type, reload_data_objects = FALSE, case_studi
       data <- data$create(
         source_data = source_data,
         case_study_config = case_study_config,
-        target_sample_size_per_arm = results_row$target_sample_size_per_arm,
+        target_sample_size_control = results_row$target_sample_size_control,
+        target_sample_size_treatment = results_row$target_sample_size_treatment,
         treatment_drift = results_row$treatment_drift,
         control_drift = results_row$control_drift,
         summary_measure_likelihood = source_data$summary_measure_likelihood,
@@ -1220,9 +1251,8 @@ load_data <- function(results_row, type, reload_data_objects = FALSE, case_studi
   } else {
     if (type == "target") {
       data <- list(
-        sample_size_per_arm = results_row$target_sample_size_per_arm,
-        sample_size_control = results_row$target_sample_size_per_arm,
-        sample_size_treatment = results_row$target_sample_size_per_arm,
+        sample_size_control = results_row$target_sample_size_control,
+        sample_size_treatment = results_row$target_sample_size_treatment,
         treatment_effect = results_row$target_treatment_effect,
         standard_deviation = results_row$target_standard_deviation,
         summary_measure_likelihood = results_row$summary_measure_likelihood,
@@ -1468,6 +1498,81 @@ assert_single_number <- function(x, arg_name = deparse(substitute(x))) {
   }
 
   invisible(x)
+}
+
+#' Equivalent sample size per arm of a two-arm study
+#'
+#' @description The per-arm size of a balanced study with the same variance
+#'   of the treatment-effect estimate: `1 / n_control + 1 / n_treatment` equals
+#'   `2 / n`. For equal arms it is the arm size itself.
+#'
+#'   The per-patient sampling standard deviation `standard_deviation` and the
+#'   standard error are related by `SE = standard_deviation / sqrt(n)` with
+#'   this `n`, for the source and the target alike. Effective sample sizes of
+#'   priors are counted in the same unit: patients per arm of a balanced
+#'   study.
+#'
+#' @param n_control,n_treatment Arm sizes. Vectors recycle.
+#' @return The harmonic mean of the arm sizes.
+#' @noRd
+effective_arm_size <- function(n_control, n_treatment) {
+  2 * n_control * n_treatment / (n_control + n_treatment)
+}
+
+#' Equivalent sample size per arm of a target study
+#'
+#' @param target A target data object, a list or a data frame with
+#'   `sample_size_control` and `sample_size_treatment`.
+#' @return See `effective_arm_size()`.
+#' @noRd
+target_effective_arm_size <- function(target) {
+  effective_arm_size(target$sample_size_control, target$sample_size_treatment)
+}
+
+#' Split a total target sample size between the arms
+#'
+#' @param total Total target sample size.
+#' @param allocation_ratio Ratio of the treatment to the control arm size.
+#' @return A list with whole-number `control` and `treatment`, as doubles,
+#'   since the generation cache hashes them. For a ratio of 1,
+#'   each arm gets `floor(total / 2)`, as balanced designs always have.
+#' @noRd
+split_target_sample_size <- function(total, allocation_ratio = 1) {
+  assert_single_number(total)
+  assert_single_number(allocation_ratio)
+  if (!(allocation_ratio > 0) || !is.finite(allocation_ratio)) {
+    stop("The target allocation ratio must be a positive number.", call. = FALSE)
+  }
+  if (allocation_ratio == 1) {
+    control <- floor(total / 2)
+    treatment <- control
+  } else {
+    control <- round(total / (1 + allocation_ratio))
+    treatment <- round(total) - control
+  }
+  if (control < 2 || treatment < 2) {
+    stop(sprintf(
+      "A total target sample size of %s with allocation ratio %s leaves fewer than 2 patients in an arm.",
+      total, allocation_ratio
+    ), call. = FALSE)
+  }
+  list(control = control, treatment = treatment)
+}
+
+#' Label of the target arm sizes for titles and file names
+#'
+#' @param n_control,n_treatment Arm sizes.
+#' @param style "title" for figure and table titles, "latex" for LaTeX
+#'   tables, or "file" for file names.
+#' @return A character vector.
+#' @noRd
+target_size_label <- function(n_control, n_treatment, style = c("title", "latex", "file")) {
+  style <- match.arg(style)
+  switch(style,
+    title = sprintf("n_C = %s, n_T = %s", n_control, n_treatment),
+    latex = sprintf("$n_C = %s$, $n_T = %s$", n_control, n_treatment),
+    file = sprintf("nC=%s_nT=%s", n_control, n_treatment)
+  )
 }
 
 #' Unwrap the length-1 list columns that rbind() over lists leaves behind

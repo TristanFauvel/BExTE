@@ -139,7 +139,7 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
     posterior_sd = summaries$sd,
     lower = credible_intervals[, 1],
     upper = credible_intervals[, 2],
-    sample_size_per_arm = target_data$sample_size_per_arm,
+    sample_size_per_arm = target_effective_arm_size(target_data),
     level = confidence_level
   )
 

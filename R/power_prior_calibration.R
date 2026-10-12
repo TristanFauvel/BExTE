@@ -18,7 +18,8 @@
 #' @param calibration_parameter The calibration parameter, written Z_1-c/2 in
 #'   the manuscript. Must be positive.
 #' @param source_sample_size_per_arm Sample size per arm in the source study
-#' @param target_sample_size_per_arm Sample size per arm in the target study
+#' @param target_sample_size_per_arm Equivalent sample size per arm of the target
+#'   study, `2 / (1 / n_C + 1 / n_T)` (see `effective_arm_size()`)
 #' @param source_treatment_effect_estimate Treatment effect estimate in the source study
 #' @param significance_level Significance level for hypothesis testing
 #' @param target_data_sampling_variance Sampling variance of the target study data

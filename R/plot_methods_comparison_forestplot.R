@@ -88,7 +88,7 @@ forest_ink_layer <- function(geom, palette, ...) {
 #' @keywords internal
 scale_by_separate <- function(df, metric_columns) {
   key <- c(
-    "case_study", "target_sample_size_per_arm", "drift",
+    "case_study", target_size_columns, "drift",
     "target_to_source_std_ratio", "source_denominator_change_factor"
   )
   missing_columns <- setdiff(c(key, metric_columns), names(df))
@@ -154,7 +154,7 @@ forest_ess_values <- function(data) {
 ## The point-and-interval layer. The marker is filled by moment-based ESS and
 ## outlined thinly, so a near-white fill still reads as a point; `fill` is
 ## used rather than `colour` because the ESS panels already spend their
-## colour scale on the N_T/2 and N_S/2 reference lines.
+## colour scale on the target and source reference lines.
 forest_ess_layer <- function(data, palette, ess_limits) {
   if (is.null(forest_ess_values(data)) || !is.null(palette)) {
     return(forest_ink_layer(ggplot2::geom_pointrange, palette, size = 0.001, linewidth = 1))
@@ -214,7 +214,7 @@ forest_scientific_x <- function(values, label) {
 }
 
 ## The shared legend row: the moment-based ESS colourbar, and on the ESS
-## panels the N_T/2 and N_S/2 reference-line keys beside it. Taken from the
+## panels the target and source reference-line keys beside it. Taken from the
 ## panel that carries both guides, so the three panels can then be drawn
 ## without any legend of their own.
 forest_legend_grob <- function(plt) {
@@ -424,13 +424,17 @@ forest_subplot <- function(data,
     } else {
       equivalent_source_sample_size_per_arm <- data$equivalent_source_sample_size_per_arm
     }
-    target_sample_size_per_arm <- unique(data$target_sample_size_per_arm)
+    # The ESS counts patients per arm of a balanced study, so the target is
+    # drawn at its equivalent sample size per arm.
+    target_equivalent_size <- unique(effective_arm_size(
+      data$target_sample_size_control, data$target_sample_size_treatment
+    ))
     source_sample_size_per_arm <- unique(round(equivalent_source_sample_size_per_arm))
 
     if (legend) {
       plt <- plt +
         ggplot2::geom_vline(
-          ggplot2::aes(xintercept = target_sample_size_per_arm, color = "Target sample size per arm"),
+          ggplot2::aes(xintercept = target_equivalent_size, color = "Target equivalent sample size per arm"),
           linetype = "dotted"
         ) +
         ggplot2::geom_vline(
@@ -440,18 +444,18 @@ forest_subplot <- function(data,
         ggplot2::scale_color_manual(
           name = "",
           values = c(
-            "Target sample size per arm" = refs$target,
+            "Target equivalent sample size per arm" = refs$target,
             "Source sample size per arm" = refs$source
           ),
           labels = c(
-            "Target sample size per arm" = expression(N[T]/2), # nolint: T_and_F_symbol_linter.
+            "Target equivalent sample size per arm" = expression(n[T]), # nolint: T_and_F_symbol_linter.
             "Source sample size per arm" = expression(N[S]/2)
           )
         )
     } else {
       plt <- plt +
         ggplot2::geom_vline(
-          xintercept = target_sample_size_per_arm,
+          xintercept = target_equivalent_size,
           linetype = "dotted",
           "color" = refs$target
         ) +
@@ -657,7 +661,9 @@ forest_combined_plot <- function(data,
     theta_0 <- unique(data$theta_0)
     plt <- plt + ggplot2::geom_vline(xintercept = theta_0, linetype = "dotted", color = "black")
   } else if (x_metric_name %in% c("ess_moment", "ess_precision", "ess_elir")) {
-    target_sample_size_per_arm <- unique(data$target_sample_size_per_arm)
+    target_equivalent_size <- unique(effective_arm_size(
+      data$target_sample_size_control, data$target_sample_size_treatment
+    ))
     equivalent_source_sample_size_per_arm <- ifelse(
       is.null(data$equivalent_source_sample_size_per_arm) | anyNA(data$equivalent_source_sample_size_per_arm),
       2 * data$source_sample_size_control * data$source_sample_size_treatment / (data$source_sample_size_control + data$source_sample_size_treatment),
@@ -666,7 +672,7 @@ forest_combined_plot <- function(data,
     source_sample_size_per_arm <- unique(round(equivalent_source_sample_size_per_arm))
 
     plt <- plt +
-      ggplot2::geom_vline(xintercept = target_sample_size_per_arm, linetype = "dotted", color = "black") +
+      ggplot2::geom_vline(xintercept = target_equivalent_size, linetype = "dotted", color = "black") +
       ggplot2::geom_vline(xintercept = source_sample_size_per_arm, linetype = "dotted", color = "red")
   }
 
@@ -676,7 +682,7 @@ forest_combined_plot <- function(data,
 
 #' Generate a forest plot
 #'
-#' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
+#' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target arm sizes.
 #'
 #' @param results_freq_df The results dataframe.
 #' @param x_metric Metric on the x-axis
@@ -704,7 +710,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
   on.exit(close_device(), add = TRUE)
 
   selected_case_study <- unique(results_freq_df$case_study)
-  selected_target_sample_size_per_arm <- unique(results_freq_df$target_sample_size_per_arm)
+  selected_target_sizes <- unique(results_freq_df[, target_size_columns, drop = FALSE])
 
   if (x_metric %in% names(frequentist_metrics)) {
     metric <- frequentist_metrics[[x_metric]]
@@ -746,8 +752,12 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
     "_",
     if (relative_to_separate) "relative_" else "",
     x_metric,
-    "_forest_plot_target_sample_size_per_arm_",
-    selected_target_sample_size_per_arm,
+    "_forest_plot_target_",
+    target_size_label(
+      selected_target_sizes$target_sample_size_control,
+      selected_target_sizes$target_sample_size_treatment,
+      "file"
+    ),
     filename_suffix
   )
 
@@ -1110,7 +1120,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
 
 #' Generate a forest plot for bayesian metrics
 #'
-#' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
+#' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target arm sizes.
 #'
 #' @param results_bayes_df The results dataframe.
 #' @param x_metric Metric on the x-axis
@@ -1125,7 +1135,7 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
   on.exit(close_device(), add = TRUE)
 
   selected_case_study <- unique(results_bayes_df$case_study)
-  selected_target_sample_size_per_arm <- unique(results_bayes_df$target_sample_size_per_arm)
+  selected_target_sizes <- unique(results_bayes_df[, target_size_columns, drop = FALSE])
 
 
   directory <- file.path(figures_dir, selected_case_study)
@@ -1152,8 +1162,12 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
     selected_case_study,
     "_",
     x_metric,
-    "_forest_plot_target_sample_size_per_arm_",
-    selected_target_sample_size_per_arm
+    "_forest_plot_target_",
+    target_size_label(
+      selected_target_sizes$target_sample_size_control,
+      selected_target_sizes$target_sample_size_treatment,
+      "file"
+    )
   )
 
   if (!is.null(palette)) {
@@ -1277,10 +1291,12 @@ forest_plot_methods_comparison <- function(results_metrics_df, metrics) {
     for (case_study in case_studies) {
       results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study == case_study,]
 
-      target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
-      target_sample_sizes <- target_sample_sizes[!is.na(target_sample_sizes)]
-      for (target_sample_size_per_arm in target_sample_sizes) {
-        results_metrics_df2 <- results_metrics_df1[results_metrics_df1$target_sample_size_per_arm == target_sample_size_per_arm,]
+      target_sample_sizes <- unique(results_metrics_df1[, target_size_columns, drop = FALSE])
+      target_sample_sizes <- target_sample_sizes[stats::complete.cases(target_sample_sizes), , drop = FALSE]
+      for (size_index in seq_len(nrow(target_sample_sizes))) {
+        results_metrics_df2 <- dplyr::semi_join(
+          results_metrics_df1, target_sample_sizes[size_index, , drop = FALSE], by = target_size_columns
+        )
 
         target_to_source_std_ratios <- unique(results_metrics_df2$target_to_source_std_ratio)
 
@@ -1327,10 +1343,12 @@ forest_plot_methods_comparison_bayesian <- function(results_metrics_df, metrics)
     for (case_study in case_studies) {
       results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study == case_study,]
 
-      target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
-      target_sample_sizes <- target_sample_sizes[!is.na(target_sample_sizes)]
-      for (target_sample_size_per_arm in target_sample_sizes) {
-        results_metrics_df2 <- results_metrics_df1[results_metrics_df1$target_sample_size_per_arm == target_sample_size_per_arm,]
+      target_sample_sizes <- unique(results_metrics_df1[, target_size_columns, drop = FALSE])
+      target_sample_sizes <- target_sample_sizes[stats::complete.cases(target_sample_sizes), , drop = FALSE]
+      for (size_index in seq_len(nrow(target_sample_sizes))) {
+        results_metrics_df2 <- dplyr::semi_join(
+          results_metrics_df1, target_sample_sizes[size_index, , drop = FALSE], by = target_size_columns
+        )
 
         target_to_source_std_ratios <- unique(results_metrics_df2$target_to_source_std_ratio)
 

@@ -79,7 +79,8 @@ quadrature_samples <- function(successes_control, successes_treatment, n = 40) {
   data.frame(
     sample_control_rate = control_rate,
     sample_treatment_rate = treatment_rate,
-    sample_size_per_arm = n,
+    sample_size_control = n,
+    sample_size_treatment = n,
     treatment_effect_estimate = treatment_rate - control_rate,
     treatment_effect_standard_error = sqrt(
       treatment_rate * (1 - treatment_rate) / n +
@@ -95,7 +96,6 @@ quadrature_samples <- function(successes_control, successes_treatment, n = 40) {
 quadrature_target_data <- function(samples, n = 40) {
   list(
     summary_measure_likelihood = "binomial",
-    sample_size_per_arm = n,
     sample_size_control = n,
     sample_size_treatment = n,
     sample = samples[1, , drop = FALSE],

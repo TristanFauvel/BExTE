@@ -28,7 +28,7 @@ chunking_analysis <- function(samples) {
     means = mixture$means,
     sds = mixture$sds,
     samples = samples,
-    target_data = list(sample_size_per_arm = 50),
+    target_data = list(sample_size_control = 50, sample_size_treatment = 50),
     to_return = c("test_decision", "posterior_mean", "posterior_median",
                   "credible_interval", "posterior_parameters", "ess_moment",
                   "ess_precision", "ess_elir", "fit_success"),

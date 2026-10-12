@@ -31,7 +31,7 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
     stop("The function was designed for a single parameters combination.")
   }
 
-  # Filter the data frame based on method, case_study, and target_sample_size_per_arm
+  # Filter the data frame based on method, case_study, and the target arm sizes
   results_metrics_df <- results_metrics_df %>%
     dplyr::filter(
       method == !!method,
@@ -106,7 +106,8 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       ymax = format_num(conf_int_upper, digits = n_digits),
       parameters = format_num(filter_results_metrics_df$parameters),
       method = method,
-      target_sample_size_per_arm = factor(filter_results_metrics_df$target_sample_size_per_arm)
+      target_sample_size_control = filter_results_metrics_df$target_sample_size_control,
+      target_sample_size_treatment = filter_results_metrics_df$target_sample_size_treatment
     )
 
     # Combine all table data
@@ -120,7 +121,7 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
         CI_upper = ymax,
         CI = paste0("[", CI_low, ", ", CI_upper, "]")
       ) %>%
-      dplyr::select(drift, target_sample_size_per_arm, hyperparameter, CI) %>%
+      dplyr::select(drift, target_sample_size_control, target_sample_size_treatment, hyperparameter, CI) %>%
       dplyr::arrange(drift)
 
 
@@ -132,7 +133,8 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
         "Drift" = drift,
         !!hyperparameter_colname := hyperparameter,
         "95% CI" = CI,
-        "$N_T/2$" = target_sample_size_per_arm
+        "$n_C$" = target_sample_size_control,
+        "$n_T$" = target_sample_size_treatment
       )
 
     # Merge Mean and CI columns
@@ -140,7 +142,9 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       unite(!!hyperparameter_colname, '95% CI', sep = " ")
 
     # Sort the table
-    data_table <- data_table[order(data_table$Drift, data_table[, "$N_T/2$"]), ]
+    data_table <- data_table[order(data_table$Drift,
+                                   data_table[, "$n_C$"] + data_table[, "$n_T$"],
+                                   data_table[, "$n_C$"]), ]
     row.names(data_table) <- NULL
 
     directory <- file.path(tables_dir, case_study)
@@ -158,7 +162,7 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       empirical_bayes_hyperparameters[[method]][[key]]$parameter_label,
       "_vs_",
       xvar$name,
-      "_cat_target_sample_size_per_arm"
+      "_cat_target_sample_size"
     ), parameters_str)
 
 

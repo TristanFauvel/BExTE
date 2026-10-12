@@ -29,7 +29,7 @@ pdccpp_botox <- function(tolerance = 1e-4, per_replicate = FALSE) {
     model$prior <- prior
   }
   target_data <- TargetDataFactory$new()$create(
-    source_data = source_data, case_study_config = config, target_sample_size_per_arm = 58L,
+    source_data = source_data, case_study_config = config, target_sample_size_control = 58L, target_sample_size_treatment = 58L,
     control_drift = 0, treatment_drift = -source_data$treatment_effect_estimate / 2,
     summary_measure_likelihood = "normal", target_to_source_std_ratio = 1,
     dropout_probability = 0, event_time_distribution = "exponential", treatment_delay = 0

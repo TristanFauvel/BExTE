@@ -1,7 +1,8 @@
 plot_posterior_vs_prior_parameters <- function(input_df,
                                                method,
                                                case_study,
-                                               target_sample_size_per_arm,
+                                               target_sample_size_control,
+                                               target_sample_size_treatment,
                                                source_denominator_change_factor,
                                                target_to_source_std_ratio) {
 
@@ -12,7 +13,8 @@ plot_posterior_vs_prior_parameters <- function(input_df,
   results_metrics_df <- input_df %>%
     dplyr::filter(
       case_study == !!case_study,
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       method == !!method,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
@@ -127,11 +129,11 @@ plot_posterior_vs_prior_parameters <- function(input_df,
         }))
 
         plot_title <- sprintf(
-          "%s, %s, %s $N_T/2 = $ %s",
+          "%s, %s, %s %s",
           stringr::str_to_title(case_study),
           methods_labels[[method]]$full_name,
           other_params_label,
-          target_sample_size_per_arm
+          target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
         )
 
         plot_title <- format_title(title = plot_title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -168,8 +170,8 @@ plot_posterior_vs_prior_parameters <- function(input_df,
           methods_dict[[method]][[key]]$parameter_label,
           "_",
           method,
-          "_sample_size_",
-          target_sample_size_per_arm
+          "_",
+          target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
         )
 
         if (other_params_str != ""){
@@ -203,7 +205,8 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 #' @param results_metrics_df The data frame containing the results and metrics.
 #' @param method The method to plot the parameters for.
 #' @param case_study The case study to plot the parameters for.
-#' @param target_sample_size_per_arm The sample size to plot the parameters for.
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes.
 #' @param control_drift A logical value indicating whether to filter the data based on control drift.
 #' @param xvars Variable on the x axis
 #' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
@@ -215,18 +218,20 @@ plot_posterior_vs_prior_parameters <- function(input_df,
 plot_posterior_parameters_vs_drift <- function(results_metrics_df,
                                                method,
                                                case_study,
-                                               target_sample_size_per_arm,
+                                               target_sample_size_control,
+                                               target_sample_size_treatment,
                                                control_drift,
                                                xvars,
                                                source_denominator_change_factor,
                                                target_to_source_std_ratio) {
   check_plot_packages()
-  # Filter the data frame based on method, case_study, and target_sample_size_per_arm
+  # Filter the data frame based on method, case_study, and the target arm sizes
   results_metrics_df <- results_metrics_df %>%
     dplyr::filter(
       method == !!method,
       case_study == !!case_study,
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
       target_to_source_std_ratio == !!target_to_source_std_ratio |
@@ -383,10 +388,10 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
 
     plot_title <-
       sprintf(
-        "%s, %s, $N_T/2 =$ %s",
+        "%s, %s, %s",
         stringr::str_to_title(case_study),
         methods_labels[[method]]$full_name,
-        target_sample_size_per_arm
+        target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
       )
 
     plot_title <- format_title(title = plot_title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -460,8 +465,8 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
       methods_dict[[method]][[key]]$parameter_label,
       "_vs_",
       xvar$name,
-      "_sample_size_",
-      target_sample_size_per_arm
+      "_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     )
 
     figure_name <- format_filename(filename = figure_name, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -499,10 +504,14 @@ posterior_parameters_plots <- function(results_metrics_df) {
     results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study == case_study,]
     for (method in methods) {
       results_metrics_df2 <- results_metrics_df1[results_metrics_df1$method == method,]
-      target_sample_sizes <- unique(results_metrics_df2$target_sample_size_per_arm)
-      for (target_sample_size_per_arm in target_sample_sizes) {
+      target_sample_sizes <- unique(results_metrics_df2[, target_size_columns, drop = FALSE])
+      for (size_index in seq_len(nrow(target_sample_sizes))) {
+        target_sample_size_control <- target_sample_sizes$target_sample_size_control[size_index]
+        target_sample_size_treatment <- target_sample_sizes$target_sample_size_treatment[size_index]
 
-        results_metrics_df3 <- results_metrics_df2[results_metrics_df2$target_sample_size_per_arm == target_sample_size_per_arm,]
+        results_metrics_df3 <- dplyr::semi_join(
+          results_metrics_df2, target_sample_sizes[size_index, , drop = FALSE], by = target_size_columns
+        )
 
         target_to_source_std_ratios <- unique(results_metrics_df3$target_to_source_std_ratio)
 
@@ -527,7 +536,8 @@ posterior_parameters_plots <- function(results_metrics_df) {
               results_metrics_df5,
               method,
               case_study,
-              target_sample_size_per_arm,
+              target_sample_size_control,
+              target_sample_size_treatment,
               control_drift = FALSE,
               xvars = xvars,
               source_denominator_change_factor = source_denominator_change_factor,
@@ -538,7 +548,8 @@ posterior_parameters_plots <- function(results_metrics_df) {
               results_metrics_df5,
               method,
               case_study,
-              target_sample_size_per_arm = target_sample_size_per_arm,
+              target_sample_size_control = target_sample_size_control,
+              target_sample_size_treatment = target_sample_size_treatment,
               source_denominator_change_factor = source_denominator_change_factor,
               target_to_source_std_ratio = target_to_source_std_ratio
             )

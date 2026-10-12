@@ -39,7 +39,6 @@ agreement_target_data <- function(successes_control, successes_treatment, n) {
   treatment_rate <- successes_treatment / n
   list(
     summary_measure_likelihood = "binomial",
-    sample_size_per_arm = n,
     sample_size_control = n,
     sample_size_treatment = n,
     sample = data.frame(

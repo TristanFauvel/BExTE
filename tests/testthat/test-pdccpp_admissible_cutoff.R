@@ -121,7 +121,8 @@ test_that("PDCCPP borrows instead of aborting when the source estimate is conser
   power_parameter <- model$power_parameter_estimation(ObservedTargetData$new(
     treatment_effect_estimate = 0.481,
     treatment_effect_standard_error = 0.284,
-    target_sample_size_per_arm = 52,
+    target_sample_size_control = 52,
+    target_sample_size_treatment = 52,
     summary_measure_likelihood = "normal"
   ))
 
@@ -206,7 +207,8 @@ test_that("PDCCPP borrows fully out to a calibrated cut-off wider than one predi
     treatment_effect_estimate = fixture$source_data$treatment_effect_estimate +
       1.03 * fixture$std_predictive_dist,
     treatment_effect_standard_error = fixture$target_standard_error,
-    target_sample_size_per_arm = fixture$target_sample_size_per_arm,
+    target_sample_size_control = fixture$target_sample_size_per_arm,
+    target_sample_size_treatment = fixture$target_sample_size_per_arm,
     summary_measure_likelihood = "normal"
   ))
 

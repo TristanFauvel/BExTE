@@ -37,7 +37,8 @@ set.seed(1)
 target_data <- TargetDataFactory$new()$create(
   source_data = source_data,
   case_study_config = cfg,
-  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  target_sample_size_control = cfg$target$control,
+  target_sample_size_treatment = cfg$target$treatment,
   control_drift = 0,
   treatment_drift = 0,
   summary_measure_likelihood = cfg$summary_measure_likelihood

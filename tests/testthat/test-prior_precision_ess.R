@@ -7,7 +7,8 @@ test_that("prior_precision_ess subtracts the target sample size", {
     {
       rbest_model <- list()
       target_data <- list(
-        sample_size_per_arm = 100,
+        sample_size_control = 100,
+        sample_size_treatment = 100,
         summary_measure_likelihood = "normal"
       )
 

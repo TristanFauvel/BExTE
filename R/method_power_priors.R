@@ -16,7 +16,8 @@
 #' target_data <- TargetDataFactory$new()$create(
 #'   source_data = source_data,
 #'   case_study_config = cfg,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   control_drift = 0,
 #'   treatment_drift = 0,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
@@ -331,7 +332,8 @@ BinomialCPP <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = cfg$target$treatment_effect,
 #'   treatment_effect_standard_error = cfg$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -910,7 +912,8 @@ GaussianNPP <- R6::R6Class(
 #' target_data <- TargetDataFactory$new()$create(
 #'   source_data = source_data,
 #'   case_study_config = cfg,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   control_drift = 0,
 #'   treatment_drift = 0,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
@@ -1136,8 +1139,8 @@ commensurate_stan_code <- function(with_power_parameter) {
 
                                       data {
                                         int<lower=0,upper=2> prior_type; // Type of prior on the commensurability parameter; 0 for inverse_gamma, 1 for half normal, 2 for Cauchy
-                                        int<lower=1> NS;       // Number of samples in dataset S
-                                        int<lower=1> NT;       // Number of samples in dataset T
+                                        real<lower=0> NS;      // Equivalent sample size per arm of dataset S
+                                        real<lower=0> NT;      // Equivalent sample size per arm of dataset T
                                         real<lower=0> target_sampling_variance;  // Known variance of the target data
                                         real<lower=0> prior_variance; // Prior variance component
                                         real source_treatment_effect_estimate;      // Estimate from dataset S
@@ -1228,8 +1231,8 @@ commensurate_stan_code <- function(with_power_parameter) {
   "
                                       data {
                                         int<lower=0,upper=2> prior_type; // Type of prior on the commensurability parameter; 0 for inverse_gamma, 1 for half normal, 2 for Cauchy
-                                        int<lower=1> NS;       // Number of samples in dataset S
-                                        int<lower=1> NT;       // Number of samples in dataset T
+                                        real<lower=0> NS;      // Equivalent sample size per arm of dataset S
+                                        real<lower=0> NT;      // Equivalent sample size per arm of dataset T
                                         real<lower=0> target_sampling_variance;  // Known variance of the target data
                                         real<lower=0> prior_variance; // Prior variance component
                                         real source_treatment_effect_estimate;      // Estimate from dataset S
@@ -1343,7 +1346,8 @@ commensurate_stan_code <- function(with_power_parameter) {
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = cfg$target$treatment_effect,
 #'   treatment_effect_standard_error = cfg$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
 #' )
 #' # inference() uses quadrature by default, so it needs no CmdStan.
@@ -1408,12 +1412,13 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
     prepare_data = function(target_data) {
       # Specify the parameters
       data <- list(
-        NS = as.integer(self$prior$source$equivalent_source_sample_size_per_arm),
-        # Number of samples in dataset S
-        NT = as.integer(target_data$sample_size_per_arm),
-        # Number of samples in dataset T
+        # Equivalent sample sizes per arm. They are not whole numbers when the
+        # arms differ, and must not be truncated: the variances below are
+        # scaled by the same values.
+        NS = self$prior$source$equivalent_source_sample_size_per_arm,
+        NT = target_effective_arm_size(target_data),
         target_sampling_variance = target_data$sample$treatment_effect_standard_error ^
-          2 * target_data$sample_size_per_arm,
+          2 * target_effective_arm_size(target_data),
         # Known variance
         prior_variance = self$prior$source$standard_error ^ 2 * self$prior$source$equivalent_source_sample_size_per_arm,
         # Source variance
@@ -1808,7 +1813,8 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = cfg$target$treatment_effect,
 #'   treatment_effect_standard_error = cfg$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
 #' )
 #' # inference() uses quadrature by default, so it needs no CmdStan.

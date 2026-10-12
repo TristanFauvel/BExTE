@@ -54,7 +54,7 @@ Set the observed target data:
 ```{r}
 drift <- 0
 
-target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = as.integer(case_study_config$target$total / 2), summary_measure_likelihood = case_study_config$summary_measure_likelihood)
+target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_control = case_study_config$target$control, target_sample_size_treatment = case_study_config$target$treatment, summary_measure_likelihood = case_study_config$summary_measure_likelihood)
 ```
 ## Test-then-pool with a difference test
 
@@ -95,7 +95,7 @@ model$plot_test_pvalue_vs_drift(source_treatment_effect_estimate = source_data$t
 ```{r}
 drift <- 0
 
-target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = as.integer(case_study_config$target$total / 2), summary_measure_likelihood = case_study_config$summary_measure_likelihood)
+target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_control = case_study_config$target$control, target_sample_size_treatment = case_study_config$target$treatment, summary_measure_likelihood = case_study_config$summary_measure_likelihood)
 
 # Perform Bayesian inference based on observed target data.
 model$inference(target_data = target_data)
@@ -122,7 +122,7 @@ Now, if the drift is larger:
 ```{r}
 drift <- 1
 
-target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = as.integer(case_study_config$target$total / 2), summary_measure_likelihood = case_study_config$summary_measure_likelihood)
+target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_control = case_study_config$target$control, target_sample_size_treatment = case_study_config$target$treatment, summary_measure_likelihood = case_study_config$summary_measure_likelihood)
 
 # Perform Bayesian inference based on observed target data.
 model$inference(target_data = target_data)
@@ -196,7 +196,7 @@ model$plot_test_pvalue_vs_drift(source_treatment_effect_estimate = source_data$t
 ```{r}
 drift <- 0
 
-target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = as.integer(case_study_config$target$total / 2), summary_measure_likelihood = case_study_config$summary_measure_likelihood)
+target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_control = case_study_config$target$control, target_sample_size_treatment = case_study_config$target$treatment, summary_measure_likelihood = case_study_config$summary_measure_likelihood)
 
 
 # Perform Bayesian inference based on observed target data.
@@ -228,7 +228,7 @@ Now, if the drift is larger:
 ```{r}
 drift <- 0.3
 
-target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = as.integer(case_study_config$target$total / 2), summary_measure_likelihood = case_study_config$summary_measure_likelihood)
+target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$source$treatment_effect + drift, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_control = case_study_config$target$control, target_sample_size_treatment = case_study_config$target$treatment, summary_measure_likelihood = case_study_config$summary_measure_likelihood)
 
 # Perform Bayesian inference based on observed target data.
 model$inference(target_data = target_data)

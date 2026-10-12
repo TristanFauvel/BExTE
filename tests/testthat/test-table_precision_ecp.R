@@ -3,7 +3,7 @@
 precision_ecp_rows <- function(width = 0) {
   effects <- c(0, 0.25, 0.5)
   data.frame(
-    case_study = "belimumab", target_sample_size_per_arm = 140,
+    case_study = "belimumab", target_sample_size_control = 140, target_sample_size_treatment = 140,
     method = "separate", parameters = "[[{'initial_prior': ['noninformative']}]]",
     target_to_source_std_ratio = NA, source_denominator_change_factor = 1,
     source_treatment_effect_estimate = 0.5, target_treatment_effect = effects,

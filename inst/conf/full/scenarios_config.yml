@@ -10,6 +10,11 @@ sample_size_factors:
     - 2
     - 4
     - 6
+# Ratio of the treatment to the control arm size of the target study, whose
+# total size sample_size_factors sets. Absent means 1, equal arms; 2 gives two
+# treated patients for each control. case_study_target_allocation_ratio
+# overrides it for single case studies, e.g. {belimumab: 1.36}.
+# target_allocation_ratio: 1
 target_to_source_std_ratio_range:
     - 1
     - 2
@@ -40,7 +45,7 @@ treatment_delay:
     - 0.461538
 # The whole grid is simulated under the primary design (no control-arm
 # heterogeneity, no loss to follow-up, exponential event times). The sensitivity
-# designs are simulated only at N_T/2 = 123, and one axis at a time: seven
+# designs are simulated only at n_C = n_T = 123, and one axis at a time: seven
 # designs besides the primary one, the ones the figures plot.
 sensitivity_reference:
     sample_size_factor: 6

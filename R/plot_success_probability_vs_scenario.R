@@ -151,7 +151,8 @@ plot_success_proba_vs_xvar <- function(plt,
 #' @param theta_0 The true treatment effect
 #' @param case_study The case study name
 #' @param method The method name
-#' @param target_sample_size_per_arm The target sample size per arm
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes.
 #' @param parameters_combinations The combinations of parameters to filter the results by
 #' @param xvars A list of x-variables for control drift and treatment drift
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
@@ -168,7 +169,8 @@ plot_success_proba_vs_drift <- function(metric,
                                         theta_0,
                                         case_study,
                                         method,
-                                        target_sample_size_per_arm = NULL,
+                                        target_sample_size_control = NULL,
+                                        target_sample_size_treatment = NULL,
                                         target_to_source_std_ratio,
                                         source_denominator_change_factor = NULL,
                                         parameters_combinations = NULL,
@@ -183,7 +185,8 @@ plot_success_proba_vs_drift <- function(metric,
   results_df <- results_metrics_df %>%
     dplyr::filter(
       method == !!method,
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       source_denominator_change_factor == !!source_denominator_change_factor,
       target_to_source_std_ratio == !!target_to_source_std_ratio |
         is.na(target_to_source_std_ratio)
@@ -229,8 +232,8 @@ plot_success_proba_vs_drift <- function(metric,
     selected_metric_name,
     "_vs_",
     xvar_name,
-    "_target_sample_size_per_arm=",
-    target_sample_size_per_arm
+    "_target_",
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
   ), parameters_str), "_comparisons")
 
   figure_name <- format_filename(filename = figure_name, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -328,11 +331,11 @@ plot_success_proba_vs_drift <- function(metric,
   }
 
   plot_title <- sprintf(
-    "%s, %s%s, $N_T/2 = $ %s",
+    "%s, %s%s, %s",
     stringr::str_to_title(case_study),
     methods_labels[[method]]$full_name,
     param_label,
-    target_sample_size_per_arm
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
   )
 
   plot_title <- format_title(title = plot_title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -404,7 +407,7 @@ plot_success_proba_vs_scenario <- function(results_metrics_df, metrics) {
 
     theta_0 <- case_study_config$theta_0
 
-    target_sample_sizes <- unique(filtered_results_metrics_df$target_sample_size_per_arm)
+    target_sample_sizes <- unique(filtered_results_metrics_df[, target_size_columns, drop = FALSE])
 
     for (method in methods) {
       if (sum(filtered_results_metrics_df$method == method) == 0) {
@@ -415,7 +418,7 @@ plot_success_proba_vs_scenario <- function(results_metrics_df, metrics) {
 
       metric <- "success_proba"
 
-      for (sample_size in target_sample_sizes) {
+      for (size_index in seq_len(nrow(target_sample_sizes))) {
         for (i in seq_len(nrow(parameters_combinations))) {
           for (source_denominator_change_factor in unique(filtered_results_metrics_df$source_denominator_change_factor)) {
             for (target_to_source_std_ratio in unique(filtered_results_metrics_df$target_to_source_std_ratio)) {
@@ -427,7 +430,8 @@ plot_success_proba_vs_scenario <- function(results_metrics_df, metrics) {
                 source_denominator_change_factor = source_denominator_change_factor,
                 target_to_source_std_ratio = target_to_source_std_ratio,
                 theta_0 = theta_0,
-                target_sample_size_per_arm = sample_size,
+                target_sample_size_control = target_sample_sizes$target_sample_size_control[size_index],
+                target_sample_size_treatment = target_sample_sizes$target_sample_size_treatment[size_index],
                 parameters_combinations = parameters_combinations[i, , drop = FALSE],
                 xvars = xvars,
                 baseline_success_proba = c("at_equivalent_TIE", "at_nominal_TIE"),

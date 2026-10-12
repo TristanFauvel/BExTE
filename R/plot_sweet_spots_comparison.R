@@ -136,7 +136,7 @@ forest_subplot_sweet_spot <- function(data,
 
 #' Generate a forest plot
 #'
-#' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target sample size per arm.
+#' @description This function generates a forest plot based on the provided results dataframe, selected case study, and selected target arm sizes.
 #'
 #' @param results_freq_df The results dataframe.
 #' @param x_metric Metric on the x-axis
@@ -144,7 +144,7 @@ forest_subplot_sweet_spot <- function(data,
 #' @return None
 forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
   selected_case_study <- unique(results_freq_df$case_study)
-  selected_target_sample_size_per_arm <- unique(results_freq_df$target_sample_size_per_arm)
+  selected_target_sizes <- unique(results_freq_df[, target_size_columns, drop = FALSE])
 
 
   directory <- file.path(figures_dir, selected_case_study)
@@ -185,8 +185,12 @@ forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
     selected_case_study,
     "_",
     x_metric_name,
-    "_forest_plot_target_sample_size_per_arm_",
-    selected_target_sample_size_per_arm
+    "_forest_plot_target_",
+    target_size_label(
+      selected_target_sizes$target_sample_size_control,
+      selected_target_sizes$target_sample_size_treatment,
+      "file"
+    )
   )
 
   case_study <- unique(results_freq_df$case_study)
@@ -205,7 +209,7 @@ forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
     return()
   }
 
-  id_cols <- c("method", "parameters", "target_sample_size_per_arm", "control_drift", "source_denominator", "source_denominator_change_factor", "case_study", "sampling_approximation", "source_treatment_effect_estimate",  "target_to_source_std_ratio", "theta_0", "null_space", "summary_measure_likelihood", "source_standard_error", "source_sample_size_control", "source_sample_size_treatment", "equivalent_source_sample_size_per_arm", "endpoint", "source_control_rate", "source_treatment_rate")
+  id_cols <- c("method", "parameters", target_size_columns, "control_drift", "source_denominator", "source_denominator_change_factor", "case_study", "sampling_approximation", "source_treatment_effect_estimate",  "target_to_source_std_ratio", "theta_0", "null_space", "summary_measure_likelihood", "source_standard_error", "source_sample_size_control", "source_sample_size_treatment", "equivalent_source_sample_size_per_arm", "endpoint", "source_control_rate", "source_treatment_rate")
 
   results_freq_df <- results_freq_df %>%
     pivot_wider(id_cols = id_cols, names_from = metric, values_from = c("sweet_spot_lower", "sweet_spot_upper", "sweet_spot_width", "drift_range_upper", "drift_range_lower"))
@@ -226,10 +230,14 @@ forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
     )
 
   title <- sprintf(
-    "%s, %s, $N_T/2 = $ %s",
+    "%s, %s, %s",
     x_metric_label,
     stringr::str_to_title(unique(df$case_study)),
-    unique(df$target_sample_size_per_arm)
+    target_size_label(
+      unique(df$target_sample_size_control),
+      unique(df$target_sample_size_treatment),
+      "latex"
+    )
   )
 
   title <- format_title(title = title, case_study = unique(df$case_study), target_to_source_std_ratio = unique(df$target_to_source_std_ratio), source_denominator_change_factor = unique(df$source_denominator_change_factor))
@@ -286,9 +294,11 @@ forest_plot_sweet_spots_comparison <- function(sweet_spots_df, metrics) {
     for (case_study in case_studies) {
       sweet_spots_df1 <- sweet_spots_df[sweet_spots_df$case_study == case_study,]
 
-      target_sample_sizes <- unique(sweet_spots_df1$target_sample_size_per_arm)
-      for (target_sample_size_per_arm in target_sample_sizes) {
-        sweet_spots_df2 <- sweet_spots_df1[sweet_spots_df1$target_sample_size_per_arm == target_sample_size_per_arm,]
+      target_sample_sizes <- unique(sweet_spots_df1[, target_size_columns, drop = FALSE])
+      for (size_index in seq_len(nrow(target_sample_sizes))) {
+        sweet_spots_df2 <- dplyr::semi_join(
+          sweet_spots_df1, target_sample_sizes[size_index, , drop = FALSE], by = target_size_columns
+        )
 
         target_to_source_std_ratios <- unique(sweet_spots_df2$target_to_source_std_ratio)
 
@@ -425,14 +435,18 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
     methods <- format_results_df_methods(results_df)
     results_df$method <- methods
 
+    # The x-axis is the total target sample size.
+    results_df$target_sample_size_total <- results_df$target_sample_size_control +
+      results_df$target_sample_size_treatment
+
     # Calculate the range of the x-axis
-    x_range <- range(results_df$target_sample_size_per_arm)
+    x_range <- range(results_df$target_sample_size_total)
     x_width <- diff(x_range)
     # Set a relative cap size (necessary, otherwise the cap size will depend on the x-axis width)
     cap_size <- x_width * relative_error_cap_width # Adjust relative_error_cap_width to control the relative cap size
 
     # Calculate minimum difference between x-values
-    x_values <- sort(unique(results_df$target_sample_size_per_arm))
+    x_values <- sort(unique(results_df$target_sample_size_total))
     if (length(x_values) > 1) {
       x_diffs <- diff(x_values)
       min_x_diff <- min(x_diffs)
@@ -463,7 +477,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
     title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
     # Initialize the plot
-    plt <- ggplot2::ggplot(mapping = ggplot2::aes_string(x = "target_sample_size_per_arm", y = "sweet_spot_total_width"))
+    plt <- ggplot2::ggplot(mapping = ggplot2::aes_string(x = "target_sample_size_total", y = "sweet_spot_total_width"))
 
     plt <- plt + purrr::imap(results_df_split, function(df_subset, method_name) {
       df_subset <- df_subset[!is.na(df_subset[["sweet_spot_total_width"]]), ]
@@ -521,7 +535,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
       ) +
       ggplot2::labs(
         title =  title,
-        x = "Target study sample size per arm",
+        x = "Target sample size (total)",
         y = metric$label
       )
 
@@ -557,7 +571,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
       case_study,
       "_sweet_spot_width_",
       metric_name,
-      "_vs_target_sample_size_per_arm_all_methods"
+      "_vs_target_sample_size_all_methods"
     )
 
     figure_name <- format_filename(filename = figure_name, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -604,8 +618,6 @@ plot_sweet_spot_width_vs_scenario <- function(sweet_spot_df, sweet_spots_metrics
     }
 
     theta_0 <- case_study_config$theta_0
-
-    target_sample_sizes <- unique(sweet_spot_df1$target_sample_size_per_arm)
 
     for (metric in sweet_spots_metrics) {
       for (source_denominator_change_factor in unique(sweet_spot_df1$source_denominator_change_factor)) {

@@ -5,7 +5,8 @@
 #' @param results_metrics_df A data frame containing the results metrics.
 #' @param method The method to filter the results by.
 #' @param case_study The case study to filter the results by.
-#' @param target_sample_size_per_arm The target sample size per arm to filter the results by.
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes to filter the results by.
 #' @param control_drift A logical value indicating whether to control for drift.
 #' @param xvars A list containing the x-variable configurations.
 #' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
@@ -17,18 +18,20 @@
 table_posterior_parameters_vs_drift <- function(results_metrics_df,
                                                 method,
                                                 case_study,
-                                                target_sample_size_per_arm,
+                                                target_sample_size_control,
+                                                target_sample_size_treatment,
                                                 control_drift,
                                                 xvars,
                                                 source_denominator_change_factor,
                                                 target_to_source_std_ratio) {
   check_table_packages()
-  # Filter the data frame based on method, case_study, and target_sample_size_per_arm
+  # Filter the data frame based on method, case_study, and the target arm sizes
   results_metrics_df <- results_metrics_df %>%
     dplyr::filter(
       method == !!method,
       case_study == !!case_study,
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
       target_to_source_std_ratio == !!target_to_source_std_ratio |
@@ -127,8 +130,8 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
     case_study,
     "_",
     method,
-    "_prior_vs_posterior_parameters_sample_size_",
-    target_sample_size_per_arm
+    "_prior_vs_posterior_parameters_",
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
   )
 
   filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -145,10 +148,10 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
 
 
   title <- sprintf(
-    "%s, %s, $N_T/2 =$ %s",
+    "%s, %s, %s",
     stringr::str_to_title(case_study),
     methods_labels[[method]]$label,
-    target_sample_size_per_arm
+    target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
   )
 
 
@@ -229,10 +232,15 @@ posterior_parameters_tables <- function(results_metrics_df, metrics) {
     results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study == case_study,]
     for (method in methods) {
       results_metrics_df2 <- results_metrics_df1[results_metrics_df1$method == method,]
-      target_sample_sizes <- unique(results_metrics_df2$target_sample_size_per_arm)
-      for (target_sample_size_per_arm in target_sample_sizes) {
+      target_sample_sizes <- unique(results_metrics_df2[, target_size_columns, drop = FALSE])
+      for (size_index in seq_len(nrow(target_sample_sizes))) {
+        target_sample_size_control <- target_sample_sizes$target_sample_size_control[size_index]
+        target_sample_size_treatment <- target_sample_sizes$target_sample_size_treatment[size_index]
 
-        results_metrics_df3 <- results_metrics_df2[results_metrics_df2$target_sample_size_per_arm == target_sample_size_per_arm,]
+        results_metrics_df3 <- results_metrics_df2[
+          results_metrics_df2$target_sample_size_control == target_sample_size_control &
+            results_metrics_df2$target_sample_size_treatment == target_sample_size_treatment,
+        ]
 
         target_to_source_std_ratios <- unique(results_metrics_df3$target_to_source_std_ratio)
 
@@ -257,7 +265,8 @@ posterior_parameters_tables <- function(results_metrics_df, metrics) {
               results_metrics_df,
               method,
               case_study,
-              target_sample_size_per_arm,
+              target_sample_size_control,
+              target_sample_size_treatment,
               control_drift = FALSE,
               xvars = xvars,
               source_denominator_change_factor = source_denominator_change_factor,

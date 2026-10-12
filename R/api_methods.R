@@ -211,7 +211,7 @@ print.bexte_oc_frequentist <- function(x, ...) {
 #' @rdname bexte_methods
 #' @export
 summary.bexte_oc_frequentist <- function(object, ...) {
-  columns <- c("drift", "true_effect", "null_true", "n_per_arm", "success_proba",
+  columns <- c("drift", "true_effect", "null_true", "n_control", "n_treatment", "success_proba",
                "conf_int_success_proba_lower", "conf_int_success_proba_upper",
                "bias", "mse", "coverage")
   out <- as.data.frame(object)[, columns]
@@ -265,7 +265,7 @@ print.bexte_oc_bayesian <- function(x, ...) {
 #' @rdname bexte_methods
 #' @export
 summary.bexte_oc_bayesian <- function(object, ...) {
-  columns <- c("n_per_arm", "prior_proba_success", "prior_proba_no_benefit",
+  columns <- c("n_control", "n_treatment", "prior_proba_success", "prior_proba_no_benefit",
                "prepost_proba_TP", "prepost_proba_FP", "average_power", "average_tie",
                "upper_bound_proba_FP")
   as.data.frame(object)[, intersect(columns, names(object)), drop = FALSE]

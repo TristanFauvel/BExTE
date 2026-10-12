@@ -21,7 +21,8 @@ source_data <- SourceData$new(config)
 target_data <- TimeToEventTargetData$new(
   source_data = source_data,
   sampling_approximation = FALSE,
-  target_sample_size_per_arm = 83,
+  target_sample_size_control = 83,
+  target_sample_size_treatment = 83,
   treatment_drift = 0,
   summary_measure_likelihood = "normal",
   max_follow_up_time = config$target$max_follow_up_time,
@@ -92,7 +93,8 @@ the Cox model's large-sample limit equals the treatment effect}
     \preformatted{TimeToEventTargetData$new(
   source_data,
   sampling_approximation,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment = target_sample_size_control,
   control_drift = 0,
   treatment_drift,
   summary_measure_likelihood,
@@ -112,7 +114,9 @@ the Cox model's large-sample limit equals the treatment effect}
     \describe{
       \item{\code{source_data}}{The source data used for generating the target data.}
       \item{\code{sampling_approximation}}{A flag indicating whether to use sampling approximation.}
-      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{target_sample_size_control}}{The target sample size of the control arm.}
+      \item{\code{target_sample_size_treatment}}{The target sample size of the
+treatment arm. Defaults to \code{target_sample_size_control}.}
       \item{\code{control_drift}}{The control drift.}
       \item{\code{treatment_drift}}{The treatment drift.}
       \item{\code{summary_measure_likelihood}}{The summary measure distribution.}

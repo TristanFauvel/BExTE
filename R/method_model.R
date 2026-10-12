@@ -37,7 +37,8 @@
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -405,7 +406,6 @@ Model <- R6::R6Class(
         model = class(self)[1],
         prior = self$prior,
         summary_measure_likelihood = target_data$summary_measure_likelihood,
-        sample_size_per_arm = target_data$sample_size_per_arm,
         sample_size_control = target_data$sample_size_control,
         sample_size_treatment = target_data$sample_size_treatment,
         critical_value = critical_value,
@@ -1430,7 +1430,8 @@ Model <- R6::R6Class(
     #' @param confidence_level Confidence level for the credible interval
     #' @param null_space The null space for hypothesis testing
     #' @param n_samples_design_prior Number of samples from the design prior
-    #' @param target_sample_size_per_arm Sample size per arm in the target study
+    #' @param target_sample_size_control Sample size of the control arm in the target study.
+    #' @param target_sample_size_treatment Sample size of the treatment arm in the target study.
     #' @param case_study_config Configuration of the case study
     #' @param target_to_source_std_ratio Ratio between the target and source study standard deviation
     #' @param dropout_probability Probability of loss to follow-up over the maximum
@@ -1452,7 +1453,8 @@ Model <- R6::R6Class(
                                                            confidence_level,
                                                            null_space,
                                                            n_samples_design_prior,
-                                                           target_sample_size_per_arm,
+                                                           target_sample_size_control,
+                                                           target_sample_size_treatment,
                                                            case_study_config,
                                                            target_to_source_std_ratio,
                                                            dropout_probability = 0,
@@ -1482,7 +1484,8 @@ Model <- R6::R6Class(
         target_data <- target_data$create(
           source_data = source_data,
           case_study_config = case_study_config,
-          target_sample_size_per_arm = target_sample_size_per_arm,
+          target_sample_size_control = target_sample_size_control,
+          target_sample_size_treatment = target_sample_size_treatment,
           control_drift = control_drift,
           treatment_drift = treatment_drift,
           summary_measure_likelihood = case_study_config$summary_measure_likelihood,
@@ -1544,7 +1547,8 @@ Model <- R6::R6Class(
         prior_proba_no_benefit = prior_proba_no_benefit_estimate,
         source_data = source_data,
         theta_0 = theta_0,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         case_study_config = case_study_config,
         target_to_source_std_ratio = target_to_source_std_ratio,
         dropout_probability = dropout_probability,
@@ -1970,7 +1974,8 @@ empty_summary_rows <- function() {
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' prior <- list(
@@ -2312,7 +2317,8 @@ GaussianPooling <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -2557,7 +2563,8 @@ Model_RBesT <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' prior <- list(
@@ -2625,7 +2632,8 @@ GaussianSeparate_RBesT <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = case_study_config$target$treatment_effect,
 #'   treatment_effect_standard_error = case_study_config$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+#'   target_sample_size_control = case_study_config$target$control,
+#'   target_sample_size_treatment = case_study_config$target$treatment,
 #'   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 #' )
 #' prior <- list(
@@ -3046,7 +3054,7 @@ MCMCModel <- R6::R6Class(
         posterior_sd = sqrt(self$post_var),
         lower = interval[[1]],
         upper = interval[[2]],
-        sample_size_per_arm = target_data$sample_size_per_arm,
+        sample_size_per_arm = target_effective_arm_size(target_data),
         level = level
       ))
     },

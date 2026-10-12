@@ -253,6 +253,12 @@ scenarios_config_schema <- list(
   # study with every factor - see simulation_frequentist_ocs(). Case
   # studies absent from it keep the full sample_size_factors.
   case_study_sample_size_factors = "named_numeric_list?",
+  # Optional. Ratio of the treatment to the control arm size of the target
+  # study, which sample_size_factors sizes in total. Absent means 1, equal
+  # arms - see target_allocation_ratio().
+  target_allocation_ratio = "number?",
+  # Optional. Overrides target_allocation_ratio for a given case study.
+  case_study_target_allocation_ratio = "named_numeric_list?",
   # Optional. Overrides n_replicates for a given case study - see
   # case_study_n_replicates(). Case studies absent from it keep n_replicates.
   case_study_n_replicates = "named_numeric_list?",

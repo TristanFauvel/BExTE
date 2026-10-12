@@ -68,6 +68,7 @@ simulation_analysis <- function(env,
 
   # Load the results and apply frequentist_power_at_equivalent_tie
   results_freq_df <- readr::read_csv(freq_filename, col_types = frequentist_col_types, col_names = TRUE)
+  results_freq_df <- upgrade_target_size_columns(results_freq_df)
 
   if (length(case_studies) == 1 && case_studies == "all"){
     case_studies <- unique(results_freq_df$case_study)
@@ -94,7 +95,7 @@ simulation_analysis <- function(env,
     "source_denominator_change_factor",
     "case_study",
     "target_to_source_std_ratio",
-    "target_sample_size_per_arm",
+    "target_sample_size_control", "target_sample_size_treatment",
     "theta_0",
     "null_space",
     "sampling_approximation",
@@ -165,7 +166,9 @@ simulation_analysis <- function(env,
 
     # Append new Bayesian results to existing data
     if (file.exists(bayes_filename)) {
-      existing_bayesian_df <- readr::read_csv(bayes_filename, col_names = TRUE)
+      existing_bayesian_df <- upgrade_target_size_columns(
+        readr::read_csv(bayes_filename, col_names = TRUE)
+      )
 
       # Remove rows in `existing_bayesian_df` that match the keys in `results_bayesian_ocs`
       updated_bayesian_df <- existing_bayesian_df %>%

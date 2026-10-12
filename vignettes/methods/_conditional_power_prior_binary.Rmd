@@ -53,7 +53,7 @@ source_data <- ObservedSourceData$new(case_study_config)
 
 target_sample_size_per_arm <- as.integer(case_study_config$target$total / 2)
 
-target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$target$treatment_effect, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = target_sample_size_per_arm, summary_measure_likelihood = case_study_config$summary_measure_likelihood)
+target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$target$treatment_effect, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm, summary_measure_likelihood = case_study_config$summary_measure_likelihood)
 ``` 
 
 ## Model for the rate difference
@@ -298,7 +298,7 @@ for (i in seq_along(treatment_effect_values)) {
   drift <- treatment_effect_values[i] - source_data$treatment_effect_estimate
   target_data <- TargetDataFactory$new()
 
-  target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+  target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 
   results <- separate_model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision", "posterior_mean", "posterior_median", "credible_interval"), method = method, case_study = case_study, n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation)
 
@@ -341,7 +341,7 @@ for (i in seq_along(treatment_effect_values)) {
   drift <- treatment_effect_values[i] - source_data$treatment_effect_estimate # This implies that target_data$treatment_effect <- treatment_effect_values[i]
   target_data <- TargetDataFactory$new()
 
-  target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+  target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 
   # target_data$sampling_approximation <- TRUE
   results <- model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision", "posterior_mean", "posterior_median", "credible_interval"),  method = method, case_study = case_study, n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation)

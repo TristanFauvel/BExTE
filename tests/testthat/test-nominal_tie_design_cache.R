@@ -6,10 +6,11 @@
 
 design_frame <- function(sample_sizes, methods) {
   frame <- expand.grid(
-    target_sample_size_per_arm = sample_sizes,
+    target_sample_size_control = sample_sizes,
     method = methods,
     stringsAsFactors = FALSE
   )
+  frame$target_sample_size_treatment <- frame$target_sample_size_control
   frame$case_study <- "example"
   frame$parameters <- paste0('{"w":', seq_len(nrow(frame)), "}")
   frame$theta_0 <- 0
@@ -30,16 +31,17 @@ counting_mocks <- function() {
     tally = tally,
     load_data = function(results_row, type, reload_data_objects = FALSE) {
       list(type = type, treatment_effect = 0.5, standard_deviation = 1,
-           sample_size_per_arm = results_row$target_sample_size_per_arm)
+           sample_size_control = results_row$target_sample_size_control,
+           sample_size_treatment = results_row$target_sample_size_treatment)
     },
     separate = function(alpha, target_data, ...) {
       tally$separate <- tally$separate + 1L
-      power <- target_data$sample_size_per_arm / 1000
+      power <- target_data$sample_size_control / 1000
       list(power = power, conf_int_power = c(power - 0.01, power + 0.01))
     },
     pooling = function(alpha, target_data, ...) {
       tally$pooling <- tally$pooling + 1L
-      power <- target_data$sample_size_per_arm / 500
+      power <- target_data$sample_size_control / 500
       list(power = power, conf_int_power = c(power - 0.02, power + 0.02))
     }
   )
@@ -77,13 +79,13 @@ test_that("rows that differ only in the method share one computation", {
 
   # And every row still carries the value for its own design.
   expect_equal(final$nominal_frequentist_power_separate,
-               results$target_sample_size_per_arm / 1000)
+               results$target_sample_size_control / 1000)
   expect_equal(final$nominal_frequentist_power_pooling,
-               results$target_sample_size_per_arm / 500)
+               results$target_sample_size_control / 500)
   expect_equal(final$nominal_frequentist_power_separate_lower,
-               results$target_sample_size_per_arm / 1000 - 0.01)
+               results$target_sample_size_control / 1000 - 0.01)
   expect_equal(final$nominal_frequentist_power_pooling_upper,
-               results$target_sample_size_per_arm / 500 + 0.02)
+               results$target_sample_size_control / 500 + 0.02)
 })
 
 test_that("rows that differ in a design column do not share a computation", {
@@ -96,7 +98,7 @@ test_that("rows that differ in a design column do not share a computation", {
 
   expect_equal(mocks$tally$separate, 4L)
   expect_equal(final$nominal_frequentist_power_separate,
-               results$target_sample_size_per_arm / 1000)
+               results$target_sample_size_control / 1000)
 })
 
 test_that("the cached value is the one the row would have computed itself", {

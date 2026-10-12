@@ -18,7 +18,9 @@ bayesian_ocs_scenario_simulation <- function(scenario,
                                              case_studies_config_dir) {
   set.seed(simulation_config$seed)
 
-  target_sample_size_per_arm <- scenario$target_sample_size_per_arm[[1]]
+  target_sample_size_control <- scenario$target_sample_size_control[[1]]
+
+  target_sample_size_treatment <- scenario$target_sample_size_treatment[[1]]
   treatment_drift <- scenario$treatment_drift[[1]]
   control_drift <- scenario$control_drift[[1]]
   case_study <- scenario$case_study[[1]]
@@ -65,7 +67,8 @@ bayesian_ocs_scenario_simulation <- function(scenario,
     TargetDataFactory$new()$create(
       source_data = source_data,
       case_study_config = case_study_config,
-      target_sample_size_per_arm = target_sample_size_per_arm,
+      target_sample_size_control = target_sample_size_control,
+      target_sample_size_treatment = target_sample_size_treatment,
       control_drift = control_drift,
       treatment_drift = treatment_drift,
       summary_measure_likelihood = case_study_config$summary_measure_likelihood,
@@ -99,7 +102,8 @@ bayesian_ocs_scenario_simulation <- function(scenario,
       scenario = scenario,
       case_study_config = case_study_config,
       source_data = source_data,
-      target_sample_size_per_arm = target_sample_size_per_arm,
+      target_sample_size_control = target_sample_size_control,
+      target_sample_size_treatment = target_sample_size_treatment,
       model = model,
       method_parameters = method_parameters,
       theta_0 = theta_0,
@@ -190,7 +194,8 @@ bayesian_ocs_metric_names <- function() {
 #' @param scenario Simulation scenario
 #' @param case_study_config The case study configuration.
 #' @param source_data The source data.
-#' @param target_sample_size_per_arm The target sample size per arm.
+#' @param target_sample_size_control Sample size of the control arm in the target study.
+#' @param target_sample_size_treatment Sample size of the treatment arm in the target study.
 #' @param model The model.
 #' @param method_parameters The method parameters.
 #' @param theta_0 The true parameter value.
@@ -206,7 +211,8 @@ bayesian_ocs_metric_names <- function() {
 estimate_bayesian_ocs <- function(scenario,
                                   case_study_config,
                                   source_data,
-                                  target_sample_size_per_arm,
+                                  target_sample_size_control,
+                                  target_sample_size_treatment,
                                   model,
                                   method_parameters,
                                   theta_0,
@@ -254,7 +260,8 @@ estimate_bayesian_ocs <- function(scenario,
       confidence_level = simulation_config$confidence_level,
       null_space = case_study_config$null_space,
       n_samples_design_prior = simulation_config$n_samples_design_prior,
-      target_sample_size_per_arm = target_sample_size_per_arm,
+      target_sample_size_control = target_sample_size_control,
+      target_sample_size_treatment = target_sample_size_treatment,
       case_study_config = case_study_config,
       target_to_source_std_ratio = target_to_source_std_ratio,
       dropout_probability = dropout_probability,

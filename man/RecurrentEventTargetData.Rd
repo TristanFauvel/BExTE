@@ -47,7 +47,8 @@ It inherits from the TargetData class.
     \preformatted{NA$new(
   source_data,
   sampling_approximation,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment = target_sample_size_control,
   control_drift = 0,
   treatment_drift,
   summary_measure_likelihood,
@@ -61,7 +62,9 @@ It inherits from the TargetData class.
     \describe{
       \item{\code{source_data}}{The source data used for generating the target data.}
       \item{\code{sampling_approximation}}{A flag indicating whether to use sampling approximation.}
-      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{target_sample_size_control}}{The target sample size of the control arm.}
+      \item{\code{target_sample_size_treatment}}{The target sample size of the
+treatment arm. Defaults to \code{target_sample_size_control}.}
       \item{\code{control_drift}}{The control drift.}
       \item{\code{treatment_drift}}{The treatment drift.}
       \item{\code{summary_measure_likelihood}}{The summary measure distribution.}

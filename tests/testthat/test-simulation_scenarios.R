@@ -153,7 +153,8 @@ test_that("simulation_scenarios returns a grid of scalars, not list columns", {
   list_columns <- names(cases)[vapply(cases, is.list, logical(1))]
   expect_identical(list_columns, "parameters")
 
-  expect_true(is.numeric(cases$target_sample_size_per_arm))
+  expect_true(is.numeric(cases$target_sample_size_control))
+  expect_true(is.numeric(cases$target_sample_size_treatment))
   expect_true(is.numeric(cases$drift))
   expect_true(is.character(cases$case_study))
   expect_true(is.character(cases$null_space))

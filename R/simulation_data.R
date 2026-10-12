@@ -186,20 +186,28 @@ sample_log_odds_ratios <- function(n_control,
 #' @description This function samples aggregate normal data based on the mean and variance.
 #'
 #' @param mean The mean of the normal distribution
-#' @param variance The variance of the normal distribution
+#' @param variance The per-patient sampling variance of the summary measure:
+#'   the variance of the estimate is `variance / n`, where `n` is the
+#'   equivalent sample size per arm `2 / (1 / n_control + 1 / n_treatment)`.
 #' @param n_replicates Number of replicates to sample
-#' @param n_samples_per_arm Number of samples per replicate
+#' @param n_control Number of patients in the control arm
+#' @param n_treatment Number of patients in the treatment arm. Defaults to
+#'   `n_control`, a balanced study.
 #'
 #' @return A data frame with one row per replicate: the treatment-effect
-#'   estimate, its standard error, the sample size per arm and the sample
+#'   estimate, its standard error, the arm sizes and the sample
 #'   standard deviation. The standard error and standard deviation are the
 #'   replicate's own estimates, drawn around the true `variance`, not the true
-#'   values themselves.
+#'   values themselves. The sample variance has `n - 1` degrees of freedom,
+#'   as for `n` paired differences, which is the convention the frequentist
+#'   tests on these summaries follow.
 #' @keywords internal
 sample_aggregate_normal_data <- function(mean,
                                          variance,
                                          n_replicates,
-                                         n_samples_per_arm) {
+                                         n_control,
+                                         n_treatment = n_control) {
+  n_samples_per_arm <- effective_arm_size(n_control, n_treatment)
   # The sampling distribution of the sufficient statistics is known in closed
   # form, so the individual observations never have to be materialised:
   # the sample mean is normal and the sample variance is a scaled chi-squared,
@@ -223,7 +231,8 @@ sample_aggregate_normal_data <- function(mean,
   samples <- data.frame(
     treatment_effect_estimate = sample_mean,
     treatment_effect_standard_error = sample_standard_error,
-    sample_size_per_arm = n_samples_per_arm,
+    sample_size_control = n_control,
+    sample_size_treatment = n_treatment,
     standard_deviation = sqrt(sample_variance)
   )
 
@@ -493,7 +502,8 @@ ObservedSourceData <- R6::R6Class(
 #' target_data <- factory$create(
 #'   source_data = source_data,
 #'   case_study_config = config,
-#'   target_sample_size_per_arm = 50,
+#'   target_sample_size_control = 50,
+#'   target_sample_size_treatment = 50,
 #'   treatment_drift = 0.1,
 #'   summary_measure_likelihood = config$summary_measure_likelihood
 #' )
@@ -505,7 +515,9 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
   #' @description Creates a target data object based on the source data and configuration.
   #' @param source_data The source data object.
   #' @param case_study_config The case study configuration object.
-  #' @param target_sample_size_per_arm The target sample size per arm.
+  #' @param target_sample_size_control The target sample size of the control arm.
+  #' @param target_sample_size_treatment The target sample size of the
+  #'   treatment arm. Defaults to `target_sample_size_control`.
   #' @param control_drift The control drift.
   #' @param treatment_drift The treatment drift.
   #' @param summary_measure_likelihood The summary measure distribution.
@@ -519,7 +531,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
   #' @return The created target data object.
   create = function(source_data,
                     case_study_config,
-                    target_sample_size_per_arm,
+                    target_sample_size_control,
+                    target_sample_size_treatment = target_sample_size_control,
                     control_drift = 0,
                     treatment_drift,
                     summary_measure_likelihood,
@@ -528,7 +541,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
                     event_time_distribution = "exponential",
                     treatment_delay = 0) {
     assertions::assert_class(source_data, c("SourceData", "ObservedSourceData"))
-    assert_single_number(target_sample_size_per_arm)
+    assert_single_number(target_sample_size_control)
+    assert_single_number(target_sample_size_treatment)
     assert_single_number(control_drift)
     assert_single_number(treatment_drift)
     sampling_approximation <- case_study_config$sampling_approximation
@@ -539,7 +553,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
       target_data <- ContinuousTargetData$new(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         control_drift = control_drift,
         treatment_drift = treatment_drift,
         summary_measure_likelihood = summary_measure_likelihood,
@@ -549,7 +564,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
       target_data <- BinaryTargetData$new(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         control_drift = control_drift,
         treatment_drift = treatment_drift,
         summary_measure_likelihood = summary_measure_likelihood
@@ -558,7 +574,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
       target_data <- RecurrentEventTargetData$new(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         control_drift = control_drift,
         treatment_drift = treatment_drift,
         summary_measure_likelihood = summary_measure_likelihood
@@ -567,7 +584,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
       target_data <- TimeToEventTargetData$new(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         control_drift = control_drift,
         treatment_drift = treatment_drift,
         summary_measure_likelihood = summary_measure_likelihood,
@@ -596,7 +614,6 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
 #' @field control_drift The control drift value.
 #' @field drift The drift value calculated as the difference between treatment and control drifts.
 #' @field summary_measure_likelihood The distribution of the summary measure.
-#' @field sample_size_per_arm The target sample size per arm.
 #' @field sample_size_control The target sample size for the control group.
 #' @field sample_size_treatment The target sample size for the treatment group.
 #' @field treatment_effect The target treatment effect value.
@@ -604,7 +621,9 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
 #' @field standard_deviation The true sampling standard deviation of the
 #'   summary measure for one patient per arm, i.e. the data-generating value:
 #'   the true standard error of the treatment-effect estimate is
-#'   `standard_deviation / sqrt(sample_size_per_arm)`. It belongs to the
+#'   `standard_deviation / sqrt(n)`, where `n` is the equivalent sample size
+#'   per arm `2 / (1 / sample_size_control + 1 / sample_size_treatment)`
+#'   (the arm size itself when both arms are equal). It belongs to the
 #'   scenario, not to a replicate. A replicate's estimate of it is
 #'   `sample$standard_deviation` (see `sample_aggregate_normal_data()`), which
 #'   is what the analysis methods use; the true value is only used to generate
@@ -619,7 +638,8 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
 #' target_data <- TargetData$new(
 #'   source_data = source_data,
 #'   sampling_approximation = FALSE,
-#'   target_sample_size_per_arm = 50,
+#'   target_sample_size_control = 50,
+#'   target_sample_size_treatment = 50,
 #'   treatment_drift = 0.1,
 #'   summary_measure_likelihood = "normal"
 #' )
@@ -634,7 +654,6 @@ TargetData <- R6::R6Class(
     control_drift = NULL,
     drift = NULL,
     summary_measure_likelihood = NULL,
-    sample_size_per_arm = NULL,
     sample_size_control = NULL,
     sample_size_treatment = NULL,
     treatment_effect = NULL,
@@ -645,19 +664,23 @@ TargetData <- R6::R6Class(
     #' @description Initializes the target data object.
     #' @param source_data The source data object.
     #' @param sampling_approximation The sampling approximation flag.
-    #' @param target_sample_size_per_arm The target sample size per arm.
+    #' @param target_sample_size_control The target sample size of the control arm.
+    #' @param target_sample_size_treatment The target sample size of the
+    #'   treatment arm. Defaults to `target_sample_size_control`.
     #' @param control_drift The control drift.
     #' @param treatment_drift The treatment drift.
     #' @param summary_measure_likelihood The summary measure distribution.
     initialize = function(source_data,
                           sampling_approximation,
-                          target_sample_size_per_arm,
+                          target_sample_size_control,
+                          target_sample_size_treatment = target_sample_size_control,
                           control_drift = 0,
                           treatment_drift,
                           summary_measure_likelihood) {
       assertions::assert_class(source_data, c("SourceData", "ObservedSourceData"))
       assertions::assert_flag(sampling_approximation)
-      assert_single_number(target_sample_size_per_arm)
+      assert_single_number(target_sample_size_control)
+      assert_single_number(target_sample_size_treatment)
       assert_single_number(control_drift)
       assert_single_number(treatment_drift)
 
@@ -666,9 +689,8 @@ TargetData <- R6::R6Class(
       self$control_drift <- control_drift
       self$drift <- treatment_drift - control_drift
       self$summary_measure_likelihood <- summary_measure_likelihood
-      self$sample_size_per_arm <- target_sample_size_per_arm
-      self$sample_size_control <- target_sample_size_per_arm
-      self$sample_size_treatment <- target_sample_size_per_arm
+      self$sample_size_control <- target_sample_size_control
+      self$sample_size_treatment <- target_sample_size_treatment
       self$treatment_effect <- self$drift + source_data$treatment_effect_estimate
       self$sampling_approximation <- sampling_approximation
     },
@@ -762,7 +784,8 @@ TargetData <- R6::R6Class(
 #' target_data <- ContinuousTargetData$new(
 #'   source_data = source_data,
 #'   sampling_approximation = FALSE,
-#'   target_sample_size_per_arm = 50,
+#'   target_sample_size_control = 50,
+#'   target_sample_size_treatment = 50,
 #'   control_drift = 0,
 #'   treatment_drift = 0.1,
 #'   summary_measure_likelihood = "normal",
@@ -779,14 +802,17 @@ ContinuousTargetData <- R6::R6Class(
     #' @description Initializes the continuous target data object.
     #' @param source_data The source data object.
     #' @param sampling_approximation The sampling approximation flag.
-    #' @param target_sample_size_per_arm The target sample size per arm.
+    #' @param target_sample_size_control The target sample size of the control arm.
+    #' @param target_sample_size_treatment The target sample size of the
+    #'   treatment arm. Defaults to `target_sample_size_control`.
     #' @param control_drift The control drift.
     #' @param treatment_drift The treatment drift.
     #' @param summary_measure_likelihood The summary measure
     #' @param target_to_source_std_ratio Ratio between the target and source studies standard deviation
     initialize = function(source_data,
                           sampling_approximation,
-                          target_sample_size_per_arm,
+                          target_sample_size_control,
+                          target_sample_size_treatment = target_sample_size_control,
                           control_drift,
                           treatment_drift,
                           summary_measure_likelihood,
@@ -794,7 +820,8 @@ ContinuousTargetData <- R6::R6Class(
       super$initialize(
         source_data,
         sampling_approximation,
-        target_sample_size_per_arm,
+        target_sample_size_control,
+        target_sample_size_treatment,
         control_drift,
         treatment_drift,
         summary_measure_likelihood
@@ -823,7 +850,8 @@ ContinuousTargetData <- R6::R6Class(
           mean = self$treatment_effect,
           variance = self$standard_deviation ^ 2,
           n_replicates = n_replicates,
-          n_samples_per_arm = self$sample_size_per_arm
+          n_control = self$sample_size_control,
+          n_treatment = self$sample_size_treatment
         )
       } else {
         stop("Not implemented for other distributions")
@@ -837,7 +865,8 @@ ContinuousTargetData <- R6::R6Class(
       return(
         list(
           summary_measure_likelihood = self$summary_measure_likelihood,
-          target_sample_size_per_arm = self$sample_size_per_arm,
+          target_sample_size_control = self$sample_size_control,
+          target_sample_size_treatment = self$sample_size_treatment,
           target_treatment_effect = self$treatment_effect,
           target_standard_deviation = self$standard_deviation,
           target_control_rate = NA,
@@ -859,7 +888,8 @@ ContinuousTargetData <- R6::R6Class(
 #' target_data <- BinaryTargetData$new(
 #'   source_data = source_data,
 #'   sampling_approximation = FALSE,
-#'   target_sample_size_per_arm = 46,
+#'   target_sample_size_control = 46,
+#'   target_sample_size_treatment = 46,
 #'   control_drift = 0,
 #'   treatment_drift = 0,
 #'   summary_measure_likelihood = "normal"
@@ -878,20 +908,24 @@ BinaryTargetData <- R6::R6Class(
     #' @description Initializes the binary target data object.
     #' @param source_data The source data object.
     #' @param sampling_approximation The sampling approximation flag.
-    #' @param target_sample_size_per_arm The target sample size per arm.
+    #' @param target_sample_size_control The target sample size of the control arm.
+    #' @param target_sample_size_treatment The target sample size of the
+    #'   treatment arm. Defaults to `target_sample_size_control`.
     #' @param control_drift The control drift.
     #' @param treatment_drift The treatment drift.
     #' @param summary_measure_likelihood The summary measure distribution.
     initialize = function(source_data,
                           sampling_approximation,
-                          target_sample_size_per_arm,
+                          target_sample_size_control,
+                          target_sample_size_treatment = target_sample_size_control,
                           control_drift,
                           treatment_drift,
                           summary_measure_likelihood) {
       super$initialize(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         control_drift = control_drift,
         treatment_drift = treatment_drift,
         summary_measure_likelihood = summary_measure_likelihood
@@ -900,10 +934,6 @@ BinaryTargetData <- R6::R6Class(
       if (self$endpoint != "binary") {
         stop("Invalid endpoint for BinaryTargetData")
       }
-
-      # Assuming equal sample sizes in each arm for simplicity
-      self$sample_size_control <- target_sample_size_per_arm
-      self$sample_size_treatment <- target_sample_size_per_arm
 
       # Logic to adjust the treatment effect based on drifts
       if (summary_measure_likelihood == "binomial") {
@@ -936,14 +966,14 @@ BinaryTargetData <- R6::R6Class(
           self$treatment_rate * (1 - self$treatment_rate) / self$sample_size_treatment + self$control_rate * (1 - self$control_rate) / self$sample_size_control
         )
         )
-        self$standard_deviation <- treatment_effect_standard_error * sqrt(target_sample_size_per_arm)
+        self$standard_deviation <- treatment_effect_standard_error * sqrt(target_effective_arm_size(self))
       } else if (summary_measure_likelihood == "normal") {
         self$standard_deviation <- standard_error_log_odds_ratio(
           self$sample_size_control * (1 - self$control_rate),
           self$sample_size_treatment * (1 - self$treatment_rate),
           self$sample_size_control * self$control_rate,
           self$sample_size_treatment * self$treatment_rate
-        ) * sqrt(self$sample_size_per_arm)
+        ) * sqrt(target_effective_arm_size(self))
       }
 
       assert_single_number(self$standard_deviation)
@@ -971,7 +1001,8 @@ BinaryTargetData <- R6::R6Class(
           mean = self$treatment_effect,
           variance = self$standard_deviation ^ 2,
           n_replicates = n_replicates,
-          n_samples_per_arm = self$sample_size_per_arm
+          n_control = self$sample_size_control,
+          n_treatment = self$sample_size_treatment
         )
       } else if (self$summary_measure_likelihood %in% c("binomial", "normal")) {
         # The treatment arm is drawn first, as it always has been, so that a
@@ -1004,15 +1035,21 @@ BinaryTargetData <- R6::R6Class(
           sample_treatment_rate * (1 - sample_treatment_rate) / self$sample_size_treatment + sample_control_rate * (1 - sample_control_rate) / self$sample_size_control
         )
 
+        # Per patient, as for the other endpoints: the standard error times
+        # the square root of the equivalent sample size per arm n. With equal
+        # arms the weights n / n_arm are 1.
+        n <- target_effective_arm_size(self)
         standard_deviation <- sqrt(
-          sample_treatment_rate * (1 - sample_treatment_rate) + sample_control_rate * (1 - sample_control_rate)
+          (n / self$sample_size_treatment) * sample_treatment_rate * (1 - sample_treatment_rate) +
+            (n / self$sample_size_control) * sample_control_rate * (1 - sample_control_rate)
         )
 
         # Compute the treatment effect estimate
         data.frame(
           sample_control_rate = sample_control_rate,
           sample_treatment_rate = sample_treatment_rate,
-          sample_size_per_arm = self$sample_size_per_arm,
+          sample_size_control = self$sample_size_control,
+          sample_size_treatment = self$sample_size_treatment,
           treatment_effect_estimate = sample_treatment_rate - sample_control_rate,
           treatment_effect_standard_error = treatment_effect_standard_error,
           standard_deviation = standard_deviation
@@ -1029,8 +1066,9 @@ BinaryTargetData <- R6::R6Class(
         data.frame(
           treatment_effect_estimate = log_OR_samples$log_odds_ratio,
           treatment_effect_standard_error = log_OR_samples$std_err_log_odds_ratio,
-          sample_size_per_arm = self$sample_size_per_arm,
-          standard_deviation = log_OR_samples$std_err_log_odds_ratio*sqrt(self$sample_size_per_arm)
+          sample_size_control = self$sample_size_control,
+          sample_size_treatment = self$sample_size_treatment,
+          standard_deviation = log_OR_samples$std_err_log_odds_ratio * sqrt(target_effective_arm_size(self))
         )
       } else {
         stop(
@@ -1084,7 +1122,8 @@ BinaryTargetData <- R6::R6Class(
       return(
         list(
           summary_measure_likelihood = self$summary_measure_likelihood,
-          target_sample_size_per_arm = self$sample_size_per_arm,
+          target_sample_size_control = self$sample_size_control,
+          target_sample_size_treatment = self$sample_size_treatment,
           target_control_rate = self$control_rate,
           target_treatment_rate = self$treatment_rate,
           target_treatment_effect = self$treatment_effect,
@@ -1259,7 +1298,9 @@ RecurrentEventTargetData <- R6::R6Class(
     #'
     #' @param source_data The source data used for generating the target data.
     #' @param sampling_approximation A flag indicating whether to use sampling approximation.
-    #' @param target_sample_size_per_arm The target sample size per arm.
+    #' @param target_sample_size_control The target sample size of the control arm.
+    #' @param target_sample_size_treatment The target sample size of the
+    #'   treatment arm. Defaults to `target_sample_size_control`.
     #' @param control_drift The control drift.
     #' @param treatment_drift The treatment drift.
     #' @param summary_measure_likelihood The summary measure distribution.
@@ -1267,7 +1308,8 @@ RecurrentEventTargetData <- R6::R6Class(
     #' @param k_control Size parameter for the negative binomial distribution in the control arm.
     initialize = function(source_data,
                           sampling_approximation,
-                          target_sample_size_per_arm,
+                          target_sample_size_control,
+                          target_sample_size_treatment = target_sample_size_control,
                           control_drift = 0,
                           treatment_drift,
                           summary_measure_likelihood,
@@ -1276,7 +1318,8 @@ RecurrentEventTargetData <- R6::R6Class(
       super$initialize(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         control_drift = control_drift,
         treatment_drift = treatment_drift,
         summary_measure_likelihood = summary_measure_likelihood
@@ -1284,7 +1327,6 @@ RecurrentEventTargetData <- R6::R6Class(
       if (self$endpoint != "recurrent_event") {
         stop("Invalid endpoint")
       }
-      self$sample_size_per_arm <- target_sample_size_per_arm
       assert_single_number(k_treatment)
       assert_single_number(k_control)
       if (k_treatment <= 0 || k_control <= 0) {
@@ -1313,8 +1355,8 @@ RecurrentEventTargetData <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         mu_treatment <- self$treatment_rate # Mean of the first rate
         mu_control <- self$control_rate # Mean of the second rate
-        n_treatment <- self$sample_size_per_arm # Sample size for the first rate
-        n_control <- self$sample_size_per_arm # Sample size for the second rate
+        n_treatment <- self$sample_size_treatment # Sample size for the first rate
+        n_control <- self$sample_size_control # Sample size for the second rate
 
         # Compute the standard deviations for the negative binomial distributions
         sigma_treatment <- sqrt(negative_binomial_variance(mu_treatment, self$k_treatment))
@@ -1324,7 +1366,7 @@ RecurrentEventTargetData <- R6::R6Class(
         SE_R_treatment <- sigma_treatment / sqrt(n_treatment)
         SE_R_control <- sigma_control / sqrt(n_control)
 
-        self$standard_deviation <- sqrt(self$sample_size_per_arm) * sqrt((SE_R_treatment / mu_treatment) ^
+        self$standard_deviation <- sqrt(target_effective_arm_size(self)) * sqrt((SE_R_treatment / mu_treatment) ^
                                                                            2 + (SE_R_control / mu_control) ^ 2)
 
         assert_single_number(self$standard_deviation)
@@ -1346,7 +1388,8 @@ RecurrentEventTargetData <- R6::R6Class(
           mean = self$treatment_effect,
           variance = self$standard_deviation ^ 2,
           n_replicates = n_replicates,
-          n_samples_per_arm = self$sample_size_per_arm
+          n_control = self$sample_size_control,
+          n_treatment = self$sample_size_treatment
         )
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
@@ -1360,12 +1403,12 @@ RecurrentEventTargetData <- R6::R6Class(
         for (i in 1:n_replicates) {
           # Generate the patient-level data by sampling from negative binomial distributions
           target_data_control <- sample_negative_binomial(
-            n = self$sample_size_per_arm,
+            n = self$sample_size_control,
             mu = control_rate,
             k = self$k_control
           )
           target_data_treatment <- sample_negative_binomial(
-            n = self$sample_size_per_arm,
+            n = self$sample_size_treatment,
             mu = treatment_rate,
             k = self$k_treatment
           )
@@ -1394,8 +1437,9 @@ RecurrentEventTargetData <- R6::R6Class(
         samples <- data.frame(
           treatment_effect_estimate = log_rate_ratios,
           treatment_effect_standard_error = se_log_rate_ratios,
-          sample_size_per_arm = self$sample_size_per_arm,
-          standard_deviation = se_log_rate_ratios*sqrt(self$sample_size_per_arm)
+          sample_size_control = self$sample_size_control,
+          sample_size_treatment = self$sample_size_treatment,
+          standard_deviation = se_log_rate_ratios * sqrt(target_effective_arm_size(self))
         )
       } else {
         stop("Not implemented for other distributions")
@@ -1408,7 +1452,8 @@ RecurrentEventTargetData <- R6::R6Class(
       return(
         list(
           summary_measure_likelihood = self$summary_measure_likelihood,
-          target_sample_size_per_arm = self$sample_size_per_arm,
+          target_sample_size_control = self$sample_size_control,
+          target_sample_size_treatment = self$sample_size_treatment,
           target_treatment_effect = self$treatment_effect,
           target_standard_deviation = self$standard_deviation,
           target_control_rate = self$control_rate,
@@ -1451,7 +1496,8 @@ RecurrentEventTargetData <- R6::R6Class(
 #' target_data <- TimeToEventTargetData$new(
 #'   source_data = source_data,
 #'   sampling_approximation = FALSE,
-#'   target_sample_size_per_arm = 83,
+#'   target_sample_size_control = 83,
+#'   target_sample_size_treatment = 83,
 #'   treatment_drift = 0,
 #'   summary_measure_likelihood = "normal",
 #'   max_follow_up_time = config$target$max_follow_up_time,
@@ -1485,7 +1531,9 @@ TimeToEventTargetData <- R6::R6Class(
     #'
     #' @param source_data The source data used for generating the target data.
     #' @param sampling_approximation A flag indicating whether to use sampling approximation.
-    #' @param target_sample_size_per_arm The target sample size per arm.
+    #' @param target_sample_size_control The target sample size of the control arm.
+    #' @param target_sample_size_treatment The target sample size of the
+    #'   treatment arm. Defaults to `target_sample_size_control`.
     #' @param control_drift The control drift.
     #' @param treatment_drift The treatment drift.
     #' @param summary_measure_likelihood The summary measure distribution.
@@ -1502,7 +1550,8 @@ TimeToEventTargetData <- R6::R6Class(
     #'   Zero, the default, is the proportional-hazards design.
     initialize = function(source_data,
                           sampling_approximation,
-                          target_sample_size_per_arm,
+                          target_sample_size_control,
+                          target_sample_size_treatment = target_sample_size_control,
                           control_drift = 0,
                           treatment_drift,
                           summary_measure_likelihood,
@@ -1517,7 +1566,8 @@ TimeToEventTargetData <- R6::R6Class(
       super$initialize(
         source_data = source_data,
         sampling_approximation = sampling_approximation,
-        target_sample_size_per_arm = target_sample_size_per_arm,
+        target_sample_size_control = target_sample_size_control,
+        target_sample_size_treatment = target_sample_size_treatment,
         control_drift = control_drift,
         treatment_drift = treatment_drift,
         summary_measure_likelihood = summary_measure_likelihood
@@ -1563,8 +1613,6 @@ TimeToEventTargetData <- R6::R6Class(
           relapse_free_probability = weibull_relapse_free_probability
         )
       }
-
-      self$sample_size_per_arm <- target_sample_size_per_arm
 
       self$treatment_effect <- self$drift + source_data$treatment_effect_estimate
 
@@ -1613,7 +1661,9 @@ TimeToEventTargetData <- R6::R6Class(
         max_follow_up_time = self$max_follow_up_time,
         dropout_rate = self$dropout_rate(),
         delay = self$treatment_delay,
-        late_log_hr = self$late_log_hr
+        late_log_hr = self$late_log_hr,
+        sample_size_control = self$sample_size_control,
+        sample_size_treatment = self$sample_size_treatment
       )
     },
 
@@ -1645,8 +1695,8 @@ TimeToEventTargetData <- R6::R6Class(
     #' @param n_replicates The number of replicates to generate.
     #' @return A data frame containing the generated target data.
     generate = function(n_replicates) {
-      n_control_target <- self$sample_size_per_arm
-      n_treatment_target <- self$sample_size_per_arm
+      n_control_target <- self$sample_size_control
+      n_treatment_target <- self$sample_size_treatment
 
       if (self$summary_measure_likelihood == "normal" &&
           self$sampling_approximation == TRUE) {
@@ -1666,13 +1716,14 @@ TimeToEventTargetData <- R6::R6Class(
 
         SE_log_RR <- sqrt(1 / n_control_events + 1 / n_treatment_events)
 
-        sampling_standard_deviation <- SE_log_RR * sqrt(self$sample_size_per_arm)
+        sampling_standard_deviation <- SE_log_RR * sqrt(target_effective_arm_size(self))
 
         samples <- sample_aggregate_normal_data(
           mean = self$treatment_effect,
           variance = sampling_standard_deviation ^ 2,
           n_replicates = n_replicates,
-          n_samples_per_arm = self$sample_size_per_arm
+          n_control = self$sample_size_control,
+          n_treatment = self$sample_size_treatment
         )
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
@@ -1684,7 +1735,8 @@ TimeToEventTargetData <- R6::R6Class(
 
         samples <- simulate_time_to_event_trial(
           n_replicates = n_replicates,
-          sample_size_per_arm = self$sample_size_per_arm,
+          sample_size_control = self$sample_size_control,
+          sample_size_treatment = self$sample_size_treatment,
           control_parameter = parameters$control,
           treatment_parameter = parameters$treatment,
           event_time_distribution = self$event_time_distribution,
@@ -1707,7 +1759,8 @@ TimeToEventTargetData <- R6::R6Class(
       return(
         list(
           summary_measure_likelihood = self$summary_measure_likelihood,
-          target_sample_size_per_arm = self$sample_size_per_arm,
+          target_sample_size_control = self$sample_size_control,
+          target_sample_size_treatment = self$sample_size_treatment,
           target_treatment_effect = self$treatment_effect,
           target_standard_deviation = self$standard_deviation,
           target_control_rate = self$control_rate,
@@ -1720,10 +1773,13 @@ TimeToEventTargetData <- R6::R6Class(
 #' @title ObservedTargetData class
 #' @description A wrapper used for analyzing observed data (not used for simulation)
 #' @field summary_measure_likelihood Summary measure distribution
-#' @field sample_size_per_arm Sample size per arm in the target study
+#' @field sample_size_control Sample size of the control arm in the target study
+#' @field sample_size_treatment Sample size of the treatment arm in the target study
 #' @field sample Observed data sample: the treatment effect estimate, its
 #'   standard error and `standard_deviation`, the per-patient sampling standard
-#'   deviation `treatment_effect_standard_error * sqrt(sample_size_per_arm)`.
+#'   deviation `treatment_effect_standard_error * sqrt(n)`, where `n` is the
+#'   equivalent sample size per arm
+#'   `2 / (1 / sample_size_control + 1 / sample_size_treatment)`.
 #'   That is the scale the simulated samples report (see
 #'   `sample_aggregate_normal_data()`), and the frequentist tests of
 #'   test-then-pool and the p-value based power prior need it.
@@ -1731,7 +1787,8 @@ TimeToEventTargetData <- R6::R6Class(
 #' observed <- ObservedTargetData$new(
 #'   treatment_effect_estimate = 0.37,
 #'   treatment_effect_standard_error = 0.42,
-#'   target_sample_size_per_arm = 46,
+#'   target_sample_size_control = 39,
+#'   target_sample_size_treatment = 53,
 #'   summary_measure_likelihood = "normal"
 #' )
 #' observed$sample
@@ -1740,28 +1797,34 @@ ObservedTargetData <- R6::R6Class(
   "ObservedTargetData",
   public = list(
     summary_measure_likelihood = NULL,
-    sample_size_per_arm = NULL,
+    sample_size_control = NULL,
+    sample_size_treatment = NULL,
     sample = NULL,
 
     #' @description Initializes an ObservedTargetData object with the given parameters
     #' @param treatment_effect_estimate The estimated treatment effect
     #' @param treatment_effect_standard_error The standard error of the treatment effect estimate
-    #' @param target_sample_size_per_arm The target sample size per treatment arm
+    #' @param target_sample_size_control The sample size of the control arm
+    #' @param target_sample_size_treatment The sample size of the treatment
+    #'   arm. Defaults to `target_sample_size_control`.
     #' @param summary_measure_likelihood The distribution of the summary measure (e.g., "normal", "binomial")
     #' @return An initialized ObservedTargetData object
     initialize = function(treatment_effect_estimate,
                           treatment_effect_standard_error,
-                          target_sample_size_per_arm,
+                          target_sample_size_control,
+                          target_sample_size_treatment = target_sample_size_control,
                           summary_measure_likelihood) {
       assert_single_number(treatment_effect_estimate)
       assert_single_number(treatment_effect_standard_error)
-      assert_single_number(target_sample_size_per_arm)
+      assert_single_number(target_sample_size_control)
+      assert_single_number(target_sample_size_treatment)
       assertions::assert_character(summary_measure_likelihood)
       self$summary_measure_likelihood <- summary_measure_likelihood
-      self$sample_size_per_arm <- target_sample_size_per_arm
+      self$sample_size_control <- target_sample_size_control
+      self$sample_size_treatment <- target_sample_size_treatment
       self$sample$treatment_effect_estimate <- treatment_effect_estimate
       self$sample$treatment_effect_standard_error <- treatment_effect_standard_error
-      self$sample$standard_deviation <- treatment_effect_standard_error * sqrt(target_sample_size_per_arm)
+      self$sample$standard_deviation <- treatment_effect_standard_error * sqrt(target_effective_arm_size(self))
     }
   )
 )

@@ -5,9 +5,10 @@
 #' @param theta_0 The null hypothesis value
 #' @param case_study The case study being analyzed
 #' @param method The method being used
-#' @param category The category of analysis ('parameters' or 'target_sample_size_per_arm')
+#' @param category The category of analysis ('parameters' or 'target_sample_size')
 #' @param control_drift Boolean indicating whether to control for drift
-#' @param target_sample_size_per_arm The target sample size per arm
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes
 #' @param parameters_combinations The combinations of parameters
 #' @param xvars A list containing x-axis variable information
 #' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
@@ -27,7 +28,8 @@ table_metric_vs_drift <- function(metric,
                                   method,
                                   category,
                                   control_drift,
-                                  target_sample_size_per_arm,
+                                  target_sample_size_control,
+                                  target_sample_size_treatment,
                                   parameters_combinations,
                                   xvars,
                                   source_denominator_change_factor = 1,
@@ -49,6 +51,11 @@ table_metric_vs_drift <- function(metric,
   }
 
   results_df <- results_metrics_df %>% dplyr::filter(method == !!method)
+  if (category == "target_sample_size") {
+    results_df$target_sample_size <- target_size_label(
+      results_df$target_sample_size_control, results_df$target_sample_size_treatment, "latex"
+    )
+  }
 
   categories <- unique(results_df[[category]])
 
@@ -56,7 +63,8 @@ table_metric_vs_drift <- function(metric,
   if (category == "parameters") {
     results_df <- results_df %>%
       dplyr::filter(
-        target_sample_size_per_arm == !!target_sample_size_per_arm,
+        target_sample_size_control == !!target_sample_size_control,
+        target_sample_size_treatment == !!target_sample_size_treatment,
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor),
         target_to_source_std_ratio == !!target_to_source_std_ratio |
@@ -72,18 +80,20 @@ table_metric_vs_drift <- function(metric,
   } else if (category == "source_denominator") {
     results_df <- results_df %>%
       dplyr::filter(
-        target_sample_size_per_arm == !!target_sample_size_per_arm,
+        target_sample_size_control == !!target_sample_size_control,
+        target_sample_size_treatment == !!target_sample_size_treatment,
         target_to_source_std_ratio == !!target_to_source_std_ratio |
           is.na(target_to_source_std_ratio),
       )
   } else if (category == "target_to_source_std_ratio") {
     results_df <- results_df %>%
       dplyr::filter(
-        target_sample_size_per_arm == !!target_sample_size_per_arm,
+        target_sample_size_control == !!target_sample_size_control,
+        target_sample_size_treatment == !!target_sample_size_treatment,
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor)
       )
-  } else if (category == "target_sample_size_per_arm") {
+  } else if (category == "target_sample_size") {
     results_df <- results_df %>%
       dplyr::filter(
         target_to_source_std_ratio == !!target_to_source_std_ratio | is.na(target_to_source_std_ratio),
@@ -101,9 +111,9 @@ table_metric_vs_drift <- function(metric,
   results_df$rows <- seq(1, nrow(results_df))
 
   parameters_labels <- NA
-  if (category == "target_sample_size_per_arm") {
-    results_df$label <- results_df$target_sample_size_per_arm
-    labels_title <- "Target sample size per arm"
+  if (category == "target_sample_size") {
+    results_df$label <- results_df$target_sample_size
+    labels_title <- "Target sample size"
   } else if (category == "parameters") {
     parameters_labels <- unname(sapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
@@ -188,7 +198,7 @@ table_metric_vs_drift <- function(metric,
   }
 
 
-  if (category == "target_sample_size_per_arm") {
+  if (category == "target_sample_size") {
     title <- sprintf(
       "%s, %s, %s %s",
       frequentist_metrics[[metric]]$label,
@@ -209,13 +219,12 @@ table_metric_vs_drift <- function(metric,
     ), parameters_str)
   } else if (category == "source_denominator") {
     title <- sprintf(
-      "%s, %s, %s %s, %s %s",
+      "%s, %s, %s %s, %s",
       frequentist_metrics[[metric]]$label,
       stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title,
-      "$N_T/2 = $",
-      target_sample_size_per_arm
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
     )
     filename <- append_parameters_str(paste0(
       case_study,
@@ -225,19 +234,19 @@ table_metric_vs_drift <- function(metric,
       selected_metric_name,
       "_vs_",
       xvar_name,
-      "_cat_source_denominator_sample_size=",
-      target_sample_size_per_arm
+      "_cat_source_denominator_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     ), parameters_str)
 
     source_denominator_change_factor <- NA
 
   } else if (category == "parameters") {
     title <- sprintf(
-      "%s, %s, %s, $N_T/2 = $ %s",
+      "%s, %s, %s, %s",
       frequentist_metrics[[metric]]$label,
       stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
-      target_sample_size_per_arm
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
     )
     filename <- paste0(
       case_study,
@@ -247,18 +256,17 @@ table_metric_vs_drift <- function(metric,
       selected_metric_name,
       "_vs_",
       xvar_name,
-      "_cat_parameters_sample_size=",
-      target_sample_size_per_arm
+      "_cat_parameters_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     )
   } else if (category == "target_to_source_std_ratio") {
     title <- sprintf(
-      "%s, %s, %s %s, %s %s",
+      "%s, %s, %s %s, %s",
       frequentist_metrics[[metric]]$label,
       stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title,
-      "$N_T/2 = $",
-      target_sample_size_per_arm
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
     )
     filename <- append_parameters_str(paste0(
       case_study,
@@ -269,8 +277,8 @@ table_metric_vs_drift <- function(metric,
       "_vs_",
       xvar_name,
       "_cat_target_to_source_std_ratio",
-      "_target_sample_size_per_arm=",
-      target_sample_size_per_arm
+      "_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     ), parameters_str)
 
     target_to_source_std_ratio <- NA
@@ -282,9 +290,9 @@ table_metric_vs_drift <- function(metric,
   filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
 
-  if (category == "target_sample_size_per_arm") {
-    results_df$label <- results_df$target_sample_size_per_arm
-    labels_title <- "Target sample size per arm"
+  if (category == "target_sample_size") {
+    results_df$label <- results_df$target_sample_size
+    labels_title <- "Target sample size"
   } else if (category == "parameters") {
     results_df$label <- format_results_df_parameters(results_df, include_method_name = FALSE)
     labels_title <- "Parameters"
@@ -358,7 +366,8 @@ table_metric_vs_drift <- function(metric,
 #' @param metric The metric to be plotted
 #' @param case_study The case study being analyzed
 #' @param method The method being used
-#' @param target_sample_size_per_arm The target sample size per arm
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes
 #' @param theta_0 The null hypothesis value
 #' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
@@ -372,7 +381,8 @@ table_metric_vs_parameters <- function(results_metrics_df,
                                        metric,
                                        case_study = "belimumab",
                                        method = "RMP",
-                                       target_sample_size_per_arm = 93,
+                                       target_sample_size_control,
+                                       target_sample_size_treatment,
                                        theta_0 = NULL,
                                        source_denominator_change_factor = 1,
                                        target_to_source_std_ratio = 1) {
@@ -380,7 +390,8 @@ table_metric_vs_parameters <- function(results_metrics_df,
   results_df <- results_metrics_df %>%
     dplyr::filter(
       case_study == !!case_study,
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       method == !!method,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
@@ -515,8 +526,8 @@ table_metric_vs_parameters <- function(results_metrics_df,
         case_study,
         "_",
         method,
-        "_metrics_vs_parameters_target_sample_size_per_arm_",
-        target_sample_size_per_arm
+        "_metrics_vs_parameters_",
+        target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
       )
 
       if (other_params_str != ""){
@@ -524,11 +535,11 @@ table_metric_vs_parameters <- function(results_metrics_df,
       }
 
       title <- sprintf(
-        "%s, $N_T/2 = $ %s, Source denominator change factor = %s",
+        "%s, %s, %s%s",
         stringr::str_to_title(case_study),
         methods_labels[[method]]$label,
         other_params_label,
-        target_sample_size_per_arm
+        target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
       )
       title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
       filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
@@ -650,12 +661,14 @@ table_metric_vs_sample_size <- function(metric,
         CI = paste0("[", error_low, ", ", error_upper, "]"),
         combined_mean_CI = paste0(means, " ", CI)  # Combine mean and CI into one column
       ) %>%
-      dplyr::select(Parameters, target_sample_size_per_arm, combined_mean_CI) %>%
-      dplyr::arrange(target_sample_size_per_arm)
+      dplyr::arrange(target_sample_size_control + target_sample_size_treatment,
+                     target_sample_size_control) %>%
+      dplyr::select(Parameters, target_sample_size_control, target_sample_size_treatment, combined_mean_CI)
 
     data_table <- data_table %>%
       dplyr::rename(
-        "$N_T/2$" = target_sample_size_per_arm,
+        "$n_C$" = target_sample_size_control,
+        "$n_T$" = target_sample_size_treatment,
         !!selected_metric$label := combined_mean_CI  # Rename the combined column
       )
 
@@ -683,7 +696,7 @@ table_metric_vs_sample_size <- function(metric,
       method,
       "_",
       frequentist_metrics[[metric]]$name,
-      "_vs_target_sample_size_per_arm_",
+      "_vs_target_sample_size_",
       gsub(" ", "_", treatment_effect)
     )
 
@@ -715,7 +728,8 @@ table_metric_vs_drift_scenario_cat <- function(metric,
                                   method,
                                   category,
                                   control_drift,
-                                  target_sample_size_per_arm,
+                                  target_sample_size_control,
+                                  target_sample_size_treatment,
                                   parameters_combinations,
                                   xvars,
                                   wide_table = TRUE) {
@@ -735,6 +749,11 @@ table_metric_vs_drift_scenario_cat <- function(metric,
   }
 
   results_df <- results_metrics_df %>% dplyr::filter(method == !!method)
+  if (category == "target_sample_size") {
+    results_df$target_sample_size <- target_size_label(
+      results_df$target_sample_size_control, results_df$target_sample_size_treatment, "latex"
+    )
+  }
 
   #categories <- unique(results_df[["parameters"]])
 
@@ -742,7 +761,8 @@ table_metric_vs_drift_scenario_cat <- function(metric,
   if (category == "parameters") {
     results_df <- results_df %>%
       dplyr::filter(
-        target_sample_size_per_arm == !!target_sample_size_per_arm,
+        target_sample_size_control == !!target_sample_size_control,
+        target_sample_size_treatment == !!target_sample_size_treatment,
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor),
         target_to_source_std_ratio == !!target_to_source_std_ratio |
@@ -758,18 +778,20 @@ table_metric_vs_drift_scenario_cat <- function(metric,
   } else if (category == "source_denominator") {
     results_df <- results_df %>%
       dplyr::filter(
-        target_sample_size_per_arm == !!target_sample_size_per_arm,
+        target_sample_size_control == !!target_sample_size_control,
+        target_sample_size_treatment == !!target_sample_size_treatment,
         target_to_source_std_ratio == !!target_to_source_std_ratio |
           is.na(target_to_source_std_ratio),
       )
   } else if (category == "target_to_source_std_ratio") {
     results_df <- results_df %>%
       dplyr::filter(
-        target_sample_size_per_arm == !!target_sample_size_per_arm,
+        target_sample_size_control == !!target_sample_size_control,
+        target_sample_size_treatment == !!target_sample_size_treatment,
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor)
       )
-  } else if (category == "target_sample_size_per_arm") {
+  } else if (category == "target_sample_size") {
     results_df <- results_df %>%
       dplyr::filter(
         target_to_source_std_ratio == !!target_to_source_std_ratio | is.na(target_to_source_std_ratio),
@@ -787,9 +809,9 @@ table_metric_vs_drift_scenario_cat <- function(metric,
   results_df$rows <- seq(1, nrow(results_df))
 
   parameters_labels <- NA
-  if (category == "target_sample_size_per_arm") {
-    results_df$label <- results_df$target_sample_size_per_arm
-    labels_title <- "Target sample size per arm"
+  if (category == "target_sample_size") {
+    results_df$label <- results_df$target_sample_size
+    labels_title <- "Target sample size"
   } else if (category == "parameters") {
     parameters_labels <- unname(sapply(seq_len(nrow(results_df)), function(i) {
       process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
@@ -874,7 +896,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
   }
 
 
-  if (category == "target_sample_size_per_arm") {
+  if (category == "target_sample_size") {
     title <- sprintf(
       "%s, %s, %s %s",
       frequentist_metrics[[metric]]$label,
@@ -895,13 +917,12 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     ), parameters_str)
   } else if (category == "source_denominator") {
     title <- sprintf(
-      "%s, %s, %s %s, %s %s",
+      "%s, %s, %s %s, %s",
       frequentist_metrics[[metric]]$label,
       stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title,
-      "$N_T/2 = $",
-      target_sample_size_per_arm
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
     )
     filename <- append_parameters_str(paste0(
       case_study,
@@ -911,19 +932,19 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       selected_metric_name,
       "_vs_",
       xvar_name,
-      "_cat_source_denominator_sample_size=",
-      target_sample_size_per_arm
+      "_cat_source_denominator_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     ), parameters_str)
 
     source_denominator_change_factor <- NA
 
   } else if (category == "parameters") {
     title <- sprintf(
-      "%s, %s, %s, $N_T/2 = $ %s",
+      "%s, %s, %s, %s",
       frequentist_metrics[[metric]]$label,
       stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
-      target_sample_size_per_arm
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
     )
     filename <- paste0(
       case_study,
@@ -933,18 +954,17 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       selected_metric_name,
       "_vs_",
       xvar_name,
-      "_cat_parameters_sample_size=",
-      target_sample_size_per_arm
+      "_cat_parameters_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     )
   } else if (category == "target_to_source_std_ratio") {
     title <- sprintf(
-      "%s, %s, %s %s, %s %s",
+      "%s, %s, %s %s, %s",
       frequentist_metrics[[metric]]$label,
       stringr::str_to_title(case_study),
       methods_labels[[method]]$label,
       parameters_label_title,
-      "$N_T/2 = $",
-      target_sample_size_per_arm
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
     )
     filename <- append_parameters_str(paste0(
       case_study,
@@ -955,8 +975,8 @@ table_metric_vs_drift_scenario_cat <- function(metric,
       "_vs_",
       xvar_name,
       "_cat_target_to_source_std_ratio",
-      "_target_sample_size_per_arm=",
-      target_sample_size_per_arm
+      "_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     ), parameters_str)
 
     target_to_source_std_ratio <- NA
@@ -968,9 +988,9 @@ table_metric_vs_drift_scenario_cat <- function(metric,
   filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
 
-  if (category == "target_sample_size_per_arm") {
-    results_df$label <- results_df$target_sample_size_per_arm
-    labels_title <- "Target sample size per arm"
+  if (category == "target_sample_size") {
+    results_df$label <- results_df$target_sample_size
+    labels_title <- "Target sample size"
   } else if (category == "parameters") {
     results_df$label <- format_results_df_parameters(results_df, include_method_name = FALSE)
     labels_title <- "Parameters"
@@ -1073,7 +1093,7 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
 
     theta_0 <- case_study_config$theta_0
 
-    target_sample_sizes <- unique(filtered_results_metrics_df$target_sample_size_per_arm)
+    target_sample_sizes <- unique(filtered_results_metrics_df[, target_size_columns, drop = FALSE])
 
     for (method in methods) {
       if (sum(filtered_results_metrics_df$method == method) == 0) {
@@ -1083,7 +1103,7 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
 
 
       for (metric in names(metrics)) {
-        for (sample_size in target_sample_sizes) {
+        for (size_index in seq_len(nrow(target_sample_sizes))) {
 
           # table_metric_vs_drift(
           #   metric = metric,
@@ -1093,7 +1113,8 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
           #   theta_0 = theta_0,
           #   category = "target_to_source_std_ratio",
           #   control_drift = FALSE,
-          #   target_sample_size_per_arm = sample_size,
+          #   target_sample_size_control = target_sample_sizes$target_sample_size_control[size_index],
+          #   target_sample_size_treatment = target_sample_sizes$target_sample_size_treatment[size_index],
           #   parameters_combinations = NULL,
           #   xvars = xvars
           # )
@@ -1104,7 +1125,8 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
           #   method = method,
           #   theta_0 = theta_0,
           #   control_drift = FALSE,
-          #   target_sample_size_per_arm = sample_size,
+          #   target_sample_size_control = target_sample_sizes$target_sample_size_control[size_index],
+          #   target_sample_size_treatment = target_sample_sizes$target_sample_size_treatment[size_index],
           #   parameters_combinations = NULL,
           #   xvars = xvars,
           #   category = "target_to_sourc_std_ratio"
@@ -1117,7 +1139,8 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
           #   method = method,
           #   theta_0 = theta_0,
           #   control_drift = FALSE,
-          #   target_sample_size_per_arm = sample_size,
+          #   target_sample_size_control = target_sample_sizes$target_sample_size_control[size_index],
+          #   target_sample_size_treatment = target_sample_sizes$target_sample_size_treatment[size_index],
           #   parameters_combinations = NULL,
           #   xvars = xvars,
           #   category = "source_denominator_change_factor"
@@ -1126,7 +1149,7 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
 
         for (source_denominator_change_factor in unique(filtered_results_metrics_df$source_denominator_change_factor)) {
           for (target_to_source_std_ratio in unique(filtered_results_metrics_df$target_to_source_std_ratio)) {
-            for (sample_size in target_sample_sizes) {
+            for (size_index in seq_len(nrow(target_sample_sizes))) {
               for (i in seq_len(nrow(parameters_combinations))) {
                 table_metric_vs_drift(
                   metric = metric,
@@ -1136,7 +1159,8 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
                   theta_0 = theta_0,
                   category = "parameters",
                   control_drift = FALSE,
-                  target_sample_size_per_arm = sample_size,
+                  target_sample_size_control = target_sample_sizes$target_sample_size_control[size_index],
+                  target_sample_size_treatment = target_sample_sizes$target_sample_size_treatment[size_index],
                   parameters_combinations = NULL,
                   xvars = xvars
                 )

@@ -461,6 +461,7 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
 
     sample_size_factors <- unlist(scenarios_config$sample_size_factors)
     total_target_sample_sizes <- (source_data$sample_size_control + source_data$sample_size_treatment) / sample_size_factors
+    allocation_ratio <- target_allocation_ratio(scenarios_config, case_study)
     current_scenario_configurations <- list()
 
     sensitivity_reference <- time_to_event_sensitivity_reference(
@@ -495,7 +496,7 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
 
       for (factor_index in seq_along(total_target_sample_sizes)) {
         total_target_sample_size <- total_target_sample_sizes[factor_index]
-        target_sample_size_per_arm <- floor(total_target_sample_size / 2)
+        target_arms <- split_target_sample_size(total_target_sample_size, allocation_ratio)
 
         # The whole grid is simulated under the primary design; the sensitivity
         # designs are simulated only at the reference point, so they still vary
@@ -511,7 +512,8 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
         }
 
         current_scenario_configurations[[length(current_scenario_configurations) + 1]] <- list(
-          target_sample_size_per_arm = target_sample_size_per_arm,
+          target_sample_size_control = target_arms$control,
+          target_sample_size_treatment = target_arms$treatment,
           drift = drift,
           treatment_drift = treatment_drift,
           control_drift = control_drift,

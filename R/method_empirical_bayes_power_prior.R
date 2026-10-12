@@ -34,7 +34,8 @@ power_prior_variance <- function(source_standard_error, power_parameter,
 #'   [adaptive_power_prior_type_I_error()], so this argument is ignored. It is
 #'   retained because existing method configurations still supply it.
 #' @param source_sample_size_per_arm Sample size per arm in the source study
-#' @param target_sample_size_per_arm Sample size per arm in the target study
+#' @param target_sample_size_per_arm Equivalent sample size per arm of the target
+#'   study, `2 / (1 / n_C + 1 / n_T)` (see `effective_arm_size()`)
 #' @param source_treatment_effect_estimate Treatment effect estimate in the source study
 #' @param desired_tie Desired type I error rate
 #' @param significance_level Significance level for hypothesis testing
@@ -221,7 +222,8 @@ log_grid_interpolation <- function(f, x, n_nodes = 100L) {
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = cfg$target$treatment_effect,
 #'   treatment_effect_standard_error = cfg$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -414,7 +416,8 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = cfg$target$treatment_effect,
 #'   treatment_effect_standard_error = cfg$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -464,7 +467,7 @@ GaussianGravestockEBPP <- R6::R6Class(
       calibration_parameter <- 2 * (1 - pnorm(1)) # See Nikolakopoulos et al, 2018
 
       target_data_sampling_variance <- target_data$sample$treatment_effect_standard_error ^
-        2 * target_data$sample_size_per_arm
+        2 * target_effective_arm_size(target_data)
 
       # We compute the sampling variance for the corresponding Gaussian, the goal is to put ourselves in a case equivalent to sampling from a Gaussian (single arm)
       source_data_sampling_variance <- self$prior$source$standard_error ^
@@ -479,7 +482,7 @@ GaussianGravestockEBPP <- R6::R6Class(
         target_data_sampling_variance / source_data_sampling_variance
 
       standard_deviation_predictive <- sqrt(
-        target_data_sampling_variance / n0 + target_data_sampling_variance / target_data$sample_size_per_arm
+        target_data_sampling_variance / n0 + target_data_sampling_variance / target_effective_arm_size(target_data)
       )
 
       power_parameter <- ifelse(((
@@ -494,7 +497,7 @@ GaussianGravestockEBPP <- R6::R6Class(
         )), ((target_data_sampling_variance / n0) / (((
           target_treatment_effect_estimate - source_treatment_effect_estimate
         ) / qnorm(1 - calibration_parameter / 2)
-        ) ^ 2 - target_data_sampling_variance / target_data$sample_size_per_arm
+        ) ^ 2 - target_data_sampling_variance / target_effective_arm_size(target_data)
         )
         ), 1)
       assert_single_number(power_parameter)
@@ -516,7 +519,7 @@ GaussianGravestockEBPP <- R6::R6Class(
       calibration_parameter <- 2 * (1 - pnorm(1)) # See Nikolakopoulos et al, 2018
 
       target_sampling_variance <- samples$treatment_effect_standard_error^2 *
-        target_data$sample_size_per_arm
+        target_effective_arm_size(target_data)
       source_sampling_variance <- self$prior$source$standard_error^2 *
         self$prior$source$equivalent_source_sample_size_per_arm
 
@@ -525,7 +528,7 @@ GaussianGravestockEBPP <- R6::R6Class(
 
       standard_deviation_predictive <- sqrt(
         target_sampling_variance / n0 +
-          target_sampling_variance / target_data$sample_size_per_arm
+          target_sampling_variance / target_effective_arm_size(target_data)
       )
 
       upper <- source_estimate +
@@ -537,7 +540,7 @@ GaussianGravestockEBPP <- R6::R6Class(
         target_estimate > upper | target_estimate < lower,
         (target_sampling_variance / n0) /
           (((target_estimate - source_estimate) / qnorm(1 - calibration_parameter / 2))^2 -
-             target_sampling_variance / target_data$sample_size_per_arm),
+             target_sampling_variance / target_effective_arm_size(target_data)),
         1
       )
     }
@@ -559,7 +562,8 @@ GaussianGravestockEBPP <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = cfg$target$treatment_effect,
 #'   treatment_effect_standard_error = cfg$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -622,11 +626,11 @@ GaussianPDCCPP <- R6::R6Class(
       target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
 
       target_data_sampling_variance <- target_data$sample$treatment_effect_standard_error ^
-        2 * target_data$sample_size_per_arm
+        2 * target_effective_arm_size(target_data)
 
       calibration_parameter <- self$calibration_parameter(
         target_data_sampling_variance = target_data_sampling_variance,
-        target_sample_size_per_arm = target_data$sample_size_per_arm,
+        target_sample_size_per_arm = target_effective_arm_size(target_data),
         source_treatment_effect_estimate = source_treatment_effect_estimate
       )
       assert_single_number(calibration_parameter)
@@ -635,7 +639,7 @@ GaussianPDCCPP <- R6::R6Class(
         target_treatment_effect_estimate = target_treatment_effect_estimate,
         source_treatment_effect_estimate = source_treatment_effect_estimate,
         target_data_sampling_variance = target_data_sampling_variance,
-        target_sample_size_per_arm = target_data$sample_size_per_arm,
+        target_sample_size_per_arm = target_effective_arm_size(target_data),
         calibration_parameter = calibration_parameter
       )
 
@@ -672,13 +676,13 @@ GaussianPDCCPP <- R6::R6Class(
       target_estimate <- transformed$target_treatment_effect_estimate
 
       target_sampling_variance <- samples$treatment_effect_standard_error^2 *
-        target_data$sample_size_per_arm
+        target_effective_arm_size(target_data)
 
       calibration_parameter <- log_grid_interpolation(
         function(variance) {
           self$calibration_parameter(
             target_data_sampling_variance = variance,
-            target_sample_size_per_arm = target_data$sample_size_per_arm,
+            target_sample_size_per_arm = target_effective_arm_size(target_data),
             source_treatment_effect_estimate = source_estimate,
             tolerance = min(self$parameters$tolerance, 1e-9)
           )
@@ -691,7 +695,7 @@ GaussianPDCCPP <- R6::R6Class(
         target_treatment_effect_estimate = target_estimate,
         source_treatment_effect_estimate = source_estimate,
         target_data_sampling_variance = target_sampling_variance,
-        target_sample_size_per_arm = target_data$sample_size_per_arm,
+        target_sample_size_per_arm = target_effective_arm_size(target_data),
         calibration_parameter = calibration_parameter
       )
 
@@ -707,7 +711,8 @@ GaussianPDCCPP <- R6::R6Class(
     #'
     #' @param target_data_sampling_variance Target sampling variance, per
     #'   patient.
-    #' @param target_sample_size_per_arm Target sample size per arm.
+    #' @param target_sample_size_per_arm Equivalent sample size per arm of the
+    #'   target study (see `effective_arm_size()`).
     #' @param source_treatment_effect_estimate Source estimate, after
     #'   `hypothesis_space_transformation()`.
     #' @param tolerance Tolerance of the search; the configured one by default.
@@ -779,7 +784,8 @@ GaussianPDCCPP <- R6::R6Class(
     #'   transformation.
     #' @param target_data_sampling_variance Target sampling variances, per
     #'   patient.
-    #' @param target_sample_size_per_arm Target sample size per arm.
+    #' @param target_sample_size_per_arm Equivalent sample size per arm of the
+    #'   target study (see `effective_arm_size()`).
     #' @param calibration_parameter Calibration parameters z_{1-c/2}.
     #' @return The power parameters.
     power_parameter_from_calibration = function(target_treatment_effect_estimate,
@@ -840,7 +846,8 @@ GaussianPDCCPP <- R6::R6Class(
 #' target_data <- ObservedTargetData$new(
 #'   treatment_effect_estimate = cfg$target$treatment_effect,
 #'   treatment_effect_standard_error = cfg$target$standard_error,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
 #' )
 #' model <- Model$new()$create(
@@ -907,7 +914,7 @@ GaussianPValueBasedPP <- R6::R6Class(
           ),
           sigma.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
 
         # H0b : θS - θT < -λ
@@ -921,7 +928,7 @@ GaussianPValueBasedPP <- R6::R6Class(
           ),
           sigma.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
       } else if (test_type == "t-test") {
         # H0a : θS - θT > λ
@@ -935,7 +942,7 @@ GaussianPValueBasedPP <- R6::R6Class(
           ),
           s.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
 
         # H0b : θS - θT < -λ
@@ -949,7 +956,7 @@ GaussianPValueBasedPP <- R6::R6Class(
           ),
           s.y = target_data$sample$standard_deviation,
           n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_data$sample_size_per_arm
+          n.y = target_effective_arm_size(target_data)
         )
       } else {
         stop("Not implemented for this test. Must be either 't-test' or 'z-test'.")
@@ -1012,7 +1019,7 @@ GaussianPValueBasedPP <- R6::R6Class(
           n_x = source_n,
           mean_y = transformed$target_treatment_effect_estimate,
           sd_y = samples$standard_deviation,
-          n_y = target_data$sample_size_per_arm,
+          n_y = target_effective_arm_size(target_data),
           mu = mu,
           alternative = alternative
         )
@@ -1051,7 +1058,8 @@ GaussianPValueBasedPP <- R6::R6Class(
 #' target_data <- TargetDataFactory$new()$create(
 #'   source_data = source_data,
 #'   case_study_config = cfg,
-#'   target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+#'   target_sample_size_control = cfg$target$control,
+#'   target_sample_size_treatment = cfg$target$treatment,
 #'   control_drift = 0,
 #'   treatment_drift = 0,
 #'   summary_measure_likelihood = cfg$summary_measure_likelihood
@@ -1209,7 +1217,7 @@ BinomialPValueBasedPP <- R6::R6Class(
         sigma.x = self$prior$source$standard_error * sqrt(self$prior$source$equivalent_source_sample_size_per_arm),
         sigma.y = target_data$sample$standard_deviation,
         n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-        n.y = target_data$sample_size_per_arm
+        n.y = target_effective_arm_size(target_data)
       )
 
       # H0b : θS - θT < -λ
@@ -1221,7 +1229,7 @@ BinomialPValueBasedPP <- R6::R6Class(
         sigma.x = self$prior$source$standard_error * sqrt(self$prior$source$equivalent_source_sample_size_per_arm),
         sigma.y = target_data$sample$standard_deviation,
         n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-        n.y = target_data$sample_size_per_arm
+        n.y = target_effective_arm_size(target_data)
       )
 
       # Take the maximum p_value of the two tests

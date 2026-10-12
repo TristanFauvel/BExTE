@@ -12,7 +12,8 @@ table_metric_vs_drift(
   method,
   category,
   control_drift,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   parameters_combinations,
   xvars,
   source_denominator_change_factor = 1,
@@ -31,11 +32,12 @@ table_metric_vs_drift(
 
 \item{method}{The method being used}
 
-\item{category}{The category of analysis ('parameters' or 'target_sample_size_per_arm')}
+\item{category}{The category of analysis ('parameters' or 'target_sample_size')}
 
 \item{control_drift}{Boolean indicating whether to control for drift}
 
-\item{target_sample_size_per_arm}{The target sample size per arm}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes}
 
 \item{parameters_combinations}{The combinations of parameters}
 

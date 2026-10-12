@@ -10,7 +10,7 @@ test_that("prior_moment_ess subtracts the target sample size", {
   with_mocked_bindings(
     {
       rbest_model <- list()
-      target_data <- list(sample_size_per_arm = 100)
+      target_data <- list(sample_size_control = 100, sample_size_treatment = 100)
 
       result <- prior_moment_ess(rbest_model, target_data)
 

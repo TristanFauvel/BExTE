@@ -1,5 +1,6 @@
 target_data <- list(
-  sample_size_per_arm = 30,
+  sample_size_control = 30,
+  sample_size_treatment = 30,
   treatment_effect = 1,
   standard_deviation = 1,
   summary_measure_likelihood = "normal",

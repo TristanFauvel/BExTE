@@ -40,7 +40,7 @@ drift <- 0.1
 target_sample_size_per_arm <- 100
 
 target_data <- TargetDataFactory$new()
-target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 ```
 
 ```{r}
@@ -61,11 +61,11 @@ BExTE:::read_function_code(sample_aggregate_binary_data)
 
 ```{r, eval = FALSE}
 sample_treatment_rate <- BExTE:::sample_aggregate_binary_data(self$treatment_rate,
-                                                              self$sample_size_per_arm,
+                                                              self$sample_size_treatment,
                                                               n_replicates)
 
 sample_control_rate <- BExTE:::sample_aggregate_binary_data(self$control_rate,
-                                                    self$sample_size_per_arm,
+                                                    self$sample_size_control,
                                                     n_replicates)
 
 treatment_effect_standard_error <- sqrt(

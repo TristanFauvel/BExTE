@@ -152,7 +152,8 @@ collapse_sweet_spots <- function(sweet_spot) {
 #' It determines where the metric differences between two methods cross a reference value.
 #'
 #' @param results_freq_df A dataframe containing the results frequency data with columns
-#' "case_study", "method", "source_denominator_change_factor", "control_drift", and "target_sample_size_per_arm".
+#' "case_study", "method", "source_denominator_change_factor", "control_drift",
+#' "target_sample_size_control" and "target_sample_size_treatment".
 #' @param metrics A list of metrics to evaluate. Each metric should have a `name` attribute.
 #' @param based_on_CI Whether to compare each method with the separate analysis
 #'   through the confidence intervals of the metric rather than its
@@ -183,7 +184,8 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
     metric = character(),
     method = character(),
     parameters = character(),
-    target_sample_size_per_arm = numeric(),
+    target_sample_size_control = numeric(),
+    target_sample_size_treatment = numeric(),
     control_drift = numeric(),
     source_denominator = numeric(),
     source_denominator_change_factor = numeric(),
@@ -213,8 +215,11 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie
   # Loop through each unique combination to calculate sweet spots
   for (case_study in unique(results_freq_df$case_study)) {
       results_freq_df1 <- results_freq_df[results_freq_df$case_study == case_study, ]
-      for (target_sample_size_per_arm in unique(results_freq_df1$target_sample_size_per_arm)) {
-        results_freq_df2 <- results_freq_df1[results_freq_df1$target_sample_size_per_arm == target_sample_size_per_arm, ]
+      target_sizes <- unique(results_freq_df1[, target_size_columns, drop = FALSE])
+      for (size_index in seq_len(nrow(target_sizes))) {
+        results_freq_df2 <- dplyr::semi_join(
+          results_freq_df1, target_sizes[size_index, , drop = FALSE], by = target_size_columns
+        )
         for (source_denominator_change_factor in unique(results_freq_df2$source_denominator_change_factor)) {
           results_freq_df3 <- results_freq_df2[results_freq_df2$source_denominator_change_factor == source_denominator_change_factor, ]
           for (target_to_source_std_ratio in unique(results_freq_df3$target_to_source_std_ratio)){

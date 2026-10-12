@@ -13,7 +13,8 @@ factory <- TargetDataFactory$new()
 target_data <- factory$create(
   source_data = source_data,
   case_study_config = config,
-  target_sample_size_per_arm = 50,
+  target_sample_size_control = 50,
+  target_sample_size_treatment = 50,
   treatment_drift = 0.1,
   summary_measure_likelihood = config$summary_measure_likelihood
 )
@@ -38,7 +39,8 @@ target_data$generate(n_replicates = 3)
     \preformatted{TargetDataFactory$create(
   source_data,
   case_study_config,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment = target_sample_size_control,
   control_drift = 0,
   treatment_drift,
   summary_measure_likelihood,
@@ -54,7 +56,9 @@ target_data$generate(n_replicates = 3)
     \describe{
       \item{\code{source_data}}{The source data object.}
       \item{\code{case_study_config}}{The case study configuration object.}
-      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{target_sample_size_control}}{The target sample size of the control arm.}
+      \item{\code{target_sample_size_treatment}}{The target sample size of the
+treatment arm. Defaults to \code{target_sample_size_control}.}
       \item{\code{control_drift}}{The control drift.}
       \item{\code{treatment_drift}}{The treatment drift.}
       \item{\code{summary_measure_likelihood}}{The summary measure distribution.}

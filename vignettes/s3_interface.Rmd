@@ -183,7 +183,7 @@ plot(post, xlim = c(-0.5, 1.5))
 
 ### Effective sample size
 
-`ess()` gives the effective sample size of the prior, in target patients per arm. It evaluates the prior at the observed target data. This matters for methods such as the empirical Bayes ones, whose prior depends on those data.
+`ess()` gives the effective sample size of the prior, in target patients per arm. When the arms differ in size, a patient per arm means one in each arm of a balanced study with the same precision, whose arm size is $2 / (1/n_C + 1/n_T)$. It evaluates the prior at the observed target data. This matters for methods such as the empirical Bayes ones, whose prior depends on those data.
 
 - `"elir"` (the default) is the expected local information ratio of Neuenschwander et al. (2020).
 - `"moment"` and `"precision"` compare the posterior with the target data alone: the posterior ESS minus the target sample size.
@@ -242,7 +242,7 @@ In `oc_frequentist()` and `oc_bayesian()`, the hypothesis of the rule is also th
 
 `oc_frequentist()` simulates target trials at fixed true treatment effects, and analyses each trial with the prior and the decision rule. The true effect is the source effect plus `drift`, so a drift of 0 means that the two studies agree. The main arguments are:
 
-- `n_per_arm`: the target sample size per arm;
+- `n_per_arm`: the target sample size per arm, for equal arms. For arms of different sizes, give `n_control` and `n_treatment` instead;
 - `drift`: a vector of drifts, one row of results per value;
 - `n_rep`: the number of simulated trials per drift;
 - `control_drift` (binary endpoint): a change in the control response rate;

@@ -283,7 +283,8 @@ test_that("a divergence rate outside the unit interval is rejected", {
 ess_stub_target_data <- function() {
   list(
     summary_measure_likelihood = "binomial",
-    sample_size_per_arm = 40,
+    sample_size_control = 40,
+    sample_size_treatment = 40,
     sample = list(standard_deviation = 0.5)
   )
 }

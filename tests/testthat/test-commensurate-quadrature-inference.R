@@ -4,7 +4,8 @@
 
 quadrature_target <- function(estimate = 0.9, standard_error = 0.1) {
   list(
-    sample_size_per_arm = 60,
+    sample_size_control = 60,
+    sample_size_treatment = 60,
     sample = list(
       treatment_effect_estimate = estimate,
       treatment_effect_standard_error = standard_error,

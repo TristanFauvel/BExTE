@@ -54,7 +54,7 @@ treatment_drift <- drift + control_drift
 target_data <- BinaryTargetData$new(
   source_data = source_data,
   sampling_approximation = case_study_config$sampling_approximation,
-  target_sample_size_per_arm = target_sample_size_per_arm,
+  target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm,
   control_drift = control_drift,
   treatment_drift = treatment_drift,
   summary_measure_likelihood = case_study_config$summary_measure_likelihood
@@ -88,7 +88,7 @@ target_data$treatment_effect <- target_data$drift + source_data$treatment_effect
 ```{r}
 case_study_config$sampling_approximation <- FALSE
 target_data <- TargetDataFactory$new()
-target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 ```
 
 ```{r}
@@ -121,7 +121,8 @@ log_OR_samples <- BExTE:::sample_log_odds_ratios(
 samples <- data.frame(
   treatment_effect_estimate = log_OR_samples$log_odds_ratio,
   treatment_effect_standard_error = log_OR_samples$std_err_log_odds_ratio,
-  sample_size_per_arm = target_data$sample_size_per_arm
+  sample_size_control = target_data$sample_size_control,
+  sample_size_treatment = target_data$sample_size_treatment
 )
 ```
 
@@ -132,7 +133,7 @@ samples <- data.frame(
 case_study_config$sampling_approximation <- TRUE
 
 target_data <- TargetDataFactory$new()
-target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
+target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_control = target_sample_size_per_arm, target_sample_size_treatment = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 ```
 
 ```{r}

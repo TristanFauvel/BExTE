@@ -18,7 +18,8 @@ binary_target_with_unequal_arms <- function() {
   target_data <- BinaryTargetData$new(
     source_data = source_data,
     sampling_approximation = FALSE,
-    target_sample_size_per_arm = 100,
+    target_sample_size_control = 100,
+    target_sample_size_treatment = 100,
     control_drift = 0,
     treatment_drift = 0,
     summary_measure_likelihood = "binomial"

@@ -15,7 +15,8 @@ source_data <- ObservedSourceData$new(cfg)
 target_data <- ObservedTargetData$new(
   treatment_effect_estimate = cfg$target$treatment_effect,
   treatment_effect_standard_error = cfg$target$standard_error,
-  target_sample_size_per_arm = as.integer(cfg$target$total / 2),
+  target_sample_size_control = cfg$target$control,
+  target_sample_size_treatment = cfg$target$treatment,
   summary_measure_likelihood = cfg$summary_measure_likelihood
 )
 model <- Model$new()$create(

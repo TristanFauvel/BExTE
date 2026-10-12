@@ -8,7 +8,8 @@ estimate_bayesian_ocs(
   scenario,
   case_study_config,
   source_data,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   model,
   method_parameters,
   theta_0,
@@ -29,7 +30,9 @@ estimate_bayesian_ocs(
 
 \item{source_data}{The source data.}
 
-\item{target_sample_size_per_arm}{The target sample size per arm.}
+\item{target_sample_size_control}{Sample size of the control arm in the target study.}
+
+\item{target_sample_size_treatment}{Sample size of the treatment arm in the target study.}
 
 \item{model}{The model.}
 

@@ -31,7 +31,8 @@ test_that("the vectorised NPP kernel reproduces the scalar kernel", {
   target_data <- TargetDataFactory$new()$create(
     source_data = fixture$source_data,
     case_study_config = fixture$case_study_config,
-    target_sample_size_per_arm = 46, control_drift = 0, treatment_drift = 0,
+    target_sample_size_control = 46,
+    target_sample_size_treatment = 46, control_drift = 0, treatment_drift = 0,
     summary_measure_likelihood = "normal", target_to_source_std_ratio = 1
   )
 
@@ -86,7 +87,8 @@ test_that("the vectorised NPP effective sample sizes are deterministic", {
   target_data <- TargetDataFactory$new()$create(
     source_data = fixture$source_data,
     case_study_config = fixture$case_study_config,
-    target_sample_size_per_arm = 46, control_drift = 0, treatment_drift = 0,
+    target_sample_size_control = 46,
+    target_sample_size_treatment = 46, control_drift = 0, treatment_drift = 0,
     summary_measure_likelihood = "normal", target_to_source_std_ratio = 1
   )
 
@@ -148,7 +150,8 @@ test_that("the quadrature mixture reproduces the posterior moments of the nested
     target_data <- TargetDataFactory$new()$create(
       source_data = fixture$source_data,
       case_study_config = fixture$case_study_config,
-      target_sample_size_per_arm = 46, control_drift = 0, treatment_drift = 0,
+      target_sample_size_control = 46,
+      target_sample_size_treatment = 46, control_drift = 0, treatment_drift = 0,
       summary_measure_likelihood = "normal", target_to_source_std_ratio = 1
     )
 

@@ -7,7 +7,8 @@ teriflunomide_row <- function(...) {
   data.frame(
     case_study = "teriflunomide",
     source_denominator = NA_real_,
-    target_sample_size_per_arm = 123,
+    target_sample_size_control = 123,
+    target_sample_size_treatment = 123,
     treatment_drift = 0,
     control_drift = 0,
     target_to_source_std_ratio = 1,

@@ -123,8 +123,11 @@ time_to_event_event_probability <- function(parameter,
 # Design-level standard deviation of the log hazard ratio.
 #
 # Expressed per patient, as for the other endpoints: the standard error of the
-# estimate is this quantity divided by the square root of the per-arm sample
-# size. It is driven by the expected number of observed events in each arm.
+# estimate is this quantity divided by the square root of the equivalent
+# per-arm sample size, 2 / (1 / n_control + 1 / n_treatment). It is driven by
+# the expected number of observed events in each arm. Only the ratio of the
+# arm sizes matters, so the default of one patient per arm is the balanced
+# design.
 time_to_event_standard_deviation <- function(control_parameter,
                                              treatment_parameter,
                                              event_time_distribution,
@@ -134,7 +137,9 @@ time_to_event_standard_deviation <- function(control_parameter,
                                              max_follow_up_time,
                                              dropout_rate,
                                              delay = 0,
-                                             late_log_hr = 0) {
+                                             late_log_hr = 0,
+                                             sample_size_control = 1,
+                                             sample_size_treatment = sample_size_control) {
   event_probability <- function(parameter, delay = 0, late_log_hr = 0) {
     time_to_event_event_probability(
       parameter = parameter,
@@ -157,7 +162,9 @@ time_to_event_standard_deviation <- function(control_parameter,
   } else {
     event_probability(treatment_parameter)
   }
-  sqrt(1 / event_probability(control_parameter) + 1 / treatment_events)
+  n <- effective_arm_size(sample_size_control, sample_size_treatment)
+  sqrt((n / sample_size_control) / event_probability(control_parameter) +
+         (n / sample_size_treatment) / treatment_events)
 }
 
 
@@ -169,7 +176,9 @@ time_to_event_standard_deviation <- function(control_parameter,
 #'   same arm parameters and censoring as the data generator.
 #'
 #' @param case_study_config A time-to-event case study configuration.
-#' @param sample_size_per_arm Number of patients in each arm.
+#' @param sample_size_control Number of patients in the control arm.
+#' @param sample_size_treatment Number of patients in the treatment arm.
+#'   Defaults to `sample_size_control`.
 #' @param control_drift Control-arm heterogeneity, kappa, on the log scale.
 #' @param dropout_probability Probability of loss to follow-up over the
 #'   maximum follow-up time.
@@ -183,7 +192,8 @@ time_to_event_standard_deviation <- function(control_parameter,
 #'
 #' @keywords internal
 time_to_event_expected_events <- function(case_study_config,
-                                          sample_size_per_arm,
+                                          sample_size_control,
+                                          sample_size_treatment = sample_size_control,
                                           control_drift = 0,
                                           dropout_probability = 0,
                                           event_time_distribution = "exponential",
@@ -226,8 +236,8 @@ time_to_event_expected_events <- function(case_study_config,
     dropout_rate = dropout_rate
   )
 
-  events <- function(parameter, delay = 0) {
-    sample_size_per_arm * time_to_event_event_probability(
+  events <- function(sample_size, parameter, delay = 0) {
+    sample_size * time_to_event_event_probability(
       parameter = parameter,
       event_time_distribution = event_time_distribution,
       weibull_shape = target$weibull_shape,
@@ -241,11 +251,11 @@ time_to_event_expected_events <- function(case_study_config,
   }
 
   c(
-    control = events(parameters$control),
+    control = events(sample_size_control, parameters$control),
     treatment = if (treatment_delay > 0) {
-      events(parameters$control, treatment_delay)
+      events(sample_size_treatment, parameters$control, treatment_delay)
     } else {
-      events(parameters$treatment)
+      events(sample_size_treatment, parameters$treatment)
     }
   )
 }
@@ -621,7 +631,8 @@ fit_two_sample_cox <- function(time,
 # Returns the data frame of summary measures that TimeToEventTargetData$generate()
 # hands to the borrowing methods.
 simulate_time_to_event_trial <- function(n_replicates,
-                                         sample_size_per_arm,
+                                         sample_size_control,
+                                         sample_size_treatment = sample_size_control,
                                          control_parameter,
                                          treatment_parameter,
                                          event_time_distribution,
@@ -632,8 +643,8 @@ simulate_time_to_event_trial <- function(n_replicates,
                                          dropout_rate,
                                          treatment_delay = 0,
                                          late_log_hr = 0) {
-  n_observations <- 2L * as.integer(sample_size_per_arm)
-  arm <- rep(c(0, 1), each = sample_size_per_arm)
+  n_observations <- as.integer(sample_size_control) + as.integer(sample_size_treatment)
+  arm <- rep(c(0, 1), times = c(sample_size_control, sample_size_treatment))
 
   chunk_size <- time_to_event_chunk_size(n_replicates, n_observations)
   starts <- seq(1L, as.integer(n_replicates), by = chunk_size)
@@ -645,7 +656,7 @@ simulate_time_to_event_trial <- function(n_replicates,
     size <- min(chunk_size, as.integer(n_replicates) - start + 1L)
 
     control <- sample_time_to_event_arm(
-      n_subjects = sample_size_per_arm,
+      n_subjects = sample_size_control,
       n_replicates = size,
       parameter = control_parameter,
       event_time_distribution = event_time_distribution,
@@ -658,7 +669,7 @@ simulate_time_to_event_trial <- function(n_replicates,
     # Under a delayed effect the treatment arm is drawn from the control
     # hazard, multiplied by exp(late_log_hr) once the delay has passed.
     treatment <- sample_time_to_event_arm(
-      n_subjects = sample_size_per_arm,
+      n_subjects = sample_size_treatment,
       n_replicates = size,
       parameter = if (treatment_delay > 0) control_parameter else treatment_parameter,
       event_time_distribution = event_time_distribution,
@@ -685,7 +696,8 @@ simulate_time_to_event_trial <- function(n_replicates,
   data.frame(
     treatment_effect_estimate = estimate,
     treatment_effect_standard_error = standard_error,
-    sample_size_per_arm = sample_size_per_arm,
-    standard_deviation = standard_error * sqrt(sample_size_per_arm)
+    sample_size_control = sample_size_control,
+    sample_size_treatment = sample_size_treatment,
+    standard_deviation = standard_error * sqrt(effective_arm_size(sample_size_control, sample_size_treatment))
   )
 }

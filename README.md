@@ -69,6 +69,8 @@ success(post)
 
 # Frequentist operating characteristics: type I error and power at fixed true effects
 oc_frequentist(pri, success, n_per_arm = 46, drift = c(-0.48, 0, 0.3), n_rep = 1000)
+# The same, for arms of different sizes
+oc_frequentist(pri, success, n_control = 39, n_treatment = 53, drift = 0, n_rep = 1000)
 # Bayesian operating characteristics: averaged over a design prior
 oc_bayesian(pri, success, design_prior("source_posterior"), n_per_arm = 46)
 ```

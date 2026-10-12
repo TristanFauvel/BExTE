@@ -12,7 +12,8 @@ source_data <- SourceData$new(config)
 target_data <- BinaryTargetData$new(
   source_data = source_data,
   sampling_approximation = FALSE,
-  target_sample_size_per_arm = 46,
+  target_sample_size_control = 46,
+  target_sample_size_treatment = 46,
   control_drift = 0,
   treatment_drift = 0,
   summary_measure_likelihood = "normal"
@@ -59,7 +60,8 @@ target_data$generate(n_replicates = 3)
     \preformatted{BinaryTargetData$new(
   source_data,
   sampling_approximation,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment = target_sample_size_control,
   control_drift,
   treatment_drift,
   summary_measure_likelihood
@@ -71,7 +73,9 @@ target_data$generate(n_replicates = 3)
     \describe{
       \item{\code{source_data}}{The source data object.}
       \item{\code{sampling_approximation}}{The sampling approximation flag.}
-      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{target_sample_size_control}}{The target sample size of the control arm.}
+      \item{\code{target_sample_size_treatment}}{The target sample size of the
+treatment arm. Defaults to \code{target_sample_size_control}.}
       \item{\code{control_drift}}{The control drift.}
       \item{\code{treatment_drift}}{The treatment drift.}
       \item{\code{summary_measure_likelihood}}{The summary measure distribution.}

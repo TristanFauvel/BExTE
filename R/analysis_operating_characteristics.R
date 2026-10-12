@@ -93,8 +93,8 @@ simulate_test_p_values <- function(target_data,
 #' @param n_replicates Number of trials to simulate.
 #'
 #' @return A data frame with `treatment_effect_estimate`,
-#'   `standard_deviation` and `sample_size_per_arm`, one row per estimable
-#'   trial.
+#'   `standard_deviation`, `sample_size_control` and `sample_size_treatment`,
+#'   one row per estimable trial.
 #' @noRd
 simulated_trials <- function(target_data, simulation_config, n_replicates) {
   set.seed(simulation_config$seed)
@@ -103,7 +103,8 @@ simulated_trials <- function(target_data, simulation_config, n_replicates) {
   data.frame(
     treatment_effect_estimate = samples$treatment_effect_estimate,
     standard_deviation = samples$standard_deviation,
-    sample_size_per_arm = samples$sample_size_per_arm
+    sample_size_control = samples$sample_size_control,
+    sample_size_treatment = samples$sample_size_treatment
   )
 }
 
@@ -120,7 +121,7 @@ trial_p_values <- function(trials, theta_0, alternative) {
     estimate = trials$treatment_effect_estimate,
     mu = theta_0,
     standard_deviation = trials$standard_deviation,
-    n = trials$sample_size_per_arm,
+    n = target_effective_arm_size(trials),
     alternative = alternative
   )
 }
@@ -193,7 +194,7 @@ analytical_power <- function(alpha, target_data, frequentist_test, theta_0, alte
     if (frequentist_test == "t-test") {
       pwr::pwr.t.test(
         d = effect_size,
-        n = target_data$sample_size_per_arm,
+        n = target_effective_arm_size(target_data),
         sig.level = alpha,
         type = "one.sample",
         alternative = alternative
@@ -201,7 +202,7 @@ analytical_power <- function(alpha, target_data, frequentist_test, theta_0, alte
     } else if (frequentist_test == "z-test") {
       pwr::pwr.norm.test(
         d = effect_size,
-        n = target_data$sample_size_per_arm,
+        n = target_effective_arm_size(target_data),
         sig.level = alpha,
         alternative = alternative
       )$power
@@ -213,8 +214,8 @@ analytical_power <- function(alpha, target_data, frequentist_test, theta_0, alte
 
     pwr::pwr.2p2n.test(
       h = h,
-      n1 = target_data$sample_size_per_arm,
-      n2 = target_data$sample_size_per_arm,
+      n1 = target_data$sample_size_treatment,
+      n2 = target_data$sample_size_control,
       sig.level = alpha,
       alternative = alternative
     )$power
@@ -239,7 +240,8 @@ analytical_power <- function(alpha, target_data, frequentist_test, theta_0, alte
 assert_target_data_numbers <- function(target_data) {
   assert_single_number(target_data$treatment_effect)
   assert_single_number(target_data$standard_deviation)
-  assert_single_number(target_data$sample_size_per_arm)
+  assert_single_number(target_data$sample_size_control)
+  assert_single_number(target_data$sample_size_treatment)
 
   invisible(NULL)
 }
@@ -437,13 +439,13 @@ compute_freq_power_pooling <- function(alpha,
 
   assert_single_number(target_data$treatment_effect)
   assert_single_number(target_data$standard_deviation)
-  assert_single_number(target_data$sample_size_per_arm)
+  assert_single_number(target_effective_arm_size(target_data))
 
   power <- NA # Default value in case of an unsupported distribution
 
   if (target_data$summary_measure_likelihood == "normal") {
     if (uses_analytical_power(target_data)) {
-      target_treatment_effect_standard_error <- target_data$standard_deviation / sqrt(target_data$sample_size_per_arm)
+      target_treatment_effect_standard_error <- target_data$standard_deviation / sqrt(target_effective_arm_size(target_data))
 
       pooled_treatment_effect <- (
         source_data$treatment_effect_estimate / (
@@ -472,7 +474,7 @@ compute_freq_power_pooling <- function(alpha,
       target_weight <- source_data$standard_error ^ 2 /
         (source_data$standard_error ^ 2 + target_treatment_effect_standard_error ^ 2)
       source_part <- pooled_treatment_effect - target_weight * target_data$treatment_effect
-      pooled_sample_size <- target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
+      pooled_sample_size <- target_effective_arm_size(target_data) + source_data$equivalent_source_sample_size_per_arm
 
       critical <- if (frequentist_test == "t-test") {
         stats::qt(1 - alpha, df = pooled_sample_size - 1)
@@ -508,7 +510,7 @@ compute_freq_power_pooling <- function(alpha,
 
       # Every replicate at once: the arithmetic is elementwise, so each entry
       # is exactly what the former per-replicate loop computed.
-      target_treatment_effect_standard_error <- target_data_samples$standard_deviation / sqrt(target_data_samples$sample_size_per_arm)
+      target_treatment_effect_standard_error <- target_data_samples$standard_deviation / sqrt(target_effective_arm_size(target_data_samples))
 
       pooled_treatment_effect <- (
         source_data$treatment_effect_estimate / (
@@ -525,7 +527,7 @@ compute_freq_power_pooling <- function(alpha,
       pooled_standard_error_2 <- 1 / (1 / source_data$standard_error ^ 2 + 1 / target_treatment_effect_standard_error ^
                                         2)
 
-      pooled_sample_size <- target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
+      pooled_sample_size <- target_effective_arm_size(target_data) + source_data$equivalent_source_sample_size_per_arm
 
       pooled_variance <- pooled_standard_error_2 * pooled_sample_size
 
@@ -1204,7 +1206,7 @@ nominal_tie_power_row <- function(row,
 #' @noRd
 NOMINAL_TIE_DESIGN_COLUMNS <- c(
   "case_study", "theta_0", "null_space",
-  "target_sample_size_per_arm", "target_treatment_effect",
+  "target_sample_size_control", "target_sample_size_treatment", "target_treatment_effect",
   "target_standard_deviation", "target_to_source_std_ratio",
   "target_treatment_rate", "target_control_rate",
   "drift", "treatment_drift", "control_drift",
@@ -1423,15 +1425,17 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
 #' @return The power.
 #' @keywords internal
 pooled_binomial_power <- function(alpha, target_data, source_data, alternative) {
-  n <- as.integer(target_data$sample_size_per_arm)
+  n_treatment <- as.integer(target_data$sample_size_treatment)
+  n_control <- as.integer(target_data$sample_size_control)
   source_treatment <- counts_from_rate(source_data$treatment_rate, source_data$sample_size_treatment)
   source_control <- counts_from_rate(source_data$control_rate, source_data$sample_size_control)
-  pooled_treatment_size <- n + source_data$sample_size_treatment
-  pooled_control_size <- n + source_data$sample_size_control
+  pooled_treatment_size <- n_treatment + source_data$sample_size_treatment
+  pooled_control_size <- n_control + source_data$sample_size_control
 
-  target_counts <- 0:n
-  rate_treatment <- (source_treatment + target_counts) / pooled_treatment_size
-  rate_control <- (source_control + target_counts) / pooled_control_size
+  target_treatment_counts <- 0:n_treatment
+  target_control_counts <- 0:n_control
+  rate_treatment <- (source_treatment + target_treatment_counts) / pooled_treatment_size
+  rate_control <- (source_control + target_control_counts) / pooled_control_size
 
   # Rows are the treatment responders, columns the control responders.
   statistic <- outer(2 * asin(sqrt(rate_treatment)), 2 * asin(sqrt(rate_control)), "-") /
@@ -1440,8 +1444,8 @@ pooled_binomial_power <- function(alpha, target_data, source_data, alternative) 
   reject <- if (alternative == "greater") statistic > critical else statistic < -critical
 
   probability <- outer(
-    stats::dbinom(target_counts, n, target_data$treatment_rate),
-    stats::dbinom(target_counts, n, target_data$control_rate)
+    stats::dbinom(target_treatment_counts, n_treatment, target_data$treatment_rate),
+    stats::dbinom(target_control_counts, n_control, target_data$control_rate)
   )
   sum(probability[reject])
 }
@@ -1481,7 +1485,7 @@ SCENARIO_MATCHING_COLUMNS <- c(
   "source_denominator_change_factor",
   "case_study",
   "target_to_source_std_ratio",
-  "target_sample_size_per_arm",
+  "target_sample_size_control", "target_sample_size_treatment",
   "theta_0",
   "null_space",
   "sampling_approximation",

@@ -3,7 +3,8 @@
 #'
 #' @param results_metrics_df A data frame containing the results and metrics.
 #' @param case_study Character string specifying the case study.
-#' @param target_sample_size_per_arm The target sample size per arm.
+#' @param target_sample_size_control,target_sample_size_treatment The target
+#'   arm sizes.
 #' @param source_denominator_change_factor The source denominator change factor of the scenario to keep.
 #' @param target_to_source_std_ratio Ratio between the target and source studies sampling standard deviation.
 #' @return This function doesn't return a value but saves the generated tables as HTML, PDF, and LaTeX files.
@@ -11,7 +12,8 @@
 #' @keywords internal
 table_bayesian_metrics <- function(results_metrics_df,
                                                   case_study,
-                                                  target_sample_size_per_arm,
+                                                  target_sample_size_control,
+                                                  target_sample_size_treatment,
                                                   source_denominator_change_factor = 1,
                                                   target_to_source_std_ratio = 1) {
   check_table_packages()
@@ -19,7 +21,8 @@ table_bayesian_metrics <- function(results_metrics_df,
   results_df <- results_metrics_df %>%
     dplyr::filter(
       case_study == !!case_study,
-      target_sample_size_per_arm == !!target_sample_size_per_arm,
+      target_sample_size_control == !!target_sample_size_control,
+      target_sample_size_treatment == !!target_sample_size_treatment,
       source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
       target_to_source_std_ratio == !!target_to_source_std_ratio |
@@ -38,7 +41,7 @@ table_bayesian_metrics <- function(results_metrics_df,
 
   results_df$Method <- format_results_df_parameters(results_df)
 
-  results_df <- results_df %>% select(-c("case_study", "method", "parameters", "target_sample_size_per_arm", "source_denominator_change_factor", "target_to_source_std_ratio", "source_treatment_effect_estimate", "source_standard_error", "endpoint", "summary_measure_likelihood", "source_sample_size_control", "source_sample_size_treatment", "equivalent_source_sample_size_per_arm"))
+  results_df <- results_df %>% select(-c("case_study", "method", "parameters", "target_sample_size_control", "target_sample_size_treatment", "source_denominator_change_factor", "target_to_source_std_ratio", "source_treatment_effect_estimate", "source_standard_error", "endpoint", "summary_measure_likelihood", "source_sample_size_control", "source_sample_size_treatment", "equivalent_source_sample_size_per_arm"))
 
   for (i in seq_along(bayesian_metrics)) {
     metric_name <- bayesian_metrics[[i]]$name
@@ -72,17 +75,16 @@ table_bayesian_metrics <- function(results_metrics_df,
     }
 
     filename <- paste0(
-      metric_name, "_", case_study,
-      "_target_sample_size_per_arm_",
-      target_sample_size_per_arm
+      metric_name, "_", case_study, "_",
+      target_size_label(target_sample_size_control, target_sample_size_treatment, "file")
     )
 
 
     title <- sprintf(
-        "%s, %s, $N_T/2 = %s$",
+        "%s, %s, %s",
         bayesian_metrics[[i]]$label,
         stringr::str_to_title(case_study),
-        target_sample_size_per_arm
+        target_size_label(target_sample_size_control, target_sample_size_treatment, "latex")
       )
 
     title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor, as_latex = TRUE)
@@ -128,19 +130,22 @@ table_bayesian_metrics_sample_sizes_comparison <- function(results_metrics_df,
 
     # Select the metric of interest
     results_df <- results_df[results_df$design_prior_type == "Analysis prior",]
-    data_table <- results_df %>% select(c("Method", metric_name, "target_sample_size_per_arm"))
+    data_table <- results_df %>% select(c("Method", metric_name, target_size_columns))
     data_table <- data_table[!is.na(data_table[,metric_name]), ]
+
+    # One column per target design, smallest first
+    data_table <- data_table %>%
+      dplyr::arrange(target_sample_size_control + target_sample_size_treatment,
+                     target_sample_size_control) %>%
+      dplyr::mutate(target_size = target_size_label(target_sample_size_control,
+                                                    target_sample_size_treatment, "latex")) %>%
+      select(-dplyr::all_of(target_size_columns))
 
     # Convert to wide format
     wide_data_table <- data_table %>%
       pivot_wider(
-        names_from = target_sample_size_per_arm, # Columns become values of `target_sample_size_per_arm`
-        values_from = metric_name               # Values filled from `metric_name`
-      )
-
-    wide_data_table <- wide_data_table %>%
-      rename_with(
-        ~ ifelse(grepl("^[0-9]+$", .), paste0("$N_T/2 = ", ., "$"), .)
+        names_from = target_size, # Columns become the target designs
+        values_from = metric_name  # Values filled from `metric_name`
       )
 
     wide_data_table_filtered <- wide_data_table %>%
@@ -297,7 +302,7 @@ table_bayesian_ocs <- function(results_metrics_df, metrics, source_denominator_c
     results_df <- results_metrics_df %>%
       dplyr::filter(case_study == !!case_study)
 
-    target_sample_sizes_per_arm <- unique(results_df$target_sample_size_per_arm[results_df$case_study == case_study])
+    target_sample_sizes <- unique(results_df[, target_size_columns, drop = FALSE])
 
     for (source_denominator_change_factor in unique(results_df$source_denominator_change_factor)) {
       for (target_to_source_std_ratio in unique(results_df$target_to_source_std_ratio)) {
@@ -308,12 +313,13 @@ table_bayesian_ocs <- function(results_metrics_df, metrics, source_denominator_c
           target_to_source_std_ratio = target_to_source_std_ratio
         )
 
-        for (sample_size_per_arm in target_sample_sizes_per_arm) {
+        for (size_index in seq_len(nrow(target_sample_sizes))) {
 
          table_bayesian_metrics(
                   results_metrics_df = results_df,
                   case_study = case_study,
-                  target_sample_size_per_arm = sample_size_per_arm,
+                  target_sample_size_control = target_sample_sizes$target_sample_size_control[size_index],
+                  target_sample_size_treatment = target_sample_sizes$target_sample_size_treatment[size_index],
                   source_denominator_change_factor = source_denominator_change_factor,
                   target_to_source_std_ratio = target_to_source_std_ratio
                 )

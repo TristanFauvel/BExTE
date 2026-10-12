@@ -12,7 +12,8 @@ plot_metric_vs_drift(
   method,
   category,
   control_drift,
-  target_sample_size_per_arm,
+  target_sample_size_control,
+  target_sample_size_treatment,
   parameters_combinations,
   xvars,
   add_baselines = FALSE,
@@ -34,14 +35,16 @@ plot_metric_vs_drift(
 \item{method}{The method name}
 
 \item{category}{The category to group the results by: "parameters",
-"target_sample_size_per_arm", "source_denominator_change_factor",
+"target_sample_size", "source_denominator_change_factor",
 "target_to_source_std_ratio", or one of the time-to-event design axes
 "control_drift", "dropout_probability" and "event_time_distribution",
 which hold the other two axes at their primary value.}
 
 \item{control_drift}{Logical indicating whether to filter results by control drift (TRUE) or treatment drift (FALSE)}
 
-\item{target_sample_size_per_arm}{The target sample size per arm}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes of the scenario to keep. Unused, and may be NULL, when the
+category is "target_sample_size".}
 
 \item{parameters_combinations}{The combinations of parameters to filter the results by}
 

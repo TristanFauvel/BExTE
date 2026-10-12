@@ -39,7 +39,8 @@ source_data <- ObservedSourceData$new(case_study_config)
 target_data <- ObservedTargetData$new(
   treatment_effect_estimate = case_study_config$target$treatment_effect,
   treatment_effect_standard_error = case_study_config$target$standard_error,
-  target_sample_size_per_arm = as.integer(case_study_config$target$total / 2),
+  target_sample_size_control = case_study_config$target$control,
+  target_sample_size_treatment = case_study_config$target$treatment,
   summary_measure_likelihood = case_study_config$summary_measure_likelihood
 )
 model <- Model$new()$create(

@@ -196,8 +196,6 @@ ObservedArmTargetData <- R6::R6Class(
   inherit = ObservedTargetData,
   public = list(
     endpoint = "binary",
-    sample_size_control = NULL,
-    sample_size_treatment = NULL,
     control_rate = NULL,
 
     initialize = function(n_control, n_treatment, responses_control,
@@ -216,28 +214,16 @@ ObservedArmTargetData <- R6::R6Class(
       super$initialize(
         treatment_effect_estimate = estimate,
         treatment_effect_standard_error = se,
-        target_sample_size_per_arm = harmonic_arm_size(n_control, n_treatment),
+        target_sample_size_control = n_control,
+        target_sample_size_treatment = n_treatment,
         summary_measure_likelihood = summary_measure_likelihood
       )
-      self$sample_size_control <- n_control
-      self$sample_size_treatment <- n_treatment
       self$control_rate <- control_rate
       self$sample$sample_control_rate <- control_rate
       self$sample$sample_treatment_rate <- treatment_rate
     }
   )
 )
-
-
-#' Equivalent sample size per arm of a two-arm study
-#'
-#' @description The per-arm size of a balanced study with the same variance,
-#'   as `ObservedSourceData` uses.
-#' @keywords internal
-#' @noRd
-harmonic_arm_size <- function(n_control, n_treatment) {
-  2 * n_control * n_treatment / (n_control + n_treatment)
-}
 
 
 #' The R6 target data object for a model
@@ -265,7 +251,8 @@ api_target_r6 <- function(target, source) {
   ObservedTargetData$new(
     treatment_effect_estimate = target$estimate,
     treatment_effect_standard_error = target$se,
-    target_sample_size_per_arm = harmonic_arm_size(target$n_control, target$n_treatment),
+    target_sample_size_control = target$n_control,
+    target_sample_size_treatment = target$n_treatment,
     summary_measure_likelihood = likelihood
   )
 }
@@ -279,7 +266,7 @@ api_target_r6 <- function(target, source) {
 #'   the simulation pipeline does.
 #'
 #' @param source A `bexte_source`.
-#' @param n_per_arm Target sample size per arm.
+#' @param n_control,n_treatment Target arm sizes.
 #' @param drift Treatment drift from the source effect.
 #' @param control_drift Control drift from the source control rate.
 #' @param target_to_source_std_ratio Ratio of the target to the source
@@ -287,12 +274,14 @@ api_target_r6 <- function(target, source) {
 #' @return A `TargetData` object.
 #' @keywords internal
 #' @noRd
-api_design_target <- function(source, n_per_arm, drift = 0, control_drift = 0,
+api_design_target <- function(source, n_control, n_treatment = n_control,
+                              drift = 0, control_drift = 0,
                               target_to_source_std_ratio = 1) {
   TargetDataFactory$new()$create(
     source_data = source$data,
     case_study_config = source$config,
-    target_sample_size_per_arm = n_per_arm,
+    target_sample_size_control = n_control,
+    target_sample_size_treatment = n_treatment,
     control_drift = control_drift,
     treatment_drift = drift,
     summary_measure_likelihood = source$config$summary_measure_likelihood,

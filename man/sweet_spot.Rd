@@ -8,7 +8,8 @@ sweet_spot(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie = NULL)
 }
 \arguments{
 \item{results_freq_df}{A dataframe containing the results frequency data with columns
-"case_study", "method", "source_denominator_change_factor", "control_drift", and "target_sample_size_per_arm".}
+"case_study", "method", "source_denominator_change_factor", "control_drift",
+"target_sample_size_control" and "target_sample_size_treatment".}
 
 \item{metrics}{A list of metrics to evaluate. Each metric should have a \code{name} attribute.}
 

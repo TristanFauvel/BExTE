@@ -5,7 +5,8 @@ observed_belimumab <- function() {
   target_data <- ObservedTargetData$new(
     treatment_effect_estimate = config$target$treatment_effect,
     treatment_effect_standard_error = config$target$standard_error,
-    target_sample_size_per_arm = as.integer(config$target$total / 2),
+    target_sample_size_control = as.integer(config$target$total / 2),
+    target_sample_size_treatment = as.integer(config$target$total / 2),
     summary_measure_likelihood = config$summary_measure_likelihood
   )
   list(config = config, target_data = target_data)
@@ -19,7 +20,7 @@ test_that("observed target data carries the per-patient standard deviation", {
   # estimate times the square root of the sample size per arm.
   expect_equal(
     observed$sample$standard_deviation,
-    observed$sample$treatment_effect_standard_error * sqrt(observed$sample_size_per_arm)
+    observed$sample$treatment_effect_standard_error * sqrt(target_effective_arm_size(observed))
   )
 })
 

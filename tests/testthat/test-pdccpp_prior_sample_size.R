@@ -61,7 +61,8 @@ test_that("the calibration describes the posterior the model actually forms", {
   target_data <- ObservedTargetData$new(
     treatment_effect_estimate = 0.30,
     treatment_effect_standard_error = d$se_target,
-    target_sample_size_per_arm = d$n1,
+    target_sample_size_control = d$n1,
+    target_sample_size_treatment = d$n1,
     summary_measure_likelihood = "normal"
   )
   gamma <- model$power_parameter_estimation(target_data)

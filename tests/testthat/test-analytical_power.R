@@ -10,7 +10,8 @@ normal_target <- list(
   endpoint = "continuous",
   treatment_effect = 0.4,
   standard_deviation = 1.1,
-  sample_size_per_arm = 60
+  sample_size_control = 60,
+  sample_size_treatment = 60
 )
 
 binomial_target <- list(
@@ -18,7 +19,8 @@ binomial_target <- list(
   endpoint = "binary",
   treatment_rate = 0.55,
   control_rate = 0.4,
-  sample_size_per_arm = 80
+  sample_size_control = 80,
+  sample_size_treatment = 80
 )
 
 alphas <- seq(0.005, 0.15, length.out = 50)

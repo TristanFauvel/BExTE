@@ -27,12 +27,14 @@ make_target_data <- function(treatment_effect_estimate,
     endpoint = "time_to_event",
     treatment_effect = treatment_effect_estimate,
     standard_deviation = standard_deviation,
-    sample_size_per_arm = sample_size_per_arm,
+    sample_size_control = sample_size_per_arm,
+    sample_size_treatment = sample_size_per_arm,
     generate = function(n_replicates) {
       data.frame(
         treatment_effect_estimate = rep(treatment_effect_estimate, n_replicates),
         treatment_effect_standard_error = rep(standard_error, n_replicates),
-        sample_size_per_arm = rep(sample_size_per_arm, n_replicates),
+        sample_size_control = rep(sample_size_per_arm, n_replicates),
+        sample_size_treatment = rep(sample_size_per_arm, n_replicates),
         standard_deviation = rep(standard_deviation, n_replicates)
       )
     }

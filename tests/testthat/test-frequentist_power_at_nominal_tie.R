@@ -12,7 +12,8 @@ mock_load_data <- function(results_row, type, reload_data_objects = FALSE) {
     type = type,
     treatment_effect = 0.5,
     standard_deviation = 1,
-    sample_size_per_arm = 30
+    sample_size_control = 30,
+    sample_size_treatment = 30
   )
 }
 

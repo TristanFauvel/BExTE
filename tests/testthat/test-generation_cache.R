@@ -9,7 +9,7 @@ generation_cache_target_data <- function(treatment_drift = 0.1) {
   config <- yaml::read_yaml(system.file("conf/case_studies/mepolizumab.yml", package = "BExTE"))
   source_data <- SourceData$new(config, 1)
   TargetDataFactory$new()$create(
-    source_data = source_data, case_study_config = config, target_sample_size_per_arm = 30L,
+    source_data = source_data, case_study_config = config, target_sample_size_control = 30L, target_sample_size_treatment = 30L,
     control_drift = 0, treatment_drift = treatment_drift, summary_measure_likelihood = "normal",
     target_to_source_std_ratio = 1, dropout_probability = 0,
     event_time_distribution = "exponential", treatment_delay = 0

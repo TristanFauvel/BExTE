@@ -45,7 +45,7 @@ post
 quantile(post, c(0.025, 0.5, 0.975))
 ```
 
-**4. Measure the borrowing and decide.** `ess()` gives the effective sample size of the prior, in target patients per arm. `decision()` defines when the trial succeeds.
+**4. Measure the borrowing and decide.** `ess()` gives the effective sample size of the prior, in target patients per arm. When the arms differ in size, this means patients per arm of a balanced study with the same precision. `decision()` defines when the trial succeeds.
 
 ```{r}
 ess(post)

@@ -69,7 +69,6 @@ ess_noninformative_prior <- function() {
 ess_target_data <- function() {
   list(
     summary_measure_likelihood = "binomial",
-    sample_size_per_arm = 40,
     sample_size_control = 40,
     sample_size_treatment = 40,
     sample = list(
@@ -238,14 +237,14 @@ test_that("the replicate loop reports the exact ESS for a conjugate binomial mod
   samples <- data.frame(
     sample_control_rate = c(0.25, 0.5),
     sample_treatment_rate = c(0.625, 0.75),
-    sample_size_per_arm = c(40, 40),
+    sample_size_control = c(40, 40),
+    sample_size_treatment = c(40, 40),
     treatment_effect_estimate = c(0.375, 0.25),
     treatment_effect_standard_error = c(0.1, 0.1),
     standard_deviation = c(0.5, 0.6)
   )
   target_data <- list(
     summary_measure_likelihood = "binomial",
-    sample_size_per_arm = 40,
     sample_size_control = 40,
     sample_size_treatment = 40,
     sample = NULL,

@@ -25,7 +25,6 @@ mixture_prior_fixture <- function() {
 mixture_target_data <- function() {
   list(
     summary_measure_likelihood = "binomial",
-    sample_size_per_arm = 40,
     sample_size_control = 40,
     sample_size_treatment = 40,
     sample = list(

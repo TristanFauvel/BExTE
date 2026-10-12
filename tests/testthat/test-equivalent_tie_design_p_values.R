@@ -35,7 +35,8 @@ simulated_design_results <- function() {
     source_denominator_change_factor = 1,
     case_study = "example",
     target_to_source_std_ratio = 1,
-    target_sample_size_per_arm = 30,
+    target_sample_size_control = 30,
+    target_sample_size_treatment = 30,
     theta_0 = 0,
     null_space = "left",
     sampling_approximation = TRUE,
@@ -64,7 +65,8 @@ counting_load_data <- function(counter) {
       ))
     }
     list(
-      sample_size_per_arm = 30,
+      sample_size_control = 30,
+      sample_size_treatment = 30,
       treatment_effect = results_row$target_treatment_effect,
       standard_deviation = 1,
       summary_measure_likelihood = "normal",
@@ -74,7 +76,8 @@ counting_load_data <- function(counter) {
         data.frame(
           treatment_effect_estimate = rnorm(n_replicates, results_row$target_treatment_effect, 1 / sqrt(30)),
           standard_deviation = 1,
-          sample_size_per_arm = 30
+          sample_size_control = 30,
+          sample_size_treatment = 30
         )
       }
     )

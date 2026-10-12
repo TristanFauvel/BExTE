@@ -82,7 +82,8 @@ degenerate_target_data <- function(sample_size_per_arm = 45) {
   RecurrentEventTargetData$new(
     source_data = source_data,
     sampling_approximation = FALSE,
-    target_sample_size_per_arm = sample_size_per_arm,
+    target_sample_size_control = sample_size_per_arm,
+    target_sample_size_treatment = sample_size_per_arm,
     control_drift = 0,
     ## Drives the treatment rate down to about 0.02 events, so a whole arm of
     ## zeros is the common case rather than a rare one.

@@ -31,7 +31,7 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
     stop("The function was designed for a single parameters combination.")
   }
 
-  # Filter the data frame based on method, case_study, and target_sample_size_per_arm
+  # Filter the data frame based on method and case_study
   results_metrics_df <- results_metrics_df %>%
     dplyr::filter(
       method == !!method,
@@ -103,7 +103,10 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       ymax = conf_int_upper,
       parameters = filter_results_metrics_df$parameters,
       method = method,
-      target_sample_size_per_arm = factor(filter_results_metrics_df$target_sample_size_per_arm)
+      target_sample_size = factor(target_size_label(
+        filter_results_metrics_df$target_sample_size_control,
+        filter_results_metrics_df$target_sample_size_treatment
+      ))
     )
 
     # Combine all plot data
@@ -143,8 +146,8 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
         y = y,
         ymin = ymin,
         ymax = ymax,
-        color = target_sample_size_per_arm,
-        group = target_sample_size_per_arm
+        color = target_sample_size,
+        group = target_sample_size
       ),
       position = ggplot2::position_dodge(width = cap_size / 2),
       width = cap_size
@@ -154,13 +157,13 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
         ggplot2::aes(
           x = drift,
           y = y,
-          color = target_sample_size_per_arm,
-          group = target_sample_size_per_arm
+          color = target_sample_size,
+          group = target_sample_size
         ),
         position = ggplot2::position_dodge(width = cap_size / 2),
         size = markersize,
       ) +
-      ggplot2::labs(color = latex2exp::TeX("$N_T/2$"), group = latex2exp::TeX("$N_T/2$")) +
+      ggplot2::labs(color = "Target sample size", group = "Target sample size") +
       ggplot2::scale_color_viridis_d() + # Apply the viridis color map for discrete data
       ggplot2::ggtitle(plot_title)
 
@@ -188,7 +191,7 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
       empirical_bayes_hyperparameters[[method]][[key]]$parameter_label,
       "_vs_",
       xvar$name,
-      "_cat_target_sample_size_per_arm"
+      "_cat_target_sample_size"
     ), parameters_str)
 
     figure_name <- format_filename(filename = figure_name, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)

@@ -9,7 +9,8 @@ table_metric_vs_parameters(
   metric,
   case_study = "belimumab",
   method = "RMP",
-  target_sample_size_per_arm = 93,
+  target_sample_size_control,
+  target_sample_size_treatment,
   theta_0 = NULL,
   source_denominator_change_factor = 1,
   target_to_source_std_ratio = 1
@@ -24,7 +25,8 @@ table_metric_vs_parameters(
 
 \item{method}{The method being used}
 
-\item{target_sample_size_per_arm}{The target sample size per arm}
+\item{target_sample_size_control, target_sample_size_treatment}{The target
+arm sizes}
 
 \item{theta_0}{The null hypothesis value}
 

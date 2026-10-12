@@ -75,7 +75,7 @@ test_that("target data is validated once per row, not once per sampled alpha", {
 })
 
 test_that("assert_target_data_numbers still rejects malformed target data", {
-  good <- list(treatment_effect = 0.3, standard_deviation = 1.1, sample_size_per_arm = 50)
+  good <- list(treatment_effect = 0.3, standard_deviation = 1.1, sample_size_control = 50, sample_size_treatment = 50)
   expect_silent(assert_target_data_numbers(good))
 
   expect_error(assert_target_data_numbers(utils::modifyList(good, list(treatment_effect = "a"))))
@@ -123,7 +123,8 @@ test_that("both branches of the nominal-TIE step compute a row the same way", {
 test_that("nominal_tie_power_row returns the six baseline columns and the reference's calibration", {
   mock_load_data <- function(results_row, type, reload_data_objects = FALSE) {
     list(type = type, treatment_effect = 0.5, standard_deviation = 1,
-         sample_size_per_arm = 30)
+         sample_size_control = 30,
+         sample_size_treatment = 30)
   }
 
   with_mocked_bindings(

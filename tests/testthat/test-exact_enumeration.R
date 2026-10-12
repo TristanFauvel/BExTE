@@ -6,7 +6,8 @@ exact_target_data <- function(case_study, n, treatment_drift = 0) {
   TargetDataFactory$new()$create(
     source_data = source_data,
     case_study_config = case_study_config,
-    target_sample_size_per_arm = n,
+    target_sample_size_control = n,
+    target_sample_size_treatment = n,
     control_drift = 0,
     treatment_drift = treatment_drift,
     summary_measure_likelihood = case_study_config$summary_measure_likelihood

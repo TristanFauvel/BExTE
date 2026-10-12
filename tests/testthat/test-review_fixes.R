@@ -129,11 +129,12 @@ test_that("the analytic pooled power holds the source estimate fixed", {
   source_data$treatment_effect_estimate <- config$theta_0
   target_data <- TargetDataFactory$new()$create(
     source_data = source_data, case_study_config = config,
-    target_sample_size_per_arm = as.integer(source_data$equivalent_source_sample_size_per_arm),
+    target_sample_size_control = as.integer(source_data$equivalent_source_sample_size_per_arm),
+    target_sample_size_treatment = as.integer(source_data$equivalent_source_sample_size_per_arm),
     control_drift = 0, treatment_drift = config$theta_0 - source_data$treatment_effect_estimate,
     summary_measure_likelihood = "normal", target_to_source_std_ratio = 1
   )
-  target_se <- target_data$standard_deviation / sqrt(target_data$sample_size_per_arm)
+  target_se <- target_data$standard_deviation / sqrt(target_effective_arm_size(target_data))
   source_data$standard_error <- target_se
 
   power <- compute_freq_power_pooling(
@@ -150,7 +151,8 @@ test_that("the analytic pooled power agrees with simulating the target estimate"
   source_data <- SourceData$new(config, NA)
   target_data <- TargetDataFactory$new()$create(
     source_data = source_data, case_study_config = config,
-    target_sample_size_per_arm = 58L,
+    target_sample_size_control = 58L,
+    target_sample_size_treatment = 58L,
     control_drift = 0, treatment_drift = -source_data$treatment_effect_estimate / 2,
     summary_measure_likelihood = "normal", target_to_source_std_ratio = 1
   )
@@ -162,7 +164,7 @@ test_that("the analytic pooled power agrees with simulating the target estimate"
     null_space = config$null_space, simulation_config = list()
   )$power
 
-  target_se <- target_data$standard_deviation / sqrt(target_data$sample_size_per_arm)
+  target_se <- target_data$standard_deviation / sqrt(target_effective_arm_size(target_data))
   set.seed(3)
   estimates <- stats::rnorm(200000, target_data$treatment_effect, target_se)
   pooled_se <- sqrt(1 / (1 / source_data$standard_error^2 + 1 / target_se^2))
@@ -183,7 +185,8 @@ test_that("the binomial pooled power sums over the target counts only", {
   source_data <- SourceData$new(config, NA)
   target_data <- TargetDataFactory$new()$create(
     source_data = source_data, case_study_config = config,
-    target_sample_size_per_arm = 71L, control_drift = 0,
+    target_sample_size_control = 71L,
+    target_sample_size_treatment = 71L, control_drift = 0,
     treatment_drift = -source_data$treatment_effect_estimate / 2,
     summary_measure_likelihood = "binomial", target_to_source_std_ratio = 1
   )

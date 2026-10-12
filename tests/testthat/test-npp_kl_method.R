@@ -48,7 +48,8 @@ npp_kl_target_data <- function(fixture, target_sample_size_per_arm = 100L) {
   TargetDataFactory$new()$create(
     source_data = fixture$source_data,
     case_study_config = fixture$case_study_config,
-    target_sample_size_per_arm = target_sample_size_per_arm,
+    target_sample_size_control = target_sample_size_per_arm,
+    target_sample_size_treatment = target_sample_size_per_arm,
     control_drift = 0,
     treatment_drift = 0,
     summary_measure_likelihood = "normal",
@@ -116,7 +117,7 @@ test_that("calibrating the design fixes the prior the calibration returned", {
   ## The expected target standard error is the design's, not a replicate's.
   expect_equal(
     calibration$se_target_expected,
-    target_data$standard_deviation / sqrt(target_data$sample_size_per_arm)
+    target_data$standard_deviation / sqrt(target_effective_arm_size(target_data))
   )
 })
 
@@ -236,7 +237,7 @@ test_that("borrowing falls away as the target moves towards the null", {
 
   theta_source <- fixture$source_data$treatment_effect_estimate
   standard_error <- target_data$standard_deviation /
-    sqrt(target_data$sample_size_per_arm)
+    sqrt(target_effective_arm_size(target_data))
 
   ## One deterministic replicate per target estimate, so the comparison is of
   ## the method rather than of the sampling noise.
@@ -331,8 +332,9 @@ test_that("repeated scalar inference does not accumulate reported columns", {
   observed <- ObservedTargetData$new(
     treatment_effect_estimate = 0.4,
     treatment_effect_standard_error = target_data$standard_deviation /
-      sqrt(target_data$sample_size_per_arm),
-    target_sample_size_per_arm = target_data$sample_size_per_arm,
+      sqrt(target_effective_arm_size(target_data)),
+    target_sample_size_control = target_data$sample_size_control,
+    target_sample_size_treatment = target_data$sample_size_treatment,
     summary_measure_likelihood = "normal"
   )
 
