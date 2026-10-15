@@ -47,7 +47,6 @@ model$credible_interval(0.95)
   \itemize{
     \item \href{#method-GaussianGravestockEBPP-initialize}{\code{GaussianGravestockEBPP$new()}}
     \item \href{#method-GaussianGravestockEBPP-power_parameter_estimation}{\code{GaussianGravestockEBPP$power_parameter_estimation()}}
-    \item \href{#method-GaussianGravestockEBPP-vectorised_power_parameter}{\code{GaussianGravestockEBPP$vectorised_power_parameter()}}
     \item \href{#method-GaussianGravestockEBPP-clone}{\code{GaussianGravestockEBPP$clone()}}
   }
 }
@@ -89,6 +88,7 @@ model$credible_interval(0.95)
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="plot_power_parameter_vs_drift"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-plot_power_parameter_vs_drift'><code>GaussianEmpiricalBayesPP$plot_power_parameter_vs_drift()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="prior_pdf"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-prior_pdf'><code>GaussianEmpiricalBayesPP$prior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-vectorised_posterior_parameters'><code>GaussianEmpiricalBayesPP$vectorised_posterior_parameters()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="vectorised_power_parameter"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-vectorised_power_parameter'><code>GaussianEmpiricalBayesPP$vectorised_power_parameter()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="vectorised_prior_variance"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-vectorised_prior_variance'><code>GaussianEmpiricalBayesPP$vectorised_prior_variance()</code></a></span></li>
 </ul>
 </details>}}
@@ -123,45 +123,23 @@ model$credible_interval(0.95)
   Estimate the power parameter using the Gravestock's EBPP method.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianGravestockEBPP$power_parameter_estimation(target_data)}
+    \preformatted{GaussianGravestockEBPP$power_parameter_estimation(
+  target_data,
+  samples = target_data$sample
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{target_data}}{The target data.}
-      \item{\code{source_treatment_effect_estimate}}{Treatment effect estimate in the source study}
-      \item{\code{target_treatment_effect_estimate}}{Treatment effect estimate in the target study}
+      \item{\code{samples}}{Replicates to estimate the power parameter for; the
+observed target sample by default.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The estimated power parameter.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianGravestockEBPP-vectorised_power_parameter"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianGravestockEBPP-vectorised_power_parameter}{}}}
-\subsection{\code{GaussianGravestockEBPP$vectorised_power_parameter()}}{
-  Estimate the power parameter for every replicate at once.
-
-Same closed form as \code{power_parameter_estimation()}, evaluated on vectors.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianGravestockEBPP$vectorised_power_parameter(target_data, samples)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{target_data}}{The target data.}
-      \item{\code{samples}}{Data frame of generated replicates.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A vector of power parameters.
+    The estimated power parameters, one per replicate.
   }
 }
 

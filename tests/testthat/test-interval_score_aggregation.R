@@ -116,16 +116,3 @@ test_that("a narrower but misplaced interval scores worse despite better precisi
   expect_lt(narrow$coverage, wide$coverage)
   expect_gt(narrow$interval_score, wide$interval_score)
 })
-
-
-test_that("the printable summary reports the score next to the precision", {
-  result <- run_ocs(three_replicates)
-  table <- format_simulation_output_table(result)
-
-  expect_true("Interval Score" %in% table$Metric)
-  expect_equal(
-    as.numeric(table$Value[table$Metric == "Interval Score"]),
-    result$interval_score,
-    tolerance = 1e-3
-  )
-})

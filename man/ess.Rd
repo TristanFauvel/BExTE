@@ -5,14 +5,15 @@
 \alias{ess.bexte_posterior}
 \title{Effective sample size of a prior}
 \usage{
-ess(x, ...)
+ess(mix, ...)
 
-\method{ess}{bexte_posterior}(x, method = c("elir", "moment", "precision"), ...)
+\method{ess}{bexte_posterior}(mix, method = c("elir", "moment", "precision"), ...)
 }
 \arguments{
-\item{x}{A posterior, from \code{\link[=posterior]{posterior()}}. Its prior is evaluated at the
+\item{mix}{A posterior, from \code{\link[=posterior]{posterior()}}. Its prior is evaluated at the
 observed target data, which matters for the methods whose prior depends
-on those data.}
+on those data. The argument has the name \code{mix} because the method is
+also registered on the \code{ess()} generic of RBesT.}
 
 \item{...}{Not used.}
 
@@ -31,6 +32,10 @@ information is worth.
 For most methods, the ESS comes from a mixture fitted to random
 draws from the prior (or the posterior), so it varies a little from one
 call to the next. Call \code{\link[=set.seed]{set.seed()}} first to get the same value again.
+
+RBesT also exports an \code{ess()} generic. The method for BExTE posteriors is
+registered on both generics, so \code{ess(post)} works whichever package was
+attached last.
 }
 \examples{
 src <- source_data(config = system.file("conf/case_studies/belimumab.yml", package = "BExTE"))

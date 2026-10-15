@@ -10,7 +10,8 @@ target_data(
   responses_control = NULL,
   responses_treatment = NULL,
   estimate = NULL,
-  se = NULL
+  se = NULL,
+  config = NULL
 )
 }
 \arguments{
@@ -22,6 +23,11 @@ arm. Binary endpoint only.}
 
 \item{estimate, se}{Treatment effect estimate and its standard error.
 Continuous endpoint only.}
+
+\item{config}{Optional case-study configuration: a path to a YAML file, or a
+list with the same fields. The function reads its \code{target} block. See the
+files in \code{system.file("conf/case_studies", package = "BExTE")}. When given,
+the other arguments are ignored.}
 }
 \value{
 An object of class \code{bexte_target}.
@@ -30,12 +36,17 @@ An object of class \code{bexte_target}.
 Describes the observed target (new) study, whose treatment
 effect \code{\link[=posterior]{posterior()}} estimates. Give either the arm sizes and response
 counts of a binary endpoint, or the treatment effect estimate and its
-standard error. The scale of the effect (log odds ratio or risk
-difference) follows the source data the prior was built from.
+standard error. Or read the same information from the \code{target} block of
+a case-study configuration with \code{config}. The scale of the effect (log
+odds ratio or risk difference) follows the source data the prior was
+built from.
 }
 \examples{
 target_data(n_control = 39, n_treatment = 53,
             responses_control = 17, responses_treatment = 28)
+
+# The same study, read from a shipped case-study configuration.
+target_data(config = system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
 }
 \seealso{
 \code{\link[=source_data]{source_data()}}, \code{\link[=posterior]{posterior()}}.

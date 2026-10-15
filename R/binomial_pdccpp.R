@@ -43,7 +43,7 @@ pdccpp_power_parameter <- function(target_estimate, target_standard_error,
   out <- rep(1, length(difference))
   out[discounted] <- source_standard_error^2 /
     ((difference[discounted] / calibration_parameter)^2 - target_standard_error[discounted]^2)
-  pmin(pmax(out, 0), 1)
+  return(pmin(pmax(out, 0), 1))
 }
 
 
@@ -59,7 +59,7 @@ bexte_cache_dir <- function(subdirectory) {
   root <- Sys.getenv("BEXTE_CACHE_DIR", tools::R_user_dir("BExTE", "cache"))
   directory <- file.path(root, subdirectory)
   dir.create(directory, recursive = TRUE, showWarnings = FALSE)
-  directory
+  return(directory)
 }
 
 
@@ -88,7 +88,7 @@ disk_cached <- function(key, compute, subdirectory = "lattice_kernels") {
   temporary <- tempfile(tmpdir = dirname(path), fileext = ".rds")
   saveRDS(value, temporary, compress = FALSE)
   file.rename(temporary, path)
-  value
+  return(value)
 }
 
 
@@ -139,12 +139,12 @@ pdccpp_binomial_null_table <- function(n_control_source,
     signif(c(control_rate, theta_0, critical_value, tail_mass), 12),
     null_space
   )
-  disk_cached(identity, function() {
+  return(disk_cached(identity, function() {
     treatment_rate <- control_rate + theta_0
     arm_support <- function(n, rate) {
       counts <- seq.int(stats::qbinom(tail_mass / 4, n, rate),
                         stats::qbinom(tail_mass / 4, n, rate, lower.tail = FALSE))
-      list(counts = counts, probabilities = stats::dbinom(counts, n, rate))
+      return(list(counts = counts, probabilities = stats::dbinom(counts, n, rate)))
     }
     control <- arm_support(n_control, control_rate)
     treatment <- arm_support(n_treatment, treatment_rate)
@@ -164,7 +164,7 @@ pdccpp_binomial_null_table <- function(n_control_source,
     benefit <- function(terms, gamma) {
       posterior <- binomial_power_prior_terms_posterior(terms, gamma)
       below <- grid_posterior_cdf(posterior, theta_0)
-      if (identical(null_space, "left")) 1 - below else below
+      if (identical(null_space, "left")) return(1 - below) else return(below)
     }
     gamma_grid <- seq(0, 1, by = 0.05)
     one_pair <- function(index) {
@@ -178,10 +178,10 @@ pdccpp_binomial_null_table <- function(n_control_source,
                        numeric(1))
       changes <- which(diff(excess > 0) != 0)
       crossings <- vapply(changes, function(k) {
-        stats::uniroot(function(gamma) benefit(terms, gamma) - critical_value,
-                       interval = gamma_grid[c(k, k + 1L)], tol = 1e-8)$root
+        return(stats::uniroot(function(gamma) benefit(terms, gamma) - critical_value,
+                       interval = gamma_grid[c(k, k + 1L)], tol = 1e-8)$root)
       }, numeric(1))
-      list(reject_at_zero = excess[1] > 0, crossings = crossings)
+      return(list(reject_at_zero = excess[1] > 0, crossings = crossings))
     }
 
     pairs <- if (workers > 1L) {
@@ -197,8 +197,8 @@ pdccpp_binomial_null_table <- function(n_control_source,
       reject_at_zero = vapply(pairs, `[[`, logical(1), "reject_at_zero"),
       crossings = lapply(pairs, `[[`, "crossings")
     )
-    table
-  }, subdirectory = "pdccpp_binomial")
+    return(table)
+  }, subdirectory = "pdccpp_binomial"))
 }
 
 
@@ -212,13 +212,13 @@ pdccpp_binomial_null_table <- function(n_control_source,
 #' @keywords internal
 pdccpp_binomial_type_I_error <- function(table, calibration_parameter,
                                          source_estimate, source_standard_error) {
-  vapply(calibration_parameter, function(z) {
+  return(vapply(calibration_parameter, function(z) {
     gamma <- pdccpp_power_parameter(table$estimate, table$standard_error,
                                     source_estimate, source_standard_error, z)
     flips <- mapply(function(crossings, g) sum(crossings < g), table$crossings, gamma)
     rejects <- xor(table$reject_at_zero, flips %% 2 == 1)
-    sum(table$weight[rejects])
-  }, numeric(1))
+    return(sum(table$weight[rejects]))
+  }, numeric(1)))
 }
 
 
@@ -281,7 +281,7 @@ pdccpp_binomial_calibrate <- function(table, desired_tie, source_estimate,
     left_edge <- inside
   }
   calibration_parameter <- sqrt(left_edge * right_edge)
-  list(calibration_parameter = calibration_parameter, type_I_error = tie(calibration_parameter))
+  return(list(calibration_parameter = calibration_parameter, type_I_error = tie(calibration_parameter)))
 }
 
 
@@ -294,6 +294,20 @@ pdccpp_binomial_calibrate <- function(table, desired_tie, source_estimate,
 #'   parameter, and the calibration parameter is calibrated on the exact type I
 #'   error of this binomial analysis rather than on the closed form of a normal
 #'   one; see the comment at the top of `R/binomial_pdccpp.R`.
+#'
+#'   The calibration needs the design, which [Model]`$calibrate_for_design()`
+#'   records, and the critical value the analysis decides at, which is only
+#'   known once a replicate is analysed, so it runs at the first replicate.
+#'
+#' @field method Method name.
+#' @field empirical_bayes The prior depends on the target data.
+#' @field empirical_bayes_from_sample The prior is a function of the
+#'   replicate's sample alone.
+#' @field fixed_power_parameter The power parameter changes between replicates.
+#' @field null_space Side of the null hypothesis space.
+#' @field theta_0 Boundary of the null hypothesis space.
+#' @field design The target data of the design calibrated against.
+#' @field calibration The calibration parameter and its exact type I error.
 #' @examples
 #' # Source trial: 154/280 responders on control, 184/293 on treatment.
 #' source_trial <- list(sample_size_control = 280, sample_size_treatment = 293,
@@ -326,20 +340,6 @@ pdccpp_binomial_calibrate <- function(table, desired_tie, source_estimate,
 #' model$posterior_parameters
 #' }
 #' unlink(cache, recursive = TRUE)
-#'
-#'   The calibration needs the design, which [Model]`$calibrate_for_design()`
-#'   records, and the critical value the analysis decides at, which is only
-#'   known once a replicate is analysed, so it runs at the first replicate.
-#'
-#' @field method Method name.
-#' @field empirical_bayes The prior depends on the target data.
-#' @field empirical_bayes_from_sample The prior is a function of the
-#'   replicate's sample alone.
-#' @field fixed_power_parameter The power parameter changes between replicates.
-#' @field null_space Side of the null hypothesis space.
-#' @field theta_0 Boundary of the null hypothesis space.
-#' @field design The target data of the design calibrated against.
-#' @field calibration The calibration parameter and its exact type I error.
 #' @export
 BinomialPDCCPP <- R6::R6Class(
   "BinomialPDCCPP",
@@ -373,6 +373,7 @@ BinomialPDCCPP <- R6::R6Class(
         desired_tie = prior$method_parameters$desired_tie[[1]],
         significance_level = prior$method_parameters$significance_level[[1]]
       )
+      return(invisible(self$parameters))
     },
 
     #' @description Record the design the calibration is computed for.
@@ -385,7 +386,7 @@ BinomialPDCCPP <- R6::R6Class(
         control_rate = target_data$control_rate
       )
       self$calibration <- NULL
-      invisible(NULL)
+      return(invisible(NULL))
     },
 
     #' @description Calibrate, if not done yet for the current design and
@@ -432,7 +433,7 @@ BinomialPDCCPP <- R6::R6Class(
       )
       calibration$critical_value <- critical_value
       self$calibration <- calibration
-      invisible(calibration)
+      return(invisible(calibration))
     },
 
     #' @description Set the power parameter from the replicate's estimates.
@@ -455,7 +456,7 @@ BinomialPDCCPP <- R6::R6Class(
       self$prior_grid <- NULL
       self$prior_pdf_approx <- NULL
       self$prior_cdf_approx <- NULL
-      invisible(NULL)
+      return(invisible(NULL))
     },
 
     #' @description ELIR effective sample size of the current prior,
@@ -470,7 +471,7 @@ BinomialPDCCPP <- R6::R6Class(
         power_parameter = self$power_parameter,
         n_samples = simulation_config$n_samples_mixture_approx
       )
-      unit_information * target_data$sample$standard_deviation^2
+      return(unit_information * target_data$sample$standard_deviation^2)
     }
   )
 )

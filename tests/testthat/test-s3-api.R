@@ -55,6 +55,21 @@ test_that("source_data() from arguments matches the configuration file", {
   expect_equal(from_args$data$standard_error, from_config$data$standard_error)
 })
 
+test_that("target_data() from the configuration file matches the arguments", {
+  expect_equal(target_data(config = belimumab_path()), belimumab_target())
+  expect_equal(target_data(config = yaml::yaml.load_file(belimumab_path())),
+               belimumab_target())
+  botox <- target_data(config = system.file("conf/case_studies/botox.yml", package = "BExTE"))
+  expect_equal(botox, target_data(n_control = 130, n_treatment = 126,
+                                  estimate = 0.1, se = 0.1))
+  expect_error(target_data(config = list(endpoint = "binary")), "no `target` block")
+  expect_error(target_data(config = 1), "path to a YAML file or a list")
+
+  src <- source_data(config = belimumab_path())
+  expect_equal(posterior(rmp(src, weight = 0.5), target_data(config = belimumab_path()))$model$post_mean,
+               posterior(rmp(src, weight = 0.5), belimumab_target())$model$post_mean)
+})
+
 test_that("the binomial likelihood analyses the risk difference", {
   src <- source_data(n_control = 280, n_treatment = 293,
                      responses_control = 154, responses_treatment = 184,
@@ -84,6 +99,17 @@ test_that("ess() matches the R6 methods", {
   simulation_config <- api_simulation_config()
   expect_equal(ess(post), post$model$prior_elir_ess(post$target_r6, simulation_config))
   expect_gt(ess(post, method = "moment"), 0)
+})
+
+test_that("ess() works when RBesT masks it", {
+  # library(RBesT) after library(BExTE) makes ess() call the RBesT generic.
+  post <- posterior(rmp(source_data(config = belimumab_path()), weight = 0.5),
+                    belimumab_target())
+  for (method in c("elir", "moment")) {
+    via_rbest <- withr::with_seed(1, RBesT::ess(post, method = method))
+    via_bexte <- withr::with_seed(1, ess(post, method = method))
+    expect_equal(via_rbest, via_bexte)
+  }
 })
 
 test_that("decision() uses the hypothesis of the source by default", {

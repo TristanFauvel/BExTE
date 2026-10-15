@@ -120,12 +120,12 @@ Model <- R6::R6Class(
       assert_single_number(theta_0)
       sign <- benefit_sign_from_null_space(self$null_space)
 
-      list(
+      return(list(
         source_treatment_effect_estimate =
           sign * (self$prior$source$treatment_effect_estimate - theta_0),
         target_treatment_effect_estimate =
           sign * (target_treatment_effect_estimate - theta_0)
-      )
+      ))
     },
     # Penalty parameter for AIC calculation (default 6)
 
@@ -341,7 +341,7 @@ Model <- R6::R6Class(
     #' @return `NULL`, or a list shaped like the return value of
     #'   `Model$simulation_for_given_treatment_effect()`.
     vectorised_replicate_inference = function(...) {
-      NULL
+      return(NULL)
     },
 
     #' @description Fix any hyperparameter that the scenario's design decides
@@ -356,7 +356,7 @@ Model <- R6::R6Class(
     #' @param target_data Target study data for the scenario.
     #' @return `NULL`, invisibly.
     calibrate_for_design = function(target_data) {
-      invisible(NULL)
+      return(invisible(NULL))
     },
 
     #' @description Scenario identity under which replicate analyses may be shared
@@ -402,7 +402,7 @@ Model <- R6::R6Class(
         return(NULL)
       }
 
-      rlang::hash(inference_cache_identity(list(
+      return(rlang::hash(inference_cache_identity(list(
         model = class(self)[1],
         prior = self$prior,
         summary_measure_likelihood = target_data$summary_measure_likelihood,
@@ -414,7 +414,7 @@ Model <- R6::R6Class(
         null_space = null_space,
         n_samples_quantiles_estimation = n_samples_quantiles_estimation,
         n_samples_mixture_approx = simulation_config$n_samples_mixture_approx
-      )))
+      ))))
     },
 
     #' @description Check the validity of the data
@@ -423,10 +423,11 @@ Model <- R6::R6Class(
     check_data = function(data_list) {
       # Check if any element is numeric(0) or NULL
       if (any(sapply(data_list, function(x) {
-        is.null(x) || length(x) == 0
+        return(is.null(x) || length(x) == 0)
       }))) {
         stop("Error: invalid data, some elements are NULL or numeric(0)")
       }
+      return(invisible(NULL))
     },
 
     #' @description Abstract method to calculate the posterior moments
@@ -475,6 +476,7 @@ Model <- R6::R6Class(
       if (self$empirical_bayes) {
         stop("Not implemented", call. = FALSE)
       }
+      return(invisible(NULL))
     },
 
     #' @description Method to calculate the mean of the posterior distribution
@@ -489,7 +491,7 @@ Model <- R6::R6Class(
         bound <- Inf
         post_mean <- integrate(
           function(theta) {
-            theta * self$posterior_pdf(theta)
+            return(theta * self$posterior_pdf(theta))
           },
           lower = -bound,
           upper = bound,
@@ -514,7 +516,7 @@ Model <- R6::R6Class(
         for (pi in p) {
           root <- stats::uniroot(
             function(theta) {
-              self$posterior_cdf(x = theta) - pi
+              return(self$posterior_cdf(x = theta) - pi)
             },
             interval = c(
               self$post_mean - 10 * sqrt(self$post_var),
@@ -562,7 +564,7 @@ Model <- R6::R6Class(
         )
       } else {
         ci <- HDInterval::inverseCDF(c(lower_quantile, upper_quantile), function(x) {
-          self$posterior_cdf(x)
+          return(self$posterior_cdf(x))
         })
       }
       return(ci)
@@ -724,7 +726,7 @@ Model <- R6::R6Class(
           file.remove(stale_files)
         }
 
-        invisible(NULL)
+        return(invisible(NULL))
       }
 
       if (self$mcmc && !is.null(self$draws_dir)) {
@@ -822,7 +824,7 @@ Model <- R6::R6Class(
       # The two mirror each other: whatever the loop wrote for one replicate is
       # what a later replicate with the same data reads back.
       collect_replicate <- function(r) {
-        list(
+        return(list(
           fit_success = if (requested("fit_success")) fit_success[r] else NULL,
           posterior_mean = if (requested("posterior_mean")) posterior_means[r] else NULL,
           posterior_median = if (requested("posterior_median")) posterior_medians[r] else NULL,
@@ -834,7 +836,7 @@ Model <- R6::R6Class(
           mcmc_ess = if (requested("mcmc_diagnostics")) mcmc_ess[r] else NULL,
           rhat = if (requested("mcmc_diagnostics")) rhat[r] else NULL,
           n_divergences = if (requested("mcmc_diagnostics")) n_divergences[r] else NULL
-        )
+        ))
       }
 
       restore_replicate <- function(r, cached) {
@@ -855,7 +857,7 @@ Model <- R6::R6Class(
           rhat[r] <<- cached$rhat
           n_divergences[r] <<- cached$n_divergences
         }
-        invisible(NULL)
+        return(invisible(NULL))
       }
 
       for (r in seq_len(nrow(target_data_samples))) {
@@ -947,7 +949,7 @@ Model <- R6::R6Class(
                   retry <- FALSE
                 } else {
                   retry <- TRUE
-                  print(paste0("Restart iteration ", r))
+                  message("Restart iteration ", r)
                 }
                 self$mcmc_config$chain_length <- new_length
               } else if (1.1 < ess_factor) {
@@ -965,7 +967,7 @@ Model <- R6::R6Class(
             time_taken <- difftime(end_time, start_time, units = "s")
 
             if (verbose == 1) {
-              print(paste0("Duration of iteration ", r, " is ", time_taken, " seconds."))
+              message("Duration of iteration ", r, " is ", time_taken, " seconds.")
             }
 
             # Avoid scanning the draws directory after every replicate. Files cannot
@@ -1156,7 +1158,7 @@ Model <- R6::R6Class(
         if (length(x) != length(weights)) {
           stop(length(x), " values to average over ", length(weights), " trial outcomes.")
         }
-        sum(weights * x)
+        return(sum(weights * x))
       }
 
       test_decisions <- test_decisions[successful]
@@ -1608,6 +1610,7 @@ Model <- R6::R6Class(
       )
 
       self$RBesT_prior <- self$RBesT_prior_normix
+      return(invisible(self$RBesT_prior))
     },
 
     #' @description ELIR effective sample size of the current prior
@@ -1720,6 +1723,7 @@ Model <- R6::R6Class(
 
       self$RBesT_posterior_normix <- posterior_mixture_approximation
       self$RBesT_posterior <- posterior_mixture_approximation
+      return(invisible(self$RBesT_posterior))
     },
 
     #' @description Beta mixture approximation to the posterior response rate
@@ -1897,12 +1901,12 @@ Model <- R6::R6Class(
     #'   formatted as character.
     summary_rows = function() {
       parameter_rows <- lapply(names(self$posterior_parameters), function(name) {
-        summary_row(
+        return(summary_row(
           paste("Posterior", gsub("_", " ", name)),
           self$posterior_parameters[[name]]
-        )
+        ))
       })
-      do.call(rbind, c(
+      return(do.call(rbind, c(
         list(
           summary_row("Method", self$method),
           summary_row("Prior Mean", self$prior_mean),
@@ -1913,7 +1917,7 @@ Model <- R6::R6Class(
           empty_summary_rows()
         ),
         parameter_rows
-      ))
+      )))
     },
 
     #' @description
@@ -1926,7 +1930,7 @@ Model <- R6::R6Class(
     print_model_summary = function() {
       summary <- self$summary_rows()
       print(summary, row.names = FALSE)
-      invisible(summary)
+      return(invisible(summary))
     }
   )
 )
@@ -1947,11 +1951,11 @@ summary_row <- function(attribute, value) {
   if (is.numeric(value)) {
     value <- format(value, digits = 6, nsmall = 6)
   }
-  data.frame(Attribute = attribute, Value = as.character(value))
+  return(data.frame(Attribute = attribute, Value = as.character(value)))
 }
 
 empty_summary_rows <- function() {
-  data.frame(Attribute = character(0), Value = character(0))
+  return(data.frame(Attribute = character(0), Value = character(0)))
 }
 
 
@@ -2013,60 +2017,60 @@ GaussianConjugate <- R6::R6Class(
       self$prior_var <- prior$source$standard_error ^ 2
 
       assert_single_number(self$prior_mean)
-      assert_single_number(self$prior_var)
+      return(assert_single_number(self$prior_var))
     },
     #' @description Sample from the prior
     #' @param n_samples Number of samples from the prior
     sample_prior = function(n_samples) {
       # Sample from the prior distribution
-      rnorm(n_samples,
+      return(rnorm(n_samples,
             mean = self$prior_mean,
-            sd = sqrt(self$prior_var))
+            sd = sqrt(self$prior_var)))
     },
     #' @description Sample from the posterior
     #' @param n_samples Number of samples from the posterior
     sample_posterior = function(n_samples) {
       # Sample from the prior distribution
-      rnorm(n_samples,
+      return(rnorm(n_samples,
             mean = self$post_mean,
-            sd = sqrt(self$post_var))
+            sd = sqrt(self$post_var)))
     },
     #' @description Prior PDF
     #' @param target_treatment_effect Point at which to evaluate the prior PDF
     prior_pdf = function(target_treatment_effect) {
-      dnorm(
+      return(dnorm(
         target_treatment_effect,
         mean = self$prior_mean,
         sd = sqrt(self$prior_var)
-      )
+      ))
     },
     #' @description Prior CDF
     #' @param target_treatment_effect Point at which to evaluate the prior CDF
     prior_cdf = function(target_treatment_effect) {
-      pnorm(
+      return(pnorm(
         target_treatment_effect,
         mean = self$prior_mean,
         sd = sqrt(self$prior_var)
-      )
+      ))
     },
     #' @description Posterior CDF
     #' @param target_treatment_effect Point at which to evaluate the posterior CDF
     posterior_cdf = function(target_treatment_effect) {
-      pnorm(
+      return(pnorm(
         target_treatment_effect,
         mean = self$post_mean,
         sd = sqrt(self$post_var)
-      )
+      ))
     },
 
     #' @description Posterior PDF
     #' @param target_treatment_effect Point at which to evaluate the posterior PDF
     posterior_pdf = function(target_treatment_effect) {
-      dnorm(
+      return(dnorm(
         target_treatment_effect,
         mean = self$post_mean,
         sd = sqrt(self$post_var)
-      )
+      ))
     },
     #' @description Posterior mean
     #' @param target_data Target study data
@@ -2097,6 +2101,7 @@ GaussianConjugate <- R6::R6Class(
     posterior_moments = function(target_data) {
       self$post_mean <- self$posterior_mean(target_data)
       self$post_var <- self$posterior_variance(target_data)
+      return(invisible(self$post_var))
     },
     #' @description Run every replicate at once
     #'
@@ -2123,7 +2128,7 @@ GaussianConjugate <- R6::R6Class(
 
       n_replicates <- nrow(samples)
 
-      vectorised_normal_mixture_simulation(
+      return(vectorised_normal_mixture_simulation(
         weights = matrix(1, nrow = n_replicates, ncol = 1),
         means = matrix(self$prior_mean, nrow = n_replicates, ncol = 1),
         sds = matrix(sqrt(prior_variance), nrow = n_replicates, ncol = 1),
@@ -2135,7 +2140,7 @@ GaussianConjugate <- R6::R6Class(
         confidence_level = confidence_level,
         null_space = null_space,
         posterior_parameters = self$vectorised_posterior_parameters(prior_variance)
-      )
+      ))
     },
 
     #' @description Prior variance for each replicate
@@ -2148,7 +2153,7 @@ GaussianConjugate <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return A scalar, a vector with one entry per replicate, or `NULL`.
     vectorised_prior_variance = function(target_data, samples) {
-      NULL
+      return(NULL)
     },
 
     #' @description Posterior parameters reported by the vectorised path
@@ -2159,7 +2164,7 @@ GaussianConjugate <- R6::R6Class(
     #' @param prior_variance Per-replicate prior variance.
     #' @return A data frame, or `NULL`.
     vectorised_posterior_parameters = function(prior_variance) {
-      NULL
+      return(NULL)
     },
 
     #' @description Posterior median
@@ -2187,6 +2192,7 @@ GaussianConjugate <- R6::R6Class(
       self$RBesT_prior <- RBesT::mixnorm(dist = c(1, self$prior_mean, sqrt(self$prior_var)))
 
       self$RBesT_prior_normix <- self$RBesT_prior
+      return(invisible(self$RBesT_prior_normix))
     },
     #' @description Convert the posterior distribution to RBesT format
     #' @param target_data Target study data
@@ -2197,6 +2203,7 @@ GaussianConjugate <- R6::R6Class(
         sigma = target_data$sample$standard_deviation
       )
       self$RBesT_posterior_normix <- self$RBesT_posterior
+      return(invisible(self$RBesT_posterior_normix))
     }
   )
 )
@@ -2236,10 +2243,13 @@ GaussianStaticBorrowing <- R6::R6Class(
       # Calculate the prior variance based on the power parameter
       if (is.null(self$power_parameter)) {
         self$prior_var <- NULL
+        return(invisible(self$prior_var))
       } else if (self$power_parameter != 0) {
         self$prior_var <- (prior$source$standard_error ^ 2) / self$power_parameter
+        return(invisible(self$prior_var))
       } else {
         self$prior_var <- 1000 # Vague prior
+        return(invisible(self$prior_var))
       }
     },
 
@@ -2247,10 +2257,10 @@ GaussianStaticBorrowing <- R6::R6Class(
     #' Rows of the model summary, with the power parameter
     #' @return A data frame with columns `Attribute` and `Value`.
     summary_rows = function() {
-      rbind(
+      return(rbind(
         super$summary_rows(),
         summary_row("Power Parameter", self$power_parameter)
-      )
+      ))
     },
 
     #' @description Prior variance for each replicate
@@ -2261,7 +2271,7 @@ GaussianStaticBorrowing <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return The prior variance.
     vectorised_prior_variance = function(target_data, samples) {
-      self$prior_var
+      return(self$prior_var)
     }
   )
 )
@@ -2281,7 +2291,7 @@ GaussianSeparate <- R6::R6Class(
     initialize = function(prior) {
       # Set the power parameter to 0 for GaussianSeparate
       prior$method_parameters$power_parameter <- 0
-      super$initialize(prior)
+      return(super$initialize(prior))
     }
   )
 )
@@ -2301,7 +2311,7 @@ GaussianPooling <- R6::R6Class(
     initialize = function(prior) {
       # Set the power parameter to 1 for GaussianPooling
       prior$method_parameters$power_parameter <- 1
-      super$initialize(prior)
+      return(super$initialize(prior))
     }
   )
 )
@@ -2348,6 +2358,7 @@ Model_RBesT <- R6::R6Class(
       super$initialize()
 
       self$summary_measure_likelihood <- "normal"
+      return(invisible(self$summary_measure_likelihood))
     },
 
     #' @description Calculates the prior probability density function (PDF) for a given target treatment effect.
@@ -2390,6 +2401,7 @@ Model_RBesT <- R6::R6Class(
 
       self$post_var <- self$posterior_summary["standard_deviation"] ^ 2
       self$post_median <- self$posterior_summary["median"]
+      return(invisible(self$post_median))
     },
 
     #' @description Calculates the posterior mean.
@@ -2485,7 +2497,7 @@ Model_RBesT <- R6::R6Class(
         return(c(self$posterior_summary["cri95L"], self$posterior_summary["cri95U"]))
       }
       alpha <- (1 - level) / 2
-      RBesT::qmix(self$RBesT_posterior, c(alpha, 1 - alpha))
+      return(RBesT::qmix(self$RBesT_posterior, c(alpha, 1 - alpha)))
     },
 
     #' @description Prior mixture components for each replicate
@@ -2498,14 +2510,14 @@ Model_RBesT <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return A list with `weights`, `means` and `sds`, or `NULL`.
     vectorised_prior_components = function(target_data, samples) {
-      NULL
+      return(NULL)
     },
 
     #' @description Posterior parameters reported by the vectorised path
     #' @param posterior Posterior mixture returned by [normal_mixture_posterior()].
     #' @return A data frame, or `NULL`.
     vectorised_posterior_parameters = function(posterior) {
-      NULL
+      return(NULL)
     },
 
     #' @description Run every replicate at once
@@ -2534,7 +2546,7 @@ Model_RBesT <- R6::R6Class(
         standard_error = samples$treatment_effect_standard_error
       )
 
-      vectorised_normal_mixture_simulation(
+      return(vectorised_normal_mixture_simulation(
         weights = prior$weights,
         means = prior$means,
         sds = prior$sds,
@@ -2547,7 +2559,47 @@ Model_RBesT <- R6::R6Class(
         null_space = null_space,
         posterior_parameters = self$vectorised_posterior_parameters(posterior),
         posterior = posterior
-      )
+      ))
+    }
+  )
+)
+
+#' @title GaussianFixedPrior_RBesT
+#' @description Base class of the RBesT models whose prior is one Gaussian
+#' with fixed mean and variance (`GaussianSeparate_RBesT` and
+#' `GaussianPooling_RBesT`). It holds the conversions to the RBesT format. The
+#' subclasses set `prior_mean` and `prior_var`.
+#' @keywords internal
+GaussianFixedPrior_RBesT <- R6::R6Class(
+  "GaussianFixedPrior_RBesT",
+  inherit = Model_RBesT,
+  public = list(
+    #' @description Converts the prior distribution to the RBesT format.
+    #' @param ... Additional arguments.
+    #' @return None
+    prior_to_RBesT = function(...) {
+      self$RBesT_prior <- RBesT::mixnorm(c(1, self$prior_mean, sqrt(self$prior_var)))
+
+      self$RBesT_prior_normix <- self$RBesT_prior
+      return(invisible(self$RBesT_prior_normix))
+    },
+
+    #' @description Converts the posterior distribution to the RBesT format.
+    #' @param target_data Target study data.
+    #' @param ... Additional arguments.
+    #' @return None
+    posterior_to_RBesT = function(target_data, ...) {
+      self$RBesT_posterior <- RBesT::mixnorm(c(1, self$post_mean, sqrt(self$post_var)), sigma =  target_data$sample$standard_deviation)
+      self$RBesT_posterior_normix <- self$RBesT_posterior
+      return(invisible(self$RBesT_posterior_normix))
+    },
+
+    #' @description Prior mixture components for each replicate.
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A list with `weights`, `means` and `sds`.
+    vectorised_prior_components = function(target_data, samples) {
+      return(list(weights = 1, means = self$prior_mean, sds = sqrt(self$prior_var)))
     }
   )
 )
@@ -2578,7 +2630,7 @@ Model_RBesT <- R6::R6Class(
 #' @export
 GaussianSeparate_RBesT <- R6::R6Class(
   "GaussianSeparate_RBesT",
-  inherit = Model_RBesT,
+  inherit = GaussianFixedPrior_RBesT,
   public = list(
     method = "separate",
     #' @description Initializes the GaussianSeparate_RBesT object.
@@ -2591,32 +2643,7 @@ GaussianSeparate_RBesT <- R6::R6Class(
       self$RBesT_prior <- RBesT::mixnorm(c(1, self$prior_mean, sqrt(self$prior_var)))
       self$empirical_bayes <- FALSE
       self$mcmc <- FALSE
-    },
-
-    #' @description Converts the prior distribution to the RBesT format.
-    #' @param ... Additional arguments.
-    #' @return None
-    prior_to_RBesT = function(...) {
-      self$RBesT_prior <- RBesT::mixnorm(c(1, self$prior_mean, sqrt(self$prior_var)))
-
-      self$RBesT_prior_normix <- self$RBesT_prior
-    },
-
-    #' @description Converts the posterior distribution to the RBesT format.
-    #' @param target_data Target study data.
-    #' @param ... Additional arguments.
-    #' @return None
-    posterior_to_RBesT = function(target_data, ...) {
-      self$RBesT_posterior <- RBesT::mixnorm(c(1, self$post_mean, sqrt(self$post_var)), sigma =  target_data$sample$standard_deviation)
-      self$RBesT_posterior_normix <- self$RBesT_posterior
-    },
-
-    #' @description Prior mixture components for each replicate.
-    #' @param target_data Target study data.
-    #' @param samples Data frame of generated replicates.
-    #' @return A list with `weights`, `means` and `sds`.
-    vectorised_prior_components = function(target_data, samples) {
-      list(weights = 1, means = self$prior_mean, sds = sqrt(self$prior_var))
+      return(invisible(self$mcmc))
     }
   )
 )
@@ -2647,7 +2674,7 @@ GaussianSeparate_RBesT <- R6::R6Class(
 #' @export
 GaussianPooling_RBesT <- R6::R6Class(
   "GaussianPooling_RBesT",
-  inherit = Model_RBesT,
+  inherit = GaussianFixedPrior_RBesT,
   public = list(
     method = "pooling",
     #' @description Initializes the GaussianPooling_RBesT object.
@@ -2665,33 +2692,7 @@ GaussianPooling_RBesT <- R6::R6Class(
       self$RBesT_prior <- RBesT::mixnorm(c(1, self$prior_mean, sqrt(self$prior_var)))
       self$empirical_bayes <- FALSE
       self$mcmc <- FALSE
-    },
-
-    #' @description Converts the prior distribution to the RBesT format.
-    #' @param ... Additional arguments.
-    #' @return None
-    prior_to_RBesT = function(...) {
-
-      self$RBesT_prior <- RBesT::mixnorm(c(1, self$prior_mean, sqrt(self$prior_var)))
-
-      self$RBesT_prior_normix <- self$RBesT_prior
-    },
-
-    #' @description Converts the posterior distribution to the RBesT format.
-    #' @param target_data Target study data object.
-    #' @param ... Additional arguments.
-    #' @return None
-    posterior_to_RBesT = function(target_data, ...) {
-      self$RBesT_posterior <- RBesT::mixnorm(c(1, self$post_mean, sqrt(self$post_var)), sigma =  target_data$sample$standard_deviation)
-      self$RBesT_posterior_normix <- self$RBesT_posterior
-    },
-
-    #' @description Prior mixture components for each replicate.
-    #' @param target_data Target study data.
-    #' @param samples Data frame of generated replicates.
-    #' @return A list with `weights`, `means` and `sds`.
-    vectorised_prior_components = function(target_data, samples) {
-      list(weights = 1, means = self$prior_mean, sds = sqrt(self$prior_var))
+      return(invisible(self$mcmc))
     }
   )
 )
@@ -2817,6 +2818,7 @@ MCMCModel <- R6::R6Class(
       # alone, so replicates with the same data may share one analysis.
       self$mcmc <- !self$uses_quadrature()
       self$deterministic_inference <- self$uses_quadrature()
+      return(invisible(self$deterministic_inference))
     },
 
     #' @description The compiled Stan model, compiled on first use
@@ -2834,13 +2836,13 @@ MCMCModel <- R6::R6Class(
       if (is.null(self$stan_model)) {
         stop("This model has no Stan program to sample with.", call. = FALSE)
       }
-      self$stan_model
+      return(self$stan_model)
     },
 
     #' @description Whether the posterior is computed by quadrature
     #' @return `TRUE` under the quadrature engine, `FALSE` when sampling.
     uses_quadrature = function() {
-      identical(self$engine, "quadrature")
+      return(identical(self$engine, "quadrature"))
     },
 
     #' @description The posterior as a grid, under the quadrature engine.
@@ -2883,6 +2885,7 @@ MCMCModel <- R6::R6Class(
         stop("engine must be either \"quadrature\" or \"stan\", but it is ",
              format(mcmc_config$engine), ".", call. = FALSE)
       }
+      return(invisible(NULL))
     },
 
     #' @description
@@ -2896,12 +2899,12 @@ MCMCModel <- R6::R6Class(
       if (self$uses_quadrature()) {
         return(rows)
       }
-      rbind(
+      return(rbind(
         rows,
         summary_row("MCMC ESS", self$mcmc_ess),
         summary_row("R-hat", self$rhat),
         summary_row("Divergences", self$n_divergences)
-      )
+      ))
     },
 
     #' @description Prepare the data for inference.
@@ -3285,11 +3288,11 @@ BinomialPooling <- R6::R6Class(
       successes <- counts_from_rate(source$treatment_rate, source$sample_size_treatment)
       shape1 <- successes + 1
       shape2 <- source$sample_size_treatment - successes + 1
-      list(
+      return(list(
         cdf = function(x) stats::pbeta(x + control_rate, shape1, shape2),
         pdf = function(x) stats::dbeta(x + control_rate, shape1, shape2),
         sample = function(n_samples) stats::rbeta(n_samples, shape1, shape2) - control_rate
-      )
+      ))
     }
   )
 )

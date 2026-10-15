@@ -1,10 +1,21 @@
 Package: BExTE
 Type: Package
 Title: Bayesian Extrapolation of Treatment Effects
-Description: This package provides tools for Bayesian extrapolation of treatment effects.
+Description: Tools to borrow information from a source study when you
+    analyze or plan a target clinical trial, also known as Bayesian partial
+    extrapolation. The package builds priors from the source data with
+    several methods: the power prior (Ibrahim and Chen, 2000)
+    <doi:10.1214/ss/1009212673>, the normalized power prior (Duan, Ye and
+    Smith, 2006) <doi:10.1002/env.752>, the robust mixture prior (Schmidli
+    et al., 2014) <doi:10.1111/biom.12242>, commensurate priors (Hobbs et
+    al., 2011) <doi:10.1111/j.1541-0420.2011.01564.x>, empirical Bayes power
+    priors and test-then-pool. It computes the posterior of the treatment
+    effect, the effective sample size of the prior (Neuenschwander et al.,
+    2020) <doi:10.1111/biom.13252> and the decision. It also computes the
+    frequentist and Bayesian operating characteristics of a trial design, such
+    as the type I error rate and the power. No method needs 'Stan'.
 Version: 0.0.2
-Date: 2024-09-23
-Authors@R: c(person("Tristan", "Fauvel", email = "t.fauvel@quinten-health.com", role =  c("aut", "cre")), person("Pascal", "Godbillot", role=c("aut")) ) 
+Authors@R: c(person("Tristan", "Fauvel", email = "tristan.fauvel@proton.me", role =  c("aut", "cre")), person("Pascal", "Godbillot", role=c("aut")) ) 
 Depends:
     R (>= 4.0.0)
 Imports:
@@ -16,17 +27,14 @@ Imports:
     futile.logger,
     HDInterval,
     Hmisc,
-    jsonlite,
     parallel,
-    progress,
-    pwr,
     R6,
     RBesT,
-    readr,
     rlang,
+    stats,
     statmod,
-    tidyr,
     tools,
+    utils,
     withr,
     yaml
 License: GPL (>= 3)
@@ -35,34 +43,20 @@ URL: https://github.com/TristanFauvel/BExTE, https://tristanfauvel.github.io/BEx
 BugReports: https://github.com/TristanFauvel/BExTE/issues
 Suggests:
     bayesplot,
-    broom,
     callr,
     cmdstanr,
-    devtools,
-    doSNOW,
-    foreach,
-    ggnewscale,
     ggplot2,
-    glue,
     grid,
-    gridExtra,
     kableExtra,
     knitr,
-    latex2exp,
     pkgload,
     posterior,
-    purrr,
-    ragg,
+    pwr,
+    reshape2,
     rmarkdown,
-    scales,
-    stringr,
     survival,
     testthat (>= 3.2.0),
-    tibble,
-    tidyverse,
-    tikzDevice,
-    tinytex,
-    viridis
+    tibble
 VignetteBuilder: knitr
 SystemRequirements: pandoc (>= 1.12.3)
 Encoding: UTF-8

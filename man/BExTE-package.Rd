@@ -6,7 +6,7 @@
 \alias{BExTE-package}
 \title{BExTE: Bayesian Extrapolation of Treatment Effects}
 \description{
-This package provides tools for Bayesian extrapolation of treatment effects.
+Tools to borrow information from a source study when you analyze or plan a target clinical trial, also known as Bayesian partial extrapolation. The package builds priors from the source data with several methods: the power prior (Ibrahim and Chen, 2000) \doi{10.1214/ss/1009212673}, the normalized power prior (Duan, Ye and Smith, 2006) \doi{10.1002/env.752}, the robust mixture prior (Schmidli et al., 2014) \doi{10.1111/biom.12242}, commensurate priors (Hobbs et al., 2011) \doi{10.1111/j.1541-0420.2011.01564.x}, empirical Bayes power priors and test-then-pool. It computes the posterior of the treatment effect, the effective sample size of the prior (Neuenschwander et al., 2020) \doi{10.1111/biom.13252} and the decision. It also computes the frequentist and Bayesian operating characteristics of a trial design, such as the type I error rate and the power. No method needs 'Stan'.
 }
 \seealso{
 Useful links:
@@ -18,11 +18,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Tristan Fauvel \email{t.fauvel@quinten-health.com}
+\strong{Maintainer}: Tristan Fauvel \email{tristan.fauvel@proton.me}
 
 Authors:
 \itemize{
-  \item Tristan Fauvel \email{t.fauvel@quinten-health.com}
+  \item Tristan Fauvel \email{tristan.fauvel@proton.me}
   \item Pascal Godbillot
 }
 

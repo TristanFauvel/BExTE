@@ -1,0 +1,122 @@
+---
+title: "Frequentist OC timing: BExTE and RBesT"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Frequentist OC timing: BExTE and RBesT}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This benchmark times one frequentist operating-characteristic (OC) calculation
+for a normal treatment-effect estimate. It compares BExTE's simulation-based
+`oc_frequentist()` with RBesT's integration-based `oc1S()`. The two calls use
+the same analysis prior, sampling standard error, decision threshold, and true
+effects. They use different algorithms and return different amounts of detail:
+BExTE also reports bias, mean squared error, and coverage. These timings
+describe this task on this machine, not a general speed ranking.
+BExTE's RMP implementation itself uses RBesT for mixture updates; the timing
+difference here is primarily between the two OC workflows.
+
+Other comparisons are possible, but I have not validated an equivalent OC
+calculation for these package pairs:
+
+| Package | Candidate common setup | Difference to resolve before timing |
+| --- | --- | --- |
+| `hdbayes` | Fixed power prior for source and target two-arm binary data (`glm.pp()` in hdbayes; `power_prior()` in BExTE) | Align the initial prior and treatment-effect scale: a logit-link GLM coefficient differs from BExTE's exact-binomial risk difference. |
+| `NPP` | Normalised power prior for historical and current Bernoulli data (`BerNPP_MCMC()`; BExTE's `npp()`) | NPP's documented Bernoulli function models one response probability; BExTE's binomial NPP models a two-arm treatment effect. |
+| `psborrow2` | Two-arm binary trial with historical controls and a commensurate prior | psborrow2 borrows external control-arm outcomes; BExTE's `commensurate_prior()` borrows a source treatment effect. |
+
+These are candidates for separate workflow benchmarks. They do not yet support
+an identical-model speed ratio.
+
+```{r setup, include=FALSE}
+library(BExTE)
+library(RBesT)
+```
+
+## Matched scenario
+
+The source study has 50 patients per arm, estimated treatment effect 0.2,
+and standard error 0.1. With `rmp(weight = 0.5)`, BExTE's analysis prior is
+`0.5 N(0.2, 0.1^2) + 0.5 N(0, 0.5)`. The target trial also has 50 patients
+per arm, giving a treatment-effect sampling standard error of 0.1. We evaluate
+the null boundary (true effect 0) and an alternative (true effect 0.2). Success
+means `Pr(effect > 0 | data) > 0.975`.
+
+```{r scenario}
+src <- source_data(n_control = 50, n_treatment = 50,
+                   estimate = 0.2, se = 0.1)
+bexte_prior <- rmp(src, weight = 0.5)
+bexte_decision <- decision(critical_value = 0.975)
+
+rbest_prior <- RBesT::mixnorm(
+  info = c(0.5, 0.2, 0.1),
+  vague = c(0.5, 0, sqrt(0.5)),
+  sigma = sqrt(0.5)
+)
+rbest_decision <- RBesT::decision1S(pc = 0.975, qc = 0,
+                                     lower.tail = FALSE)
+true_effects <- c(0, 0.2)
+```
+
+## Timing
+
+Each BExTE call simulates 1,000 target trials per true effect. RBesT computes
+the OC function by integration, so it has no simulation count. Priors and
+decision rules are prepared before timing. Both functions run once to warm up
+loaded code. The table reports the median of three BExTE calls and three
+batches of 100 RBesT calls; each RBesT batch is divided by 100 to get the
+time per two-effect OC calculation. The calls run sequentially in one R
+process.
+
+```{r benchmark}
+run_bexte <- function() {
+  as.data.frame(oc_frequentist(
+    bexte_prior, bexte_decision, n_per_arm = 50,
+    drift = c(-0.2, 0), n_rep = 1000
+  ))
+}
+run_rbest <- function() {
+  design <- RBesT::oc1S(rbest_prior, n = 50,
+                        decision = rbest_decision, sigma = sqrt(0.5))
+  design(true_effects)
+}
+
+set.seed(20261012)
+bexte_oc <- run_bexte()
+rbest_oc <- run_rbest()
+
+bexte_seconds <- replicate(3, {
+  set.seed(20261012)
+  unname(system.time(run_bexte())[["elapsed"]])
+})
+rbest_seconds <- replicate(3, {
+  unname(system.time(for (i in seq_len(100)) run_rbest())[["elapsed"]]) / 100
+})
+
+stopifnot(isTRUE(all.equal(bexte_oc$true_effect, true_effects)))
+stopifnot(all(abs(bexte_oc$success_proba - rbest_oc) < 0.05))
+comparison <- data.frame(
+  Package = c("BExTE", "RBesT"),
+  Algorithm = c("Monte Carlo (1,000 trials/effect)", "Numerical integration"),
+  `Median elapsed (s)` = round(c(median(bexte_seconds),
+                                 median(rbest_seconds)), 3),
+  `Type I error` = round(c(bexte_oc$success_proba[1], rbest_oc[1]), 3),
+  Power = round(c(bexte_oc$success_proba[2], rbest_oc[2]), 3),
+  check.names = FALSE
+)
+knitr::kable(comparison)
+```
+
+The OC estimates should be close, within Monte Carlo uncertainty. Elapsed
+times will vary with hardware, package versions, and system load. To report a
+new timing, render this vignette on the target machine and copy its table and
+session details into the README.
+
+```{r environment}
+cat("R:", as.character(getRversion()), "\n")
+cat("BExTE:", as.character(packageVersion("BExTE")), "\n")
+cat("RBesT:", as.character(packageVersion("RBesT")), "\n")
+cat("Platform:", R.version$platform, "\n")
+cat("OS:", Sys.info()[["sysname"]], Sys.info()[["release"]], "\n")
+```

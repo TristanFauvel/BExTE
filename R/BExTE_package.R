@@ -7,19 +7,28 @@
 ## of five RBesT symbols that nothing used bare was pulling in rstan and
 ## ~200 MB of resident memory at startup.
 ##
-## Plotting, table and report code uses packages from Suggests. Each entry
-## point calls check_plot_packages(), check_table_packages() or
-## check_parallel_packages() before it uses them.
+## The plot methods use packages from Suggests, and call
+## check_plot_packages() before they use them.
+##
+## The simulation-study pipeline (configs, scenarios, result files, plots and
+## tables of simulation studies) is in the separate package BExTEsim.
 #' @keywords internal
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom dplyr %>% across all_of any_of arrange case_when distinct
-#' @importFrom dplyr everything first group_by left_join mutate mutate_if
-#' @importFrom dplyr n_distinct pull rename_with row_number rowwise select
-#' @importFrom dplyr summarize ungroup where
-#' @importFrom tidyr pivot_wider unite unnest
-#' @importFrom rlang := duplicate sym
+#' @importFrom dplyr %>%
+#' @importFrom rlang duplicate
 #' @importFrom assertions assert_whole_number
+#' @importFrom stats approx binom.test pnorm qnorm rbinom rchisq rnorm
 ## usethis namespace: end
 NULL
+
+## R CMD check does not scan the code inside R6 classes, so it reports BSDA,
+## Hmisc and extraDistr as unused Imports. This function names one function
+## of each, so the check sees them. Nothing calls it, and it does not load the
+## three namespaces.
+ignore_unused_imports <- function() {
+  BSDA::zsum.test
+  Hmisc::smean.cl.normal
+  extraDistr::dhnorm
+}

@@ -199,7 +199,7 @@ GaussianEgidiMixture <- R6::R6Class(
     #' @param target_data A list containing the target data for the analysis.
     empirical_bayes_update = function(target_data) {
       standard_error <- target_data$sample$treatment_effect_standard_error
-      weak_variance <- standard_error^2 * target_effective_arm_size(target_data)
+      weak_variance <- private$vague_variance(target_data, standard_error)
 
       self$selection <- egidi_select_weak_weight(
         t_obs = target_data$sample$treatment_effect_estimate,
@@ -241,7 +241,7 @@ GaussianEgidiMixture <- R6::R6Class(
     vectorised_prior_components = function(target_data, samples) {
       n_replicates <- nrow(samples)
       standard_error <- samples$treatment_effect_standard_error
-      weak_variance <- standard_error^2 * target_effective_arm_size(target_data)
+      weak_variance <- private$vague_variance(target_data, standard_error)
 
       self$selection <- egidi_select_weak_weight(
         t_obs = samples$treatment_effect_estimate,

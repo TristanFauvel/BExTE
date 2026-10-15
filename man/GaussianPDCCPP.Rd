@@ -123,7 +123,6 @@ model$posterior_parameters$power_parameter
   }
   \subsection{Returns}{
     NULL
-Estimate the power parameter using the PDCCPP method.
   }
 }
 
@@ -131,22 +130,37 @@ Estimate the power parameter using the PDCCPP method.
 \if{html}{\out{<a id="method-GaussianPDCCPP-power_parameter_estimation"></a>}}
 \if{latex}{\out{\hypertarget{method-GaussianPDCCPP-power_parameter_estimation}{}}}
 \subsection{\code{GaussianPDCCPP$power_parameter_estimation()}}{
+  Estimate the power parameter using the PDCCPP method.
+
+The calibration depends on a replicate only through its target sampling
+variance, and it is a smooth function of it. Rather than search for it
+once per replicate, it is computed at 200 variances spaced evenly on the
+log scale across the replicates' range and interpolated linearly. With
+a single replicate, or replicates that share one variance, it is
+searched for once, exactly. Equation (9) is then evaluated for every
+replicate.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianPDCCPP$power_parameter_estimation(target_data)}
+    \preformatted{GaussianPDCCPP$power_parameter_estimation(
+  target_data,
+  samples = target_data$sample,
+  tolerance = self$parameters$tolerance
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{target_data}}{The target data.}
-      \item{\code{source_treatment_effect_estimate}}{The source treatment effect estimate.}
-      \item{\code{target_treatment_effect_estimate}}{The target treatment effect estimate.}
+      \item{\code{samples}}{Replicates to estimate the power parameter for; the
+observed target sample by default.}
+      \item{\code{tolerance}}{Tolerance of the calibration search; the configured one
+by default.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The estimated power parameter.
+    The estimated power parameters, one per replicate.
   }
 }
 
@@ -156,16 +170,12 @@ Estimate the power parameter using the PDCCPP method.
 \subsection{\code{GaussianPDCCPP$vectorised_power_parameter()}}{
   The power parameter for every replicate at once
 
-The calibration depends on a replicate only through its target sampling
-variance, and it is a smooth function of it. Rather than search for it
-once per replicate, it is computed at 200 variances spaced evenly on the
-log scale across the replicates' range and interpolated linearly. Near
-the borrowing cut-off the power parameter is very sensitive to the
-calibration, so these few searches are run to a tolerance of 1e-9
-rather than the configured one: the interpolated calibration is then
+Near the borrowing cut-off the power parameter is very sensitive to the
+calibration, so the interpolation nodes of
+\code{power_parameter_estimation()} are searched to a tolerance of 1e-9
+rather than the configured one. The interpolated calibration is then
 closer to the exact one than a per-replicate search at the configured
-tolerance would be. Equation (9) is evaluated for every replicate,
-exactly as \code{power_parameter_estimation()} does.
+tolerance would be.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{GaussianPDCCPP$vectorised_power_parameter(target_data, samples)}
@@ -188,7 +198,7 @@ exactly as \code{power_parameter_estimation()} does.
 \if{html}{\out{<a id="method-GaussianPDCCPP-calibration_parameter"></a>}}
 \if{latex}{\out{\hypertarget{method-GaussianPDCCPP-calibration_parameter}{}}}
 \subsection{\code{GaussianPDCCPP$calibration_parameter()}}{
-  The calibration parameter z_{1-c/2} for one target
+  The calibration parameter \eqn{z_{1-c/2}} for one target
 sampling variance
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -248,7 +258,7 @@ transformation.}
 patient.}
       \item{\code{target_sample_size_per_arm}}{Equivalent sample size per arm of the
 target study (see \code{effective_arm_size()}).}
-      \item{\code{calibration_parameter}}{Calibration parameters z_{1-c/2}.}
+      \item{\code{calibration_parameter}}{Calibration parameters \eqn{z_{1-c/2}}.}
     }
     \if{html}{\out{</div>}}
   }

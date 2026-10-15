@@ -28,6 +28,7 @@
 #' @param n Numeric vector of sample sizes, recycled against `rate`.
 #' @return An integer vector of event counts.
 #' @keywords internal
+#' @export
 counts_from_rate <- function(rate, n) {
   counts <- rate * n
   rounded <- round(counts)

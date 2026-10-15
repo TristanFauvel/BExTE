@@ -60,5 +60,9 @@ test_that("Monte Carlo Bayesian operating characteristics use explicit inputs", 
   expect_equal(result$average_tie, 0.5)
   expect_equal(result$average_power, 1)
   expect_equal(result$upper_bound_proba_FP, 0.25)
-  expect_setequal(names(result), bayesian_ocs_metric_names())
+  expect_setequal(names(result), c(
+    "average_tie", "average_power", "prior_proba_no_benefit",
+    "prepost_proba_FP", "prepost_proba_TP", "upper_bound_proba_FP",
+    "prior_proba_success"
+  ))
 })

@@ -141,39 +141,12 @@ GaussianRMP_RBesT <- R6::R6Class(
     #' @param target_data A list containing the target data for the analysis.
     empirical_bayes_update = function(target_data) {
       if (self$empirical_bayes) {
-        self$vague_prior_variance <- (target_data$sample$treatment_effect_standard_error ^
-                                        2) * target_effective_arm_size(target_data) # sample standard deviation in the target study
-
         # information provided by a single subject per arm in the target study (as explained in the protocol)
         # Note that in Best et al, 2021 (Mepolizumab), this is the information provided by a single subject in the target study
-
-        info <- c(
-          self$w,
-          self$info_prior_mean,
-          sqrt(self$info_prior_variance)
+        self$vague_prior_variance <- private$vague_variance(
+          target_data, target_data$sample$treatment_effect_standard_error
         )
-
-        vague <- c(
-          1 - self$w,
-          self$vague_prior_mean,
-          sqrt(self$vague_prior_variance)
-        )
-
-        # We use the following conditions to avoid bug in RBesT ELIR computation if self$wpost == 0
-        if (self$w == 1){
-          self$RBesT_prior <- RBesT::mixnorm(
-            info = info
-          )
-        } else if (self$w == 0){
-          self$RBesT_prior <- RBesT::mixnorm(
-            vague = vague
-          )
-        } else {
-          self$RBesT_prior <- RBesT::mixnorm(
-            info = info,
-            vague = vague
-          )
-        }
+        self$prior_to_RBesT()
 
         prior_summary <- summary(self$RBesT_prior)
         self$prior_mean <- prior_summary['mean']
@@ -242,33 +215,12 @@ GaussianRMP_RBesT <- R6::R6Class(
         )
       }
 
-      info = c(
-        self$w,
-        self$info_prior_mean,
-        sqrt(self$info_prior_variance)
-      )
-
-      vague = c(
-        1 - self$w,
-        self$vague_prior_mean,
-        sqrt(self$vague_prior_variance)
-      )
-
-      # We use the following conditions to avoid bug in RBesT ELIR computation if self$wpost == 0
-      if (self$w == 1){
-        self$RBesT_prior <- RBesT::mixnorm(
-          info = info
-        )
-      } else if (self$w == 0){
-        self$RBesT_prior <- RBesT::mixnorm(
-          vague = vague
-        )
-      } else {
-        self$RBesT_prior <- RBesT::mixnorm(
-          info = info,
-          vague = vague
-        )
-      }
+      components <- private$prior_components(self$vague_prior_variance, 1L)
+      mixture <- lapply(seq_along(components$weights), function(k) {
+        return(c(components$weights[k], components$means[k], components$sds[k]))
+      })
+      names(mixture) <- c(if (self$w != 0) "info", if (self$w != 1) "vague")
+      self$RBesT_prior <- do.call(RBesT::mixnorm, mixture)
 
       self$RBesT_prior_normix <- self$RBesT_prior
       return(self$RBesT_prior)
@@ -300,32 +252,9 @@ GaussianRMP_RBesT <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return A list with `weights`, `means` and `sds`.
     vectorised_prior_components = function(target_data, samples) {
-      n_replicates <- nrow(samples)
-
-      if (self$w == 1) {
-        return(list(weights = 1,
-                    means = self$info_prior_mean,
-                    sds = sqrt(self$info_prior_variance)))
-      }
-
-      vague_variance <- if (self$empirical_bayes) {
-        samples$treatment_effect_standard_error^2 * target_effective_arm_size(target_data)
-      } else {
-        self$vague_prior_variance
-      }
-
-      if (self$w == 0) {
-        return(list(weights = matrix(1, nrow = n_replicates, ncol = 1),
-                    means = matrix(self$vague_prior_mean, nrow = n_replicates, ncol = 1),
-                    sds = matrix(sqrt(rep_len(vague_variance, n_replicates)), nrow = n_replicates, ncol = 1)))
-      }
-
-      return(list(
-        weights = cbind(rep(self$w, n_replicates), rep(1 - self$w, n_replicates)),
-        means = cbind(rep(self$info_prior_mean, n_replicates),
-                      rep(self$vague_prior_mean, n_replicates)),
-        sds = cbind(rep(sqrt(self$info_prior_variance), n_replicates),
-                    sqrt(rep_len(vague_variance, n_replicates)))
+      return(private$prior_components(
+        private$vague_variance(target_data, samples$treatment_effect_standard_error),
+        nrow(samples)
       ))
     },
 
@@ -363,6 +292,44 @@ GaussianRMP_RBesT <- R6::R6Class(
         summary_row("Vague Posterior Variance", self$vague_posterior_variance),
         summary_row("Informative Posterior Mean", self$info_posterior_mean),
         summary_row("Informative Posterior Variance", self$info_posterior_variance)
+      ))
+    }
+  ),
+  private = list(
+    # Variance of the vague component for target standard errors
+    # `standard_error`. Under empirical Bayes it is the information of a single
+    # subject per arm in the target study, so it varies by replicate.
+    vague_variance = function(target_data, standard_error) {
+      if (self$empirical_bayes) {
+        return(standard_error^2 * target_effective_arm_size(target_data))
+      }
+      return(self$vague_prior_variance)
+    },
+
+    # Prior mixture components for `n_replicates` replicates, as a list with
+    # `weights`, `means` and `sds`. A degenerate weight collapses the mixture
+    # to a single component, to work around an RBesT ELIR bug. With `w == 1`
+    # the one component is shared by every replicate, so it is returned as
+    # scalars; otherwise the components are matrices with one row each.
+    prior_components = function(vague_variance, n_replicates) {
+      if (self$w == 1) {
+        return(list(weights = 1,
+                    means = self$info_prior_mean,
+                    sds = sqrt(self$info_prior_variance)))
+      }
+
+      if (self$w == 0) {
+        return(list(weights = matrix(1, nrow = n_replicates, ncol = 1),
+                    means = matrix(self$vague_prior_mean, nrow = n_replicates, ncol = 1),
+                    sds = matrix(sqrt(rep_len(vague_variance, n_replicates)), nrow = n_replicates, ncol = 1)))
+      }
+
+      return(list(
+        weights = cbind(rep(self$w, n_replicates), rep(1 - self$w, n_replicates)),
+        means = cbind(rep(self$info_prior_mean, n_replicates),
+                      rep(self$vague_prior_mean, n_replicates)),
+        sds = cbind(rep(sqrt(self$info_prior_variance), n_replicates),
+                    sqrt(rep_len(vague_variance, n_replicates)))
       ))
     }
   )

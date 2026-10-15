@@ -99,10 +99,10 @@ source_data <- function(n_control,
     )
   }
 
-  structure(
+  return(structure(
     list(config = config, data = ObservedSourceData$new(config)),
     class = c("bexte_source", "bexte_data")
-  )
+  ))
 }
 
 
@@ -111,10 +111,16 @@ source_data <- function(n_control,
 #' @description Describes the observed target (new) study, whose treatment
 #'   effect [posterior()] estimates. Give either the arm sizes and response
 #'   counts of a binary endpoint, or the treatment effect estimate and its
-#'   standard error. The scale of the effect (log odds ratio or risk
-#'   difference) follows the source data the prior was built from.
+#'   standard error. Or read the same information from the `target` block of
+#'   a case-study configuration with `config`. The scale of the effect (log
+#'   odds ratio or risk difference) follows the source data the prior was
+#'   built from.
 #'
 #' @inheritParams source_data
+#' @param config Optional case-study configuration: a path to a YAML file, or a
+#'   list with the same fields. The function reads its `target` block. See the
+#'   files in `system.file("conf/case_studies", package = "BExTE")`. When given,
+#'   the other arguments are ignored.
 #' @return An object of class `bexte_target`.
 #'
 #' @seealso [source_data()], [posterior()].
@@ -122,16 +128,43 @@ source_data <- function(n_control,
 #' @examples
 #' target_data(n_control = 39, n_treatment = 53,
 #'             responses_control = 17, responses_treatment = 28)
+#'
+#' # The same study, read from a shipped case-study configuration.
+#' target_data(config = system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
 #' @export
 target_data <- function(n_control,
                         n_treatment,
                         responses_control = NULL,
                         responses_treatment = NULL,
                         estimate = NULL,
-                        se = NULL) {
+                        se = NULL,
+                        config = NULL) {
+  if (!is.null(config)) {
+    if (is.character(config)) {
+      config <- yaml::yaml.load_file(config)
+    }
+    if (!is.list(config)) {
+      stop("`config` should be a path to a YAML file or a list.", call. = FALSE)
+    }
+    target <- config$target
+    if (is.null(target)) {
+      stop("`config` has no `target` block.", call. = FALSE)
+    }
+    if (identical(config$endpoint, "binary") && !is.null(target$responses)) {
+      return(target_data(
+        n_control = target$control, n_treatment = target$treatment,
+        responses_control = target$responses$control,
+        responses_treatment = target$responses$treatment
+      ))
+    }
+    return(target_data(
+      n_control = target$control, n_treatment = target$treatment,
+      estimate = target$treatment_effect, se = target$standard_error
+    ))
+  }
   arms <- api_check_arms(n_control, n_treatment, responses_control,
                          responses_treatment, estimate, se, "target_data")
-  structure(
+  return(structure(
     list(
       endpoint = arms$endpoint,
       n_control = n_control,
@@ -142,7 +175,7 @@ target_data <- function(n_control,
       se = se
     ),
     class = c("bexte_target", "bexte_data")
-  )
+  ))
 }
 
 
@@ -179,7 +212,7 @@ api_check_arms <- function(n_control, n_treatment, responses_control,
   if (se <= 0) {
     stop(caller, "(): `se` should be positive.", call. = FALSE)
   }
-  list(endpoint = "continuous")
+  return(list(endpoint = "continuous"))
 }
 
 
@@ -221,6 +254,7 @@ ObservedArmTargetData <- R6::R6Class(
       self$control_rate <- control_rate
       self$sample$sample_control_rate <- control_rate
       self$sample$sample_treatment_rate <- treatment_rate
+      return(invisible(self$sample$sample_treatment_rate))
     }
   )
 )
@@ -248,13 +282,13 @@ api_target_r6 <- function(target, source) {
       likelihood
     ))
   }
-  ObservedTargetData$new(
+  return(ObservedTargetData$new(
     treatment_effect_estimate = target$estimate,
     treatment_effect_standard_error = target$se,
     target_sample_size_control = target$n_control,
     target_sample_size_treatment = target$n_treatment,
     summary_measure_likelihood = likelihood
-  )
+  ))
 }
 
 
@@ -277,7 +311,7 @@ api_target_r6 <- function(target, source) {
 api_design_target <- function(source, n_control, n_treatment = n_control,
                               drift = 0, control_drift = 0,
                               target_to_source_std_ratio = 1) {
-  TargetDataFactory$new()$create(
+  return(TargetDataFactory$new()$create(
     source_data = source$data,
     case_study_config = source$config,
     target_sample_size_control = n_control,
@@ -286,5 +320,5 @@ api_design_target <- function(source, n_control, n_treatment = n_control,
     treatment_drift = drift,
     summary_measure_likelihood = source$config$summary_measure_likelihood,
     target_to_source_std_ratio = target_to_source_std_ratio
-  )
+  ))
 }

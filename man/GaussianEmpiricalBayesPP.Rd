@@ -164,7 +164,6 @@ Perform inference using the GaussianEmpiricalBayesPP method.
   }
   \subsection{Returns}{
     The inference result.
-Estimate the power parameter.
   }
 }
 
@@ -172,13 +171,31 @@ Estimate the power parameter.
 \if{html}{\out{<a id="method-GaussianEmpiricalBayesPP-power_parameter_estimation"></a>}}
 \if{latex}{\out{\hypertarget{method-GaussianEmpiricalBayesPP-power_parameter_estimation}{}}}
 \subsection{\code{GaussianEmpiricalBayesPP$power_parameter_estimation()}}{
+  Estimate the power parameter
+
+Subclasses implement this once, on vectors. The replicate loop calls it
+on the one replicate in \code{target_data$sample}, and the vectorised path
+calls it on every replicate at once.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianEmpiricalBayesPP$power_parameter_estimation()}
+    \preformatted{GaussianEmpiricalBayesPP$power_parameter_estimation(
+  target_data,
+  samples = target_data$sample
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{samples}}{Replicates to estimate the power parameter for: a data
+frame or list with \code{treatment_effect_estimate},
+\code{treatment_effect_standard_error} and \code{standard_deviation}.}
+    }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The estimated power parameter.
+    A vector of power parameters, one per replicate.
   }
 }
 
@@ -188,9 +205,8 @@ Estimate the power parameter.
 \subsection{\code{GaussianEmpiricalBayesPP$vectorised_power_parameter()}}{
   Estimate the power parameter for every replicate at once
 
-Subclasses whose estimator is closed form override this. Returning \code{NULL}
-means "no fast path", which keeps subclasses with an iterative estimator
-(PDCCPP calibrates by search) on the replicate loop.
+Calls \code{power_parameter_estimation()} on all replicates. Returning \code{NULL}
+instead means "no fast path" and keeps the method on the replicate loop.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{GaussianEmpiricalBayesPP$vectorised_power_parameter(target_data, samples)}

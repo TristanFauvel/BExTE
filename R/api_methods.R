@@ -40,11 +40,11 @@ effect_scale <- function(config) {
   if (config$endpoint == "continuous") {
     return("mean difference")
   }
-  if (config$summary_measure_likelihood == "binomial") "risk difference" else "log odds ratio"
+  if (config$summary_measure_likelihood == "binomial") return("risk difference") else return("log odds ratio")
 }
 
 api_format_num <- function(x, digits = 3) {
-  formatC(x, digits = digits, format = "g", flag = "#")
+  return(formatC(x, digits = digits, format = "g", flag = "#"))
 }
 
 #' @rdname bexte_methods
@@ -60,7 +60,7 @@ print.bexte_source <- function(x, ...) {
       " (SE ", api_format_num(data$standard_error), ")\n", sep = "")
   cat("  Null hypothesis: theta ", if (config$null_space == "left") "<=" else ">=",
       " ", config$theta_0, "\n", sep = "")
-  invisible(x)
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
@@ -75,7 +75,7 @@ print.bexte_target <- function(x, ...) {
     cat("  Effect estimate: ", api_format_num(x$estimate), " (SE ", api_format_num(x$se), ")\n",
         sep = "")
   }
-  invisible(x)
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
@@ -93,7 +93,7 @@ print.bexte_prior <- function(x, ...) {
     }
     cat("  ", name, ": ", format(value), "\n", sep = "")
   }
-  invisible(x)
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
@@ -115,7 +115,7 @@ summary.bexte_posterior <- function(object, level = 0.95, ...) {
     row.names = NULL
   )
   class(out) <- c("summary.bexte_posterior", "data.frame")
-  out
+  return(out)
 }
 
 scalar_or <- function(x, default) if (length(x) == 1) x else default
@@ -124,7 +124,7 @@ scalar_or <- function(x, default) if (length(x) == 1) x else default
 #' @export
 print.summary.bexte_posterior <- function(x, ...) {
   print(structure(x, class = "data.frame"), row.names = FALSE, digits = 4)
-  invisible(x)
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
@@ -137,7 +137,7 @@ print.bexte_posterior <- function(x, ...) {
       ", sd ", api_format_num(s$sd), "\n", sep = "")
   cat("  95% credible interval: [", api_format_num(s$lower), ", ", api_format_num(s$upper), "]\n",
       sep = "")
-  invisible(x)
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
@@ -148,7 +148,7 @@ quantile.bexte_posterior <- function(x, probs = c(0.025, 0.5, 0.975), ...) {
   }
   model <- x$model
   values <- HDInterval::inverseCDF(probs, function(q) model$posterior_cdf(q))
-  stats::setNames(values, paste0(format(100 * probs, trim = TRUE), "%"))
+  return(stats::setNames(values, paste0(format(100 * probs, trim = TRUE), "%")))
 }
 
 #' @rdname bexte_methods
@@ -158,15 +158,15 @@ plot.bexte_posterior <- function(x, xlim = NULL, ...) {
   if (is.null(xlim)) {
     xlim <- model$post_mean + c(-4, 4) * sqrt(model$post_var)
   }
-  model$plot_pdfs(xmin = xlim[1], xmax = xlim[2], resolution = 200) +
+  return(model$plot_pdfs(xmin = xlim[1], xmax = xlim[2], resolution = 200) +
     ggplot2::labs(subtitle = x$prior$label,
-                  x = paste0("Treatment effect (", effect_scale(x$prior$source$config), ")"))
+                  x = paste0("Treatment effect (", effect_scale(x$prior$source$config), ")")))
 }
 
 #' @rdname bexte_methods
 #' @export
 as.data.frame.bexte_posterior <- function(x, ...) {
-  as.data.frame(structure(summary(x), class = "data.frame"))
+  return(as.data.frame(structure(summary(x), class = "data.frame")))
 }
 
 #' @rdname bexte_methods
@@ -182,22 +182,22 @@ print.bexte_decision <- function(x, ...) {
     cat("<bexte_decision> success if P(theta ", if (null_space == "left") ">" else "<", " ",
         theta_0, " | data) > ", critical_value, "\n", sep = "")
   }
-  invisible(x)
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
 #' @export
 print.bexte_design_prior <- function(x, ...) {
   cat("<bexte_design_prior> ", x$type, "\n", sep = "")
-  invisible(x)
+  return(invisible(x))
 }
 
 print_oc_header <- function(x, kind) {
   hypothesis <- attr(x, "hypothesis")
   cat("<", class(x)[1], "> ", kind, " operating characteristics of ",
       attr(x, "method"), "\n", sep = "")
-  cat("  Success: P(theta ", if (hypothesis$null_space == "left") ">" else "<", " ",
-      hypothesis$theta_0, " | data) > ", hypothesis$critical_value, "\n", sep = "")
+  return(cat("  Success: P(theta ", if (hypothesis$null_space == "left") ">" else "<", " ",
+      hypothesis$theta_0, " | data) > ", hypothesis$critical_value, "\n", sep = ""))
 }
 
 #' @rdname bexte_methods
@@ -206,7 +206,7 @@ print.bexte_oc_frequentist <- function(x, ...) {
   print_oc_header(x, "Frequentist")
   cat("  ", attr(x, "n_rep"), " simulated trials per true effect\n\n", sep = "")
   print(summary(x), row.names = FALSE, digits = 3)
-  invisible(x)
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
@@ -220,7 +220,7 @@ summary.bexte_oc_frequentist <- function(object, ...) {
   names(out)[names(out) == "conf_int_success_proba_upper"] <- "success_upper"
   # At a true effect inside the null hypothesis, a success is a type I error.
   out$metric <- ifelse(out$null_true, "type I error", "power")
-  out
+  return(out)
 }
 
 #' @rdname bexte_methods
@@ -228,7 +228,7 @@ summary.bexte_oc_frequentist <- function(object, ...) {
 as.data.frame.bexte_oc_frequentist <- function(x, ...) {
   attributes(x)[c("method", "hypothesis", "n_rep")] <- NULL
   class(x) <- "data.frame"
-  x
+  return(x)
 }
 
 #' @rdname bexte_methods
@@ -240,7 +240,7 @@ plot.bexte_oc_frequentist <- function(x, metric = "success_proba", ...) {
     stop("`metric` should be a column of the operating characteristics.", call. = FALSE)
   }
   hypothesis <- attr(x, "hypothesis")
-  ggplot2::ggplot(data, ggplot2::aes(x = .data$true_effect, y = .data[[metric]])) +
+  return(ggplot2::ggplot(data, ggplot2::aes(x = .data$true_effect, y = .data[[metric]])) +
     ggplot2::geom_vline(xintercept = hypothesis$theta_0, linetype = "dashed", colour = "grey50") +
     ggplot2::geom_line() +
     ggplot2::geom_point() +
@@ -250,7 +250,7 @@ plot.bexte_oc_frequentist <- function(x, metric = "success_proba", ...) {
       x = "True treatment effect",
       y = if (metric == "success_proba") "Probability of success" else metric
     ) +
-    ggplot2::theme_minimal()
+    ggplot2::theme_minimal())
 }
 
 #' @rdname bexte_methods
@@ -260,7 +260,7 @@ print.bexte_oc_bayesian <- function(x, ...) {
   cat("  Design prior: ", x$design_prior, "; ", attr(x, "n_draws"), " draws, ",
       attr(x, "n_rep"), " trials each\n\n", sep = "")
   print(summary(x), row.names = FALSE, digits = 3)
-  invisible(x)
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
@@ -269,7 +269,7 @@ summary.bexte_oc_bayesian <- function(object, ...) {
   columns <- c("n_control", "n_treatment", "prior_proba_success", "prior_proba_no_benefit",
                "prepost_proba_TP", "prepost_proba_FP", "average_power", "average_tie",
                "upper_bound_proba_FP")
-  as.data.frame(object)[, intersect(columns, names(object)), drop = FALSE]
+  return(as.data.frame(object)[, intersect(columns, names(object)), drop = FALSE])
 }
 
 #' @rdname bexte_methods
@@ -277,34 +277,25 @@ summary.bexte_oc_bayesian <- function(object, ...) {
 as.data.frame.bexte_oc_bayesian <- function(x, ...) {
   attributes(x)[c("method", "hypothesis", "n_rep", "n_draws")] <- NULL
   class(x) <- "data.frame"
-  x
+  return(x)
 }
 
 #' @rdname bexte_methods
 #' @export
 print.bexte_tipping_point <- function(x, digits = 4, ...) {
   parameter <- attr(x, "parameter")
-  observed <- attr(x, "observed")
-  decision_text <- function(success) if (isTRUE(success)) "success" else "no success"
   cat("<bexte_tipping_point> ", attr(x, "method"), ": tipping points in `", parameter,
       "` (", attr(x, "location"), ")\n", sep = "")
   cat("  Grid: ", nrow(x), " values from ", format(min(x$value), digits = digits), " to ",
       format(max(x$value), digits = digits), "\n", sep = "")
-  proba <- attr(x, "observed_proba")
-  cat("  Observed ", parameter, " = ", format(observed, digits = digits), ": ",
-      decision_text(attr(x, "observed_success")),
-      if (!is.na(proba)) paste0(" (P = ", format(proba, digits = digits), ")"), "\n", sep = "")
   tipping_points <- attr(x, "tipping_points")
   if (length(tipping_points) == 0) {
     cat("  No tipping point in the grid: the decision is the same at every value.\n")
     return(invisible(x))
   }
-  cat("  Tipping points:\n")
-  print(data.frame(
-    tipping_point = tipping_points,
-    shift = tipping_points - observed
-  ), row.names = FALSE, digits = digits)
-  invisible(x)
+  cat("  Tipping points: ", paste(format(tipping_points, digits = digits), collapse = ", "),
+      "\n", sep = "")
+  return(invisible(x))
 }
 
 #' @rdname bexte_methods
@@ -328,7 +319,7 @@ plot.bexte_tipping_point <- function(x, ...) {
                           colour = "grey50")
     }
   }
-  ggplot2::ggplot(data, ggplot2::aes(x = .data$value, y = .data$success_proba)) +
+  return(ggplot2::ggplot(data, ggplot2::aes(x = .data$value, y = .data$success_proba)) +
     threshold +
     ggplot2::geom_vline(xintercept = attr(x, "tipping_points"), colour = "firebrick") +
     ggplot2::geom_vline(xintercept = attr(x, "observed"), linetype = "dotted") +
@@ -342,7 +333,7 @@ plot.bexte_tipping_point <- function(x, ...) {
       y = y_label,
       shape = "Decision"
     ) +
-    ggplot2::theme_minimal()
+    ggplot2::theme_minimal())
 }
 
 #' @rdname bexte_methods
@@ -351,5 +342,5 @@ as.data.frame.bexte_tipping_point <- function(x, ...) {
   attributes(x)[c("parameter", "location", "observed", "observed_proba", "observed_success",
                   "tipping_points", "critical_value", "method")] <- NULL
   class(x) <- "data.frame"
-  x
+  return(x)
 }

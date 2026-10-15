@@ -104,6 +104,14 @@ For a continuous endpoint, give `estimate` and `se`:
 target_data(n_control = 130, n_treatment = 126, estimate = 0.1, se = 0.1)
 ```
 
+**From a configuration file.** `config` reads the `target` block of a case-study file. It also accepts a list with the same fields.
+
+```{r}
+target_data(
+  config = system.file("conf/case_studies/belimumab.yml", package = "BExTE")
+)
+```
+
 The functions check their arguments, and the errors name the wrong argument:
 
 ```{r, error = TRUE}

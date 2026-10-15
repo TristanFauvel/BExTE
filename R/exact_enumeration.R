@@ -21,6 +21,7 @@
 #' @param case_study The case study name.
 #' @return `TRUE` or `FALSE`.
 #' @keywords internal
+#' @export
 case_study_exact_enumeration <- function(scenarios_config, case_study) {
   return(case_study %in% unlist(scenarios_config$exact_enumeration))
 }
@@ -32,6 +33,7 @@ case_study_exact_enumeration <- function(scenarios_config, case_study) {
 #' @param case_study The case study name, for the error message.
 #' @return No return value, called for side effects.
 #' @keywords internal
+#' @export
 check_exact_enumeration_supported <- function(case_study_config, case_study) {
   enumerable <- identical(case_study_config$endpoint, "binary") && (
     identical(case_study_config$summary_measure_likelihood, "binomial") || (

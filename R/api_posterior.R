@@ -94,9 +94,10 @@ api_simulation_config <- function(...) {
 #'   patients per arm. It tells how many target patients the source
 #'   information is worth.
 #'
-#' @param x A posterior, from [posterior()]. Its prior is evaluated at the
+#' @param mix A posterior, from [posterior()]. Its prior is evaluated at the
 #'   observed target data, which matters for the methods whose prior depends
-#'   on those data.
+#'   on those data. The argument has the name `mix` because the method is
+#'   also registered on the `ess()` generic of RBesT.
 #' @param method `"elir"` for the expected local information ratio
 #'   (Neuenschwander et al., 2020), `"moment"` or `"precision"`.
 #' @param ... Not used.
@@ -106,6 +107,10 @@ api_simulation_config <- function(...) {
 #' @details For most methods, the ESS comes from a mixture fitted to random
 #'   draws from the prior (or the posterior), so it varies a little from one
 #'   call to the next. Call [set.seed()] first to get the same value again.
+#'
+#'   RBesT also exports an `ess()` generic. The method for BExTE posteriors is
+#'   registered on both generics, so `ess(post)` works whichever package was
+#'   attached last.
 #'
 #' @references Neuenschwander, B., Weber, S., Schmidli, H. and O'Hagan, A.
 #'   (2020). Predictively consistent prior effective sample sizes.
@@ -119,14 +124,18 @@ api_simulation_config <- function(...) {
 #' ess(post)
 #' ess(post, method = "moment")
 #' @export
-ess <- function(x, ...) {
+ess <- function(mix, ...) {
   UseMethod("ess")
 }
 
+## The second registration is delayed: it happens when RBesT loads, so
+## library(BExTE) does not load RBesT (see BExTE_package.R).
 #' @rdname ess
 #' @export
-ess.bexte_posterior <- function(x, method = c("elir", "moment", "precision"), ...) {
+#' @rawNamespace S3method(RBesT::ess, bexte_posterior)
+ess.bexte_posterior <- function(mix, method = c("elir", "moment", "precision"), ...) {
   method <- match.arg(method)
+  x <- mix
   model <- x$model
   simulation_config <- api_simulation_config()
   if (method == "elir") {

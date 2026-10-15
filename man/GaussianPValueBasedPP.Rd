@@ -51,7 +51,6 @@ model$posterior_parameters$power_parameter
     \item \href{#method-GaussianPValueBasedPP-initialize}{\code{GaussianPValueBasedPP$new()}}
     \item \href{#method-GaussianPValueBasedPP-test}{\code{GaussianPValueBasedPP$test()}}
     \item \href{#method-GaussianPValueBasedPP-power_parameter_estimation}{\code{GaussianPValueBasedPP$power_parameter_estimation()}}
-    \item \href{#method-GaussianPValueBasedPP-vectorised_power_parameter}{\code{GaussianPValueBasedPP$vectorised_power_parameter()}}
     \item \href{#method-GaussianPValueBasedPP-clone}{\code{GaussianPValueBasedPP$clone()}}
   }
 }
@@ -93,6 +92,7 @@ model$posterior_parameters$power_parameter
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="plot_power_parameter_vs_drift"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-plot_power_parameter_vs_drift'><code>GaussianEmpiricalBayesPP$plot_power_parameter_vs_drift()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="prior_pdf"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-prior_pdf'><code>GaussianEmpiricalBayesPP$prior_pdf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-vectorised_posterior_parameters'><code>GaussianEmpiricalBayesPP$vectorised_posterior_parameters()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="vectorised_power_parameter"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-vectorised_power_parameter'><code>GaussianEmpiricalBayesPP$vectorised_power_parameter()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianEmpiricalBayesPP" data-id="vectorised_prior_variance"><a href='../../BExTE/html/GaussianEmpiricalBayesPP.html#method-GaussianEmpiricalBayesPP-vectorised_prior_variance'><code>GaussianEmpiricalBayesPP$vectorised_prior_variance()</code></a></span></li>
 </ul>
 </details>}}
@@ -125,14 +125,16 @@ Test method
 \if{html}{\out{<a id="method-GaussianPValueBasedPP-test"></a>}}
 \if{latex}{\out{\hypertarget{method-GaussianPValueBasedPP-test}{}}}
 \subsection{\code{GaussianPValueBasedPP$test()}}{
-  This method performs the test for the given target data.
+  Runs the equivalence test of the source and target
+estimates: two one-sided summary-statistic t-tests, evaluated on
+vectors.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{GaussianPValueBasedPP$test(
   target_data,
+  samples = target_data$sample,
   source_treatment_effect_estimate,
-  target_treatment_effect_estimate,
-  test_type = "t-test"
+  target_treatment_effect_estimate
 )}
     \if{html}{\out{</div>}}
   }
@@ -140,14 +142,17 @@ Test method
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{target_data}}{The target data object.}
-      \item{\code{source_treatment_effect_estimate}}{The source treatment effect estimate.}
-      \item{\code{target_treatment_effect_estimate}}{The target treatment effect estimate.}
-      \item{\code{test_type}}{Type of frequentist test used}
+      \item{\code{samples}}{Replicates to test; the observed target sample by
+default.}
+      \item{\code{source_treatment_effect_estimate}}{The source treatment effect
+estimate, after \code{hypothesis_space_transformation()}.}
+      \item{\code{target_treatment_effect_estimate}}{The target treatment effect
+estimates, after \code{hypothesis_space_transformation()}.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The p-value.
+    The p-values, one per replicate.
 Power parameter estimation method
   }
 }
@@ -159,45 +164,23 @@ Power parameter estimation method
   This method estimates the power parameter for the given target data.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianPValueBasedPP$power_parameter_estimation(target_data)}
+    \preformatted{GaussianPValueBasedPP$power_parameter_estimation(
+  target_data,
+  samples = target_data$sample
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{target_data}}{The target data object.}
+      \item{\code{samples}}{Replicates to estimate the power parameter for; the
+observed target sample by default.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The power parameter.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianPValueBasedPP-vectorised_power_parameter"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianPValueBasedPP-vectorised_power_parameter}{}}}
-\subsection{\code{GaussianPValueBasedPP$vectorised_power_parameter()}}{
-  Estimate the power parameter for every replicate at once.
-
-Reproduces \code{test()} followed by \code{power_parameter_estimation()}. The two
-one-sided equivalence tests are the same summary-statistic t-tests that
-\code{test()} runs through BSDA, evaluated on vectors.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianPValueBasedPP$vectorised_power_parameter(target_data, samples)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{target_data}}{The target data.}
-      \item{\code{samples}}{Data frame of generated replicates.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A vector of power parameters.
+    The power parameters, one per replicate.
   }
 }
 

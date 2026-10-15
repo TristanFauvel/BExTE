@@ -28,7 +28,7 @@ model$inference(target_data = target_data)
 model$credible_interval(level = 0.95)
 }
 \section{Super classes}{
-\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:Model_RBesT]{Model_RBesT}} -> \code{GaussianSeparate_RBesT}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:Model_RBesT]{Model_RBesT}} -> \code{\link[BExTE:GaussianFixedPrior_RBesT]{GaussianFixedPrior_RBesT}} -> \code{GaussianSeparate_RBesT}
 }
 \section{Public fields}{
   \if{html}{\out{<div class="r6-fields">}}
@@ -41,9 +41,6 @@ model$credible_interval(level = 0.95)
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-GaussianSeparate_RBesT-initialize}{\code{GaussianSeparate_RBesT$new()}}
-    \item \href{#method-GaussianSeparate_RBesT-prior_to_RBesT}{\code{GaussianSeparate_RBesT$prior_to_RBesT()}}
-    \item \href{#method-GaussianSeparate_RBesT-posterior_to_RBesT}{\code{GaussianSeparate_RBesT$posterior_to_RBesT()}}
-    \item \href{#method-GaussianSeparate_RBesT-vectorised_prior_components}{\code{GaussianSeparate_RBesT$vectorised_prior_components()}}
     \item \href{#method-GaussianSeparate_RBesT-clone}{\code{GaussianSeparate_RBesT$clone()}}
   }
 }
@@ -82,6 +79,9 @@ model$credible_interval(level = 0.95)
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="sample_prior"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-sample_prior'><code>Model_RBesT$sample_prior()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-vectorised_posterior_parameters'><code>Model_RBesT$vectorised_posterior_parameters()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-vectorised_replicate_inference'><code>Model_RBesT$vectorised_replicate_inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianFixedPrior_RBesT" data-id="posterior_to_RBesT"><a href='../../BExTE/html/GaussianFixedPrior_RBesT.html#method-GaussianFixedPrior_RBesT-posterior_to_RBesT'><code>GaussianFixedPrior_RBesT$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianFixedPrior_RBesT" data-id="prior_to_RBesT"><a href='../../BExTE/html/GaussianFixedPrior_RBesT.html#method-GaussianFixedPrior_RBesT-prior_to_RBesT'><code>GaussianFixedPrior_RBesT$prior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="GaussianFixedPrior_RBesT" data-id="vectorised_prior_components"><a href='../../BExTE/html/GaussianFixedPrior_RBesT.html#method-GaussianFixedPrior_RBesT-vectorised_prior_components'><code>GaussianFixedPrior_RBesT$vectorised_prior_components()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -103,74 +103,6 @@ model$credible_interval(level = 0.95)
   }
   \subsection{Returns}{
     A new GaussianSeparate_RBesT object.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianSeparate_RBesT-prior_to_RBesT"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianSeparate_RBesT-prior_to_RBesT}{}}}
-\subsection{\code{GaussianSeparate_RBesT$prior_to_RBesT()}}{
-  Converts the prior distribution to the RBesT format.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianSeparate_RBesT$prior_to_RBesT(...)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{...}}{Additional arguments.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    None
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianSeparate_RBesT-posterior_to_RBesT"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianSeparate_RBesT-posterior_to_RBesT}{}}}
-\subsection{\code{GaussianSeparate_RBesT$posterior_to_RBesT()}}{
-  Converts the posterior distribution to the RBesT format.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianSeparate_RBesT$posterior_to_RBesT(target_data, ...)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{target_data}}{Target study data.}
-      \item{\code{...}}{Additional arguments.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    None
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianSeparate_RBesT-vectorised_prior_components"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianSeparate_RBesT-vectorised_prior_components}{}}}
-\subsection{\code{GaussianSeparate_RBesT$vectorised_prior_components()}}{
-  Prior mixture components for each replicate.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{GaussianSeparate_RBesT$vectorised_prior_components(target_data, samples)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{target_data}}{Target study data.}
-      \item{\code{samples}}{Data frame of generated replicates.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list with \code{weights}, \code{means} and \code{sds}.
   }
 }
 

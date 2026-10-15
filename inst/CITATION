@@ -1,0 +1,13 @@
+year <- sub("-.*", "", meta$`Date/Publication`)
+if (!length(year) || !nzchar(year)) {
+  year <- format(Sys.Date(), "%Y")
+}
+
+bibentry(
+  bibtype = "Manual",
+  title = "{BExTE}: Bayesian Extrapolation of Treatment Effects",
+  author = c(person("Tristan", "Fauvel"), person("Pascal", "Godbillot")),
+  year = year,
+  note = paste("R package version", meta$Version),
+  url = "https://github.com/TristanFauvel/BExTE"
+)

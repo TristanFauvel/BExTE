@@ -269,6 +269,7 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
       }
 
       self$posterior_parameters$power_parameter <- self$power_parameter_estimation(target_data = target_data)
+      assert_single_number(self$posterior_parameters$power_parameter)
 
       # In the Gaussian case the power prior is equivalent to a Gaussian prior
       # with this variance; a power parameter too small to give a finite one
@@ -295,24 +296,31 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
       return(super$inference(target_data))
     },
 
-    #' Estimate the power parameter.
+    #' @description Estimate the power parameter
     #'
-    #' @return The estimated power parameter.
-    power_parameter_estimation = function() {
+    #' Subclasses implement this once, on vectors. The replicate loop calls it
+    #' on the one replicate in `target_data$sample`, and the vectorised path
+    #' calls it on every replicate at once.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Replicates to estimate the power parameter for: a data
+    #'   frame or list with `treatment_effect_estimate`,
+    #'   `treatment_effect_standard_error` and `standard_deviation`.
+    #' @return A vector of power parameters, one per replicate.
+    power_parameter_estimation = function(target_data, samples = target_data$sample) {
       stop("Subclass must implement a power_parameter estimation method.")
     },
 
     #' @description Estimate the power parameter for every replicate at once
     #'
-    #' Subclasses whose estimator is closed form override this. Returning `NULL`
-    #' means "no fast path", which keeps subclasses with an iterative estimator
-    #' (PDCCPP calibrates by search) on the replicate loop.
+    #' Calls `power_parameter_estimation()` on all replicates. Returning `NULL`
+    #' instead means "no fast path" and keeps the method on the replicate loop.
     #'
     #' @param target_data Target study data.
     #' @param samples Data frame of generated replicates.
     #' @return A vector of power parameters, or `NULL`.
     vectorised_power_parameter = function(target_data, samples) {
-      return(NULL)
+      return(self$power_parameter_estimation(target_data, samples))
     },
 
     #' @description Prior variance for each replicate
@@ -453,67 +461,11 @@ GaussianGravestockEBPP <- R6::R6Class(
     #' @description Estimate the power parameter using the Gravestock's EBPP method.
     #'
     #' @param target_data The target data.
-    #' @param source_treatment_effect_estimate Treatment effect estimate in the source study
-    #' @param target_treatment_effect_estimate Treatment effect estimate in the target study
-    #' @return The estimated power parameter.
-    power_parameter_estimation = function(target_data) {
+    #' @param samples Replicates to estimate the power parameter for; the
+    #'   observed target sample by default.
+    #' @return The estimated power parameters, one per replicate.
+    power_parameter_estimation = function(target_data, samples = target_data$sample) {
       # We reuse the code from the PDCCPP, but leverage the fact that PDCCPP is equivalent to Gravestock's EBPP with the calibration parameter set as:
-
-      transformed_treatment_effects <- self$hypothesis_space_transformation(
-        target_data$sample$treatment_effect_estimate
-      )
-      source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
-      target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
-
-
-      calibration_parameter <- 2 * (1 - pnorm(1)) # See Nikolakopoulos et al, 2018
-
-      target_data_sampling_variance <- target_data$sample$treatment_effect_standard_error ^
-        2 * target_effective_arm_size(target_data)
-
-      # We compute the sampling variance for the corresponding Gaussian, the goal is to put ourselves in a case equivalent to sampling from a Gaussian (single arm)
-      source_data_sampling_variance <- self$prior$source$standard_error ^
-        2 * self$prior$source$equivalent_source_sample_size_per_arm
-
-      # Prior sample size, equation (6) of Nikolakopoulos et al (2018): the
-      # source's sample size rescaled to units of target observations, so that
-      # target_data_sampling_variance / n0 is the source's squared standard
-      # error. Equation (9) of that paper is this estimator at z_{1-c/2} = 1,
-      # so it takes the same n0 as PDCCPP.
-      n0 <- self$prior$source$equivalent_source_sample_size_per_arm *
-        target_data_sampling_variance / source_data_sampling_variance
-
-      standard_deviation_predictive <- sqrt(
-        target_data_sampling_variance / n0 + target_data_sampling_variance / target_effective_arm_size(target_data)
-      )
-
-      power_parameter <- ifelse(((
-        target_treatment_effect_estimate > (
-          source_treatment_effect_estimate + standard_deviation_predictive * qnorm(1 - calibration_parameter / 2)
-        )
-      )) |
-        ((
-          target_treatment_effect_estimate < (
-            source_treatment_effect_estimate + standard_deviation_predictive * qnorm(calibration_parameter / 2)
-          )
-        )), ((target_data_sampling_variance / n0) / (((
-          target_treatment_effect_estimate - source_treatment_effect_estimate
-        ) / qnorm(1 - calibration_parameter / 2)
-        ) ^ 2 - target_data_sampling_variance / target_effective_arm_size(target_data)
-        )
-        ), 1)
-      assert_single_number(power_parameter)
-      return(power_parameter)
-    },
-
-    #' @description Estimate the power parameter for every replicate at once.
-    #'
-    #' Same closed form as `power_parameter_estimation()`, evaluated on vectors.
-    #'
-    #' @param target_data The target data.
-    #' @param samples Data frame of generated replicates.
-    #' @return A vector of power parameters.
-    vectorised_power_parameter = function(target_data, samples) {
       transformed <- self$hypothesis_space_transformation(samples$treatment_effect_estimate)
       source_estimate <- transformed$source_treatment_effect_estimate
       target_estimate <- transformed$target_treatment_effect_estimate
@@ -522,9 +474,15 @@ GaussianGravestockEBPP <- R6::R6Class(
 
       target_sampling_variance <- samples$treatment_effect_standard_error^2 *
         target_effective_arm_size(target_data)
+      # We compute the sampling variance for the corresponding Gaussian, the goal is to put ourselves in a case equivalent to sampling from a Gaussian (single arm)
       source_sampling_variance <- self$prior$source$standard_error^2 *
         self$prior$source$equivalent_source_sample_size_per_arm
 
+      # Prior sample size, equation (6) of Nikolakopoulos et al (2018): the
+      # source's sample size rescaled to units of target observations, so that
+      # target_sampling_variance / n0 is the source's squared standard error.
+      # Equation (9) of that paper is this estimator at z_{1-c/2} = 1, so it
+      # takes the same n0 as PDCCPP.
       n0 <- self$prior$source$equivalent_source_sample_size_per_arm *
         target_sampling_variance / source_sampling_variance
 
@@ -615,61 +573,24 @@ GaussianPDCCPP <- R6::R6Class(
       return(invisible(self$null_space))
     },
 
-    #' Estimate the power parameter using the PDCCPP method.
-    #'
-    #' @param target_data The target data.
-    #' @param source_treatment_effect_estimate The source treatment effect estimate.
-    #' @param target_treatment_effect_estimate The target treatment effect estimate.
-    #' @return The estimated power parameter.
-    power_parameter_estimation = function(target_data) {
-      transformed_treatment_effects <- self$hypothesis_space_transformation(
-        target_data$sample$treatment_effect_estimate
-      )
-      source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
-      target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
-
-      target_data_sampling_variance <- target_data$sample$treatment_effect_standard_error ^
-        2 * target_effective_arm_size(target_data)
-
-      calibration_parameter <- self$calibration_parameter(
-        target_data_sampling_variance = target_data_sampling_variance,
-        target_sample_size_per_arm = target_effective_arm_size(target_data),
-        source_treatment_effect_estimate = source_treatment_effect_estimate
-      )
-      assert_single_number(calibration_parameter)
-
-      power_parameter <- self$power_parameter_from_calibration(
-        target_treatment_effect_estimate = target_treatment_effect_estimate,
-        source_treatment_effect_estimate = source_treatment_effect_estimate,
-        target_data_sampling_variance = target_data_sampling_variance,
-        target_sample_size_per_arm = target_effective_arm_size(target_data),
-        calibration_parameter = calibration_parameter
-      )
-
-      if (is.null(power_parameter) || is.na(power_parameter)) {
-        stop("Variable is NULL or NA. Execution stopped.")
-      }
-
-      return(power_parameter)
-    },
-
-    #' @description The power parameter for every replicate at once
+    #' @description Estimate the power parameter using the PDCCPP method.
     #'
     #' The calibration depends on a replicate only through its target sampling
     #' variance, and it is a smooth function of it. Rather than search for it
     #' once per replicate, it is computed at 200 variances spaced evenly on the
-    #' log scale across the replicates' range and interpolated linearly. Near
-    #' the borrowing cut-off the power parameter is very sensitive to the
-    #' calibration, so these few searches are run to a tolerance of 1e-9
-    #' rather than the configured one: the interpolated calibration is then
-    #' closer to the exact one than a per-replicate search at the configured
-    #' tolerance would be. Equation (9) is evaluated for every replicate,
-    #' exactly as `power_parameter_estimation()` does.
+    #' log scale across the replicates' range and interpolated linearly. With
+    #' a single replicate, or replicates that share one variance, it is
+    #' searched for once, exactly. Equation (9) is then evaluated for every
+    #' replicate.
     #'
-    #' @param target_data Target study data.
-    #' @param samples Data frame of generated replicates.
-    #' @return A vector of power parameters, one per replicate.
-    vectorised_power_parameter = function(target_data, samples) {
+    #' @param target_data The target data.
+    #' @param samples Replicates to estimate the power parameter for; the
+    #'   observed target sample by default.
+    #' @param tolerance Tolerance of the calibration search; the configured one
+    #'   by default.
+    #' @return The estimated power parameters, one per replicate.
+    power_parameter_estimation = function(target_data, samples = target_data$sample,
+                                          tolerance = self$parameters$tolerance) {
       if (any(!is.finite(samples$treatment_effect_standard_error))) {
         stop("The standard error on the treatment effect is Inf")
       }
@@ -687,7 +608,7 @@ GaussianPDCCPP <- R6::R6Class(
             target_data_sampling_variance = variance,
             target_sample_size_per_arm = target_effective_arm_size(target_data),
             source_treatment_effect_estimate = source_estimate,
-            tolerance = min(self$parameters$tolerance, 1e-9)
+            tolerance = tolerance
           ))
         },
         target_sampling_variance,
@@ -709,7 +630,26 @@ GaussianPDCCPP <- R6::R6Class(
       return(power_parameter)
     },
 
-    #' @description The calibration parameter z_{1-c/2} for one target
+    #' @description The power parameter for every replicate at once
+    #'
+    #' Near the borrowing cut-off the power parameter is very sensitive to the
+    #' calibration, so the interpolation nodes of
+    #' `power_parameter_estimation()` are searched to a tolerance of 1e-9
+    #' rather than the configured one. The interpolated calibration is then
+    #' closer to the exact one than a per-replicate search at the configured
+    #' tolerance would be.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of power parameters, one per replicate.
+    vectorised_power_parameter = function(target_data, samples) {
+      return(self$power_parameter_estimation(
+        target_data, samples,
+        tolerance = min(self$parameters$tolerance, 1e-9)
+      ))
+    },
+
+    #' @description The calibration parameter \eqn{z_{1-c/2}} for one target
     #' sampling variance
     #'
     #' @param target_data_sampling_variance Target sampling variance, per
@@ -789,7 +729,7 @@ GaussianPDCCPP <- R6::R6Class(
     #'   patient.
     #' @param target_sample_size_per_arm Equivalent sample size per arm of the
     #'   target study (see `effective_arm_size()`).
-    #' @param calibration_parameter Calibration parameters z_{1-c/2}.
+    #' @param calibration_parameter Calibration parameters \eqn{z_{1-c/2}}.
     #' @return The power parameters.
     power_parameter_from_calibration = function(target_treatment_effect_estimate,
                                                 source_treatment_effect_estimate,
@@ -895,133 +835,31 @@ GaussianPValueBasedPP <- R6::R6Class(
 
     #' Test method
     #'
-    #' @description This method performs the test for the given target data.
+    #' @description Runs the equivalence test of the source and target
+    #' estimates: two one-sided summary-statistic t-tests, evaluated on
+    #' vectors.
     #'
     #' @param target_data The target data object.
-    #' @param target_treatment_effect_estimate The target treatment effect estimate.
-    #' @param source_treatment_effect_estimate The source treatment effect estimate.
-    #' @param test_type Type of frequentist test used
-    #' @return The p-value.
+    #' @param samples Replicates to test; the observed target sample by
+    #'   default.
+    #' @param source_treatment_effect_estimate The source treatment effect
+    #'   estimate, after `hypothesis_space_transformation()`.
+    #' @param target_treatment_effect_estimate The target treatment effect
+    #'   estimates, after `hypothesis_space_transformation()`.
+    #' @return The p-values, one per replicate.
     test = function(target_data,
+                    samples = target_data$sample,
                     source_treatment_effect_estimate,
-                    target_treatment_effect_estimate,
-                    test_type = "t-test") {
-      if (test_type == "z-test") {
-        # H0a : θS - θT > λ
-        left <- BSDA::zsum.test(
-          mean.x = source_treatment_effect_estimate,
-          mean.y = target_treatment_effect_estimate,
-          mu = self$parameters$equivalence_margin,
-          alternative = "less",
-          sigma.x = self$prior$source$standard_error * sqrt(
-            self$prior$source$equivalent_source_sample_size_per_arm
-          ),
-          sigma.y = target_data$sample$standard_deviation,
-          n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_effective_arm_size(target_data)
-        )
-
-        # H0b : θS - θT < -λ
-        right <- BSDA::zsum.test(
-          mean.x = source_treatment_effect_estimate,
-          mean.y = target_treatment_effect_estimate,
-          mu = -self$parameters$equivalence_margin,
-          alternative = "greater",
-          sigma.x = self$prior$source$standard_error * sqrt(
-            self$prior$source$equivalent_source_sample_size_per_arm
-          ),
-          sigma.y = target_data$sample$standard_deviation,
-          n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_effective_arm_size(target_data)
-        )
-      } else if (test_type == "t-test") {
-        # H0a : θS - θT > λ
-        left <- BSDA::tsum.test(
-          mean.x = source_treatment_effect_estimate,
-          mean.y = target_treatment_effect_estimate,
-          mu = self$parameters$equivalence_margin,
-          alternative = "less",
-          s.x = self$prior$source$standard_error * sqrt(
-            self$prior$source$equivalent_source_sample_size_per_arm
-          ),
-          s.y = target_data$sample$standard_deviation,
-          n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_effective_arm_size(target_data)
-        )
-
-        # H0b : θS - θT < -λ
-        right <- BSDA::tsum.test(
-          mean.x = source_treatment_effect_estimate,
-          mean.y = target_treatment_effect_estimate,
-          mu = -self$parameters$equivalence_margin,
-          alternative = "greater",
-          s.x = self$prior$source$standard_error * sqrt(
-            self$prior$source$equivalent_source_sample_size_per_arm
-          ),
-          s.y = target_data$sample$standard_deviation,
-          n.x = self$prior$source$equivalent_source_sample_size_per_arm,
-          n.y = target_effective_arm_size(target_data)
-        )
-      } else {
-        stop("Not implemented for this test. Must be either 't-test' or 'z-test'.")
-      }
-
-      # Take the maximum p_value of the two tests
-      p_value <- pmax(left$p.value, right$p.value)
-
-
-      assert_single_number(p_value)
-      return(p_value)
-    },
-
-    #' Power parameter estimation method
-    #'
-    #' @description This method estimates the power parameter for the given target data.
-    #'
-    #' @param target_data The target data object.
-    #' @return The power parameter.
-    power_parameter_estimation = function(target_data) {
-      transformed_treatment_effects <- self$hypothesis_space_transformation(
-        target_data$sample$treatment_effect_estimate
-      )
-      source_treatment_effect_estimate <- transformed_treatment_effects$source_treatment_effect_estimate
-      target_treatment_effect_estimate <- transformed_treatment_effects$target_treatment_effect_estimate
-
-      p_value <- self$test(
-        target_data = target_data,
-        target_treatment_effect_estimate = target_treatment_effect_estimate,
-        source_treatment_effect_estimate = source_treatment_effect_estimate
-      )
-      power_parameter <- exp((self$parameters$shape_parameter / (1 - p_value)) * log(1 - p_value))
-      if (is.null(power_parameter) || is.na(power_parameter)) {
-        stop("Variable is NULL or NA. Execution stopped.")
-      }
-      return(power_parameter)
-    },
-
-    #' @description Estimate the power parameter for every replicate at once.
-    #'
-    #' Reproduces `test()` followed by `power_parameter_estimation()`. The two
-    #' one-sided equivalence tests are the same summary-statistic t-tests that
-    #' `test()` runs through BSDA, evaluated on vectors.
-    #'
-    #' @param target_data The target data.
-    #' @param samples Data frame of generated replicates.
-    #' @return A vector of power parameters.
-    vectorised_power_parameter = function(target_data, samples) {
-      transformed <- self$hypothesis_space_transformation(samples$treatment_effect_estimate)
-
-      source_sd <- self$prior$source$standard_error *
-        sqrt(self$prior$source$equivalent_source_sample_size_per_arm)
-      source_n <- self$prior$source$equivalent_source_sample_size_per_arm
+                    target_treatment_effect_estimate) {
       margin <- self$parameters$equivalence_margin
 
       one_sided <- function(mu, alternative) {
         return(summary_t_test_p_value(
-          mean_x = transformed$source_treatment_effect_estimate,
-          sd_x = source_sd,
-          n_x = source_n,
-          mean_y = transformed$target_treatment_effect_estimate,
+          mean_x = source_treatment_effect_estimate,
+          sd_x = self$prior$source$standard_error *
+            sqrt(self$prior$source$equivalent_source_sample_size_per_arm),
+          n_x = self$prior$source$equivalent_source_sample_size_per_arm,
+          mean_y = target_treatment_effect_estimate,
           sd_y = samples$standard_deviation,
           n_y = target_effective_arm_size(target_data),
           mu = mu,
@@ -1029,10 +867,33 @@ GaussianPValueBasedPP <- R6::R6Class(
         ))
       }
 
+      # Take the maximum p-value of the two tests:
       # H0a: theta_S - theta_T > margin, and H0b: theta_S - theta_T < -margin.
-      p_value <- pmax(one_sided(margin, "less"), one_sided(-margin, "greater"))
+      return(pmax(one_sided(margin, "less"), one_sided(-margin, "greater")))
+    },
 
-      return(exp((self$parameters$shape_parameter / (1 - p_value)) * log(1 - p_value)))
+    #' Power parameter estimation method
+    #'
+    #' @description This method estimates the power parameter for the given target data.
+    #'
+    #' @param target_data The target data object.
+    #' @param samples Replicates to estimate the power parameter for; the
+    #'   observed target sample by default.
+    #' @return The power parameters, one per replicate.
+    power_parameter_estimation = function(target_data, samples = target_data$sample) {
+      transformed <- self$hypothesis_space_transformation(samples$treatment_effect_estimate)
+
+      p_value <- self$test(
+        target_data = target_data,
+        samples = samples,
+        source_treatment_effect_estimate = transformed$source_treatment_effect_estimate,
+        target_treatment_effect_estimate = transformed$target_treatment_effect_estimate
+      )
+      power_parameter <- exp((self$parameters$shape_parameter / (1 - p_value)) * log(1 - p_value))
+      if (anyNA(power_parameter)) {
+        stop("Variable is NULL or NA. Execution stopped.")
+      }
+      return(power_parameter)
     }
   )
 )

@@ -191,6 +191,7 @@ time_to_event_standard_deviation <- function(control_parameter,
 #' @return A named numeric vector with elements `control` and `treatment`.
 #'
 #' @keywords internal
+#' @export
 time_to_event_expected_events <- function(case_study_config,
                                           sample_size_control,
                                           sample_size_treatment = sample_size_control,

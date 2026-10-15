@@ -69,23 +69,6 @@ egidi_fixture <- function(method = "egidi_empirical_mixture",
   )
 }
 
-#' The posterior the vectorised path produces for a fixture.
-egidi_posterior_for <- function(fixture) {
-  prior <- fixture$model$vectorised_prior_components(
-    fixture$target_data, fixture$samples
-  )
-  list(
-    prior = prior,
-    posterior = normal_mixture_posterior(
-      weights = prior$weights,
-      means = prior$means,
-      sds = prior$sds,
-      estimate = fixture$samples$treatment_effect_estimate,
-      standard_error = fixture$samples$treatment_effect_standard_error
-    )
-  )
-}
-
 #' The conflict p-value by dense numerical integration, with no root-finding.
 #'
 #' Independent of the implementation, which splits the line at the turning points

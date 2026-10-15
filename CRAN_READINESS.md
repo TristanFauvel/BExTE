@@ -2,6 +2,19 @@
 
 Review date: 2026-10-11. The findings come from a reading of DESCRIPTION, NAMESPACE, LICENSE, `R/`, `man/`, `tests/` and `vignettes/`. `R CMD check --as-cran` results are in the Progress section.
 
+## Split into BExTE and BExTEsim (2026-10-15)
+
+The simulation-study pipeline moved to a new package, BExTEsim, in the sister
+folder `../BExTEsim`. It is not meant for CRAN. It holds the configs,
+scenarios, `run_simulation_env()`, parallel runs, result files, and the plots
+and tables of simulation studies. BExTEsim depends on BExTE.
+
+- BExTE exports 15 more functions with `@keywords internal`, under
+  "Internals: for extension packages" in `_pkgdown.yml`. BExTEsim calls them.
+- BExTEpaper and BExTE-app now load BExTEsim.
+- `inst/conf` keeps only the case studies, `full/mcmc_config.yml` and
+  `simulation_config.yml`. The rest moved to BExTEsim.
+
 ## Progress (2026-10-11)
 
 `R CMD check --as-cran --no-manual` on a copy of the tree (after `roxygen2::roxygenise()`) gives 0 errors, 2 warnings and 3 notes. The examples take 53 s, or 113 s with `--run-donttest`. The tests take 87 s, and the vignettes rebuild in 13 s. The tarball is 754 KB.
