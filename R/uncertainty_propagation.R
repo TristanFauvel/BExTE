@@ -65,7 +65,7 @@ binomial_replicate_count <- function(estimate,
   # Approximate fallback for results stored without a Monte Carlo standard
   # error: the replicate count a Wald interval of this width would imply.
   quantile_value <- stats::qnorm(1 - tail_probability)
-  round(estimate * (1 - estimate) * (2 * quantile_value / interval_width)^2)
+  return(round(estimate * (1 - estimate) * (2 * quantile_value / interval_width)^2))
 }
 
 
@@ -94,11 +94,11 @@ sample_binomial_proportion <- function(n_samples, estimate, n_replicates) {
   }
 
   successes <- estimate * n_replicates
-  stats::rbeta(
+  return(stats::rbeta(
     n_samples,
     shape1 = successes + 0.5,
     shape2 = n_replicates - successes + 0.5
-  )
+  ))
 }
 
 
@@ -152,10 +152,10 @@ mover_difference_ci <- function(estimate_1,
   upper_variance <- upper_arm_1^2 + lower_arm_2^2 -
     2 * correlation * upper_arm_1 * lower_arm_2
 
-  c(
+  return(c(
     lower = difference - sqrt(max(0, lower_variance)),
     upper = difference + sqrt(max(0, upper_variance))
-  )
+  ))
 }
 
 
@@ -189,7 +189,7 @@ power_difference_bounds <- function(results_df, correlation = 0) {
     MoreArgs = list(correlation = correlation)
   )
 
-  t(bounds)
+  return(t(bounds))
 }
 
 
@@ -223,7 +223,7 @@ add_power_difference_columns <- function(results_df, correlation = 0) {
   results_df$conf_int_success_proba_lower <- bounds[, "lower"]
   results_df$conf_int_success_proba_upper <- bounds[, "upper"]
 
-  results_df
+  return(results_df)
 }
 
 
@@ -256,5 +256,5 @@ flag_power_differences <- function(results_df, correlation = 0) {
   results_df$power_loss <- !is.na(results_df$power_difference_upper) &
     results_df$power_difference_upper < 0
 
-  results_df
+  return(results_df)
 }

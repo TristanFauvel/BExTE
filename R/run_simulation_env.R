@@ -55,7 +55,7 @@ resolve_analysis_steps <- function(scenarios_config, all_case_studies_shipped) {
                               "frequentist_power_at_nominal_tie"))
   }
 
-  steps
+  return(steps)
 }
 
 
@@ -150,7 +150,7 @@ run_simulation_env <- function(env,
     # package rather than crash; sweet_spot and bayesian_ocs (which do
     # thread case_studies_config_dir through) still run either way.
     all_case_studies_shipped <- all(vapply(scenarios_config$case_studies, function(cs) {
-      nzchar(system.file(file.path("conf", "case_studies", paste0(cs, ".yml")), package = "BExTE"))
+      return(nzchar(system.file(file.path("conf", "case_studies", paste0(cs, ".yml")), package = "BExTE")))
     }, logical(1)))
     analysis_to_compute <- resolve_analysis_steps(scenarios_config,
                                                   all_case_studies_shipped)
@@ -184,5 +184,5 @@ run_simulation_env <- function(env,
     concatenate_simulation_results(results_dir = results_dir, ocs_filename = ocs_filename)
   }
 
-  invisible(TRUE)
+  return(invisible(TRUE))
 }

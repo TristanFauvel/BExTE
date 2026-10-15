@@ -29,7 +29,7 @@ table_precision_ecp <- function(results_df, tables_dir) {
   target_effects <- c(0, source_effect / 2, source_effect)
   observed <- unique(results_df$target_treatment_effect)
   selected <- vapply(target_effects, function(effect) {
-    observed[which.min(abs(observed - effect))]
+    return(observed[which.min(abs(observed - effect))])
   }, numeric(1))
   if (length(unique(selected)) != 3L) {
     stop("Precision/ECP table could not identify three distinct treatment effects.")
@@ -56,8 +56,10 @@ table_precision_ecp <- function(results_df, tables_dir) {
     exact <- all(sprintf("%.3f", lower) == sprintf("%.3f", upper))
     if (exact) {
       table_data[[name]] <<- sprintf("%.3f", estimate)
+      return(invisible(table_data[[name]]))
     } else {
       table_data[[paste(name, "(95% CI)")]] <<- sprintf("%.3f [%.3f, %.3f]", estimate, lower, upper)
+      return(invisible(table_data[[paste(name, "(95% CI)")]]))
     }
   }
   add_column("Precision", rows$precision,
@@ -88,5 +90,5 @@ table_precision_ecp <- function(results_df, tables_dir) {
     target_size_label(n_control, n_treatment, "latex")
   )
   export_table(table_data, ncollapses = 0, title = title, file_path = file_path)
-  invisible(file_path)
+  return(invisible(file_path))
 }

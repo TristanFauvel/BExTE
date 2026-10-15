@@ -73,11 +73,11 @@ rate_from_drift_logRR <- function(arm_drift, source_rate) {
 }
 
 negative_binomial_variance <- function(mu, k) {
-  mu + mu ^ 2 / k
+  return(mu + mu ^ 2 / k)
 }
 
 sample_negative_binomial <- function(n, mu, k) {
-  stats::rnbinom(n = n, size = k, mu = mu)
+  return(stats::rnbinom(n = n, size = k, mu = mu))
 }
 
 #' Compute odds ratios based on the number of participants and responders in each arm
@@ -307,8 +307,9 @@ SourceData <- R6::R6Class("SourceData",
                                   )
 
                                   assert_single_number(self$treatment_rate)
-                                  assert_single_number(self$control_rate)
+                                  return(assert_single_number(self$control_rate))
                                 }
+                                return(invisible(NULL))
                               } else if (self$endpoint == "time_to_event") {
                                 if (is.na(source_denominator)) {
                                   self$control_rate <- case_study_config$source$control_rate
@@ -323,6 +324,7 @@ SourceData <- R6::R6Class("SourceData",
                                 # read from the configuration rather than reconstructed from the arm sizes
                                 # and the control rate, which would describe a different source design.
                                 self$standard_error <- case_study_config$source$standard_error
+                                return(invisible(self$standard_error))
                               } else if (self$endpoint == "recurrent_event") {
                                 if (is.na(source_denominator)) {
                                   self$control_rate <- case_study_config$source$control_rate
@@ -349,6 +351,9 @@ SourceData <- R6::R6Class("SourceData",
 
                                 self$standard_error <- sqrt((SE_R_treatment / mu_treatment) ^ 2 + (SE_R_control / mu_control) ^
                                                               2)
+                                return(invisible(self$standard_error))
+                              } else {
+                                return(invisible(NULL))
                               }
                             }
                           ))
@@ -456,7 +461,7 @@ ObservedSourceData <- R6::R6Class(
         stop("Not implemented for other endpoints")
       }
       assert_single_number(self$treatment_effect_estimate)
-      assert_single_number(self$standard_error)
+      return(assert_single_number(self$standard_error))
     },
 
     #' Convert the object's data to a dictionary format
@@ -693,6 +698,7 @@ TargetData <- R6::R6Class(
       self$sample_size_treatment <- target_sample_size_treatment
       self$treatment_effect <- self$drift + source_data$treatment_effect_estimate
       self$sampling_approximation <- sampling_approximation
+      return(invisible(self$sampling_approximation))
     },
     #' @description Converts the target data object to a dictionary.
     #' @return A list representing the target data object.
@@ -759,7 +765,7 @@ TargetData <- R6::R6Class(
       ))
       print(p1, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 1))
       print(p2, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 2))
-      print(p3, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 3))
+      return(print(p3, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 3)))
     }
   )
 )
@@ -838,7 +844,7 @@ ContinuousTargetData <- R6::R6Class(
       self$standard_deviation <- target_to_source_std_ratio * source_data$standard_error  * sqrt(source_data$equivalent_source_sample_size_per_arm) # This is the sampling standard deviation for pairs of individual patients data.
 
       assert_single_number(self$standard_deviation)
-      assert_single_number(self$treatment_effect)
+      return(assert_single_number(self$treatment_effect))
     },
 
     #' @description Generates samples for the continuous target data object.
@@ -988,7 +994,7 @@ BinaryTargetData <- R6::R6Class(
         #   stop("The treatment effect (log odds ratio) is not consistent with the drift")
         # }
       }
-      assert_single_number(self$treatment_effect)
+      return(assert_single_number(self$treatment_effect))
     },
 
     #' @description Generates samples for the binary target data object.
@@ -1045,7 +1051,7 @@ BinaryTargetData <- R6::R6Class(
         )
 
         # Compute the treatment effect estimate
-        data.frame(
+        return(data.frame(
           sample_control_rate = sample_control_rate,
           sample_treatment_rate = sample_treatment_rate,
           sample_size_control = self$sample_size_control,
@@ -1053,7 +1059,7 @@ BinaryTargetData <- R6::R6Class(
           treatment_effect_estimate = sample_treatment_rate - sample_control_rate,
           treatment_effect_standard_error = treatment_effect_standard_error,
           standard_deviation = standard_deviation
-        )
+        ))
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
         log_OR_samples <- compute_ORs(
@@ -1063,13 +1069,13 @@ BinaryTargetData <- R6::R6Class(
           n_treatment_responders
         )
 
-        data.frame(
+        return(data.frame(
           treatment_effect_estimate = log_OR_samples$log_odds_ratio,
           treatment_effect_standard_error = log_OR_samples$std_err_log_odds_ratio,
           sample_size_control = self$sample_size_control,
           sample_size_treatment = self$sample_size_treatment,
           standard_deviation = log_OR_samples$std_err_log_odds_ratio * sqrt(target_effective_arm_size(self))
-        )
+        ))
       } else {
         stop(
           "Trials are only built from responder counts under a binomial ",
@@ -1095,7 +1101,7 @@ BinaryTargetData <- R6::R6Class(
           stats::qbinom(tail_mass / 4, n, rate),
           stats::qbinom(tail_mass / 4, n, rate, lower.tail = FALSE)
         )
-        list(counts = counts, probabilities = stats::dbinom(counts, n, rate))
+        return(list(counts = counts, probabilities = stats::dbinom(counts, n, rate)))
       }
       control <- arm_support(self$sample_size_control, self$control_rate)
       treatment <- arm_support(self$sample_size_treatment, self$treatment_rate)
@@ -1107,14 +1113,14 @@ BinaryTargetData <- R6::R6Class(
       weights <- control$probabilities[grid$control] * treatment$probabilities[grid$treatment]
       kept_mass <- sum(weights)
 
-      list(
+      return(list(
         samples = self$samples_from_counts(
           control$counts[grid$control],
           treatment$counts[grid$treatment]
         ),
         weights = weights / kept_mass,
         omitted_mass = max(0, 1 - kept_mass)
-      )
+      ))
     },
     #' @description Converts the target data object to a dictionary.
     #' @return A list representing the target data object.
@@ -1180,9 +1186,9 @@ negative_binomial_inverse_dispersion <- function(input_data, rate_estimate) {
     } else {
       sum(counts * (lgamma(values + theta) - lgamma(theta)))
     }
-    rising_factorial -
+    return(rising_factorial -
       n_observations * theta * log1p(rate_estimate / theta) +
-      total_count * log(rate_estimate / (rate_estimate + theta))
+      total_count * log(rate_estimate / (rate_estimate + theta)))
   }
 
   # Limit of the profile log likelihood as theta -> Inf, where the negative
@@ -1369,9 +1375,11 @@ RecurrentEventTargetData <- R6::R6Class(
         self$standard_deviation <- sqrt(target_effective_arm_size(self)) * sqrt((SE_R_treatment / mu_treatment) ^
                                                                            2 + (SE_R_control / mu_control) ^ 2)
 
-        assert_single_number(self$standard_deviation)
+        return(assert_single_number(self$standard_deviation))
       } else if (self$summary_measure_likelihood != "normal") {
         stop("Not implemented for treatment effect distributions that are not Normal.")
+      } else {
+        return(invisible(NULL))
       }
     },
 
@@ -1665,19 +1673,20 @@ TimeToEventTargetData <- R6::R6Class(
         sample_size_control = self$sample_size_control,
         sample_size_treatment = self$sample_size_treatment
       )
+      return(invisible(self$standard_deviation))
     },
 
     #' @description The loss-to-follow-up rate implied by the dropout probability.
     #' @return A single number, zero when there is no loss to follow-up.
     dropout_rate = function() {
-      time_to_event_dropout_rate(self$dropout_probability, self$max_follow_up_time)
+      return(time_to_event_dropout_rate(self$dropout_probability, self$max_follow_up_time))
     },
 
     #' @description The event-time parameters of each arm: rates under the
     #'   exponential model, scales under the Weibull model.
     #' @return A list with elements `control` and `treatment`.
     arm_parameters = function() {
-      time_to_event_arm_parameters(
+      return(time_to_event_arm_parameters(
         event_time_distribution = self$event_time_distribution,
         control_rate = self$control_rate,
         treatment_rate = self$treatment_rate,
@@ -1685,7 +1694,7 @@ TimeToEventTargetData <- R6::R6Class(
         control_drift = self$control_drift,
         weibull_shape = self$weibull_shape,
         weibull_scale = self$weibull_scale
-      )
+      ))
     },
 
     #' Generate target data
@@ -1825,6 +1834,7 @@ ObservedTargetData <- R6::R6Class(
       self$sample$treatment_effect_estimate <- treatment_effect_estimate
       self$sample$treatment_effect_standard_error <- treatment_effect_standard_error
       self$sample$standard_deviation <- treatment_effect_standard_error * sqrt(target_effective_arm_size(self))
+      return(invisible(self$sample$standard_deviation))
     }
   )
 )

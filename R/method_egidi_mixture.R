@@ -31,7 +31,7 @@ egidi_posterior_parameters <- function(informative_posterior_weight, selection) 
     pvalue_informative = selection$pvalue_informative,
     pvalue_selected = selection$pvalue_selected
   )
-  parameters
+  return(parameters)
 }
 
 #' An empty selection, for a model that has not seen data yet
@@ -40,10 +40,10 @@ egidi_posterior_parameters <- function(informative_posterior_weight, selection) 
 #'   [egidi_select_weak_weight()]'s.
 #' @keywords internal
 egidi_empty_selection <- function() {
-  data.frame(
+  return(data.frame(
     psi_weak = NA_real_, pvalue_informative = NA_real_, pvalue_weak = NA_real_,
     pvalue_selected = NA_real_, initial_conflict = NA, conflict_unresolved = NA
-  )
+  ))
 }
 
 #' Read the Egidi method parameters from a configuration
@@ -53,7 +53,7 @@ egidi_empty_selection <- function() {
 #' @keywords internal
 egidi_method_settings <- function(method_parameters) {
   value <- function(name, default) {
-    if (is.null(method_parameters[[name]])) default else unlist(method_parameters[[name]])[[1]]
+    if (is.null(method_parameters[[name]])) return(default) else return(unlist(method_parameters[[name]])[[1]])
   }
 
   # The weak component is the robust mixture prior's, which every shipped
@@ -83,11 +83,11 @@ egidi_method_settings <- function(method_parameters) {
     )
   }
 
-  list(
+  return(list(
     alpha_pc = value("alpha_pc", 0.05),
     pvalue_method = pvalue_method,
     weight_grid_step = value("weight_grid_step", 0.001)
-  )
+  ))
 }
 
 #' GaussianEgidiMixture class
@@ -186,6 +186,7 @@ GaussianEgidiMixture <- R6::R6Class(
       self$posterior_parameters <- egidi_posterior_parameters(
         NA_real_, self$selection
       )
+      return(invisible(self$posterior_parameters))
     },
 
     #' @description Select the mixture weight for a replicate and build its prior.
@@ -213,7 +214,7 @@ GaussianEgidiMixture <- R6::R6Class(
       )
       self$w <- 1 - self$selection$psi_weak
 
-      super$empirical_bayes_update(target_data)
+      return(super$empirical_bayes_update(target_data))
     },
 
     #' @description Calculate the posterior moments based on the target data.
@@ -224,6 +225,7 @@ GaussianEgidiMixture <- R6::R6Class(
         informative_posterior_weight = self$wpost,
         selection = self$selection
       )
+      return(invisible(self$posterior_parameters))
     },
 
     #' @description Prior mixture components for each replicate.
@@ -253,23 +255,23 @@ GaussianEgidiMixture <- R6::R6Class(
         weight_scan_step = self$weight_scan_step
       )
 
-      list(
+      return(list(
         weights = cbind(1 - self$selection$psi_weak, self$selection$psi_weak),
         means = cbind(rep(self$info_prior_mean, n_replicates),
                       rep(self$vague_prior_mean, n_replicates)),
         sds = cbind(rep(sqrt(self$info_prior_variance), n_replicates),
                     sqrt(weak_variance))
-      )
+      ))
     },
 
     #' @description Posterior parameters reported by the vectorised path.
     #' @param posterior Posterior mixture from [normal_mixture_posterior()].
     #' @return A data frame with one row per replicate.
     vectorised_posterior_parameters = function(posterior) {
-      egidi_posterior_parameters(
+      return(egidi_posterior_parameters(
         informative_posterior_weight = posterior$weights[, 1],
         selection = self$selection
-      )
+      ))
     }
   )
 )

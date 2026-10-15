@@ -15,7 +15,7 @@ forest_palette_theme <- function(palette) {
   if (is.null(palette)) {
     return(NULL)
   }
-  ggplot2::theme(
+  return(ggplot2::theme(
     text = ggplot2::element_text(colour = palette$ink),
     axis.text = ggplot2::element_text(colour = palette$ink),
     axis.title = ggplot2::element_text(colour = palette$ink),
@@ -32,7 +32,7 @@ forest_palette_theme <- function(palette) {
     strip.background = ggplot2::element_rect(fill = palette$hairline, colour = NA),
     strip.text = ggplot2::element_text(colour = palette$ink),
     plot.background = ggplot2::element_blank()
-  )
+  ))
 }
 
 #' The colours of the forest plots' reference lines, defaulting to the literal
@@ -47,7 +47,7 @@ forest_reference_colours <- function(palette) {
   if (is.null(palette)) {
     return(list(target = "black", source = "red", ink = "black"))
   }
-  list(target = palette$ref_target, source = palette$ref_source, ink = palette$ink)
+  return(list(target = palette$ref_target, source = palette$ref_source, ink = palette$ink))
 }
 
 #' A point/pointrange layer carrying the palette's ink. Without a palette the
@@ -64,7 +64,7 @@ forest_ink_layer <- function(geom, palette, ...) {
   if (!is.null(palette)) {
     args$colour <- palette$ink
   }
-  do.call(geom, args)
+  return(do.call(geom, args))
 }
 
 #' Express a metric as a ratio to the separate analysis
@@ -123,7 +123,7 @@ scale_by_separate <- function(df, metric_columns) {
     out[[column]] <- out[[column]] / out$.separate_value
   }
 
-  out[, original_columns, drop = FALSE]
+  return(out[, original_columns, drop = FALSE])
 }
 
 
@@ -138,7 +138,7 @@ forest_ess_midpoint <- function(data) {
     source_per_arm <- 2 * data$source_sample_size_control * data$source_sample_size_treatment /
       (data$source_sample_size_control + data$source_sample_size_treatment)
   }
-  unique(stats::median(source_per_arm, na.rm = TRUE)) / 2
+  return(unique(stats::median(source_per_arm, na.rm = TRUE)) / 2)
 }
 
 ## The moment-based ESS each row achieved, or NULL when the run did not
@@ -148,7 +148,7 @@ forest_ess_values <- function(data) {
   if (is.null(data$ess_moment) || all(!is.finite(data$ess_moment))) {
     return(NULL)
   }
-  data$ess_moment
+  return(data$ess_moment)
 }
 
 ## The point-and-interval layer. The marker is filled by moment-based ESS and
@@ -159,13 +159,13 @@ forest_ess_layer <- function(data, palette, ess_limits) {
   if (is.null(forest_ess_values(data)) || !is.null(palette)) {
     return(forest_ink_layer(ggplot2::geom_pointrange, palette, size = 0.001, linewidth = 1))
   }
-  ggplot2::geom_pointrange(
+  return(ggplot2::geom_pointrange(
     ggplot2::aes(fill = ess_moment),
     ## No explicit colour: the outline stays at ggplot2's default so the
     ## dark-theme palette can still set it, which is the contract
     ## forest_ink_layer() exists to honour.
     shape = 21, stroke = 0.2, size = 0.61, linewidth = 1.2
-  )
+  ))
 }
 
 ## The shared diverging fill scale. Limits are passed in so all three panels
@@ -174,7 +174,7 @@ forest_ess_scale <- function(data, ess_limits, ess_midpoint) {
   if (is.null(forest_ess_values(data))) {
     return(NULL)
   }
-  ggplot2::scale_fill_gradient2(
+  return(ggplot2::scale_fill_gradient2(
     name = "Moment-based ESS",
     low = "#3B4CC0", mid = "white", high = "#E8000B",
     midpoint = if (is.null(ess_midpoint)) forest_ess_midpoint(data) else ess_midpoint,
@@ -188,7 +188,7 @@ forest_ess_scale <- function(data, ess_limits, ess_midpoint) {
       ticks.colour = "grey20",
       barwidth = grid::unit(2.2, "in"), barheight = grid::unit(0.12, "in")
     )
-  )
+  ))
 }
 
 ## Scientific notation on the x axis: a single power of ten factored out of
@@ -205,12 +205,12 @@ forest_scientific_x <- function(values, label) {
     return(list(scale = NULL, label = label))
   }
   factor <- 10^exponent
-  list(
+  return(list(
     scale = ggplot2::scale_x_continuous(
       labels = function(x) formatC(x / factor, format = "fg", digits = 2)
     ),
     label = latex2exp::TeX(sprintf("%s ($10^{%d}$)", label, exponent))
-  )
+  ))
 }
 
 ## The shared legend row: the moment-based ESS colourbar, and on the ESS
@@ -233,7 +233,7 @@ forest_legend_grob <- function(plt) {
       return(built$grobs[[index]])
     }
   }
-  NULL
+  return(NULL)
 }
 
 ## The width a forest panel spends on everything that is not the plotting
@@ -255,7 +255,7 @@ forest_nonpanel_width <- function(grob) {
   if (length(others) == 0) {
     return(grid::unit(0, "cm"))
   }
-  grid::convertWidth(sum(grob$widths[others]), "cm")
+  return(grid::convertWidth(sum(grob$widths[others]), "cm"))
 }
 
 ## Each panel's own overhead, plus an equal share of the remaining width,
@@ -267,7 +267,7 @@ forest_nonpanel_width <- function(grob) {
 ## collapses to its labels.
 forest_panel_widths <- function(grobs, available_in) {
   overheads <- vapply(grobs, function(grob) {
-    as.numeric(grid::convertWidth(forest_nonpanel_width(grob), "in"))
+    return(as.numeric(grid::convertWidth(forest_nonpanel_width(grob), "in")))
   }, numeric(1))
   ## A floor wide enough for the text that sits over and under a panel:
   ## its title ("Consistent (no drift)") and its axis label ("Relative
@@ -285,7 +285,7 @@ forest_panel_widths <- function(grobs, available_in) {
   }
   panel_floor_in <- 2.2 * font_size / 12
   panel_share <- max((available_in - sum(overheads)) / length(grobs), panel_floor_in)
-  grid::unit(overheads + panel_share, "in")
+  return(grid::unit(overheads + panel_share, "in"))
 }
 
 #' Create a forest plot
@@ -357,7 +357,7 @@ forest_subplot <- function(data,
 
   # Process the row of a results dataframe to create a Method + Parameters label
   labels <- sapply(seq_len(nrow(data)), function(i) {
-    process_method_parameters_label(data[i, ], methods_labels)
+    return(process_method_parameters_label(data[i, ], methods_labels))
   })
 
   data$rows <- seq(1, nrow(data))
@@ -554,7 +554,7 @@ forest_subplot_no_uncertainty <- function(data,
   }
 
   labels <- sapply(seq_len(nrow(data)), function(i) {
-    process_method_parameters_label(data[i, ], methods_labels)
+    return(process_method_parameters_label(data[i, ], methods_labels))
   })
 
   data$rows <- seq(1, nrow(data))
@@ -614,7 +614,7 @@ forest_combined_plot <- function(data,
 
   # Generate labels for the y-axis
   labels <- sapply(seq_len(nrow(data)), function(i) {
-    process_method_parameters_label(data[i, ], methods_labels)
+    return(process_method_parameters_label(data[i, ], methods_labels))
   })
   data$rows <- seq(1, nrow(data))
 
@@ -810,7 +810,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
   # The following is to handle problems with the way R handles floating point precision.
   # Find the closest values in df$target_treatment_effect to important_target_treatment_effects
   closest_values <- sapply(important_target_treatment_effects, function(x) {
-    df$target_treatment_effect[which.min(abs(df$target_treatment_effect - x))]
+    return(df$target_treatment_effect[which.min(abs(df$target_treatment_effect - x))])
   })
 
   # Filter the dataframe based on approximate equality
@@ -830,7 +830,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
 
   # Custom function to find the closest value
   closest_value <- function(x, values) {
-    values[which.min(abs(values - x))]
+    return(values[which.min(abs(values - x))])
   }
 
   # Assign closest values to target_treatment_effect
@@ -915,7 +915,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
 
   if (relative_to_separate) {
     as_relative <- function(label) {
-      paste0("Relative ", label, "\n(vs. separate analysis)")
+      return(paste0("Relative ", label, "\n(vs. separate analysis)"))
     }
     x_metric_label_no_effect <- as_relative(x_metric_label_no_effect)
     x_metric_label_partially_consistent <-
@@ -1114,7 +1114,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
   }
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", forest_plot = TRUE,
                bg = palette$surface)
-  invisible(paste0(file_path, ".png"))
+  return(invisible(paste0(file_path, ".png")))
 }
 
 
@@ -1258,7 +1258,7 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
   }
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", forest_plot = TRUE,
                bg = palette$surface)
-  invisible(paste0(file_path, ".png"))
+  return(invisible(paste0(file_path, ".png")))
 }
 
 
@@ -1322,6 +1322,7 @@ forest_plot_methods_comparison <- function(results_metrics_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }
 
 #' Plot methods comparison
@@ -1373,4 +1374,5 @@ forest_plot_methods_comparison_bayesian <- function(results_metrics_df, metrics)
       }
     }
   }
+  return(invisible(NULL))
 }

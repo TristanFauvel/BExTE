@@ -22,7 +22,7 @@
 #' @return `TRUE` or `FALSE`.
 #' @keywords internal
 case_study_exact_enumeration <- function(scenarios_config, case_study) {
-  case_study %in% unlist(scenarios_config$exact_enumeration)
+  return(case_study %in% unlist(scenarios_config$exact_enumeration))
 }
 
 
@@ -46,7 +46,7 @@ check_exact_enumeration_supported <- function(case_study_config, case_study) {
       "likelihood, or the normal one with sampling_approximation: FALSE."
     )
   }
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 
@@ -78,9 +78,9 @@ weighted_quantile <- function(x, weights, probs) {
   # A cumulative weight that reaches a probability up to rounding counts as
   # reaching it, so equal weights reproduce the type 1 quantile exactly.
   positions <- vapply(probs, function(p) {
-    which(cumulative >= p - 1e-12)[1]
+    return(which(cumulative >= p - 1e-12)[1])
   }, integer(1))
-  x[positions]
+  return(x[positions])
 }
 
 
@@ -114,5 +114,5 @@ collapse_monte_carlo_intervals <- function(result) {
     }
   }
   result$posterior_parameters <- parameters
-  result
+  return(result)
 }

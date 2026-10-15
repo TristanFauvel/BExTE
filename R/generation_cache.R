@@ -68,7 +68,7 @@ generate_replicates <- function(target_data, n_replicates, cache_dir = NULL,
     file.rename(temporary, path)
   }
 
-  samples
+  return(samples)
 }
 
 
@@ -88,11 +88,11 @@ generation_cache_key <- function(target_data, n_replicates) {
   values <- mget(fields, envir = target_data)
   values <- values[!vapply(values, is.function, logical(1))]
 
-  rlang::hash(list(
+  return(rlang::hash(list(
     class = class(target_data),
     fields = values[order(names(values))],
     generator = deparse(body(target_data$generate)),
     n_replicates = as.integer(n_replicates),
     seed = get(".Random.seed", envir = globalenv())
-  ))
+  )))
 }

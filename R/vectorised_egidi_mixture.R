@@ -11,7 +11,7 @@
 egidi_recycle <- function(...) {
   arguments <- list(...)
   n <- max(lengths(arguments))
-  lapply(arguments, rep_len, length.out = n)
+  return(lapply(arguments, rep_len, length.out = n))
 }
 
 #' Outer bounds of the region where a two-component normal mixture exceeds a level
@@ -39,16 +39,16 @@ egidi_level_bounds <- function(level, weights, means, sds) {
     # at or above one means the component never reaches half, so it contributes
     # no distance at all rather than a negative square root.
     ratio <- pmin(1, half * sd * sqrt(2 * pi) / weight)
-    sd * sqrt(pmax(0, -2 * log(ratio)))
+    return(sd * sqrt(pmax(0, -2 * log(ratio))))
   }
 
   spread_p <- distance(weights[[1]], sds[[1]])
   spread_q <- distance(weights[[2]], sds[[2]])
 
-  list(
+  return(list(
     lower = pmin(means[[1]] - spread_p, means[[2]] - spread_q),
     upper = pmax(means[[1]] + spread_p, means[[2]] + spread_q)
-  )
+  ))
 }
 
 #' Prior-predictive conflict p-value of a two-component normal mixture
@@ -154,8 +154,8 @@ egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_
   n <- length(t_obs)
 
   density <- function(t, i = seq_len(n)) {
-    (1 - psi[i]) * stats::dnorm(t, mu_p[i], sigma_p[i]) +
-      psi[i] * stats::dnorm(t, mu_q[i], sigma_q[i])
+    return((1 - psi[i]) * stats::dnorm(t, mu_p[i], sigma_p[i]) +
+      psi[i] * stats::dnorm(t, mu_q[i], sigma_q[i]))
   }
   # The level crossings are found on the log scale, where the tails of the
   # density neither underflow nor flatten out.
@@ -163,10 +163,10 @@ egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_
     informative <- log1p(-psi[i]) + stats::dnorm(t, mu_p[i], sigma_p[i], log = TRUE)
     weak <- log(psi[i]) + stats::dnorm(t, mu_q[i], sigma_q[i], log = TRUE)
     largest <- pmax(informative, weak)
-    largest + log(exp(informative - largest) + exp(weak - largest))
+    return(largest + log(exp(informative - largest) + exp(weak - largest)))
   }
   distribution <- function(t) {
-    (1 - psi) * stats::pnorm(t, mu_p, sigma_p) + psi * stats::pnorm(t, mu_q, sigma_q)
+    return((1 - psi) * stats::pnorm(t, mu_p, sigma_p) + psi * stats::pnorm(t, mu_q, sigma_q))
   }
 
   # Turning points are found from the sign of the derivative, but the derivative
@@ -188,7 +188,7 @@ egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_
       2 * log(sd_right[i]) + stats::dnorm(t, mean_right[i], sd_right[i], log = TRUE)
     pull_down <- log(weight_left[i]) + log(t - mean_left[i]) -
       2 * log(sd_left[i]) + stats::dnorm(t, mean_left[i], sd_left[i], log = TRUE)
-    pull_up - pull_down
+    return(pull_up - pull_down)
   }
 
   level <- density(t_obs)
@@ -295,7 +295,7 @@ egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_
     found <- vectorised_bracketed_root(
       f = function(t, within) {
         rows <- index[within]
-        log_density(t, rows) - log_level[rows]
+        return(log_density(t, rows) - log_level[rows])
       },
       lower = left[index],
       upper = right[index],
@@ -321,7 +321,7 @@ egidi_normal_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p, mu_q, sigma_
   resolved <- pmin(pmax(1 - mass, 0), 1)
   resolved[underflowed] <- 0
   pvalue[active] <- resolved
-  pvalue
+  return(pvalue)
 }
 
 #' Prior-predictive conflict p-value by simulation
@@ -363,15 +363,15 @@ egidi_monte_carlo_conflict_pvalue <- function(t_obs, psi, mu_p, sigma_p,
   )
 
   density <- function(t) {
-    (1 - psi) * stats::dnorm(t, mu_p, sigma_p) + psi * stats::dnorm(t, mu_q, sigma_q)
+    return((1 - psi) * stats::dnorm(t, mu_p, sigma_p) + psi * stats::dnorm(t, mu_q, sigma_q))
   }
   conflicting <- density(simulated) <= density(t_obs)
 
   estimate <- (1 + sum(conflicting)) / (draws + 1)
-  list(
+  return(list(
     pvalue = estimate,
     standard_error = sqrt(estimate * (1 - estimate) / draws)
-  )
+  ))
 }
 
 #' First candidate weight at which the conflict criterion is met
@@ -439,10 +439,10 @@ egidi_first_crossing <- function(lower, upper, steps, evaluate, alpha_pc,
   bracket_lower_value[missed] <- previous_value[missed]
   bracket_upper[missed] <- upper[missed]
 
-  list(
+  return(list(
     lower = bracket_lower, upper = bracket_upper,
     lower_value = bracket_lower_value, upper_value = bracket_upper_value
-  )
+  ))
 }
 
 #' Select the smallest acceptable weak-component weight
@@ -526,11 +526,11 @@ egidi_select_weak_weight <- function(t_obs, s_target, mu_p, tau_p, mu_q, tau_q,
   if (length(general)) {
     evaluate <- function(candidate, index) {
       rows <- general[index]
-      egidi_normal_conflict_pvalue(
+      return(egidi_normal_conflict_pvalue(
         t_obs = t_obs[rows], psi = candidate,
         mu_p = mu_p[rows], sigma_p = sigma_p[rows],
         mu_q = mu_q[rows], sigma_q = sigma_q[rows]
-      )
+      ))
     }
 
     coarse <- egidi_first_crossing(
@@ -566,14 +566,14 @@ egidi_select_weak_weight <- function(t_obs, s_target, mu_p, tau_p, mu_q, tau_q,
     pvalue_selected[general] <- evaluate(high, index)
   }
 
-  data.frame(
+  return(data.frame(
     psi_weak = psi,
     pvalue_informative = pvalue_informative,
     pvalue_weak = pvalue_weak,
     pvalue_selected = pvalue_selected,
     initial_conflict = initial_conflict,
     conflict_unresolved = conflict_unresolved
-  )
+  ))
 }
 
 #' Exact discrete conflict p-value for a two-arm binomial target
@@ -604,7 +604,7 @@ egidi_binomial_conflict_pvalue <- function(table_informative, table_weak, psi,
   if (!is.finite(total) || total <= 0) {
     return(NA_real_)
   }
-  sum(mixture[conflicting]) / total
+  return(sum(mixture[conflicting]) / total)
 }
 
 #' Conflict p-values at many weights at once
@@ -683,7 +683,7 @@ egidi_binomial_conflict_pvalue_path <- function(table_informative, table_weak, p
   total <- sum(informative) + psi * sum(difference)
   pvalue <- (mass_informative + psi * mass_difference) / total
   pvalue[!is.finite(total) | total <= 0] <- NA_real_
-  pvalue
+  return(pvalue)
 }
 
 #' Select the weak-component weight from a pair of response counts
@@ -712,9 +712,9 @@ egidi_select_weak_weight_binomial <- function(table_informative, table_weak,
                                               weight_grid_step = 0.001,
                                               tolerance = 1e-9) {
   at <- function(psi) {
-    egidi_binomial_conflict_pvalue(
+    return(egidi_binomial_conflict_pvalue(
       table_informative, table_weak, psi, y_control, y_treatment, tolerance
-    )
+    ))
   }
 
   pvalue_informative <- at(0)
@@ -779,11 +779,11 @@ egidi_select_weak_weight_binomial <- function(table_informative, table_weak,
     }
   }
 
-  data.frame(
+  return(data.frame(
     psi_weak = 1, pvalue_informative = pvalue_informative,
     pvalue_weak = pvalue_weak, pvalue_selected = pvalue_weak,
     initial_conflict = TRUE, conflict_unresolved = FALSE
-  )
+  ))
 }
 
 #' Fit the Egidi, Pauli and Torelli empirical mixture prior
@@ -871,10 +871,10 @@ fit_egidi_mixture <- function(theta_target_hat,
     )
   } else {
     at <- function(psi) {
-      egidi_monte_carlo_conflict_pvalue(
+      return(egidi_monte_carlo_conflict_pvalue(
         t_obs = theta_target_hat, psi = psi, mu_p = mu_p, sigma_p = sigma_p,
         mu_q = mu_q, sigma_q = sigma_q, draws = mc_draws, seed = seed
-      )
+      ))
     }
     lowest <- at(0)
     highest <- at(1)
@@ -932,7 +932,7 @@ fit_egidi_mixture <- function(theta_target_hat,
     below_null
   }
 
-  list(
+  return(list(
     psi_weak = psi_weak,
     w_informative_prior = w_informative_prior,
     psi_weak_posterior = posterior$weights[1, 2],
@@ -952,5 +952,5 @@ fit_egidi_mixture <- function(theta_target_hat,
     credible_interval = c(summaries$quantiles[1, 1], summaries$quantiles[1, 3]),
     probability_of_success = probability_of_success,
     convergence_or_numerical_diagnostics = diagnostics
-  )
+  ))
 }

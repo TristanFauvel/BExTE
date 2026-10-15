@@ -359,13 +359,13 @@ plot_success_proba_vs_drift <- function(metric,
     fig_height_in,
     type = "pdf"
   )
-  export_plots(
+  return(export_plots(
     plt = plt,
     file_path = file_path,
     fig_width_in,
     fig_height_in,
     type = "png"
-  )
+  ))
 }
 
 #' Plot methods operating characteristics
@@ -443,4 +443,5 @@ plot_success_proba_vs_scenario <- function(results_metrics_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }

@@ -146,7 +146,7 @@ table_power_vs_tie <- function(results_metrics_df,
 
   file_path <- file.path(directory, filename)
 
-  export_table(data_table = data_table, ncollapses = 1, title = title, file_path = file_path)
+  return(export_table(data_table = data_table, ncollapses = 1, title = title, file_path = file_path))
 }
 
 #' Generate power vs tie tables for multiple conditions
@@ -213,4 +213,5 @@ power_vs_tie_tables <- function(results_metrics_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }

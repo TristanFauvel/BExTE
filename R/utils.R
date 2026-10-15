@@ -9,7 +9,7 @@
 ## exactly one parameter, so it drew all five gamma values as a single
 ## zig-zagging line while two-parameter figures were unaffected.
 filter_to_parameter_combinations <- function(results_df, parameters_combinations) {
-  merge(results_df, parameters_combinations)
+  return(merge(results_df, parameters_combinations))
 }
 
 frequentist_col_types <- readr::cols(
@@ -205,7 +205,7 @@ upgrade_target_size_columns <- function(df) {
     }
   }
   df$target_sample_size_per_arm <- NULL
-  df
+  return(df)
 }
 
 # The columns that, together with the drift, identify one simulated scenario.
@@ -410,7 +410,7 @@ required_colnames_consumer <- c(
 #'
 #' @keywords internal
 default_coltypes <- function(expected_colnames) {
-  expected_coltypes[intersect(names(expected_coltypes), expected_colnames)]
+  return(expected_coltypes[intersect(names(expected_coltypes), expected_colnames)])
 }
 
 
@@ -439,7 +439,7 @@ column_type_predicates <- list(
 #'
 #' @keywords internal
 describe_column_type <- function(column) {
-  paste(class(column), collapse = "/")
+  return(paste(class(column), collapse = "/"))
 }
 
 
@@ -480,7 +480,7 @@ check_colnames <- function(df,
     stop(error_message)
   }
 
-  check_coltypes(df, types, expected_colnames)
+  return(check_coltypes(df, types, expected_colnames))
 }
 
 
@@ -516,10 +516,10 @@ check_required_colnames <- function(df,
     ))
   }
 
-  tryCatch(
+  return(tryCatch(
     check_coltypes(df, types, required_colnames),
     error = function(e) stop(paste0(prefix, conditionMessage(e)), call. = FALSE)
-  )
+  ))
 }
 
 
@@ -584,6 +584,7 @@ check_coltypes <- function(df, types, expected_colnames = names(types)) {
       paste(mismatches, collapse = "; ")
     ))
   }
+  return(invisible(NULL))
 }
 
 #' Remove columns from a dataframe
@@ -647,7 +648,7 @@ concatenate_simulation_results <- function(results_dir, ocs_filename) {
   }
 
   # Save the global data frame to a new CSV file
-  readr::write_csv(df_results, file.path(results_dir, ocs_filename))
+  return(readr::write_csv(df_results, file.path(results_dir, ocs_filename)))
 }
 
 
@@ -744,7 +745,7 @@ format_simulation_output_table <- function(output) {
   df <- df[, c("Metric", "Value", "95% CI")]
 
   # Print the table
-  print(df, row.names = FALSE)
+  return(print(df, row.names = FALSE))
 }
 
 format_parameters_to_json <- function(json_parameters, escape = FALSE) {
@@ -814,14 +815,14 @@ format_case_study_config <- function(case_study_config) {
     )
 
     # Create the table with headers and horizontal lines
-    knitr::kable(data,
+    return(knitr::kable(data,
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
       kableExtra::kable_styling("striped", full_width = FALSE) %>%
       kableExtra::pack_rows("General", 1, 7) %>%
       kableExtra::pack_rows("Target", 8, 12) %>%
-      kableExtra::pack_rows("Source", 13, 17)
+      kableExtra::pack_rows("Source", 13, 17))
   } else if (case_study_config$endpoint == "time_to_event") {
     data <- data.frame(
       Parameter = c(
@@ -875,14 +876,14 @@ format_case_study_config <- function(case_study_config) {
     )
 
     # Create the table with headers and horizontal lines
-    knitr::kable(data,
+    return(knitr::kable(data,
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
       kableExtra::kable_styling("striped", full_width = FALSE) %>%
       kableExtra::pack_rows("General", 1, 6) %>%
       kableExtra::pack_rows("Target", 7, 16) %>%
-      kableExtra::pack_rows("Source", 17, 22)
+      kableExtra::pack_rows("Source", 17, 22))
   } else if (case_study_config$endpoint == "binary") {
     data <- data.frame(
       Parameter = c(
@@ -934,14 +935,16 @@ format_case_study_config <- function(case_study_config) {
     )
 
     # Create the table with headers and horizontal lines
-    knitr::kable(data,
+    return(knitr::kable(data,
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
       kableExtra::kable_styling("striped", full_width = FALSE) %>%
       kableExtra::pack_rows("General", 1, 7) %>%
       kableExtra::pack_rows("Target", 8, 14) %>%
-      kableExtra::pack_rows("Source", 15, 21)
+      kableExtra::pack_rows("Source", 15, 21))
+  } else {
+    return(invisible(NULL))
   }
 }
 
@@ -969,7 +972,7 @@ write_stan_file_if_changed <- function(path, stan_model_code) {
   # Written beside the target and renamed over it, so a worker reading the
   # file never sees it half-written and mistakes it for different code.
   write_file_atomically(path, function(temporary) {
-    writeLines(stan_model_code, con = temporary)
+    return(writeLines(stan_model_code, con = temporary))
   })
 
   return(invisible(TRUE))
@@ -1002,7 +1005,7 @@ write_file_atomically <- function(path, write) {
     stop("Could not move ", temporary, " to ", path, call. = FALSE)
   }
 
-  invisible(path)
+  return(invisible(path))
 }
 
 #' Draw a seed for one Stan sampler run
@@ -1015,7 +1018,7 @@ write_file_atomically <- function(path, write) {
 #' @return A positive integer seed.
 #' @noRd
 stan_sampler_seed <- function() {
-  sample.int(.Machine$integer.max, size = 1)
+  return(sample.int(.Machine$integer.max, size = 1))
 }
 
 #' Directory holding the Stan draws of one model in one process
@@ -1037,12 +1040,12 @@ stan_sampler_seed <- function() {
 #' @return Path of the directory, which is not created here.
 #' @noRd
 stan_draws_directory <- function(case_study, method, process_id = Sys.getpid()) {
-  file.path(
+  return(file.path(
     tools::R_user_dir("BExTE", "cache"),
     "stan",
     "draws",
     paste0(tolower(case_study), "_", method, "_", process_id)
-  )
+  ))
 }
 
 #' Remove the Stan draws of one model across every process
@@ -1080,7 +1083,7 @@ clear_stan_draws <- function(case_study,
   mine <- startsWith(names, prefix) & grepl("^[0-9]+$", suffix)
 
   unlink(entries[mine], recursive = TRUE)
-  invisible(entries[mine])
+  return(invisible(entries[mine]))
 }
 
 
@@ -1098,7 +1101,7 @@ clear_stan_draws <- function(case_study,
 stan_model_directory <- function() {
   directory <- file.path(tools::R_user_dir("BExTE", "cache"), "stan")
   dir.create(directory, showWarnings = FALSE, recursive = TRUE)
-  directory
+  return(directory)
 }
 
 #' Remove the compiled Stan models
@@ -1122,7 +1125,7 @@ stan_model_directory <- function() {
 clear_stan_model_cache <- function(directory = stan_model_directory()) {
   cached <- list.files(directory, full.names = TRUE)
   file.remove(cached)
-  invisible(cached)
+  return(invisible(cached))
 }
 
 #' Stop unless 'cmdstanr' and 'CmdStan' are installed
@@ -1160,7 +1163,7 @@ check_stan_available <- function(
       call. = FALSE
     )
   }
-  invisible(TRUE)
+  return(invisible(TRUE))
 }
 
 compile_stan_model <- function(model_name, stan_model_code,
@@ -1188,10 +1191,10 @@ compile_stan_model <- function(model_name, stan_model_code,
   # thread-local, which costs speed for no parallelism in return.
   if (stan_file_changed || executable_is_stale) {
     write_file_atomically(stan_exe_file_path, function(temporary) {
-      cmdstanr::cmdstan_model(stan_model_file_path,
+      return(cmdstanr::cmdstan_model(stan_model_file_path,
                               exe_file = temporary,
                               force_recompile = TRUE,
-                              quiet = TRUE)
+                              quiet = TRUE))
     })
   }
 
@@ -1225,9 +1228,9 @@ load_data <- function(results_row, type, reload_data_objects = FALSE, case_studi
       # do not carry them, and such a run only ever had the default design.
       design_value <- function(name, default) {
         if (name %in% names(results_row) && !is.na(results_row[[name]][1])) {
-          results_row[[name]][1]
+          return(results_row[[name]][1])
         } else {
-          default
+          return(default)
         }
       }
 
@@ -1324,6 +1327,7 @@ check_confidence_intervals <- function(df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }
 
 
@@ -1366,7 +1370,7 @@ global_error_handler <- function() {
   futile.logger::flog.error("Global error occurred: %s", err)
 
   # Optionally log other debugging info such as the call stack
-  futile.logger::flog.error("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n"))
+  return(futile.logger::flog.error("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n")))
 
   # Log additional variables of interest (if needed)
   # For instance, if you're in a loop or a function with certain variables
@@ -1410,7 +1414,7 @@ save_state <- function(iteration, scenario, worker_id = NULL, env) {
     dir.create(dir_path, recursive = TRUE)
   }
 
-  save(scenario, file = file)
+  return(save(scenario, file = file))
 }
 
 #' Print a function's source code
@@ -1430,19 +1434,19 @@ read_function_code <- function(function_obj){
   function_code <- deparse(function_obj)
 
   # Prepend the function name and assignment
-  cat(paste0(function_name, " <- ", paste(function_code, collapse = "\n"), sep = ""))
+  return(cat(paste0(function_name, " <- ", paste(function_code, collapse = "\n"), sep = "")))
 }
 
 
 is_approx_equal <- function(x, y, tolerance = .Machine$double.eps^0.5) {
-  abs(x - y) < tolerance
+  return(abs(x - y) < tolerance)
 }
 
 # Function to compare rows, ignoring NAs
 compare_ignore_na <- function(row, ref_row) {
   # Only compare non-NA elements in the reference row
   non_na_indices <- !is.na(ref_row)
-  all(row[non_na_indices] == ref_row[non_na_indices])
+  return(all(row[non_na_indices] == ref_row[non_na_indices]))
 }
 
 #' Summarise the posterior draws consumed by the simulation
@@ -1464,13 +1468,13 @@ summarise_posterior_draws <- function(draws) {
          "Install it, or set `engine: quadrature` in the MCMC configuration.",
          call. = FALSE)
   }
-  posterior::summarise_draws(
+  return(posterior::summarise_draws(
     draws,
     posterior::default_summary_measures(),
     extra_quantiles = ~ posterior::quantile2(., probs = c(0.025, 0.975)),
     rhat = posterior::rhat,
     n_eff = posterior::ess_basic
-  )
+  ))
 }
 
 #' Check that a value is a single number
@@ -1497,7 +1501,7 @@ assert_single_number <- function(x, arg_name = deparse(substitute(x))) {
     stop(sprintf("'%s' is not a number! (%s)", arg_name, detail), call. = FALSE)
   }
 
-  invisible(x)
+  return(invisible(x))
 }
 
 #' Equivalent sample size per arm of a two-arm study
@@ -1516,7 +1520,7 @@ assert_single_number <- function(x, arg_name = deparse(substitute(x))) {
 #' @return The harmonic mean of the arm sizes.
 #' @noRd
 effective_arm_size <- function(n_control, n_treatment) {
-  2 * n_control * n_treatment / (n_control + n_treatment)
+  return(2 * n_control * n_treatment / (n_control + n_treatment))
 }
 
 #' Equivalent sample size per arm of a target study
@@ -1526,7 +1530,7 @@ effective_arm_size <- function(n_control, n_treatment) {
 #' @return See `effective_arm_size()`.
 #' @noRd
 target_effective_arm_size <- function(target) {
-  effective_arm_size(target$sample_size_control, target$sample_size_treatment)
+  return(effective_arm_size(target$sample_size_control, target$sample_size_treatment))
 }
 
 #' Split a total target sample size between the arms
@@ -1556,7 +1560,7 @@ split_target_sample_size <- function(total, allocation_ratio = 1) {
       total, allocation_ratio
     ), call. = FALSE)
   }
-  list(control = control, treatment = treatment)
+  return(list(control = control, treatment = treatment))
 }
 
 #' Label of the target arm sizes for titles and file names
@@ -1568,11 +1572,11 @@ split_target_sample_size <- function(total, allocation_ratio = 1) {
 #' @noRd
 target_size_label <- function(n_control, n_treatment, style = c("title", "latex", "file")) {
   style <- match.arg(style)
-  switch(style,
-    title = sprintf("n_C = %s, n_T = %s", n_control, n_treatment),
-    latex = sprintf("$n_C = %s$, $n_T = %s$", n_control, n_treatment),
-    file = sprintf("nC=%s_nT=%s", n_control, n_treatment)
-  )
+  return(switch(style,
+    title = return(sprintf("n_C = %s, n_T = %s", n_control, n_treatment)),
+    latex = return(sprintf("$n_C = %s$, $n_T = %s$", n_control, n_treatment)),
+    file = return(sprintf("nC=%s_nT=%s", n_control, n_treatment))
+  ))
 }
 
 #' Unwrap the length-1 list columns that rbind() over lists leaves behind
@@ -1591,11 +1595,11 @@ target_size_label <- function(n_control, n_treatment, style = c("title", "latex"
 unwrap_scalar_list_columns <- function(df) {
   df[] <- lapply(df, function(column) {
     if (is.list(column) && !inherits(column, "AsIs") && all(lengths(column) == 1L)) {
-      unlist(column, use.names = FALSE)
+      return(unlist(column, use.names = FALSE))
     } else {
-      column
+      return(column)
     }
   })
 
-  df
+  return(df)
 }

@@ -44,12 +44,12 @@ npp_prior_mixture <- function(model, n_nodes = 60L) {
     2^(1 - q - 2 * p) * 2 / beta(p, q)
   weights <- weights / sum(weights)
 
-  list(
+  return(list(
     weights = weights,
     means = rep(model$prior$source$treatment_effect_estimate, n_nodes),
     sds = model$prior$source$standard_error / sqrt(power_parameter),
     power_parameter = power_parameter
-  )
+  ))
 }
 
 #' Posterior summaries of the power parameter, per replicate
@@ -68,8 +68,8 @@ npp_power_parameter_summary <- function(posterior_weights, power_parameter) {
   mean_value <- drop(posterior_weights %*% power_parameter)
   second_moment <- drop(posterior_weights %*% power_parameter^2)
 
-  data.frame(
+  return(data.frame(
     power_parameter_mean = mean_value,
     power_parameter_std = sqrt(pmax(second_moment - mean_value^2, 0))
-  )
+  ))
 }

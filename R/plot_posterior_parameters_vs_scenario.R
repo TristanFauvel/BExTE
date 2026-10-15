@@ -104,9 +104,9 @@ plot_posterior_vs_prior_parameters <- function(input_df,
           filtered_results_metrics_df <- results_metrics_df[filter_df, ]
 
           parameters_labels <- unname(sapply(seq_len(nrow(filtered_results_metrics_df)), function(i) {
-            process_method_parameters_label(filtered_results_metrics_df[i, ],
+            return(process_method_parameters_label(filtered_results_metrics_df[i, ],
                                             methods_labels,
-                                            method_name = FALSE)
+                                            method_name = FALSE))
           }))
           parameters_labels <- setNames(object = parameters_labels, nm = filtered_results_metrics_df$parameters)
 
@@ -119,13 +119,13 @@ plot_posterior_vs_prior_parameters <- function(input_df,
             stop("x is null")
           }
 
-          data.frame(
+          return(data.frame(
             x = x,
             y = y,
             conf_int_lower = conf_int_lower,
             conf_int_upper = conf_int_upper,
             drift = drift
-          )
+          ))
         }))
 
         plot_title <- sprintf(
@@ -195,6 +195,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
       }
     }
   }
+  return(invisible(NULL))
 }
 
 
@@ -323,7 +324,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
 
     # Get the labels for the prior parameters
     parameters_labels <- unname(sapply(seq_len(nrow(results_metrics_subdf)), function(i) {
-      process_method_parameters_label(results_metrics_subdf[i, ], methods_labels, method_name = FALSE)
+      return(process_method_parameters_label(results_metrics_subdf[i, ], methods_labels, method_name = FALSE))
     }))
     parameters_labels <- setNames(object = parameters_labels, nm = results_metrics_subdf$parameters)
 
@@ -370,12 +371,12 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     plot_data_df <- dplyr::bind_rows(plot_data)
 
     parameters_labels <- unname(sapply(seq_len(nrow(plot_data_df)), function(i) {
-      process_method_parameters_label(
+      return(process_method_parameters_label(
         plot_data_df[i, ],
         methods_labels,
         method_name = FALSE,
         parameters_colname = "parameters"
-      )
+      ))
     }))
 
     parameters_labels <- parameters_labels[!duplicated(plot_data_df$parameters)]
@@ -480,6 +481,7 @@ plot_posterior_parameters_vs_drift <- function(results_metrics_df,
     export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
 
   }
+  return(invisible(NULL))
 }
 
 
@@ -558,4 +560,5 @@ posterior_parameters_plots <- function(results_metrics_df) {
       }
     }
   }
+  return(invisible(NULL))
 }

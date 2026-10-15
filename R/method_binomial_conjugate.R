@@ -78,6 +78,7 @@ BinomialConjugate <- R6::R6Class(
       self$prior <- prior
       self$summary_measure_likelihood <- "binomial"
       self$mcmc <- FALSE
+      return(invisible(self$mcmc))
     },
 
     #' @description
@@ -85,13 +86,13 @@ BinomialConjugate <- R6::R6Class(
     #' posteriors on the two response rates
     #' @return A data frame with columns `Attribute` and `Value`.
     summary_rows = function() {
-      rbind(
+      return(rbind(
         super$summary_rows(),
         summary_row("Control Rate Shape 1", self$control_shape1),
         summary_row("Control Rate Shape 2", self$control_shape2),
         summary_row("Treatment Rate Shape 1", self$treatment_shape1),
         summary_row("Treatment Rate Shape 2", self$treatment_shape2)
-      )
+      ))
     },
 
     #' @description Assemble the event counts the posterior conditions on.
@@ -126,7 +127,7 @@ BinomialConjugate <- R6::R6Class(
       self$interval_memo <- list()
       self$post_median <- self$posterior_quantile(0.5)
 
-      invisible(NULL)
+      return(invisible(NULL))
     },
 
     #' @description Posterior CDF of the treatment effect
@@ -134,11 +135,11 @@ BinomialConjugate <- R6::R6Class(
     posterior_cdf = function(target_treatment_effect) {
       shape1 <- self$treatment_shape1
       shape2 <- self$treatment_shape2
-      beta_difference_expectation(
+      return(beta_difference_expectation(
         target_treatment_effect, self$control_shape1, self$control_shape2,
         function(rate) stats::pbeta(rate, shape1, shape2),
         n_nodes = self$n_quadrature_nodes
-      )
+      ))
     },
 
     #' @description Posterior PDF of the treatment effect
@@ -146,23 +147,23 @@ BinomialConjugate <- R6::R6Class(
     posterior_pdf = function(target_treatment_effect) {
       shape1 <- self$treatment_shape1
       shape2 <- self$treatment_shape2
-      beta_difference_expectation(
+      return(beta_difference_expectation(
         target_treatment_effect, self$control_shape1, self$control_shape2,
         function(rate) stats::dbeta(rate, shape1, shape2),
         n_nodes = self$n_quadrature_nodes
-      )
+      ))
     },
 
     #' @description Quantiles of the posterior treatment effect
     #' @param probability Probabilities at which to evaluate the quantile function
     posterior_quantile = function(probability) {
-      vapply(probability, function(p) {
-        stats::uniroot(
+      return(vapply(probability, function(p) {
+        return(stats::uniroot(
           function(effect) self$posterior_cdf(effect) - p,
           interval = c(-1, 1),
           tol = .Machine$double.eps^0.5
-        )$root
-      }, numeric(1))
+        )$root)
+      }, numeric(1)))
     },
 
     #' @description Posterior median
@@ -215,8 +216,8 @@ BinomialConjugate <- R6::R6Class(
     #' @description Draw independent samples from the posterior
     #' @param n_samples Number of samples to draw
     sample_posterior = function(n_samples) {
-      stats::rbeta(n_samples, self$treatment_shape1, self$treatment_shape2) -
-        stats::rbeta(n_samples, self$control_shape1, self$control_shape2)
+      return(stats::rbeta(n_samples, self$treatment_shape1, self$treatment_shape2) -
+        stats::rbeta(n_samples, self$control_shape1, self$control_shape2))
     },
 
     #' @description Draw samples from the prior
@@ -246,11 +247,11 @@ BinomialConjugate <- R6::R6Class(
     #'   and `sample`, which takes the number of draws.
     prior_given_control_rate = function(control_rate) {
       force(control_rate)
-      list(
+      return(list(
         cdf = function(x) stats::punif(x, -control_rate, 1 - control_rate),
         pdf = function(x) stats::dunif(x, -control_rate, 1 - control_rate),
         sample = function(n_samples) stats::runif(n_samples, -control_rate, 1 - control_rate)
-      )
+      ))
     },
 
     #' @description Prior PDF

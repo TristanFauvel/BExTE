@@ -47,7 +47,7 @@ binomial_npp_cache_store <- new.env(parent = emptyenv())
 binomial_npp_cache_reset <- function() {
   rm(list = ls(envir = binomial_npp_cache_store, all.names = TRUE),
      envir = binomial_npp_cache_store)
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 
@@ -78,7 +78,7 @@ npp_beta_shapes <- function(mean, std) {
   tolerance <- .Machine$double.eps^0.5
   if (isTRUE(all.equal(p, 1, tolerance = tolerance))) p <- 1
   if (isTRUE(all.equal(q, 1, tolerance = tolerance))) q <- 1
-  list(p = p, q = q)
+  return(list(p = p, q = q))
 }
 
 
@@ -109,7 +109,7 @@ npp_gamma_rule <- function(p, q, t_limit = 30, t_step = 0.05) {
   upper_tail <- stats::pbeta(gamma[length(gamma)], p, q, lower.tail = FALSE)
   nodes <- c(0, gamma, 1)
   weights <- c(lower_tail, weights, upper_tail)
-  list(nodes = nodes, weights = weights / sum(weights))
+  return(list(nodes = nodes, weights = weights / sum(weights)))
 }
 
 
@@ -123,7 +123,7 @@ row_log_sum_exp <- function(x) {
   }
   largest <- apply(x, 1, max)
   largest[!is.finite(largest)] <- 0
-  largest + log(rowSums(exp(x - largest)))
+  return(largest + log(rowSums(exp(x - largest))))
 }
 
 
@@ -204,10 +204,10 @@ binomial_npp_prior_kernels <- function(n_control_source,
     keep <- is.finite(node_terms)
     chunks <- split(seq_along(table_log_likelihood),
                     ceiling(seq_along(table_log_likelihood) / 2000))
-    unlist(lapply(chunks, function(rows) {
-      row_log_sum_exp(outer(table_log_likelihood[rows], gamma[keep]) +
-                        rep(node_terms[keep], each = length(rows)))
-    }), use.names = FALSE)
+    return(unlist(lapply(chunks, function(rows) {
+      return(row_log_sum_exp(outer(table_log_likelihood[rows], gamma[keep]) +
+                        rep(node_terms[keep], each = length(rows))))
+    }), use.names = FALSE))
   })
 
   # N x (2N - 1): the weight of each (source control rate i, risk difference k),
@@ -230,17 +230,17 @@ binomial_npp_prior_kernels <- function(n_control_source,
     # Keep only the target treatment rates on the lattice: 1 <= j + k <= N.
     target_treatment <- outer(seq_len(N), differences, "+")
     kernel[target_treatment < 1L | target_treatment > N] <- 0
-    kernel
+    return(kernel)
   })
 
-  list(
+  return(list(
     n_lattice = N,
     rates = rates,
     differences = differences,
     kernel = kernels[[1]],
     kernel_gamma = kernels[[2]],
     kernel_gamma_squared = kernels[[3]]
-  )
+  ))
 }
 
 
@@ -264,16 +264,16 @@ binomial_npp_cached_kernels <- function(n_control_source,
     n_successes_treatment_source = as.integer(n_successes_treatment_source),
     p = p, q = q, n_lattice = as.integer(n_lattice)
   )
-  lattice_kernel_cached(key, function() {
-    binomial_npp_prior_kernels(
+  return(lattice_kernel_cached(key, function() {
+    return(binomial_npp_prior_kernels(
       n_control_source = n_control_source,
       n_successes_control_source = n_successes_control_source,
       n_treatment_source = n_treatment_source,
       n_successes_treatment_source = n_successes_treatment_source,
       gamma_rule = npp_gamma_rule(p, q),
       n_lattice = n_lattice
-    )
-  })
+    ))
+  }))
 }
 
 
@@ -299,7 +299,7 @@ lattice_kernel_cached <- function(key, compute, limit = 6L) {
     }
     assign(name, disk_cached(key, compute), envir = binomial_npp_cache_store)
   }
-  get(name, envir = binomial_npp_cache_store)
+  return(get(name, envir = binomial_npp_cache_store))
 }
 
 
@@ -330,12 +330,12 @@ binomial_cpp_cached_kernel <- function(n_control_source,
     as.integer(n_treatment_source), as.integer(n_successes_treatment_source),
     power_parameter, as.integer(n_lattice)
   )
-  lattice_kernel_cached(key, function() {
+  return(lattice_kernel_cached(key, function() {
     N <- as.integer(n_lattice)
     rates <- (seq_len(N) - 0.5) / N
     discounted <- function(n, successes) {
       log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
-      exp(power_parameter * (log_likelihood - max(log_likelihood)))
+      return(exp(power_parameter * (log_likelihood - max(log_likelihood))))
     }
     source_control <- discounted(n_control_source, n_successes_control_source)
     source_treatment <- discounted(n_treatment_source, n_successes_treatment_source)
@@ -351,8 +351,8 @@ binomial_cpp_cached_kernel <- function(n_control_source,
     kernel <- crossprod(width, source_weight)
     kernel[!inside] <- 0
 
-    list(n_lattice = N, rates = rates, differences = differences, kernel = kernel)
-  })
+    return(list(n_lattice = N, rates = rates, differences = differences, kernel = kernel))
+  }))
 }
 
 
@@ -380,7 +380,7 @@ binomial_npp_posterior <- function(kernels,
 
   arm_likelihood <- function(n, successes) {
     log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
-    exp(log_likelihood - max(log_likelihood))
+    return(exp(log_likelihood - max(log_likelihood)))
   }
   control <- arm_likelihood(n_control, n_successes_control)
   treatment <- arm_likelihood(n_treatment, n_successes_treatment)
@@ -456,7 +456,7 @@ binomial_npp_posterior <- function(kernels,
       Inf
     }
   }
-  posterior
+  return(posterior)
 }
 
 
@@ -529,6 +529,7 @@ BinomialLatticePrior <- R6::R6Class(
       }
       super$initialize(prior = prior, mcmc_config = mcmc_config)
       self$summary_measure_likelihood <- "binomial"
+      return(invisible(self$summary_measure_likelihood))
     },
 
     #' @description The prior kernels. Subclasses must implement it.
@@ -546,19 +547,19 @@ BinomialLatticePrior <- R6::R6Class(
     #' @return A list with the four source counts.
     source_counts = function() {
       source <- self$prior$source
-      list(
+      return(list(
         n_control_source = as.integer(source$sample_size_control),
         n_successes_control_source = counts_from_rate(source$control_rate, source$sample_size_control),
         n_treatment_source = as.integer(source$sample_size_treatment),
         n_successes_treatment_source = counts_from_rate(source$treatment_rate, source$sample_size_treatment)
-      )
+      ))
     },
 
     #' @description The posterior on a grid
     #' @param target_data The target study data.
     #' @return A [grid_posterior()] list.
     quadrature_posterior = function(target_data) {
-      binomial_npp_posterior(
+      return(binomial_npp_posterior(
         self$kernels(),
         n_control = as.integer(target_data$sample_size_control),
         n_successes_control = counts_from_rate(
@@ -568,13 +569,13 @@ BinomialLatticePrior <- R6::R6Class(
         n_successes_treatment = counts_from_rate(
           target_data$sample$sample_treatment_rate, target_data$sample_size_treatment
         )
-      )
+      ))
     },
 
     #' @description The prior of the treatment effect on a grid.
     #' @return A [grid_posterior()] list.
     quadrature_prior = function() {
-      binomial_npp_posterior(self$kernels(), 0L, 0L, 0L, 0L)
+      return(binomial_npp_posterior(self$kernels(), 0L, 0L, 0L, 0L))
     },
 
     #' @description The prior of the treatment effect given the target control
@@ -594,10 +595,10 @@ BinomialLatticePrior <- R6::R6Class(
       columns <- seq(N + 1L - row, 2L * N - row)
       differences <- kernels$differences[columns]
       support <- c(min(differences) - 1L, differences, max(differences) + 1L)
-      grid_distribution(grid_posterior(
+      return(grid_distribution(grid_posterior(
         support / N,
         c(0, kernels$kernel[row, columns], 0)
-      ))
+      )))
     },
 
     #' @description ELIR effective sample size of the prior
@@ -632,7 +633,7 @@ BinomialLatticePrior <- R6::R6Class(
         }
         self$prior_elir_unit_information <- get(key, envir = power_prior_elir_cache_store)
       }
-      self$prior_elir_unit_information * target_data$sample$standard_deviation^2
+      return(self$prior_elir_unit_information * target_data$sample$standard_deviation^2)
     }
   )
 )
@@ -698,11 +699,11 @@ BinomialNPP <- R6::R6Class(
     #' Rows of the model summary, with the prior on the power parameter
     #' @return A data frame with columns `Attribute` and `Value`.
     summary_rows = function() {
-      rbind(
+      return(rbind(
         super$summary_rows(),
         summary_row("Prior Power Parameter Mean", self$power_parameter_mean),
         summary_row("Prior Power Parameter SD", self$power_parameter_std)
-      )
+      ))
     },
 
     #' @description Initialize a BinomialNPP model.
@@ -718,7 +719,9 @@ BinomialNPP <- R6::R6Class(
         shapes <- npp_beta_shapes(self$power_parameter_mean, self$power_parameter_std)
         self$p <- shapes$p
         self$q <- shapes$q
+        return(invisible(self$q))
       }
+      return(invisible(NULL))
     },
 
     #' @description The prior kernels, computed once per worker and shared.
@@ -728,15 +731,15 @@ BinomialNPP <- R6::R6Class(
         stop("The normalized power prior has no prior on the power parameter yet.",
              call. = FALSE)
       }
-      do.call(binomial_npp_cached_kernels, c(self$source_counts(), list(
+      return(do.call(binomial_npp_cached_kernels, c(self$source_counts(), list(
         p = self$p, q = self$q, n_lattice = self$n_lattice
-      )))
+      ))))
     },
 
     #' @description What identifies the prior, for the ELIR cache.
     #' @return A list.
     kernel_key = function() {
-      c(self$source_counts(), list(p = self$p, q = self$q))
+      return(c(self$source_counts(), list(p = self$p, q = self$q)))
     },
 
     #' @description Record the posterior mean and standard deviation of the
@@ -746,6 +749,7 @@ BinomialNPP <- R6::R6Class(
         power_parameter_mean = self$grid_posterior$power_parameter_mean,
         power_parameter_std = self$grid_posterior$power_parameter_std
       )
+      return(invisible(self$posterior_parameters))
     }
   )
 )
@@ -823,6 +827,7 @@ BinomialNPP_KL <- R6::R6Class(
       self$theta_0 <- theta_0
       self$null_space <- null_space
       self$calibration_settings <- npp_kl_settings(prior$method_parameters, null_space)
+      return(invisible(self$calibration_settings))
     },
 
     #' @description Calibrate the prior on the power parameter to this design,
@@ -847,7 +852,7 @@ BinomialNPP_KL <- R6::R6Class(
       # The prior changed, so its ELIR has to be recomputed.
       self$prior_elir_unit_information <- NULL
       self$prior_grid <- NULL
-      invisible(self$calibration)
+      return(invisible(self$calibration))
     },
 
     #' @description Record the posterior moments of the power parameter and the
@@ -858,6 +863,7 @@ BinomialNPP_KL <- R6::R6Class(
         self$posterior_parameters,
         as.list(npp_kl_calibration_columns(self$calibration, 1L))
       )
+      return(invisible(self$posterior_parameters))
     }
   )
 )

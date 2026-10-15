@@ -117,7 +117,7 @@ new_bexte_prior <- function(source, method, class, label, ...) {
   # the prior again with one argument changed.
   builder <- sys.function(-1)
   builder_args <- mget(names(formals(builder)), envir = parent.frame())
-  structure(
+  return(structure(
     list(
       method = method,
       label = label,
@@ -127,7 +127,7 @@ new_bexte_prior <- function(source, method, class, label, ...) {
       builder_args = builder_args
     ),
     class = c(class, "bexte_prior")
-  )
+  ))
 }
 
 
@@ -161,7 +161,7 @@ update.bexte_prior <- function(object, ...) {
          paste0("`", setdiff(names(object$builder_args), "source"), "`", collapse = ", "), ".",
          call. = FALSE)
   }
-  do.call(object$builder, utils::modifyList(object$builder_args, changes))
+  return(do.call(object$builder, utils::modifyList(object$builder_args, changes)))
 }
 
 check_unit_interval <- function(x, name, open = FALSE) {
@@ -171,7 +171,7 @@ check_unit_interval <- function(x, name, open = FALSE) {
     stop("`", name, "` should lie in ", if (open) "(0, 1)" else "[0, 1]", ".",
          call. = FALSE)
   }
-  invisible(x)
+  return(invisible(x))
 }
 
 check_positive <- function(x, name) {
@@ -179,7 +179,7 @@ check_positive <- function(x, name) {
   if (x <= 0) {
     stop("`", name, "` should be positive.", call. = FALSE)
   }
-  invisible(x)
+  return(invisible(x))
 }
 
 check_heterogeneity_prior <- function(heterogeneity_prior) {
@@ -188,31 +188,31 @@ check_heterogeneity_prior <- function(heterogeneity_prior) {
     stop("`heterogeneity_prior` should be a list whose `family` is one of ",
          paste0('"', families, '"', collapse = ", "), ".", call. = FALSE)
   }
-  invisible(heterogeneity_prior)
+  return(invisible(heterogeneity_prior))
 }
 
 default_heterogeneity_prior <- function() {
-  list(family = "inverse_gamma", alpha = 1 / 7, beta = 1)
+  return(list(family = "inverse_gamma", alpha = 1 / 7, beta = 1))
 }
 
 #' @rdname borrowing_priors
 #' @export
 separate_prior <- function(source) {
-  new_bexte_prior(source, "separate", "bexte_separate", "Separate analysis")
+  return(new_bexte_prior(source, "separate", "bexte_separate", "Separate analysis"))
 }
 
 #' @rdname borrowing_priors
 #' @export
 pooling_prior <- function(source) {
-  new_bexte_prior(source, "pooling", "bexte_pooling", "Pooling")
+  return(new_bexte_prior(source, "pooling", "bexte_pooling", "Pooling"))
 }
 
 #' @rdname borrowing_priors
 #' @export
 power_prior <- function(source, a0) {
   check_unit_interval(a0, "a0")
-  new_bexte_prior(source, "conditional_power_prior", "bexte_power_prior",
-                  "Power prior", power_parameter = a0)
+  return(new_bexte_prior(source, "conditional_power_prior", "bexte_power_prior",
+                  "Power prior", power_parameter = a0))
 }
 
 #' @rdname borrowing_priors
@@ -224,8 +224,8 @@ npp <- function(source, a0_mean = 0.5, a0_sd = 0.2) {
     stop("`a0_sd` is too large for a Beta prior with mean `a0_mean`: ",
          "it should be below sqrt(a0_mean * (1 - a0_mean)).", call. = FALSE)
   }
-  new_bexte_prior(source, "NPP", "bexte_npp", "Normalised power prior",
-                  power_parameter_mean = a0_mean, power_parameter_std = a0_sd)
+  return(new_bexte_prior(source, "NPP", "bexte_npp", "Normalised power prior",
+                  power_parameter_mean = a0_mean, power_parameter_std = a0_sd))
 }
 
 #' @rdname borrowing_priors
@@ -234,9 +234,9 @@ npp_kl <- function(source, lambda = 0.5, c_target = 10, d_mtd_multiplier = 1) {
   check_unit_interval(lambda, "lambda")
   check_positive(c_target, "c_target")
   check_positive(d_mtd_multiplier, "d_mtd_multiplier")
-  new_bexte_prior(source, "NPP_KL", "bexte_npp_kl", "KL-calibrated normalised power prior",
+  return(new_bexte_prior(source, "NPP_KL", "bexte_npp_kl", "KL-calibrated normalised power prior",
                   lambda_kl = lambda, c_target = c_target,
-                  d_mtd_rule = "source_to_null", d_mtd_multiplier = d_mtd_multiplier)
+                  d_mtd_rule = "source_to_null", d_mtd_multiplier = d_mtd_multiplier))
 }
 
 #' @rdname borrowing_priors
@@ -246,8 +246,8 @@ rmp <- function(source, weight = 0.5, empirical_bayes = FALSE) {
   if (!isTRUE(empirical_bayes) && !isFALSE(empirical_bayes)) {
     stop("`empirical_bayes` should be TRUE or FALSE.", call. = FALSE)
   }
-  new_bexte_prior(source, "RMP", "bexte_rmp", "Robust mixture prior",
-                  prior_weight = weight, empirical_bayes = empirical_bayes)
+  return(new_bexte_prior(source, "RMP", "bexte_rmp", "Robust mixture prior",
+                  prior_weight = weight, empirical_bayes = empirical_bayes))
 }
 
 #' @rdname borrowing_priors
@@ -256,32 +256,32 @@ egidi_mixture <- function(source, alpha_pc = 0.05, pvalue_method = "exact",
                           weight_grid_step = 0.001) {
   check_unit_interval(alpha_pc, "alpha_pc", open = TRUE)
   check_unit_interval(weight_grid_step, "weight_grid_step", open = TRUE)
-  new_bexte_prior(source, "egidi_empirical_mixture", "bexte_egidi_mixture",
+  return(new_bexte_prior(source, "egidi_empirical_mixture", "bexte_egidi_mixture",
                   "Empirical mixture prior (Egidi)",
                   alpha_pc = alpha_pc, pvalue_method = pvalue_method,
-                  weight_grid_step = weight_grid_step, empirical_bayes = TRUE)
+                  weight_grid_step = weight_grid_step, empirical_bayes = TRUE))
 }
 
 #' @rdname borrowing_priors
 #' @export
 commensurate_prior <- function(source, heterogeneity_prior = default_heterogeneity_prior()) {
   check_heterogeneity_prior(heterogeneity_prior)
-  new_bexte_prior(source, "commensurate_prior", "bexte_commensurate_prior",
-                  "Commensurate prior", heterogeneity_prior = heterogeneity_prior)
+  return(new_bexte_prior(source, "commensurate_prior", "bexte_commensurate_prior",
+                  "Commensurate prior", heterogeneity_prior = heterogeneity_prior))
 }
 
 #' @rdname borrowing_priors
 #' @export
 commensurate_power_prior <- function(source, heterogeneity_prior = default_heterogeneity_prior()) {
   check_heterogeneity_prior(heterogeneity_prior)
-  new_bexte_prior(source, "commensurate_power_prior", "bexte_commensurate_power_prior",
-                  "Commensurate power prior", heterogeneity_prior = heterogeneity_prior)
+  return(new_bexte_prior(source, "commensurate_power_prior", "bexte_commensurate_power_prior",
+                  "Commensurate power prior", heterogeneity_prior = heterogeneity_prior))
 }
 
 #' @rdname borrowing_priors
 #' @export
 eb_power_prior <- function(source) {
-  new_bexte_prior(source, "EB_PP", "bexte_eb_power_prior", "Empirical Bayes power prior")
+  return(new_bexte_prior(source, "EB_PP", "bexte_eb_power_prior", "Empirical Bayes power prior"))
 }
 
 #' @rdname borrowing_priors
@@ -289,9 +289,9 @@ eb_power_prior <- function(source) {
 pvalue_power_prior <- function(source, shape = 1, equivalence_margin = 0.5) {
   check_positive(shape, "shape")
   check_positive(equivalence_margin, "equivalence_margin")
-  new_bexte_prior(source, "p_value_based_PP", "bexte_pvalue_power_prior",
+  return(new_bexte_prior(source, "p_value_based_PP", "bexte_pvalue_power_prior",
                   "p-value based power prior",
-                  shape_parameter = shape, equivalence_margin = equivalence_margin)
+                  shape_parameter = shape, equivalence_margin = equivalence_margin))
 }
 
 #' @rdname borrowing_priors
@@ -300,10 +300,10 @@ pdccpp <- function(source, desired_tie = 0.065, significance_level = 0.05, n_ite
   check_unit_interval(desired_tie, "desired_tie", open = TRUE)
   check_unit_interval(significance_level, "significance_level", open = TRUE)
   check_positive(n_iter, "n_iter")
-  new_bexte_prior(source, "PDCCPP", "bexte_pdccpp",
+  return(new_bexte_prior(source, "PDCCPP", "bexte_pdccpp",
                   "Prior-data conflict calibrated power prior",
                   desired_tie = desired_tie, significance_level = significance_level,
-                  tolerance = 1e-4, n_iter = n_iter)
+                  tolerance = 1e-4, n_iter = n_iter))
 }
 
 #' @rdname borrowing_priors
@@ -318,8 +318,8 @@ test_then_pool <- function(source, type = c("difference", "equivalence"),
                            significance_level = significance_level))
   }
   check_positive(equivalence_margin, "equivalence_margin")
-  new_bexte_prior(source, "test_then_pool_equivalence", "bexte_test_then_pool",
+  return(new_bexte_prior(source, "test_then_pool_equivalence", "bexte_test_then_pool",
                   "Test-then-pool (equivalence)",
                   significance_level = significance_level,
-                  equivalence_margin = equivalence_margin)
+                  equivalence_margin = equivalence_margin))
 }

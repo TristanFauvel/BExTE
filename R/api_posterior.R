@@ -42,10 +42,10 @@ posterior <- function(prior, target, mcmc_config = NULL) {
   ))
   model$inference(target_r6)
 
-  structure(
+  return(structure(
     list(model = model, prior = prior, target = target, target_r6 = target_r6),
     class = "bexte_posterior"
-  )
+  ))
 }
 
 
@@ -61,13 +61,13 @@ api_create_model <- function(prior, mcmc_config = NULL, config = prior$source$co
   if (is.null(mcmc_config)) {
     mcmc_config <- api_default_config("full/mcmc_config.yml")
   }
-  Model$new()$create(
+  return(Model$new()$create(
     case_study_config = config,
     method = prior$method,
     method_parameters = prior$method_parameters,
     source_data = prior$source$data,
     mcmc_config = mcmc_config
-  )
+  ))
 }
 
 
@@ -75,7 +75,7 @@ api_create_model <- function(prior, mcmc_config = NULL, config = prior$source$co
 #' @keywords internal
 #' @noRd
 api_default_config <- function(file) {
-  yaml::yaml.load_file(system.file("conf", file, package = "BExTE", mustWork = TRUE))
+  return(yaml::yaml.load_file(system.file("conf", file, package = "BExTE", mustWork = TRUE)))
 }
 
 
@@ -84,7 +84,7 @@ api_default_config <- function(file) {
 #' @noRd
 api_simulation_config <- function(...) {
   config <- api_default_config("simulation_config.yml")
-  utils::modifyList(config, list(...))
+  return(utils::modifyList(config, list(...)))
 }
 
 
@@ -134,7 +134,7 @@ ess.bexte_posterior <- function(x, method = c("elir", "moment", "precision"), ..
   }
   # The moment and precision ESS are the posterior's, less the target
   # sample size, as the simulation reports them.
-  model$posterior_ess(x$target_r6, simulation_config)[[method]]
+  return(model$posterior_ess(x$target_r6, simulation_config)[[method]])
 }
 
 
@@ -179,14 +179,14 @@ decision <- function(critical_value = 0.975, theta_0 = NULL, null_space = NULL) 
       return(model$test_decision(critical_value, hypothesis$theta_0, hypothesis$null_space,
                                  confidence_level = 2 * critical_value - 1))
     }
-    model$test_decision(critical_value, hypothesis$theta_0, hypothesis$null_space,
-                        confidence_level = NULL)
+    return(model$test_decision(critical_value, hypothesis$theta_0, hypothesis$null_space,
+                        confidence_level = NULL))
   }
   attr(rule, "critical_value") <- critical_value
   attr(rule, "theta_0") <- theta_0
   attr(rule, "null_space") <- null_space
   class(rule) <- c("bexte_decision", "function")
-  rule
+  return(rule)
 }
 
 
@@ -204,7 +204,7 @@ api_success_proba <- function(posterior, hypothesis) {
     return(NA_real_)
   }
   cdf <- unname(model$posterior_cdf(hypothesis$theta_0))
-  if (hypothesis$null_space == "left") 1 - cdf else cdf
+  if (hypothesis$null_space == "left") return(1 - cdf) else return(cdf)
 }
 
 
@@ -218,8 +218,8 @@ api_success_proba <- function(posterior, hypothesis) {
 api_hypothesis <- function(rule, config) {
   theta_0 <- attr(rule, "theta_0")
   null_space <- attr(rule, "null_space")
-  list(
+  return(list(
     theta_0 = if (is.null(theta_0)) config$theta_0 else theta_0,
     null_space = if (is.null(null_space)) config$null_space else null_space
-  )
+  ))
 }

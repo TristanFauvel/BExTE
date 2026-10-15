@@ -94,6 +94,7 @@ table_bayesian_metrics <- function(results_metrics_df,
 
     export_table(data_table = data_wide, ncollapses = 1, title = title, file_path = file_path)
   }
+  return(invisible(NULL))
 }
 
 
@@ -174,6 +175,7 @@ table_bayesian_metrics_sample_sizes_comparison <- function(results_metrics_df,
 
     export_table(data_table = wide_data_table_filtered, ncollapses = 1, title = title, file_path = file_path)
   }
+  return(invisible(NULL))
 }
 
 
@@ -259,6 +261,7 @@ table_bayesian_metrics_across_case_studies <- function(results_metrics_df) {
 
     export_table(data_table = wide_data_table_filtered, ncollapses = 1, title = title, file_path = file_path)
   }
+  return(invisible(NULL))
 }
 
 #' Generate tables for methods operating characteristics
@@ -327,4 +330,5 @@ table_bayesian_ocs <- function(results_metrics_df, metrics, source_denominator_c
       }
     }
   }
+  return(invisible(NULL))
 }

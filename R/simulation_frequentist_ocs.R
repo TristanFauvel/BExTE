@@ -138,9 +138,9 @@ frequentist_ocs_scenario_simulation <- function(scenario,
 
   target_data_df <- data.frame(lapply(target_data$to_dict(), function(x) {
     if (is.null(x)) {
-      NA
+      return(NA)
     } else {
-      x
+      return(x)
     }
   }))
 
@@ -252,7 +252,7 @@ case_study_factors <- function(scenarios_config, case_study) {
   if (is.null(per_case_study) || is.null(per_case_study[[case_study]])) {
     return(scenarios_config$sample_size_factors)
   }
-  per_case_study[[case_study]]
+  return(per_case_study[[case_study]])
 }
 
 ## The ratio of the treatment to the control arm size of a case study's
@@ -274,7 +274,7 @@ target_allocation_ratio <- function(scenarios_config, case_study) {
     stop("The target allocation ratio of ", case_study,
          " should be a single positive number.", call. = FALSE)
   }
-  ratio
+  return(ratio)
 }
 
 ## The number of replicates to simulate a given case study with.
@@ -288,7 +288,7 @@ case_study_n_replicates <- function(scenarios_config, case_study) {
   if (is.null(per_case_study) || is.null(per_case_study[[case_study]])) {
     return(scenarios_config$n_replicates)
   }
-  as.numeric(unlist(per_case_study[[case_study]]))
+  return(as.numeric(unlist(per_case_study[[case_study]])))
 }
 
 #' Run simulations based on the given environment
@@ -338,10 +338,10 @@ simulation_frequentist_ocs <- function(env,
     per_case_study <- scenarios_config
     per_case_study$case_studies <- cs
     per_case_study$sample_size_factors <- case_study_factors(scenarios_config, cs)
-    nrow(simulation_scenarios(
+    return(nrow(simulation_scenarios(
       config_dir = config_dir, scenarios_config = per_case_study,
       case_studies_config_dir = case_studies_config_dir
-    ))
+    )))
   }, numeric(1)))
   run_progress <- run_progress_tracker(env, total = run_total)
 
@@ -411,7 +411,7 @@ simulation_frequentist_ocs <- function(env,
       # either way, which is what the tracker expects.
       progress <- function(n) {
         pb$tick()
-        run_progress$tick(n)
+        return(run_progress$tick(n))
       }
       opts <- list(progress = progress)
 
@@ -527,7 +527,7 @@ simulation_frequentist_ocs <- function(env,
           n_workers = ncores
         )
         tasks <- lapply(task_rows, function(rows) {
-          list(rows = rows, cases = cases[rows, , drop = FALSE])
+          return(list(rows = rows, cases = cases[rows, , drop = FALSE]))
         })
 
         # doSNOW reports how many tasks have finished, so the scenarios done are
@@ -535,7 +535,7 @@ simulation_frequentist_ocs <- function(env,
         task_progress <- function(n) {
           done <- if (n >= length(tasks)) nrow(cases) else floor(n * nrow(cases) / length(tasks))
           pb$update(done / nrow(cases))
-          run_progress$tick(done)
+          return(run_progress$tick(done))
         }
 
         # Parallel computation over cases
@@ -549,7 +549,7 @@ simulation_frequentist_ocs <- function(env,
             i <- task$rows[j]
             scenario <- task$cases[j, ]
 
-            tryCatch({
+            return(tryCatch({
               result <- frequentist_ocs_scenario_simulation(
                 scenario = scenario,
                 simulation_config = simulation_config,
@@ -570,7 +570,7 @@ simulation_frequentist_ocs <- function(env,
               save_state(iteration = i, scenario = scenario, worker_id = worker_id, env = env)
 
               stop(e)
-            })
+            }))
           })
         }
         # Back into scenario order, as the one-scenario-per-task loop combined
@@ -595,4 +595,5 @@ simulation_frequentist_ocs <- function(env,
     # read again.
     unlink(generation_cache_dir, recursive = TRUE)
   }
+  return(invisible(NULL))
 }

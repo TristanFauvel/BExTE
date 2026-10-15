@@ -7,35 +7,35 @@
 #' @keywords internal
 config_type_predicates <- list(
   probability = function(x) {
-    is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x <= 1
+    return(is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x <= 1)
   },
   count = function(x) {
-    is.numeric(x) && length(x) == 1 && !is.na(x) && x > 0 && x == round(x)
+    return(is.numeric(x) && length(x) == 1 && !is.na(x) && x > 0 && x == round(x))
   },
   nonnegative_count = function(x) {
-    is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x == round(x)
+    return(is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x == round(x))
   },
   number = function(x) is.numeric(x) && length(x) == 1 && !is.na(x),
   flag = function(x) is.logical(x) && length(x) == 1 && !is.na(x),
   string = function(x) is.character(x) && length(x) == 1 && !is.na(x),
   numeric_vector = function(x) {
-    length(x) > 0 && all(vapply(x, function(e) is.numeric(e) && length(e) == 1, logical(1)))
+    return(length(x) > 0 && all(vapply(x, function(e) is.numeric(e) && length(e) == 1, logical(1))))
   },
   character_vector = function(x) {
-    length(x) > 0 && all(vapply(x, function(e) is.character(e) && length(e) == 1, logical(1)))
+    return(length(x) > 0 && all(vapply(x, function(e) is.character(e) && length(e) == 1, logical(1))))
   },
   # `parallelization` is either a single flag or a list of method names.
   flag_or_list = function(x) {
-    (is.logical(x) && length(x) == 1 && !is.na(x)) || is.list(x)
+    return((is.logical(x) && length(x) == 1 && !is.na(x)) || is.list(x))
   },
   # A case study name -> the sample size factors to simulate for it.
   named_numeric_list = function(x) {
-    is.list(x) && length(x) > 0 && !is.null(names(x)) &&
+    return(is.list(x) && length(x) > 0 && !is.null(names(x)) &&
       all(nzchar(names(x))) &&
       all(vapply(x, function(v) {
-        length(v) > 0 &&
-          all(vapply(v, function(e) is.numeric(e) && length(e) == 1, logical(1)))
-      }, logical(1)))
+        return(length(v) > 0 &&
+          all(vapply(v, function(e) is.numeric(e) && length(e) == 1, logical(1))))
+      }, logical(1))))
   }
 )
 
@@ -113,7 +113,7 @@ validate_config <- function(config, schema, context) {
     ), call. = FALSE)
   }
 
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 
@@ -129,7 +129,7 @@ validate_config <- function(config, schema, context) {
 read_config <- function(path, schema) {
   config <- yaml::read_yaml(path)
   validate_config(config, schema, path)
-  config
+  return(config)
 }
 
 
@@ -177,7 +177,7 @@ check_decision_threshold <- function(config, context) {
     ), call. = FALSE)
   }
 
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 
@@ -194,7 +194,7 @@ check_decision_threshold <- function(config, context) {
 read_simulation_config <- function(path) {
   config <- read_config(path, simulation_config_schema)
   check_decision_threshold(config, path)
-  config
+  return(config)
 }
 
 
@@ -320,5 +320,5 @@ check_model_create_args <- function(case_study_config,
     ), call. = FALSE)
   }
 
-  invisible(NULL)
+  return(invisible(NULL))
 }

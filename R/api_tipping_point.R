@@ -93,10 +93,10 @@ tipping_point <- function(prior, target, decision, parameter, values,
   evaluate <- api_tp_evaluator(parameter, location, prior, target, decision, mcmc_config)
   errors <- character()
   grid <- lapply(values, function(x) {
-    tryCatch(evaluate(x), error = function(e) {
+    return(tryCatch(evaluate(x), error = function(e) {
       errors[[format(x)]] <<- conditionMessage(e)
-      list(proba = NA_real_, success = NA)
-    })
+      return(list(proba = NA_real_, success = NA))
+    }))
   })
   if (length(errors) > 0) {
     warning("The analysis failed at ", parameter, " = ",
@@ -128,7 +128,7 @@ tipping_point <- function(prior, target, decision, parameter, values,
   attr(out, "critical_value") <- at_observed$critical_value
   attr(out, "method") <- prior$label
   class(out) <- c("bexte_tipping_point", "data.frame")
-  out
+  return(out)
 }
 
 
@@ -165,7 +165,7 @@ api_tp_locate <- function(parameter, prior, target, decision) {
     stop("`", parameter, "` is an argument of more than one of: ",
          paste(names(found)[found], collapse = ", "), ".", call. = FALSE)
   }
-  names(found)[found]
+  return(names(found)[found])
 }
 
 
@@ -185,7 +185,7 @@ api_tp_observed <- function(parameter, location, prior, target, decision) {
   if (!is.numeric(value) || length(value) != 1) {
     stop("`", parameter, "` should be a numeric argument, with a single value.", call. = FALSE)
   }
-  value
+  return(value)
 }
 
 
@@ -206,7 +206,7 @@ api_tp_evaluator <- function(parameter, location, prior, target, decision, mcmc_
     # The posterior does not depend on the decision rule, so fit it once.
     fixed_posterior <- posterior(prior, target, mcmc_config)
   }
-  function(x) {
+  return(function(x) {
     rule <- decision
     post <- fixed_posterior
     if (location == "prior") {
@@ -221,12 +221,12 @@ api_tp_evaluator <- function(parameter, location, prior, target, decision, mcmc_
       args[[parameter]] <- x
       rule <- do.call(api_tp_decision, args)
     }
-    list(
+    return(list(
       proba = api_success_proba(post, api_hypothesis(rule, prior$source$config)),
       success = isTRUE(rule(post)),
       critical_value = attr(rule, "critical_value")
-    )
-  }
+    ))
+  })
 }
 
 
@@ -258,7 +258,7 @@ api_tp_refine <- function(evaluate, lower, upper, success_lower, is_count, obser
   if (!is.na(proba_lower) && !is.null(critical_value)) {
     margin <- function(x) {
       result <- evaluate(x)
-      result$proba - result$critical_value
+      return(result$proba - result$critical_value)
     }
     return(stats::uniroot(margin, c(lower, upper), tol = tol)$root)
   }
@@ -267,5 +267,5 @@ api_tp_refine <- function(evaluate, lower, upper, success_lower, is_count, obser
     middle <- (lower + upper) / 2
     if (evaluate(middle)$success == success_lower) lower <- middle else upper <- middle
   }
-  (lower + upper) / 2
+  return((lower + upper) / 2)
 }

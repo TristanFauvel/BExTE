@@ -178,10 +178,11 @@ simulation_analysis <- function(env,
       combined_bayesian_df <- dplyr::bind_rows(updated_bayesian_df, results_bayesian_ocs)
 
       # Write updated results back to the CSV
-      readr::write_csv(combined_bayesian_df, bayes_filename)
+      return(readr::write_csv(combined_bayesian_df, bayes_filename))
     } else {
       # Write new results if file does not exist
-      readr::write_csv(results_bayesian_ocs, bayes_filename)
+      return(readr::write_csv(results_bayesian_ocs, bayes_filename))
     }
   }
+  return(invisible(NULL))
 }

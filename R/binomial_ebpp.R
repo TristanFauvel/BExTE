@@ -35,7 +35,7 @@ lattice_shift_matrix <- function(values, rows, shifts, fill = 0) {
   N <- length(values)
   padded <- c(rep(fill, N), values, rep(fill, N))
   index <- rep(rows, times = length(shifts)) + rep(shifts, each = length(rows)) + N
-  matrix(padded[index], nrow = length(rows))
+  return(matrix(padded[index], nrow = length(rows)))
 }
 
 
@@ -53,7 +53,7 @@ binomial_lattice_width <- function(n_lattice) {
     assign(key, 1 / (N - abs(outer(seq_len(N), seq_len(N), "-"))),
            envir = binomial_npp_cache_store)
   }
-  get(key, envir = binomial_npp_cache_store)
+  return(get(key, envir = binomial_npp_cache_store))
 }
 
 
@@ -82,7 +82,7 @@ binomial_lattice_source_mass <- function(n_lattice) {
                cumulative[cbind(rows, as.vector(lowest))]) / N^2
     assign(key, matrix(mass, N, N), envir = binomial_npp_cache_store)
   }
-  get(key, envir = binomial_npp_cache_store)
+  return(get(key, envir = binomial_npp_cache_store))
 }
 
 
@@ -108,7 +108,7 @@ binomial_power_prior_target_terms <- function(n_control_source,
   rates <- (seq_len(N) - 0.5) / N
   arm_log_likelihood <- function(n, successes) {
     log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
-    log_likelihood - max(log_likelihood)
+    return(log_likelihood - max(log_likelihood))
   }
   source_control <- arm_log_likelihood(n_control_source, n_successes_control_source)
   source_treatment <- arm_log_likelihood(n_treatment_source, n_successes_treatment_source)
@@ -134,7 +134,7 @@ binomial_power_prior_target_terms <- function(n_control_source,
   source_log_likelihood <- source_control +
     lattice_hankel(source_treatment, 1L, N, differences[1], length(differences), fill = -Inf)
 
-  list(
+  return(list(
     n_lattice = N,
     differences = differences,
     target = target,
@@ -144,7 +144,7 @@ binomial_power_prior_target_terms <- function(n_control_source,
     # The largest source log likelihood where the target terms are positive,
     # from which binomial_power_prior_terms_posterior() scales its exponentials.
     largest_log_likelihood = max(source_log_likelihood[target > 0 & is.finite(source_log_likelihood)])
-  )
+  ))
 }
 
 
@@ -202,7 +202,7 @@ binomial_power_prior_log_marginal <- function(terms, power_parameter,
     largest <- max(exponent)
     values[index] <- largest + log(sum(exp(exponent - largest))) - normalizer[index]
   }
-  values
+  return(values)
 }
 
 
@@ -230,7 +230,7 @@ binomial_power_prior_bilinear <- function(terms) {
                           by = N + 1L)
   bilinear <- matrix(0, N, N)
   bilinear[destination] <- terms$target[source]
-  bilinear
+  return(bilinear)
 }
 
 
@@ -254,7 +254,7 @@ binomial_power_prior_empirical_bayes <- function(terms) {
     function(gamma) binomial_power_prior_log_marginal(terms, gamma, bilinear),
     interval = c(lower, upper), maximum = TRUE, tol = 1e-6
   )
-  if (refined$objective > values[best]) refined$maximum else grid[best]
+  if (refined$objective > values[best]) return(refined$maximum) else return(grid[best])
 }
 
 
@@ -282,7 +282,7 @@ binomial_power_prior_terms_posterior <- function(terms, power_parameter) {
   N <- terms$n_lattice
   differences <- terms$differences
   support <- c(min(differences) - 1L, differences, max(differences) + 1L)
-  grid_posterior(support / N, c(0, density, 0))
+  return(grid_posterior(support / N, c(0, density, 0)))
 }
 
 
@@ -320,7 +320,7 @@ binomial_cached_empirical_bayes <- function(n_control_source,
   )
   power_parameter <- binomial_power_prior_empirical_bayes(terms)
   assign(key, power_parameter, envir = binomial_npp_cache_store)
-  list(power_parameter = power_parameter, terms = terms)
+  return(list(power_parameter = power_parameter, terms = terms))
 }
 
 
@@ -386,6 +386,7 @@ BinomialGravestockEBPP <- R6::R6Class(
       super$initialize(prior = prior, mcmc_config = mcmc_config)
       # A placeholder until the first replicate sets it.
       self$power_parameter <- 1
+      return(invisible(self$power_parameter))
     },
 
     #' @description Set the power parameter from the replicate's counts.
@@ -409,7 +410,7 @@ BinomialGravestockEBPP <- R6::R6Class(
       self$prior_grid <- NULL
       self$prior_pdf_approx <- NULL
       self$prior_cdf_approx <- NULL
-      invisible(NULL)
+      return(invisible(NULL))
     },
 
     #' @description The posterior on a grid, at the estimated power parameter.
@@ -419,7 +420,7 @@ BinomialGravestockEBPP <- R6::R6Class(
       if (!is.null(private$terms)) {
         return(binomial_power_prior_terms_posterior(private$terms, self$power_parameter))
       }
-      super$quadrature_posterior(target_data)
+      return(super$quadrature_posterior(target_data))
     },
 
     #' @description ELIR effective sample size of the current prior,
@@ -434,7 +435,7 @@ BinomialGravestockEBPP <- R6::R6Class(
         power_parameter = self$power_parameter,
         n_samples = simulation_config$n_samples_mixture_approx
       )
-      unit_information * target_data$sample$standard_deviation^2
+      return(unit_information * target_data$sample$standard_deviation^2)
     }
   ),
   private = list(

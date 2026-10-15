@@ -100,7 +100,7 @@ oc_frequentist <- function(prior,
     )
     true_effect <- target$treatment_effect
     scalars <- Filter(function(x) is.atomic(x) && length(x) == 1, result)
-    data.frame(
+    return(data.frame(
       drift = treatment_drift,
       true_effect = true_effect,
       null_true = api_in_null(true_effect, setup$theta_0, setup$null_space),
@@ -108,7 +108,7 @@ oc_frequentist <- function(prior,
       n_treatment = arms$treatment,
       lapply(scalars, unname),
       check.names = FALSE
-    )
+    ))
   })
 
   out <- do.call(rbind, rows)
@@ -117,7 +117,7 @@ oc_frequentist <- function(prior,
   attr(out, "hypothesis") <- setup[c("theta_0", "null_space", "critical_value")]
   attr(out, "n_rep") <- n_rep
   class(out) <- c("bexte_oc_frequentist", "data.frame")
-  out
+  return(out)
 }
 
 
@@ -137,7 +137,7 @@ oc_frequentist <- function(prior,
 #' design_prior("source_posterior")
 #' @export
 design_prior <- function(type = c("source_posterior", "unit_information", "analysis_prior")) {
-  structure(list(type = match.arg(type)), class = "bexte_design_prior")
+  return(structure(list(type = match.arg(type)), class = "bexte_design_prior"))
 }
 
 
@@ -254,7 +254,7 @@ oc_bayesian <- function(prior,
   attr(out, "n_rep") <- n_rep
   attr(out, "n_draws") <- n_draws
   class(out) <- c("bexte_oc_bayesian", "data.frame")
-  out
+  return(out)
 }
 
 
@@ -284,14 +284,14 @@ api_check_oc_args <- function(prior, decision, n_per_arm, n_rep,
   config <- source$config
   config$theta_0 <- hypothesis$theta_0
   config$null_space <- hypothesis$null_space
-  list(
+  return(list(
     source = source,
     config = config,
     theta_0 = hypothesis$theta_0,
     null_space = hypothesis$null_space,
     critical_value = attr(decision, "critical_value"),
     arms = arms
-  )
+  ))
 }
 
 
@@ -315,7 +315,7 @@ api_target_arms <- function(n_per_arm, n_control, n_treatment) {
   }
   check_positive(n_control, "n_control")
   check_positive(n_treatment, "n_treatment")
-  list(control = n_control, treatment = n_treatment)
+  return(list(control = n_control, treatment = n_treatment))
 }
 
 
@@ -323,5 +323,5 @@ api_target_arms <- function(n_per_arm, n_control, n_treatment) {
 #' @keywords internal
 #' @noRd
 api_in_null <- function(effect, theta_0, null_space) {
-  if (null_space == "left") effect <= theta_0 else effect >= theta_0
+  if (null_space == "left") return(effect <= theta_0) else return(effect >= theta_0)
 }

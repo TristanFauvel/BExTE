@@ -17,8 +17,8 @@
 #'
 #' @keywords internal
 uses_analytical_power <- function(target_data) {
-  target_data$endpoint == "normal" ||
-    target_data$endpoint == "continuous"
+  return(target_data$endpoint == "normal" ||
+    target_data$endpoint == "continuous")
 }
 
 
@@ -41,7 +41,7 @@ estimable_replicates <- function(samples) {
   if (!any(estimable)) {
     stop("No simulated trial has an estimable summary measure.", call. = FALSE)
   }
-  samples[estimable, , drop = FALSE]
+  return(samples[estimable, , drop = FALSE])
 }
 
 
@@ -71,11 +71,11 @@ simulate_test_p_values <- function(target_data,
     stop("Only implemented for a t-test.")
   }
 
-  trial_p_values(
+  return(trial_p_values(
     simulated_trials(target_data, simulation_config, n_replicates),
     theta_0 = theta_0,
     alternative = alternative
-  )
+  ))
 }
 
 #' The trials a simulated frequentist power is read from
@@ -100,12 +100,12 @@ simulated_trials <- function(target_data, simulation_config, n_replicates) {
   set.seed(simulation_config$seed)
 
   samples <- estimable_replicates(target_data$generate(n_replicates))
-  data.frame(
+  return(data.frame(
     treatment_effect_estimate = samples$treatment_effect_estimate,
     standard_deviation = samples$standard_deviation,
     sample_size_control = samples$sample_size_control,
     sample_size_treatment = samples$sample_size_treatment
-  )
+  ))
 }
 
 #' The separate analysis's t-test p-value in each trial
@@ -117,13 +117,13 @@ simulated_trials <- function(target_data, simulation_config, n_replicates) {
 #' @return A numeric vector of p-values, one per trial.
 #' @noRd
 trial_p_values <- function(trials, theta_0, alternative) {
-  one_sample_t_test_p_values(
+  return(one_sample_t_test_p_values(
     estimate = trials$treatment_effect_estimate,
     mu = theta_0,
     standard_deviation = trials$standard_deviation,
     n = target_effective_arm_size(trials),
     alternative = alternative
-  )
+  ))
 }
 
 #' P-values of a one-sample t-test from summary statistics, for many trials
@@ -149,9 +149,9 @@ one_sample_t_test_p_values <- function(estimate, mu, standard_deviation, n, alte
 
   switch(
     alternative,
-    greater = 1 - stats::pt(statistic, degrees_of_freedom),
-    less = stats::pt(statistic, degrees_of_freedom),
-    two.sided = 2 * stats::pt(-abs(statistic), degrees_of_freedom),
+    greater = return(1 - stats::pt(statistic, degrees_of_freedom)),
+    less = return(stats::pt(statistic, degrees_of_freedom)),
+    two.sided = return(2 * stats::pt(-abs(statistic), degrees_of_freedom)),
     stop("alternative must be one of \"greater\", \"less\" or \"two.sided\".")
   )
 }
@@ -163,9 +163,9 @@ one_sample_t_test_p_values <- function(estimate, mu, standard_deviation, n, alte
 #' @noRd
 alternative_from_null_space <- function(null_space) {
   if (null_space == "left") {
-    "greater"
+    return("greater")
   } else if (null_space == "right") {
-    "less"
+    return("less")
   } else {
     stop("Null space must be either 'left' or 'right'")
   }
@@ -192,33 +192,33 @@ analytical_power <- function(alpha, target_data, frequentist_test, theta_0, alte
     effect_size <- (target_data$treatment_effect - theta_0) / target_data$standard_deviation
 
     if (frequentist_test == "t-test") {
-      pwr::pwr.t.test(
+      return(pwr::pwr.t.test(
         d = effect_size,
         n = target_effective_arm_size(target_data),
         sig.level = alpha,
         type = "one.sample",
         alternative = alternative
-      )$power
+      )$power)
     } else if (frequentist_test == "z-test") {
-      pwr::pwr.norm.test(
+      return(pwr::pwr.norm.test(
         d = effect_size,
         n = target_effective_arm_size(target_data),
         sig.level = alpha,
         alternative = alternative
-      )$power
+      )$power)
     } else {
       stop("Unsupported test type.")
     }
   } else if (target_data$summary_measure_likelihood == "binomial") {
     h <- pwr::ES.h(target_data$treatment_rate, target_data$control_rate)
 
-    pwr::pwr.2p2n.test(
+    return(pwr::pwr.2p2n.test(
       h = h,
       n1 = target_data$sample_size_treatment,
       n2 = target_data$sample_size_control,
       sig.level = alpha,
       alternative = alternative
-    )$power
+    )$power)
   } else {
     stop("Unsupported likelihood type.")
   }
@@ -243,7 +243,7 @@ assert_target_data_numbers <- function(target_data) {
   assert_single_number(target_data$sample_size_control)
   assert_single_number(target_data$sample_size_treatment)
 
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 
@@ -390,9 +390,9 @@ interval_score <- function(lower, upper, true_value, confidence_level = 0.95) {
   # pmax() leaves an NA bound as NA rather than folding it to a zero penalty,
   # so a replicate with no usable interval stays missing instead of scoring as
   # though it had been covered.
-  (upper - lower) +
+  return((upper - lower) +
     (2 / alpha) * pmax(lower - true_value, 0) +
-    (2 / alpha) * pmax(true_value - upper, 0)
+    (2 / alpha) * pmax(true_value - upper, 0))
 }
 
 #' Compute the frequentist power
@@ -592,7 +592,7 @@ sample_equivalent_tie <- function(alpha, n_samples) {
     )
   }
 
-  sample_binomial_proportion(n_samples, alpha$mean, n_replicates)
+  return(sample_binomial_proportion(n_samples, alpha$mean, n_replicates))
 }
 
 
@@ -708,13 +708,13 @@ compute_power_with_tie_ci <- function(alpha,
     )
   }
 
-  list(
+  return(list(
     power = mean(power_samples, na.rm = TRUE),
     conf_int_power = unname(
       stats::quantile(power_samples, probs = c(0.025, 0.975), na.rm = TRUE)
     ),
     n_effective_samples = length(alpha_samples)
-  )
+  ))
 }
 
 
@@ -731,9 +731,9 @@ compute_power_with_tie_ci <- function(alpha,
 #' @noRd
 trial_cache_key <- function(design_key, simulation_config, n_replicates) {
   seed <- simulation_config$seed
-  paste(design_key,
+  return(paste(design_key,
         if (is.null(seed)) "no seed" else format(seed),
-        n_replicates, sep = "\003")
+        n_replicates, sep = "\003"))
 }
 
 
@@ -756,7 +756,7 @@ cached_design_trials <- function(design_key, simulation_config, n_replicates, tr
   for (d in which(vapply(keys, exists, logical(1), envir = trial_cache, inherits = FALSE))) {
     trials[[d]] <- get(keys[d], envir = trial_cache)
   }
-  trials
+  return(trials)
 }
 
 
@@ -770,7 +770,7 @@ cached_design_trials <- function(design_key, simulation_config, n_replicates, tr
 #' @noRd
 design_trials <- function(row, simulation_config, n_replicates) {
   target_data <- load_data(row, type = "target", reload_data_objects = TRUE)
-  simulated_trials(target_data, simulation_config, n_replicates)
+  return(simulated_trials(target_data, simulation_config, n_replicates))
 }
 
 
@@ -824,7 +824,7 @@ equivalent_tie_design_p_values <- function(design_rows,
   if (length(to_simulate) > 0) {
     # Only the rows being simulated are sent to the workers.
     rows_to_simulate <- lapply(needs_simulation[to_simulate], function(d) {
-      design_rows[d, , drop = FALSE]
+      return(design_rows[d, , drop = FALSE])
     })
 
     if (analysis_uses_cluster(parallelization, length(to_simulate) * n_replicates,
@@ -868,7 +868,7 @@ equivalent_tie_design_p_values <- function(design_rows,
     ))
   }
 
-  p_values
+  return(p_values)
 }
 
 
@@ -972,9 +972,9 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
   row_design <- match(design_key, design_keys)
 
   design_target_data <- lapply(seq_len(nrow(design_rows)), function(d) {
-    load_data(design_rows[d, , drop = FALSE],
+    return(load_data(design_rows[d, , drop = FALSE],
               type = "target",
-              reload_data_objects = TRUE)
+              reload_data_objects = TRUE))
   })
 
   # The reference is calibrated on its actual type I error, read off the
@@ -1180,7 +1180,7 @@ nominal_tie_power_row <- function(row,
 
   # The bounds are unnamed so that binding the rows together downstream gives
   # plain numeric columns, whichever of the two intervals came back.
-  list(
+  return(list(
     nominal_frequentist_power_separate = separate$power,
     nominal_frequentist_power_separate_lower = unname(separate$conf_int_power[1]),
     nominal_frequentist_power_separate_upper = unname(separate$conf_int_power[2]),
@@ -1190,7 +1190,7 @@ nominal_tie_power_row <- function(row,
     frequentist_reference_calibration = reference_calibration_label(
       target_data, exact = exact, has_null = !is.null(null_row)
     )
-  )
+  ))
 }
 
 #' The columns that identify one baseline computation
@@ -1236,10 +1236,10 @@ nominal_tie_design_key <- function(design) {
   # never collides with a column that literally holds the string "NA".
   tokens <- lapply(design, function(column) {
     column <- as.character(column)
-    ifelse(is.na(column), "\001missing\001", column)
+    return(ifelse(is.na(column), "\001missing\001", column))
   })
 
-  do.call(paste, c(tokens, list(sep = "\002")))
+  return(do.call(paste, c(tokens, list(sep = "\002"))))
 }
 
 
@@ -1320,7 +1320,7 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
     design_rows = design_rows,
     design_keys = design_key[representatives],
     design_target_data = lapply(seq_len(nrow(design_rows)), function(d) {
-      load_data(design_rows[d, , drop = FALSE], type = "target", reload_data_objects = TRUE)
+      return(load_data(design_rows[d, , drop = FALSE], type = "target", reload_data_objects = TRUE))
     }),
     frequentist_test = frequentist_test,
     simulation_config = simulation_config,
@@ -1338,7 +1338,7 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
   # results frame: on the paper's environment that is 330 rows to serialise
   # instead of 18,480, each carrying its parameters as JSON.
   compute_design <- function(i, trials = NULL, null_trials = NULL) {
-    nominal_tie_power_row(
+    return(nominal_tie_power_row(
       row = design_rows[i, ],
       nominal_tie = nominal_tie,
       frequentist_test = frequentist_test,
@@ -1347,7 +1347,7 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
       trials = trials,
       null_row = if (is.na(null_index[i])) NULL else design_rows[null_index[i], ],
       null_trials = null_trials
-    )
+    ))
   }
 
   # A design whose trials are cached costs milliseconds - two tests on
@@ -1447,7 +1447,7 @@ pooled_binomial_power <- function(alpha, target_data, source_data, alternative) 
     stats::dbinom(target_treatment_counts, n_treatment, target_data$treatment_rate),
     stats::dbinom(target_control_counts, n_control, target_data$control_rate)
   )
-  sum(probability[reject])
+  return(sum(probability[reject]))
 }
 
 
@@ -1508,7 +1508,7 @@ SCENARIO_MATCHING_COLUMNS <- c(
 #' @return A character vector of column names.
 #' @noRd
 scenario_matching_columns <- function(results) {
-  c(SCENARIO_MATCHING_COLUMNS, intersect(time_to_event_design_columns, names(results)))
+  return(c(SCENARIO_MATCHING_COLUMNS, intersect(time_to_event_design_columns, names(results))))
 }
 
 #' The design key of each row's null scenario
@@ -1528,7 +1528,7 @@ null_design_keys <- function(results) {
   design <- nominal_tie_design_key(results[intersect(NOMINAL_TIE_DESIGN_COLUMNS, names(results))])
   is_null <- results$target_treatment_effect == results$theta_0
   is_null[is.na(is_null)] <- FALSE
-  design[is_null][match(scenario, scenario[is_null])]
+  return(design[is_null][match(scenario, scenario[is_null])])
 }
 
 #' Whether a row's operating characteristics were enumerated exactly
@@ -1541,7 +1541,7 @@ exact_reference_designs <- function(rows) {
   if (!"exact_ocs" %in% names(rows)) {
     return(rep(FALSE, nrow(rows)))
   }
-  as.logical(rows$exact_ocs) %in% TRUE
+  return(as.logical(rows$exact_ocs) %in% TRUE)
 }
 
 #' Thresholds at which a test's actual type I error equals given levels
@@ -1566,7 +1566,7 @@ calibrated_levels <- function(alpha, null_p_values) {
   # The small offset keeps a level that is a whole number of trials up to
   # rounding - 0.025 * 10000 - on that number rather than one below it.
   rejected <- pmin(pmax(floor(alpha * n + 1e-9), 0), n)
-  ifelse(rejected >= n, Inf, null_p_values[pmin(rejected + 1, n)])
+  return(ifelse(rejected >= n, Inf, null_p_values[pmin(rejected + 1, n)]))
 }
 
 #' The reference test's p-value and probability for each enumerated outcome
@@ -1589,7 +1589,7 @@ reference_outcomes <- function(support, theta_0, alternative) {
   p <- trial_p_values(samples[estimable, , drop = FALSE], theta_0, alternative)
   p[!is.finite(p)] <- Inf
   w <- support$weights[estimable]
-  list(p = p, w = w / sum(w))
+  return(list(p = p, w = w / sum(w)))
 }
 
 #' Exact power of the reference test at an exact type I error
@@ -1621,7 +1621,7 @@ exact_reference_power <- function(alpha, alternative_support, null_support,
                            reorder = TRUE))
   below <- c(0, cumsum(mass))
 
-  vapply(alpha, function(level) {
+  return(vapply(alpha, function(level) {
     if (is.na(level)) {
       return(NA_real_)
     }
@@ -1632,9 +1632,9 @@ exact_reference_power <- function(alpha, alternative_support, null_support,
     }
     threshold <- values[j]
     gamma <- (level - below[j]) / mass[j]
-    sum(scenario$w[scenario$p < threshold]) +
-      gamma * sum(scenario$w[scenario$p == threshold])
-  }, numeric(1))
+    return(sum(scenario$w[scenario$p < threshold]) +
+      gamma * sum(scenario$w[scenario$p == threshold]))
+  }, numeric(1)))
 }
 
 #' How the reference test of a design is calibrated
@@ -1654,5 +1654,5 @@ reference_calibration_label <- function(target_data, exact, has_null) {
   if (isTRUE(uses_analytical_power(target_data))) {
     return("none")
   }
-  "simulated null"
+  return("simulated null")
 }

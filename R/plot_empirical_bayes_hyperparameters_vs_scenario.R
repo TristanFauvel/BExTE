@@ -204,6 +204,7 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
     export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
     export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
   }
+  return(invisible(NULL))
 }
 
 
@@ -270,4 +271,5 @@ empirical_bayes_parameters_plots <- function(results_metrics_df) {
       }
     }
   }
+  return(invisible(NULL))
 }

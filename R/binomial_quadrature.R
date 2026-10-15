@@ -37,7 +37,7 @@ counts_from_rate <- function(rate, n) {
       " is not a whole number of events out of ", paste(unique(n), collapse = ", "), "."
     )
   }
-  as.integer(rounded)
+  return(as.integer(rounded))
 }
 
 
@@ -52,7 +52,7 @@ counts_from_rate <- function(rate, n) {
 #' @return A numeric vector of `n_nodes` nodes in (0, 1).
 #' @keywords internal
 beta_quadrature_nodes <- function(shape1, shape2, n_nodes) {
-  stats::qbeta((seq_len(n_nodes) - 0.5) / n_nodes, shape1, shape2)
+  return(stats::qbeta((seq_len(n_nodes) - 0.5) / n_nodes, shape1, shape2))
 }
 
 
@@ -90,7 +90,7 @@ binomial_effect_grid <- function(treatment_shape1,
   n_points <- ceiling((upper - lower) / spacing) + 1
   n_points <- as.integer(min(max(n_points, min_points), max_points))
 
-  seq(lower, upper, length.out = n_points)
+  return(seq(lower, upper, length.out = n_points))
 }
 
 
@@ -100,7 +100,7 @@ binomial_effect_grid <- function(treatment_shape1,
 #' @return The standard deviation.
 #' @keywords internal
 beta_sd <- function(shape1, shape2) {
-  sqrt(beta_variance(shape1, shape2))
+  return(sqrt(beta_variance(shape1, shape2)))
 }
 
 
@@ -138,7 +138,7 @@ grid_posterior <- function(grid, density) {
   second_moment <- (grid - mean)^2 * density
   variance <- sum(widths * (second_moment[-1] + second_moment[-length(grid)]) / 2)
 
-  list(grid = grid, density = density, cdf = cdf, mean = mean, variance = variance)
+  return(list(grid = grid, density = density, cdf = cdf, mean = mean, variance = variance))
 }
 
 
@@ -149,7 +149,7 @@ grid_posterior <- function(grid, density) {
 #' @return The distribution function at `x`.
 #' @keywords internal
 grid_posterior_cdf <- function(posterior, x) {
-  stats::approx(posterior$grid, posterior$cdf, xout = x, yleft = 0, yright = 1)$y
+  return(stats::approx(posterior$grid, posterior$cdf, xout = x, yleft = 0, yright = 1)$y)
 }
 
 
@@ -160,7 +160,7 @@ grid_posterior_cdf <- function(posterior, x) {
 #' @return The density at `x`.
 #' @keywords internal
 grid_posterior_pdf <- function(posterior, x) {
-  stats::approx(posterior$grid, posterior$density, xout = x, yleft = 0, yright = 0)$y
+  return(stats::approx(posterior$grid, posterior$density, xout = x, yleft = 0, yright = 0)$y)
 }
 
 
@@ -176,12 +176,12 @@ grid_posterior_pdf <- function(posterior, x) {
 #' @keywords internal
 grid_posterior_quantile <- function(posterior, probability) {
   increasing <- c(TRUE, diff(posterior$cdf) > 0)
-  stats::approx(
+  return(stats::approx(
     posterior$cdf[increasing],
     posterior$grid[increasing],
     xout = probability,
     rule = 2
-  )$y
+  )$y)
 }
 
 
@@ -192,7 +192,7 @@ grid_posterior_quantile <- function(posterior, probability) {
 #' @return A vector of draws, by inversion of the distribution function.
 #' @keywords internal
 grid_posterior_sample <- function(posterior, n_samples) {
-  grid_posterior_quantile(posterior, stats::runif(n_samples))
+  return(grid_posterior_quantile(posterior, stats::runif(n_samples)))
 }
 
 
@@ -208,7 +208,7 @@ legendre_rule <- local({
     if (is.null(rules[[key]])) {
       rules[[key]] <<- statmod::gauss.quad(n_nodes, kind = "legendre")
     }
-    rules[[key]]
+    return(rules[[key]])
   }
 })
 
@@ -241,7 +241,7 @@ beta_difference_expectation <- function(effect, shape1, shape2, treatment_functi
                                         n_nodes = 32L, tail = 1e-15) {
   rule <- legendre_rule(n_nodes)
   support <- stats::qbeta(c(tail, 1 - tail), shape1, shape2)
-  vapply(effect, function(theta) {
+  return(vapply(effect, function(theta) {
     corners <- pmin(pmax(c(-theta, 1 - theta), support[1]), support[2])
     cuts <- sort(unique(c(support, corners)))
     lower <- cuts[-length(cuts)]
@@ -251,8 +251,8 @@ beta_difference_expectation <- function(effect, shape1, shape2, treatment_functi
     middle <- (upper[kept] + lower[kept]) / 2
     rates <- as.vector(outer(rule$nodes, half) + rep(middle, each = n_nodes))
     weights <- as.vector(outer(rule$weights, half)) * stats::dbeta(rates, shape1, shape2)
-    sum(weights * treatment_function(theta + rates)) / sum(weights)
-  }, numeric(1))
+    return(sum(weights * treatment_function(theta + rates)) / sum(weights))
+  }, numeric(1)))
 }
 
 
@@ -264,11 +264,11 @@ beta_difference_expectation <- function(effect, shape1, shape2, treatment_functi
 #' @keywords internal
 grid_distribution <- function(posterior) {
   force(posterior)
-  list(
+  return(list(
     cdf = function(x) grid_posterior_cdf(posterior, x),
     pdf = function(x) grid_posterior_pdf(posterior, x),
     sample = function(n_samples) grid_posterior_sample(posterior, n_samples)
-  )
+  ))
 }
 
 
@@ -334,7 +334,7 @@ binomial_power_prior_posterior <- function(power_parameter,
   # Each arm's likelihood on the lattice, scaled to a maximum of one.
   arm_log_likelihood <- function(n, successes) {
     log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
-    log_likelihood - max(log_likelihood)
+    return(log_likelihood - max(log_likelihood))
   }
   source_control <- exp(gamma * arm_log_likelihood(n_control_source, n_successes_control_source))
   source_treatment <- exp(gamma * arm_log_likelihood(n_treatment_source, n_successes_treatment_source))
@@ -382,5 +382,5 @@ binomial_power_prior_posterior <- function(power_parameter,
                                 range(source_rows), range(control_points), differences)
   }
   support <- c(min(differences) - 1L, differences, max(differences) + 1L)
-  grid_posterior(support / N, c(0, density, 0))
+  return(grid_posterior(support / N, c(0, density, 0)))
 }

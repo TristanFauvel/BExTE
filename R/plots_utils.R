@@ -1,6 +1,6 @@
 # Function to format numbers in scientific notation with 2 significant digits
 format_num <- function(x, digits = 2, scientific = FALSE) {
-  format(x, digits = digits, scientific = scientific)
+  return(format(x, digits = digits, scientific = scientific))
 }
 
 #' Open a graphics device that can render the plot font
@@ -35,7 +35,7 @@ use_font_capable_device <- function() {
   grDevices::cairo_pdf(filename = path)
   opened <- grDevices::dev.cur()
 
-  function() {
+  return(function() {
     if (opened %in% grDevices::dev.list()) {
       grDevices::dev.off(opened)
     }
@@ -43,8 +43,8 @@ use_font_capable_device <- function() {
       grDevices::dev.set(previous)
     }
     unlink(path)
-    invisible(NULL)
-  }
+    return(invisible(NULL))
+  })
 }
 
 
@@ -69,9 +69,9 @@ use_font_capable_device <- function() {
 #'
 #' @keywords internal
 has_other_parameters <- function(other_parameters) {
-  !is.null(nrow(other_parameters)) &&
+  return(!is.null(nrow(other_parameters)) &&
     nrow(other_parameters) > 0 &&
-    ncol(other_parameters) > 0
+    ncol(other_parameters) > 0)
 }
 
 
@@ -126,8 +126,9 @@ convert_params_to_str <- function(method, parameters) {
   # Convert parameters to string representation
   labels <- paste(Filter(Negate(is.null), sapply(names(parameters), function(key) {
     if (length(method[[key]]$range) > 1) {
-      paste0(method[[key]]$parameter_label, "=", parameters[[key]])
+      return(paste0(method[[key]]$parameter_label, "=", parameters[[key]]))
     }
+    return(invisible(NULL))
   })), collapse = "_")
   return(labels)
 }
@@ -147,7 +148,7 @@ append_parameters_str <- function(stem, parameters_str) {
   if (length(parameters_str) == 0 || !nzchar(parameters_str)) {
     return(stem)
   }
-  paste0(stem, "_", parameters_str)
+  return(paste0(stem, "_", parameters_str))
 }
 
 #' The methods whose parameters nest under a heterogeneity prior
@@ -168,7 +169,7 @@ COMMENSURATE_METHODS <- c("commensurate_power_prior", "commensurate_prior")
 #' @return A single logical.
 #' @keywords internal
 is_commensurate_method <- function(method) {
-  method %in% COMMENSURATE_METHODS
+  return(method %in% COMMENSURATE_METHODS)
 }
 
 #' Function to make labels from parameters. Return a label formatted in Tex, for example "$\\xi_\\gamma$ = 0.5, $\\sigma_\\gamma$ = 0.1"
@@ -183,7 +184,7 @@ make_labels_from_parameters <- function(parameter, method) {
   unrounded <- parameter
   colnames(unrounded) <- gsub("heterogeneity_prior\\.", "", colnames(unrounded))
   prior_value <- function(name) {
-    format(signif(as.numeric(unrounded[[name]]), 2), scientific = FALSE, drop0trailing = TRUE)
+    return(format(signif(as.numeric(unrounded[[name]]), 2), scientific = FALSE, drop0trailing = TRUE))
   }
 
   # Round floating point parameters to 2 decimal places
@@ -364,12 +365,12 @@ get_parameters <- function(parameters_df) {
       json_parameters_df <- data.frame(jsonlite::fromJSON(parameters, simplifyDataFrame = TRUE))
 
       if (is.null(names(json_parameters_df))) {
-        NA
+        return(NA)
       } else if (length(names(json_parameters_df)) == 1 &&
                  names(json_parameters_df) == "parameters") {
-        unlist(unlist(json_parameters_df$parameters))
+        return(unlist(unlist(json_parameters_df$parameters)))
       } else {
-        unlist(json_parameters_df)
+        return(unlist(json_parameters_df))
       }
     })
 
@@ -474,7 +475,7 @@ export_plots <- function(plt,
   }
 
   if (type == "pdf") {
-    ggplot2::ggsave(
+    return(ggplot2::ggsave(
       filename = paste0(file_path, ".pdf"),
       plot = plt,
       device = cairo_pdf,
@@ -482,7 +483,7 @@ export_plots <- function(plt,
       height = fig_height_in,
       dpi = dpi,
       bg = bg
-    )
+    ))
   } else {
     ## PNGs are the copies that get dropped into slides, documents and
     ## issue threads, where a transparent background renders as whatever is
@@ -490,14 +491,14 @@ export_plots <- function(plt,
     ## theme's background when bg is NULL, and the forest plots skip the
     ## theme_bw() adjustment above, so they came out transparent. White
     ## unless the caller asked for something specific.
-    ggplot2::ggsave(
+    return(ggplot2::ggsave(
       filename = paste0(file_path, ".png"),
       plot = plt,
       width = fig_width_in,
       height = fig_height_in,
       dpi = dpi,
       bg = if (is.null(bg)) "white" else bg
-    )
+    ))
   }
 
 }
@@ -639,7 +640,7 @@ convert_CI_columns <- function(table_data_df) {
 #' @return The object, or NULL when no configuration has been loaded.
 #' @keywords internal
 style_config_object <- function(name) {
-  mget(name, envir = environment(), ifnotfound = list(NULL), inherits = TRUE)[[1]]
+  return(mget(name, envir = environment(), ifnotfound = list(NULL), inherits = TRUE)[[1]])
 }
 
 style_methods_labels <- function() style_config_object("methods_labels")
@@ -665,12 +666,12 @@ method_key <- function(method, labels = style_methods_labels()) {
   }
 
   display <- vapply(labels, function(entry) {
-    if (is.null(entry$label)) NA_character_ else as.character(entry$label)[1]
+    if (is.null(entry$label)) return(NA_character_) else return(as.character(entry$label)[1])
   }, character(1))
 
   hit <- names(labels)[!is.na(display) & display == method]
 
-  if (length(hit) == 1) hit else method
+  if (length(hit) == 1) return(hit) else return(method)
 }
 
 #' Fixed shape and hue for a method
@@ -692,7 +693,7 @@ method_style <- function(method,
     ))
   }
 
-  style
+  return(style)
 }
 
 #' Shapes for a set of methods, keyed by method
@@ -713,14 +714,14 @@ method_shape_map <- function(methods,
                              labels = style_methods_labels()) {
   methods <- unique(as.character(methods))
 
-  stats::setNames(
+  return(stats::setNames(
     vapply(
       methods,
       function(method) as.numeric(method_style(method, styles = styles, labels = labels)$shape),
       numeric(1)
     ),
     methods
-  )
+  ))
 }
 
 #' Blend a colour towards another
@@ -734,7 +735,7 @@ style_blend <- function(color, towards, weight) {
   mixed <- (1 - weight) * grDevices::col2rgb(color)[, 1] +
     weight * grDevices::col2rgb(towards)[, 1]
 
-  grDevices::rgb(mixed[1], mixed[2], mixed[3], maxColorValue = 255)
+  return(grDevices::rgb(mixed[1], mixed[2], mixed[3], maxColorValue = 255))
 }
 
 #' A light-to-dark ramp through a method's hue
@@ -751,10 +752,10 @@ method_hue_ramp <- function(hue, light_weight = 0.75, dark_weight = 0.45) {
     style_blend(hue, "#000000", dark_weight)
   ))
 
-  function(positions) {
+  return(function(positions) {
     channels <- ramp(pmin(pmax(positions, 0), 1))
-    grDevices::rgb(channels[, 1], channels[, 2], channels[, 3], maxColorValue = 255)
-  }
+    return(grDevices::rgb(channels[, 1], channels[, 2], channels[, 3], maxColorValue = 255))
+  })
 }
 
 #' Numbers a parameter label assigns to its parameters
@@ -773,7 +774,7 @@ style_label_numbers <- function(label) {
     return(numeric(0))
   }
 
-  suppressWarnings(as.numeric(sub("^=\\s*", "", matches)))
+  return(suppressWarnings(as.numeric(sub("^=\\s*", "", matches))))
 }
 
 #' The numeric parameter ranges a method's configuration declares
@@ -816,7 +817,7 @@ style_numeric_ranges <- function(key, dict) {
     }
   }
 
-  ranges
+  return(ranges)
 }
 
 #' A tuple of parameter values as a lookup key
@@ -829,7 +830,7 @@ style_numeric_ranges <- function(key, dict) {
 #' @return A single string.
 #' @keywords internal
 style_tuple_key <- function(values) {
-  paste(format(round(values, 2), nsmall = 2, trim = TRUE), collapse = "|")
+  return(paste(format(round(values, 2), nsmall = 2, trim = TRUE), collapse = "|"))
 }
 
 #' Where each parameter label sits on its method's ramp
@@ -882,7 +883,7 @@ method_parameter_positions <- function(key, parameter_labels, dict) {
 
   ranks <- rank(parameter_labels, ties.method = "first")
 
-  (ranks - 1) / max(length(ranks) - 1, 1)
+  return((ranks - 1) / max(length(ranks) - 1, 1))
 }
 
 #' Colours for the parameter values of one method
@@ -926,7 +927,7 @@ method_parameter_colors <- function(method,
     dict = dict
   )
 
-  stats::setNames(method_hue_ramp(hue)(positions), parameter_labels)
+  return(stats::setNames(method_hue_ramp(hue)(positions), parameter_labels))
 }
 
 #' Base hues for a set of methods, keyed by method
@@ -944,14 +945,14 @@ method_hue_map <- function(methods,
                            labels = style_methods_labels()) {
   methods <- unique(as.character(methods))
 
-  stats::setNames(
+  return(stats::setNames(
     vapply(
       methods,
       function(method) method_style(method, styles = styles, labels = labels)$hue,
       character(1)
     ),
     methods
-  )
+  ))
 }
 
 #' Colours for the parameter values present in one method's rows
@@ -984,7 +985,7 @@ method_parameter_color_map <- function(df_subset, method, ...) {
 
   ## Empty parameter labels are valid for Pooling, Separate and EBPP.
   ## Character indexing never matches an empty name; match() does.
-  stats::setNames(unname(colors[match(plain, names(colors))]), display)
+  return(stats::setNames(unname(colors[match(plain, names(colors))]), display))
 }
 
 #' Axis breaks that always show the nominal type-I error
@@ -1003,7 +1004,7 @@ method_parameter_color_map <- function(df_subset, method, ...) {
 nominal_tie_breaks <- function(nominal_tie) {
   force(nominal_tie)
 
-  function(limits) {
+  return(function(limits) {
     breaks <- pretty(limits)
 
     if (length(nominal_tie) != 1 || !is.finite(nominal_tie)) {
@@ -1014,8 +1015,8 @@ nominal_tie_breaks <- function(nominal_tie) {
     spacing <- if (length(breaks) > 1) min(diff(breaks)) else diff(range(limits))
     clear <- abs(breaks - nominal_tie) >= 0.5 * spacing
 
-    sort(unique(c(breaks[clear], nominal_tie)))
-  }
+    return(sort(unique(c(breaks[clear], nominal_tie))))
+  })
 }
 
 #' Whether a pair of bound columns carries Monte Carlo uncertainty
@@ -1049,7 +1050,7 @@ has_monte_carlo_uncertainty <- function(data, lower, upper) {
 
   width <- data[[upper]] - data[[lower]]
 
-  any(is.finite(width) & width > 0)
+  return(any(is.finite(width) & width > 0))
 }
 
 #' Packages that the plotting code needs
@@ -1068,5 +1069,5 @@ PLOT_PACKAGES <- c("ggplot2", "ggnewscale", "gridExtra", "latex2exp",
 #'   user does not install it.
 #' @noRd
 check_plot_packages <- function() {
-  rlang::check_installed(PLOT_PACKAGES, reason = "to draw plots.")
+  return(rlang::check_installed(PLOT_PACKAGES, reason = "to draw plots."))
 }

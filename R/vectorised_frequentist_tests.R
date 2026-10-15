@@ -25,9 +25,9 @@ summary_t_test_p_value <- function(mean_x, sd_x, n_x, mean_y, sd_y, n_y,
 
   statistic <- (mean_x - mean_y - mu) / standard_error
 
-  tail_probabilities(statistic, alternative, function(q, lower) {
-    stats::pt(q, df = degrees_of_freedom, lower.tail = lower)
-  })
+  return(tail_probabilities(statistic, alternative, function(q, lower) {
+    return(stats::pt(q, df = degrees_of_freedom, lower.tail = lower))
+  }))
 }
 
 #' Convert test statistics to p-values for a given alternative
@@ -40,9 +40,9 @@ summary_t_test_p_value <- function(mean_x, sd_x, n_x, mean_y, sd_y, n_y,
 tail_probabilities <- function(statistic, alternative, distribution) {
   switch(
     alternative,
-    less = distribution(statistic, TRUE),
-    greater = distribution(statistic, FALSE),
-    two.sided = 2 * distribution(-abs(statistic), TRUE),
+    less = return(distribution(statistic, TRUE)),
+    greater = return(distribution(statistic, FALSE)),
+    two.sided = return(2 * distribution(-abs(statistic), TRUE)),
     stop("alternative must be \"two.sided\", \"less\" or \"greater\"")
   )
 }

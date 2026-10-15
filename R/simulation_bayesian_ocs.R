@@ -177,7 +177,7 @@ bayesian_ocs_scenario_simulation <- function(scenario,
 #' @return A character vector of metric names.
 #' @noRd
 bayesian_ocs_metric_names <- function() {
-  c(
+  return(c(
     "average_tie",
     "average_power",
     "prior_proba_no_benefit",
@@ -185,7 +185,7 @@ bayesian_ocs_metric_names <- function() {
     "prepost_proba_TP",
     "upper_bound_proba_FP",
     "prior_proba_success"
-  )
+  ))
 }
 
 #' Simulation Bayesian OCs
@@ -369,7 +369,7 @@ simulation_bayesian_ocs <- function(env,
                                        total = nrow(cases),
                                        width = 60)
       progress <- function(n) {
-        pb$tick()
+        return(pb$tick())
       }
       opts <- list(progress = progress)
 
@@ -471,4 +471,5 @@ simulation_bayesian_ocs <- function(env,
       }
     }
   }
+  return(invisible(NULL))
 }

@@ -22,9 +22,9 @@ analyse_in_replicate_chunks <- function(samples, analyse, chunk_size = 1000L) {
   starts <- seq.int(1L, n_replicates, by = chunk_size)
   pieces <- lapply(starts, function(start) {
     rows <- start:min(start + chunk_size - 1L, n_replicates)
-    analyse(samples[rows, , drop = FALSE])
+    return(analyse(samples[rows, , drop = FALSE]))
   })
-  combine_replicate_results(pieces)
+  return(combine_replicate_results(pieces))
 }
 
 
@@ -44,13 +44,13 @@ combine_replicate_results <- function(pieces) {
       return(NULL)
     }
     if (is.matrix(parts[[1]]) || is.data.frame(parts[[1]])) {
-      do.call(rbind, parts)
+      return(do.call(rbind, parts))
     } else {
-      do.call(c, parts)
+      return(do.call(c, parts))
     }
   })
   names(combined) <- fields
-  combined
+  return(combined)
 }
 
 
@@ -169,7 +169,7 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
   # reports the diagnostics as not applicable instead.
   diagnostic <- if (mcmc) NA_real_ else 0
 
-  list(
+  return(list(
     test_decisions = test_decisions,
     posterior_means = if (requested("posterior_mean")) summaries$mean else NULL,
     posterior_medians = if (requested("posterior_median")) summaries$quantiles[, 2] else NULL,
@@ -182,7 +182,7 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
     mcmc_ess = if (requested("mcmc_diagnostics")) rep(diagnostic, n_replicates) else NULL,
     rhat = if (requested("mcmc_diagnostics")) rep(diagnostic, n_replicates) else NULL,
     n_divergences = if (requested("mcmc_diagnostics")) rep(diagnostic, n_replicates) else NULL
-  )
+  ))
 }
 
 #' Test decision for every replicate at once
@@ -209,7 +209,7 @@ vectorised_test_decision <- function(posterior_weights, posterior_means,
   if (null_space == "left") {
     return(1 - cdf_at_theta_0 > critical_value)
   }
-  cdf_at_theta_0 > critical_value
+  return(cdf_at_theta_0 > critical_value)
 }
 
 #' Conjugate update of a normal mixture prior across replicates
@@ -266,11 +266,11 @@ normal_mixture_posterior <- function(weights, means, sds, estimate, standard_err
   posterior_weight <- exp(log_weight)
   posterior_weight <- posterior_weight / rowSums(posterior_weight)
 
-  list(
+  return(list(
     weights = posterior_weight,
     means = posterior_mean,
     sds = sqrt(posterior_variance)
-  )
+  ))
 }
 
 #' Conjugate update of a normal mixture prior shared by every replicate
@@ -316,11 +316,11 @@ shared_normal_mixture_posterior <- function(weights, means, sds,
   posterior_weight <- exp(log_weight)
   posterior_weight <- posterior_weight / rowSums(posterior_weight)
 
-  list(
+  return(list(
     weights = posterior_weight,
     means = posterior_mean,
     sds = sqrt(posterior_variance)
-  )
+  ))
 }
 
 #' Mean, standard deviation and quantiles of a normal mixture, per replicate
@@ -352,7 +352,7 @@ normal_mixture_summary <- function(weights, means, sds, probs = c(0.025, 0.5, 0.
   # vapply drops to a vector when there is a single replicate.
   quantiles <- matrix(quantiles, nrow = nrow(weights), ncol = length(probs))
 
-  list(mean = mixture_mean, sd = mixture_sd, quantiles = quantiles)
+  return(list(mean = mixture_mean, sd = mixture_sd, quantiles = quantiles))
 }
 
 #' Tabulate one normal mixture as a grid posterior
@@ -396,13 +396,13 @@ normal_mixture_grid_posterior <- function(weights, means, sds, n_sds = 10) {
   mixture_mean <- sum(weights * means)
   mixture_variance <- sum(weights * (sds^2 + means^2)) - mixture_mean^2
 
-  list(
+  return(list(
     grid = grid,
     density = density,
     cdf = cdf,
     mean = mixture_mean,
     variance = mixture_variance
-  )
+  ))
 }
 
 #' Invert a normal mixture CDF for every replicate at once
@@ -478,7 +478,7 @@ normal_mixture_quantile <- function(weights, means, sds, p,
     active <- active[!converged]
   }
 
-  x
+  return(x)
 }
 
 #' ELIR effective sample size of a normal mixture, per replicate
@@ -579,20 +579,20 @@ normal_mixture_elir_ess <- function(weights, means, sds, sigma,
         n_points <- length(component_sd)
         point_sds <- matrix(sds[1, ], nrow = n_points, ncol = ncol(sds), byrow = TRUE)
         point_sds[, varying_sd] <- component_sd
-        normal_mixture_elir_quadrature(
+        return(normal_mixture_elir_quadrature(
           weights = weights[rep(1L, n_points), , drop = FALSE],
           means = means[rep(1L, n_points), , drop = FALSE],
           sds = point_sds,
           sigma = 1,
           n_nodes = n_nodes, spread = spread
-        )
+        ))
       },
       sds[, varying_sd]
     )
     return(sigma^2 * unit_scale)
   }
 
-  normal_mixture_elir_quadrature(weights, means, sds, sigma, n_nodes, spread)
+  return(normal_mixture_elir_quadrature(weights, means, sds, sigma, n_nodes, spread))
 }
 
 #' ELIR effective sample size by panelled Gauss-Legendre quadrature
@@ -632,7 +632,7 @@ normal_mixture_elir_quadrature <- function(weights, means, sds, sigma,
       half_width * drop(integrand %*% rule$weights)
   }
 
-  sigma^2 * expected_information
+  return(sigma^2 * expected_information)
 }
 
 
@@ -654,7 +654,7 @@ centered_normal_mixture_information <- function(weights, sds) {
   precisions <- 1 / sds^2
 
   integrand <- function(x) {
-    vapply(x, function(value) {
+    return(vapply(x, function(value) {
       log_density <- log_weights + stats::dnorm(
         value,
         mean = 0,
@@ -672,17 +672,17 @@ centered_normal_mixture_information <- function(weights, sds) {
       density <- exp(largest) * normaliser
       score <- value * sum(scaled_density * precisions) / normaliser
 
-      density * score^2
-    }, numeric(1))
+      return(density * score^2)
+    }, numeric(1)))
   }
 
-  2 * stats::integrate(
+  return(2 * stats::integrate(
     integrand,
     lower = 0,
     upper = Inf,
     rel.tol = 1e-8,
     subdivisions = 500L
-  )$value
+  )$value)
 }
 
 #' Density times Fisher information of a normal mixture at a grid of points
@@ -725,7 +725,7 @@ normal_mixture_density_information <- function(weights, means, sds, x) {
   }
 
   density <- exp(largest) * normaliser
-  density * (score^2 - curvature)
+  return(density * (score^2 - curvature))
 }
 
 #' Integration breakpoints covering every component's own scale
@@ -744,7 +744,7 @@ normal_mixture_density_information <- function(weights, means, sds, x) {
 #'   nothing.
 #' @keywords internal
 mixture_support_breakpoints <- function(means, sds, spread = 9) {
-  sort_rows(cbind(means - spread * sds, means, means + spread * sds))
+  return(sort_rows(cbind(means - spread * sds, means, means + spread * sds)))
 }
 
 #' Sort every row of a matrix
@@ -757,7 +757,7 @@ mixture_support_breakpoints <- function(means, sds, spread = 9) {
 #' @return `m` with each row sorted increasingly and its missing values last.
 #' @keywords internal
 sort_rows <- function(m) {
-  matrix(m[order(row(m), m, na.last = TRUE)], nrow = nrow(m), byrow = TRUE)
+  return(matrix(m[order(row(m), m, na.last = TRUE)], nrow = nrow(m), byrow = TRUE))
 }
 
 #' Expand a prior specification to one row per replicate
@@ -771,7 +771,7 @@ recycle_prior_component <- function(x, n_replicates) {
   if (is.matrix(x)) {
     return(x)
   }
-  matrix(x, nrow = n_replicates, ncol = length(x), byrow = TRUE)
+  return(matrix(x, nrow = n_replicates, ncol = length(x), byrow = TRUE))
 }
 
 #' Gauss quadrature rule for a discrete measure
@@ -830,10 +830,10 @@ gauss_rule_for_discrete_measure <- function(nodes, weights, n_nodes) {
   }
   decomposition <- eigen(jacobi, symmetric = TRUE)
 
-  list(
+  return(list(
     nodes = decomposition$values,
     weights = total * decomposition$vectors[1, ]^2
-  )
+  ))
 }
 
 #' Compress a normal scale mixture into a few components
@@ -870,10 +870,10 @@ compress_normal_scale_mixture <- function(weights, variances,
   rule <- gauss_rule_for_discrete_measure(scale, weights, n_nodes)
   # Gauss nodes lie inside the atoms' range; clamping only undoes rounding.
   node <- pmin(pmax(rule$nodes, min(scale)), max(scale))
-  list(
+  return(list(
     weights = rule$weights,
     variances = reference_variance * (1 - node^2) / node^2
-  )
+  ))
 }
 
 #' Interpolate a smooth, expensive function of a positive scalar
@@ -906,7 +906,7 @@ interpolate_smooth_function <- function(f, x, n_nodes = 33L, tolerance = 1e-9) {
 
   node_z <- lobatto(n_nodes)
   node_values <- f(to_x(node_z))
-  repeat {
+  return(repeat {
     # The next rule's extra nodes lie halfway between these, in angle, so they
     # check this interpolant and are then reused by the next one.
     finer_z <- lobatto(2L * n_nodes - 1L)
@@ -927,7 +927,7 @@ interpolate_smooth_function <- function(f, x, n_nodes = 33L, tolerance = 1e-9) {
     if (length(distinct) <= 2L * n_nodes) {
       return(directly())
     }
-  }
+  })
 }
 
 #' Barycentric interpolation at Chebyshev-Lobatto nodes
@@ -948,7 +948,7 @@ chebyshev_lobatto_interpolate <- function(nodes, values, z) {
   result <- drop(terms %*% values) / rowSums(terms)
   hit <- which(rowSums(exact) > 0)
   result[hit] <- values[max.col(exact[hit, , drop = FALSE], ties.method = "first")]
-  result
+  return(result)
 }
 
 #' Find a root of every row's function within its bracket
@@ -993,7 +993,7 @@ vectorised_bracketed_root <- function(f, lower, upper, f_lower, f_upper,
   fa[on_upper] <- 0
 
   width_left <- function(i) {
-    b[i] - a[i] > tolerance * pmax(1, abs(a[i]), abs(b[i]))
+    return(b[i] - a[i] > tolerance * pmax(1, abs(a[i]), abs(b[i])))
   }
   active <- which(fa != 0 & fb != 0)
   active <- active[width_left(active)]
@@ -1044,5 +1044,5 @@ vectorised_bracketed_root <- function(f, lower, upper, f_lower, f_upper,
     active <- active[width_left(active)]
   }
 
-  list(lower = a, upper = b, f_lower = fa, f_upper = fb, root = (a + b) / 2)
+  return(list(lower = a, upper = b, f_lower = fa, f_upper = fb, root = (a + b) / 2))
 }

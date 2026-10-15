@@ -137,12 +137,12 @@ collapse_sweet_spots <- function(sweet_spot) {
     return(sweet_spot)
   }
 
-  data.frame(
+  return(data.frame(
     start = I(list(sweet_spot$start)),
     end = I(list(sweet_spot$end)),
     width = I(list(sweet_spot$width)),
     total_width = I(list(sweet_spot$total_width))
-  )
+  ))
 }
 
 

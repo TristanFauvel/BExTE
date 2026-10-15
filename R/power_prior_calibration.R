@@ -63,12 +63,12 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
 
   borrowing_weight <- function(x) {
     deviation <- x - source_treatment_effect_estimate
-    ifelse(
+    return(ifelse(
       abs(deviation) > cutoff,
       prior_variance /
         ((deviation / calibration_parameter)^2 - tau2 / n),
       1
-    )
+    ))
   }
 
   # The decision rule rejects when the posterior quantile exceeds zero. Clearing
@@ -76,8 +76,8 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
   # the same sign and no removable singularity.
   decision_statistic <- function(x) {
     effective_source_size <- borrowing_weight(x) * prior_sample_size
-    effective_source_size * source_treatment_effect_estimate + x * n +
-      z_alpha * sqrt(tau2 * (effective_source_size + n))
+    return(effective_source_size * source_treatment_effect_estimate + x * n +
+      z_alpha * sqrt(tau2 * (effective_source_size + n)))
   }
 
   lower_cutoff <- source_treatment_effect_estimate - cutoff
@@ -110,7 +110,7 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
   cubic <- c(scaled_source_size * source_treatment_effect_estimate, n * quadratic)
 
   pad <- function(coefficients, degree) {
-    c(coefficients, numeric(degree + 1L - length(coefficients)))
+    return(c(coefficients, numeric(degree + 1L - length(coefficients))))
   }
   multiply <- function(a, b) {
     product <- numeric(length(a) + length(b) - 1L)
@@ -118,7 +118,7 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
       at <- i + seq_along(b) - 1L
       product[at] <- product[at] + a[i] * b
     }
-    product
+    return(product)
   }
 
   polynomial <- pad(multiply(cubic, cubic), 6L) -
@@ -152,5 +152,5 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
         pnorm(to, theta_0, sampling_sd) - pnorm(from, theta_0, sampling_sd)
     }
   }
-  probability
+  return(probability)
 }

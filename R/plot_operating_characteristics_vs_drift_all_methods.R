@@ -199,11 +199,11 @@ plot_metric_vs_drift_methods <- function(metric,
 
   # Process the row of a results dataframe to create a Method + Parameters label
   parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels)
+    return(process_method_parameters_label(results_df[i, ], methods_labels))
   })
 
   results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels)
+    return(process_method_parameters_label(results_df[i, ], methods_labels))
   })
 
   if (nrow(results_df) == 0) {
@@ -324,7 +324,7 @@ plot_metric_vs_drift_methods <- function(metric,
     return()
   }
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
+  return(export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png"))
 
 
 }
@@ -392,7 +392,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
   if ("drift" %in% colnames(results_df)) {
     # Find the closest values in df$target_treatment_effect to important_target_treatment_effects
     closest_values <- sapply(mandatory_drift_values, function(x) {
-      results_df$drift[which.min(abs(results_df$drift - x))]
+      return(results_df$drift[which.min(abs(results_df$drift - x))])
     })
 
     # Filter the dataframe to keep only the rows with the closest values
@@ -456,21 +456,21 @@ plot_metric_vs_sample_size_methods <- function(metric,
 
   # Process the row of a results dataframe to create a Method + Parameters label
   parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE))
   })
 
   results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE))
   })
 
   ## The plotmath labels cannot be read back for the numbers they carry, and
   ## method_parameter_colors() needs those to place a value on its ramp.
   results_df$parameters_labels_not_latex <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE))
   })
 
   results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE))
   })
 
   parameters_labels <- setNames(object = parameters_labels, nm = results_df$parameters_labels)
@@ -606,7 +606,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
     # Reset the color scale for the next method
     layers <- c(layers, list(ggnewscale::new_scale_color()))
 
-    layers
+    return(layers)
   })
 
   if(metric %in% c("tie", "success_proba")){
@@ -689,7 +689,7 @@ plot_metric_vs_sample_size_methods <- function(metric,
     return()
   }
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE)
+  return(export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE))
 
 }
 
@@ -793,4 +793,5 @@ plot_metric_vs_scenario_methods <- function(results_metrics_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }

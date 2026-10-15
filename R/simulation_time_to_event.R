@@ -15,7 +15,7 @@
 weibull_control_scale <- function(max_follow_up_time,
                                   shape,
                                   relapse_free_probability) {
-  max_follow_up_time / (-log(relapse_free_probability))^(1 / shape)
+  return(max_follow_up_time / (-log(relapse_free_probability))^(1 / shape))
 }
 
 
@@ -52,10 +52,10 @@ time_to_event_arm_parameters <- function(event_time_distribution,
   }
 
   control_scale <- weibull_scale * exp(-control_drift / weibull_shape)
-  list(
+  return(list(
     control = control_scale,
     treatment = control_scale * exp(-treatment_effect / weibull_shape)
-  )
+  ))
 }
 
 
@@ -64,7 +64,7 @@ time_to_event_dropout_rate <- function(dropout_probability, max_follow_up_time) 
   if (dropout_probability <= 0) {
     return(0)
   }
-  -log1p(-dropout_probability) / max_follow_up_time
+  return(-log1p(-dropout_probability) / max_follow_up_time)
 }
 
 
@@ -98,25 +98,25 @@ time_to_event_event_probability <- function(parameter,
   } else {
     function(t) {
       if (event_time_distribution == "exponential") {
-        stats::dexp(t, rate = parameter)
+        return(stats::dexp(t, rate = parameter))
       } else {
-        stats::dweibull(t, shape = weibull_shape, scale = parameter)
+        return(stats::dweibull(t, shape = weibull_shape, scale = parameter))
       }
     }
   }
 
   integrand <- function(t) {
     administrative <- pmin(1, pmax(0, (closing_time - t) / accrual_period))
-    density(t) * exp(-dropout_rate * t) * administrative
+    return(density(t) * exp(-dropout_rate * t) * administrative)
   }
 
   kink <- min(max(closing_time - max_follow_up_time, 0), max_follow_up_time)
   breaks <- sort(unique(c(0, kink, if (delay > 0) min(delay, max_follow_up_time),
                           max_follow_up_time)))
 
-  sum(vapply(seq_len(length(breaks) - 1L), function(i) {
-    stats::integrate(integrand, breaks[i], breaks[i + 1L])$value
-  }, numeric(1)))
+  return(sum(vapply(seq_len(length(breaks) - 1L), function(i) {
+    return(stats::integrate(integrand, breaks[i], breaks[i + 1L])$value)
+  }, numeric(1))))
 }
 
 
@@ -141,7 +141,7 @@ time_to_event_standard_deviation <- function(control_parameter,
                                              sample_size_control = 1,
                                              sample_size_treatment = sample_size_control) {
   event_probability <- function(parameter, delay = 0, late_log_hr = 0) {
-    time_to_event_event_probability(
+    return(time_to_event_event_probability(
       parameter = parameter,
       event_time_distribution = event_time_distribution,
       weibull_shape = weibull_shape,
@@ -151,7 +151,7 @@ time_to_event_standard_deviation <- function(control_parameter,
       dropout_rate = dropout_rate,
       delay = delay,
       late_log_hr = late_log_hr
-    )
+    ))
   }
 
   # Under a delayed effect the treatment arm is the control one with its hazard
@@ -163,8 +163,8 @@ time_to_event_standard_deviation <- function(control_parameter,
     event_probability(treatment_parameter)
   }
   n <- effective_arm_size(sample_size_control, sample_size_treatment)
-  sqrt((n / sample_size_control) / event_probability(control_parameter) +
-         (n / sample_size_treatment) / treatment_events)
+  return(sqrt((n / sample_size_control) / event_probability(control_parameter) +
+         (n / sample_size_treatment) / treatment_events))
 }
 
 
@@ -237,7 +237,7 @@ time_to_event_expected_events <- function(case_study_config,
   )
 
   events <- function(sample_size, parameter, delay = 0) {
-    sample_size * time_to_event_event_probability(
+    return(sample_size * time_to_event_event_probability(
       parameter = parameter,
       event_time_distribution = event_time_distribution,
       weibull_shape = target$weibull_shape,
@@ -247,17 +247,17 @@ time_to_event_expected_events <- function(case_study_config,
       dropout_rate = dropout_rate,
       delay = delay,
       late_log_hr = late_log_hr
-    )
+    ))
   }
 
-  c(
+  return(c(
     control = events(sample_size_control, parameters$control),
     treatment = if (treatment_delay > 0) {
       events(sample_size_treatment, parameters$control, treatment_delay)
     } else {
       events(sample_size_treatment, parameters$treatment)
     }
-  )
+  ))
 }
 
 
@@ -279,9 +279,9 @@ time_to_event_control_cumulative_hazard <- function(t,
                                                     event_time_distribution,
                                                     weibull_shape) {
   if (event_time_distribution == "exponential") {
-    parameter * t
+    return(parameter * t)
   } else {
-    (t / parameter)^weibull_shape
+    return((t / parameter)^weibull_shape)
   }
 }
 
@@ -290,9 +290,9 @@ time_to_event_control_inverse_cumulative_hazard <- function(x,
                                                             event_time_distribution,
                                                             weibull_shape) {
   if (event_time_distribution == "exponential") {
-    x / parameter
+    return(x / parameter)
   } else {
-    parameter * x^(1 / weibull_shape)
+    return(parameter * x^(1 / weibull_shape))
   }
 }
 
@@ -307,30 +307,30 @@ time_to_event_delayed_arms <- function(control_parameter,
                                        delay,
                                        late_log_hr) {
   cumulative <- function(t) {
-    time_to_event_control_cumulative_hazard(
+    return(time_to_event_control_cumulative_hazard(
       t, control_parameter, event_time_distribution, weibull_shape
-    )
+    ))
   }
   hazard <- function(t) {
     if (event_time_distribution == "exponential") {
-      rep(control_parameter, length(t))
+      return(rep(control_parameter, length(t)))
     } else {
-      (weibull_shape / control_parameter) *
-        (t / control_parameter)^(weibull_shape - 1)
+      return((weibull_shape / control_parameter) *
+        (t / control_parameter)^(weibull_shape - 1))
     }
   }
   at_delay <- cumulative(delay)
   multiplier <- exp(late_log_hr)
 
-  list(
+  return(list(
     control_hazard = hazard,
     control_survival = function(t) exp(-cumulative(t)),
     treatment_hazard = function(t) hazard(t) * ifelse(t < delay, 1, multiplier),
     treatment_survival = function(t) {
-      exp(-ifelse(t < delay, cumulative(t),
-                  at_delay + multiplier * (cumulative(t) - at_delay)))
+      return(exp(-ifelse(t < delay, cumulative(t),
+                  at_delay + multiplier * (cumulative(t) - at_delay))))
     }
-  )
+  ))
 }
 
 
@@ -340,10 +340,10 @@ time_to_event_censoring_survival <- function(accrual_period,
                                              final_follow_up,
                                              dropout_rate) {
   closing_time <- accrual_period + final_follow_up
-  function(t) {
-    exp(-dropout_rate * t) *
-      pmin(1, pmax(0, (closing_time - t) / accrual_period))
-  }
+  return(function(t) {
+    return(exp(-dropout_rate * t) *
+      pmin(1, pmax(0, (closing_time - t) / accrual_period)))
+  })
 }
 
 
@@ -357,10 +357,10 @@ time_to_event_integrate <- function(integrand,
   kink <- min(max(accrual_period + final_follow_up - max_follow_up_time, 0),
               max_follow_up_time)
   breaks <- sort(unique(c(0, kink, min(delay, max_follow_up_time), max_follow_up_time)))
-  sum(vapply(seq_len(length(breaks) - 1L), function(i) {
-    stats::integrate(integrand, breaks[i], breaks[i + 1L],
-                     rel.tol = 1e-8)$value
-  }, numeric(1)))
+  return(sum(vapply(seq_len(length(breaks) - 1L), function(i) {
+    return(stats::integrate(integrand, breaks[i], breaks[i + 1L],
+                     rel.tol = 1e-8)$value)
+  }, numeric(1))))
 }
 
 
@@ -394,16 +394,16 @@ time_to_event_cox_limit <- function(control_parameter,
     integrand <- function(t) {
       s0 <- arms$control_survival(t)
       s1 <- arms$treatment_survival(t)
-      censoring(t) * s0 * s1 *
+      return(censoring(t) * s0 * s1 *
         (arms$treatment_hazard(t) - exp(b) * arms$control_hazard(t)) /
-        (s0 + exp(b) * s1)
+        (s0 + exp(b) * s1))
     }
-    time_to_event_integrate(integrand, accrual_period, final_follow_up,
-                            max_follow_up_time, delay)
+    return(time_to_event_integrate(integrand, accrual_period, final_follow_up,
+                            max_follow_up_time, delay))
   }
 
   # The limit lies between 0 and late_log_hr, and the score is decreasing in b.
-  stats::uniroot(score, sort(c(0, late_log_hr)), tol = 1e-10)$root
+  return(stats::uniroot(score, sort(c(0, late_log_hr)), tol = 1e-10)$root)
 }
 
 
@@ -448,14 +448,14 @@ time_to_event_delayed_log_hr <- function(log_hr,
     ), call. = FALSE)
   }
   limit <- function(beta) {
-    time_to_event_cox_limit(
+    return(time_to_event_cox_limit(
       control_parameter, event_time_distribution, weibull_shape, delay, beta,
       accrual_period, final_follow_up, max_follow_up_time, dropout_rate
-    ) - log_hr
+    ) - log_hr)
   }
   # The delay dilutes the effect, so beta is further from 0 than log_hr.
-  stats::uniroot(limit, sort(c(log_hr, 4 * log_hr)), extendInt = "yes",
-                 tol = 1e-8)$root
+  return(stats::uniroot(limit, sort(c(log_hr, 4 * log_hr)), extendInt = "yes",
+                 tol = 1e-8)$root)
 }
 
 
@@ -468,7 +468,7 @@ time_to_event_chunk_size <- function(n_replicates,
                                      n_observations,
                                      max_cells = 2e6) {
   chunk <- as.integer(max_cells %/% max(1L, n_observations))
-  max(1L, min(as.integer(n_replicates), chunk))
+  return(max(1L, min(as.integer(n_replicates), chunk)))
 }
 
 
@@ -516,13 +516,13 @@ sample_time_to_event_arm <- function(n_subjects,
   # no-dropout case costs no allocation.
   dropout_time <- if (dropout_rate > 0) stats::rexp(n, rate = dropout_rate) else Inf
 
-  list(
+  return(list(
     time = matrix(pmin(event_time, dropout_time, administrative),
                   nrow = n_replicates),
     event = matrix(as.numeric(event_time <= dropout_time &
                                 event_time <= administrative),
                    nrow = n_replicates)
-  )
+  ))
 }
 
 
@@ -596,10 +596,10 @@ fit_two_sample_cox <- function(time,
     weighted <- at_risk_treated * rep(exp(beta), each = n_observations)
     share <- weighted / (at_risk_control + weighted)
     weight <- events * share
-    list(
+    return(list(
       score = events_treated - colSums(weight),
       information = colSums(weight - weight * share)
-    )
+    ))
   }
 
   beta <- numeric(n_replicates)
@@ -619,10 +619,10 @@ fit_two_sample_cox <- function(time,
     is.finite(beta) & abs(beta) < bound &
     is.finite(information) & information > 0
 
-  list(
+  return(list(
     estimate = ifelse(estimable, beta, NA_real_),
     standard_error = ifelse(estimable, 1 / sqrt(information), NA_real_)
-  )
+  ))
 }
 
 
@@ -693,11 +693,11 @@ simulate_time_to_event_trial <- function(n_replicates,
     standard_error[rows] <- fit$standard_error
   }
 
-  data.frame(
+  return(data.frame(
     treatment_effect_estimate = estimate,
     treatment_effect_standard_error = standard_error,
     sample_size_control = sample_size_control,
     sample_size_treatment = sample_size_treatment,
     standard_deviation = standard_error * sqrt(effective_arm_size(sample_size_control, sample_size_treatment))
-  )
+  ))
 }

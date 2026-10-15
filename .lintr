@@ -8,7 +8,6 @@ linters: linters_with_defaults(
     indentation_linter = NULL,
     brace_linter = NULL,
     paren_body_linter = NULL,
-    return_linter = NULL,
     pipe_consistency_linter = NULL,
     quotes_linter = NULL,
     spaces_inside_linter = NULL,
@@ -21,6 +20,9 @@ linters: linters_with_defaults(
     # config global (methods_dict, figures_dir, ...) read from .GlobalEnv,
     # so it stays off until those are declared or passed as arguments.
     object_usage_linter = NULL,
+    # Every function in R/ ends with an explicit return(). Scripts, tests
+    # and vignettes keep implicit returns; see the exclusions below.
+    return_linter = return_linter(return_style = "explicit"),
     # Non-default linters that catch real bugs with little noise here.
     seq_linter = seq_linter(),
     vector_logic_linter = vector_logic_linter(),
@@ -30,5 +32,8 @@ linters: linters_with_defaults(
   )
 exclusions: list(
     "renv",
-    "man"
+    "man",
+    "inst" = list(return_linter = Inf),
+    "tests" = list(return_linter = Inf),
+    "vignettes" = list(return_linter = Inf)
   )

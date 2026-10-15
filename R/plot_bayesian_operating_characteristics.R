@@ -50,7 +50,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
   if ("drift" %in% colnames(results_df)) {
     # Find the closest values in df$target_treatment_effect to important_target_treatment_effects
     closest_values <- sapply(mandatory_drift_values, function(x) {
-      results_df$drift[which.min(abs(results_df$drift - x))]
+      return(results_df$drift[which.min(abs(results_df$drift - x))])
     })
 
     # Filter the dataframe to keep only the rows with the closest values
@@ -251,7 +251,7 @@ bayesian_metric_vs_parameters <- function(results_metrics_df,
       export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
     }
   }
-  invisible(plots)
+  return(invisible(plots))
 }
 
 #' Function to plot metric vs sample size
@@ -453,11 +453,11 @@ bayesian_metric_vs_sample_size <- function(metric,
 
     # Process the row of a results dataframe to create a Method + Parameters label
     parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels)
+      return(process_method_parameters_label(results_df[i, ], methods_labels))
     })
 
     results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels)
+      return(process_method_parameters_label(results_df[i, ], methods_labels))
     })
 
   } else {
@@ -615,7 +615,7 @@ bayesian_metric_vs_sample_size <- function(metric,
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
 
-  invisible(plt)
+  return(invisible(plt))
 }
 
 
@@ -743,4 +743,5 @@ bayesian_ocs_plots <- function(results_metrics_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }

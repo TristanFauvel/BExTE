@@ -49,7 +49,7 @@ lattice_hankel <- function(values, first_row, n_rows, first_shift, n_shifts, fil
   }
   shifted <- segment[sequence(rep.int(n_rows, n_shifts), from = seq_len(n_shifts))]
   dim(shifted) <- c(n_rows, n_shifts)
-  shifted
+  return(shifted)
 }
 
 
@@ -69,17 +69,17 @@ lattice_hankel <- function(values, first_row, n_rows, first_shift, n_shifts, fil
 #' @keywords internal
 lattice_difference_blocks <- function(differences, rows, N, block) {
   starts <- seq.int(1L, length(differences), by = block)
-  lapply(starts, function(start) {
+  return(lapply(starts, function(start) {
     columns <- start:min(length(differences), start + block - 1L)
     lowest_shift <- differences[columns[1]]
     highest_shift <- differences[columns[length(columns)]]
-    list(
+    return(list(
       columns = columns,
       first_shift = lowest_shift,
       first = max(rows[1], 1L - highest_shift),
       last = min(rows[2], N - lowest_shift)
-    )
-  })
+    ))
+  }))
 }
 
 
@@ -124,7 +124,7 @@ lattice_kernel_blocks <- function(source_control, source_treatment, source_rows,
                         weight)
     consume(target_block, kernel)
   }
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 
@@ -157,9 +157,10 @@ lattice_power_prior_density <- function(source_control, source_treatment,
         lattice_hankel(target_treatment, target_block$first, length(target_index),
                        target_block$first_shift, length(target_block$columns))
       density[target_block$columns] <<- colSums(kernel * likelihood)
+      return(invisible(density[target_block$columns]))
     }
   )
-  density
+  return(density)
 }
 
 
@@ -184,9 +185,10 @@ lattice_power_prior_full_kernel <- function(source_control, source_treatment, so
     source_control, source_treatment, source_rows, c(1L, N), differences, block,
     function(target_block, kernel) {
       full[target_block$first:target_block$last, target_block$columns] <<- kernel
+      return(invisible(full[target_block$first:target_block$last, target_block$columns]))
     }
   )
-  full
+  return(full)
 }
 
 
@@ -203,7 +205,7 @@ lattice_power_prior_density_from_kernel <- function(kernel, target_control, targ
   likelihood <- target_control[target_index] *
     lattice_hankel(target_treatment, target_rows[1], length(target_index),
                    differences[1], length(differences))
-  colSums(kernel[target_index, differences + N, drop = FALSE] * likelihood)
+  return(colSums(kernel[target_index, differences + N, drop = FALSE] * likelihood))
 }
 
 
@@ -229,7 +231,7 @@ lattice_power_prior_density_from_terms <- function(terms, source_control, source
   if (length(index) < nrow(terms)) {
     terms <- terms[index, , drop = FALSE]
   }
-  colSums(terms * weight)
+  return(colSums(terms * weight))
 }
 
 
@@ -259,7 +261,7 @@ lattice_lru_cached <- function(store, key, limit, compute) {
     entries <- entries[seq.int(length(entries) - limit + 2L, length.out = limit - 1L)]
   }
   store$entries <- c(entries, stats::setNames(list(value), key))
-  value
+  return(value)
 }
 
 
@@ -301,7 +303,7 @@ binomial_power_prior_kernel_meetings <- 3L
 #' @return The number of kernels.
 #' @keywords internal
 binomial_power_prior_kernel_limit <- function() {
-  as.integer(getOption("BExTE.power_prior_kernels", 4L))
+  return(as.integer(getOption("BExTE.power_prior_kernels", 4L)))
 }
 
 
@@ -312,7 +314,7 @@ binomial_power_prior_kernel_limit <- function() {
 #' @return The number of matrices.
 #' @keywords internal
 binomial_target_terms_limit <- function() {
-  as.integer(getOption("BExTE.target_terms_cache", 0L))
+  return(as.integer(getOption("BExTE.target_terms_cache", 0L)))
 }
 
 
@@ -323,7 +325,7 @@ binomial_power_prior_kernel_reset <- function() {
   for (store in list(binomial_power_prior_kernel_store, binomial_target_terms_store)) {
     rm(list = ls(envir = store, all.names = TRUE), envir = store)
   }
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 
@@ -370,9 +372,9 @@ binomial_power_prior_cached_kernel <- function(source_control, source_treatment,
   # Counted afresh, so that a kernel dropped from the store is only computed
   # again once it has proved worth it again.
   assign(key, 0L, envir = store$seen)
-  lattice_lru_cached(store, key, limit, function() {
-    lattice_power_prior_full_kernel(source_control, source_treatment, source_rows)
-  })
+  return(lattice_lru_cached(store, key, limit, function() {
+    return(lattice_power_prior_full_kernel(source_control, source_treatment, source_rows))
+  }))
 }
 
 
@@ -401,12 +403,12 @@ binomial_power_prior_cached_kernel <- function(source_control, source_treatment,
 #' @keywords internal
 binomial_target_terms <- function(target_control, target_treatment, control_rows, differences) {
   compute <- function() {
-    lattice_power_prior_full_kernel(target_control, target_treatment, control_rows, differences)
+    return(lattice_power_prior_full_kernel(target_control, target_treatment, control_rows, differences))
   }
   limit <- binomial_target_terms_limit()
   if (limit <= 0L) {
     return(compute())
   }
   key <- rlang::hash(list(target_control, target_treatment, control_rows, differences))
-  lattice_lru_cached(binomial_target_terms_store, key, limit, compute)
+  return(lattice_lru_cached(binomial_target_terms_store, key, limit, compute))
 }

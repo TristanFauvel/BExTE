@@ -65,7 +65,7 @@ commensurate_prior_mixture <- function(model, n_tau = 48L, n_gamma = 12L) {
     uniform_node,
     1 / beta_shape,
     function(probability, inverse_shape) {
-      exp(log(probability) * inverse_shape)
+      return(exp(log(probability) * inverse_shape))
     }
   ))
 
@@ -77,7 +77,7 @@ commensurate_prior_mixture <- function(model, n_tau = 48L, n_gamma = 12L) {
   component_variance <- inverse_tau +
     source_standard_error^2 / power_parameter
 
-  list(
+  return(list(
     weights = weights,
     means = rep(
       model$prior$source$treatment_effect_estimate,
@@ -86,7 +86,7 @@ commensurate_prior_mixture <- function(model, n_tau = 48L, n_gamma = 12L) {
     sds = sqrt(component_variance),
     tau = tau,
     power_parameter = power_parameter
-  )
+  ))
 }
 
 
@@ -210,13 +210,13 @@ commensurate_tau_moments_exist <- function(heterogeneity_prior_family,
   switch(
     heterogeneity_prior_family,
     # A log-Cauchy has no positive moment at all.
-    cauchy = c(mean = FALSE, sd = FALSE),
+    cauchy = return(c(mean = FALSE, sd = FALSE)),
     # tau^2 ~ InvGamma(alpha): E[tau] needs alpha > 1/2, E[tau^2] alpha > 1.
-    inverse_gamma = c(
+    inverse_gamma = return(c(
       mean = heterogeneity_prior$alpha > 0.5,
       sd = heterogeneity_prior$alpha > 1
-    ),
-    half_normal = c(mean = TRUE, sd = TRUE),
+    )),
+    half_normal = return(c(mean = TRUE, sd = TRUE)),
     stop(
       "Heterogeneity prior not implemented: ", heterogeneity_prior_family,
       call. = FALSE
@@ -244,10 +244,10 @@ commensurate_parameter_summary <- function(posterior_weights, mixture,
   weighted_summary <- function(values) {
     mean_value <- drop(posterior_weights %*% values)
     second_moment <- drop(posterior_weights %*% values^2)
-    list(
+    return(list(
       mean = mean_value,
       sd = sqrt(pmax(second_moment - mean_value^2, 0))
-    )
+    ))
   }
 
   tau <- weighted_summary(mixture$tau)
@@ -276,7 +276,7 @@ commensurate_parameter_summary <- function(posterior_weights, mixture,
   summary$power_parameter_mean <- power$mean
   summary$power_parameter_std <- power$sd
 
-  summary
+  return(summary)
 }
 
 
@@ -359,22 +359,22 @@ compress_commensurate_mixture <- function(mixture, samples, theta_0,
     cdf <- rowSums(
       posterior$weights * stats::pnorm(theta_0, posterior$means, posterior$sds)
     )
-    list(
+    return(list(
       posterior = cbind(summary$quantiles, summary$mean, cdf),
       parameters = as.matrix(parameters(posterior))
-    )
+    ))
   }
 
   exact <- probe_summary(
     mixture$weights, mixture$means, mixture$sds,
     function(posterior) {
-      commensurate_parameter_summary(
+      return(commensurate_parameter_summary(
         posterior_weights = posterior$weights,
         mixture = mixture,
         heterogeneity_prior_family = heterogeneity_prior_family,
         heterogeneity_prior = heterogeneity_prior,
         borrows_power_parameter = !is.null(mixture$power_parameter)
-      )
+      ))
     }
   )
 
@@ -388,7 +388,7 @@ compress_commensurate_mixture <- function(mixture, samples, theta_0,
         mixture$weights * values / scale, variances, reference_variance, n_nodes
       )
       rule$scale <- scale
-      rule
+      return(rule)
     })
     compressed <- list(
       weights = main$weights,
@@ -405,9 +405,9 @@ compress_commensurate_mixture <- function(mixture, samples, theta_0,
     candidate <- probe_summary(
       compressed$weights, compressed$means, compressed$sds,
       function(posterior) {
-        compressed_commensurate_parameter_summary(
+        return(compressed_commensurate_parameter_summary(
           compressed, estimate[probe], standard_error[probe]
-        )
+        ))
       }
     )
 
@@ -428,7 +428,7 @@ compress_commensurate_mixture <- function(mixture, samples, theta_0,
     n_nodes <- 2L * n_nodes
   }
 
-  NULL
+  return(NULL)
 }
 
 
@@ -443,9 +443,9 @@ summary_probe_rows <- function(estimate, standard_error) {
   probs <- c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1)
   at_quantiles <- function(x) {
     ordered <- order(x)
-    ordered[unique(1L + round(probs * (length(x) - 1L)))]
+    return(ordered[unique(1L + round(probs * (length(x) - 1L)))])
   }
-  unique(c(at_quantiles(estimate), at_quantiles(standard_error)))
+  return(unique(c(at_quantiles(estimate), at_quantiles(standard_error))))
 }
 
 
@@ -470,7 +470,7 @@ compressed_commensurate_parameter_summary <- function(compressed, estimate,
   # variance, up to a constant that cancels in the ratios below.
   log_likelihood <- function(variances) {
     total <- outer(standard_error^2, variances, "+")
-    -0.5 * (log(total) + squared_deviation / total)
+    return(-0.5 * (log(total) + squared_deviation / total))
   }
 
   log_normaliser <- log_likelihood(compressed$variances) +
@@ -480,8 +480,8 @@ compressed_commensurate_parameter_summary <- function(compressed, estimate,
 
   moment <- function(name) {
     rule <- compressed$moment_rules[[name]]
-    rule$scale * drop(exp(log_likelihood(rule$variances) - shift) %*% rule$weights) /
-      normaliser
+    return(rule$scale * drop(exp(log_likelihood(rule$variances) - shift) %*% rule$weights) /
+      normaliser)
   }
   summarise <- function(name, mean_exists = TRUE, sd_exists = TRUE) {
     first <- if (mean_exists) moment(paste0(name, "_1")) else rep(Inf, n_replicates)
@@ -490,7 +490,7 @@ compressed_commensurate_parameter_summary <- function(compressed, estimate,
     } else {
       rep(Inf, n_replicates)
     }
-    list(mean = first, sd = sd)
+    return(list(mean = first, sd = sd))
   }
 
   tau <- summarise(
@@ -511,7 +511,7 @@ compressed_commensurate_parameter_summary <- function(compressed, estimate,
   summary$power_parameter_mean <- power$mean
   summary$power_parameter_std <- power$sd
 
-  summary
+  return(summary)
 }
 
 
@@ -559,5 +559,5 @@ recheck_borderline_decisions <- function(test_decisions, posterior, mixture,
     theta_0 = theta_0,
     null_space = null_space
   ))
-  test_decisions
+  return(test_decisions)
 }

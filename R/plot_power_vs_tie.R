@@ -198,7 +198,7 @@ power_vs_tie <- function(results_metrics_df,
   fig_height_in <- plot.size[2]
 
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
+  return(export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png"))
 }
 
 #' Plot frequentist methods operating characteristics
@@ -281,4 +281,5 @@ power_vs_tie_plots <- function(results_metrics_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }

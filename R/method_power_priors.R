@@ -94,10 +94,10 @@ BinomialCPP <- R6::R6Class(
       if (!isTRUE(self$fixed_power_parameter)) {
         return(super$summary_rows())
       }
-      rbind(
+      return(rbind(
         super$summary_rows(),
         summary_row("Power Parameter", self$power_parameter)
-      )
+      ))
     },
 
     #' @description Initialize an instance of the BinomialCPP class.
@@ -162,6 +162,7 @@ BinomialCPP <- R6::R6Class(
       }
 
       self$power_parameter <- prior$method_parameters$power_parameter[[1]]
+      return(invisible(self$power_parameter))
     },
 
     #' @description Prepare data for the model
@@ -215,7 +216,7 @@ BinomialCPP <- R6::R6Class(
           n_successes_treatment = data_list$successes_treatment_target
         ))
       }
-      binomial_power_prior_posterior(
+      return(binomial_power_prior_posterior(
         power_parameter = self$power_parameter,
         n_control_source = data_list$n_control_source,
         n_successes_control_source = data_list$successes_control_source,
@@ -225,7 +226,7 @@ BinomialCPP <- R6::R6Class(
         n_successes_control = data_list$successes_control_target,
         n_treatment = data_list$n_treatment_target,
         n_successes_treatment = data_list$successes_treatment_target
-      )
+      ))
     },
 
     #' @description The prior on a grid, under the quadrature engine: the same
@@ -235,7 +236,7 @@ BinomialCPP <- R6::R6Class(
     #' @return A [grid_posterior()] list.
     quadrature_prior = function(power_parameter = self$power_parameter) {
       source <- self$prior$source
-      binomial_power_prior_posterior(
+      return(binomial_power_prior_posterior(
         power_parameter = power_parameter,
         n_control_source = as.integer(source$sample_size_control),
         n_successes_control_source = counts_from_rate(source$control_rate, source$sample_size_control),
@@ -245,7 +246,7 @@ BinomialCPP <- R6::R6Class(
         n_successes_control = 0L,
         n_treatment = 0L,
         n_successes_treatment = 0L
-      )
+      ))
     },
 
     #' @description The prior of the treatment effect given the target control
@@ -260,7 +261,7 @@ BinomialCPP <- R6::R6Class(
     #'   and `sample`, which takes the number of draws.
     prior_given_control_rate = function(control_rate) {
       source <- self$prior$source
-      grid_distribution(binomial_power_prior_posterior(
+      return(grid_distribution(binomial_power_prior_posterior(
         power_parameter = self$power_parameter,
         n_control_source = as.integer(source$sample_size_control),
         n_successes_control_source = counts_from_rate(source$control_rate, source$sample_size_control),
@@ -271,7 +272,7 @@ BinomialCPP <- R6::R6Class(
         n_treatment = 0L,
         n_successes_treatment = 0L,
         control_rate = control_rate
-      ))
+      )))
     },
 
     #' @description Sample from the prior using Stan
@@ -303,6 +304,7 @@ BinomialCPP <- R6::R6Class(
         show_messages = FALSE,
         output_dir = self$draws_dir
       )
+      return(invisible(self$prior_draws))
     }
   )
 )
@@ -371,11 +373,11 @@ GaussianNPP <- R6::R6Class(
     #' Rows of the model summary, with the prior on the power parameter
     #' @return A data frame with columns `Attribute` and `Value`.
     summary_rows = function() {
-      rbind(
+      return(rbind(
         super$summary_rows(),
         summary_row("Prior Power Parameter Mean", self$power_parameter_mean),
         summary_row("Prior Power Parameter SD", self$power_parameter_std)
-      )
+      ))
     },
 
     #' @description Initialize a new GaussianNPP object.
@@ -426,6 +428,7 @@ GaussianNPP <- R6::R6Class(
         stop("Parameters p and q of the Beta distribution must be >0.")
       }
       self$n_components_mixture_approx <- seq(1, 2)
+      return(invisible(self$n_components_mixture_approx))
     },
 
     #' @description Calculate the unnormalized posterior power parameter PDF.
@@ -538,7 +541,7 @@ GaussianNPP <- R6::R6Class(
         standard_error = samples$treatment_effect_standard_error
       )
 
-      vectorised_normal_mixture_simulation(
+      return(vectorised_normal_mixture_simulation(
         weights = prior$weights,
         means = prior$means,
         sds = prior$sds,
@@ -553,7 +556,7 @@ GaussianNPP <- R6::R6Class(
           posterior$weights, prior$power_parameter
         ),
         posterior = posterior
-      )
+      ))
     },
 
     #' @description Perform inference on the target data.
@@ -567,14 +570,14 @@ GaussianNPP <- R6::R6Class(
       self$target_treatment_effect_standard_error <- target_data$sample$treatment_effect_standard_error
 
       self$posterior_parameters$power_parameter_mean <- integrate(function(power_parameter) {
-        power_parameter * self$unnormalized_posterior_power_parameter_pdf(power_parameter, target_data = target_data)
+        return(power_parameter * self$unnormalized_posterior_power_parameter_pdf(power_parameter, target_data = target_data))
       },
       lower = 0,
       upper = 1,
       rel.tol = 1e-8)$value / self$prior_normconst
 
       power_parameter_var <- integrate(function(power_parameter) {
-        power_parameter ^ 2 * self$unnormalized_posterior_power_parameter_pdf(power_parameter, target_data = target_data)
+        return(power_parameter ^ 2 * self$unnormalized_posterior_power_parameter_pdf(power_parameter, target_data = target_data))
       },
       lower = 0,
       upper = 1,
@@ -588,7 +591,7 @@ GaussianNPP <- R6::R6Class(
       bound <- Inf # 30 Using -Inf/Inf may result in error because of non-finite function value
       self$post_mean <- integrate(
         function(theta) {
-          theta * self$posterior_pdf(theta)
+          return(theta * self$posterior_pdf(theta))
         },
         lower = -bound,
         upper = bound,
@@ -600,7 +603,7 @@ GaussianNPP <- R6::R6Class(
       # Numerical integration for variance
       self$post_var <- integrate(
         function(theta) {
-          theta ^ 2 * self$posterior_pdf(theta)
+          return(theta ^ 2 * self$posterior_pdf(theta))
         },
         lower = -bound, # Using -Inf/Inf would result in error because of non-finite function value
         upper = bound,
@@ -614,7 +617,7 @@ GaussianNPP <- R6::R6Class(
 
       self$post_median <- stats::uniroot(
         function(theta) {
-          self$posterior_cdf(x = theta) - 0.5
+          return(self$posterior_cdf(x = theta) - 0.5)
         },
         interval = c(
           self$post_mean - 3 * sqrt(self$post_var),
@@ -641,7 +644,7 @@ GaussianNPP <- R6::R6Class(
     #' @return A vector containing the lower and upper bounds of the credible interval.
     credible_interval = function(level = 0.95) {
       hdi <- HDInterval::inverseCDF(c((1-level)/2, (1+level)/2), function(x) {
-        self$posterior_cdf(x)
+        return(self$posterior_cdf(x))
       })
       return(hdi)
     },
@@ -661,7 +664,7 @@ GaussianNPP <- R6::R6Class(
 
       # Define a proposal distribution
       q <- function(x) {
-        dnorm(x, self$post_mean, sqrt(self$post_var))
+        return(dnorm(x, self$post_mean, sqrt(self$post_var)))
       }
 
       samples <- numeric(n_samples)
@@ -749,7 +752,7 @@ GaussianNPP <- R6::R6Class(
         xi <- x[i]
         integral[i] <- integrate(
           f = function(power_parameter) {
-            dnorm(
+            return(dnorm(
               x = self$target_treatment_effect_estimate,
               mean = xi,
               sd = self$target_treatment_effect_standard_error
@@ -761,7 +764,7 @@ GaussianNPP <- R6::R6Class(
               ) *
               dbeta(x = power_parameter,
                     shape1 = self$p,
-                    shape2 = self$q)
+                    shape2 = self$q))
           },
           lower = 0,
           upper = 1,
@@ -784,14 +787,14 @@ GaussianNPP <- R6::R6Class(
         xi <- x[i]
         integral[i] <- integrate(
           f = function(power_parameter) {
-            dnorm(
+            return(dnorm(
               x = xi,
               mean = self$prior$source$treatment_effect_estimate,
               sd = sqrt(self$prior$source$standard_error ^ 2 / power_parameter)
             ) *
               dbeta(x = power_parameter,
                     shape1 = self$p,
-                    shape2 = self$q)
+                    shape2 = self$q))
           },
           lower = 0,
           upper = 1,
@@ -855,7 +858,7 @@ GaussianNPP <- R6::R6Class(
       power_parameters <- sapply(drifts, function(drift) {
         target_data_drift <- duplicate(target_data)
         target_data_drift$sample$treatment_effect_estimate <- source_treatment_effect_estimate + drift
-        self$power_parameter_estimation(target_data)
+        return(self$power_parameter_estimation(target_data))
       })
 
 
@@ -863,10 +866,10 @@ GaussianNPP <- R6::R6Class(
       plot_data <- data.frame(Drift = drifts, PowerParameter = power_parameters)
 
       # Plot using ggplot2
-      ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
+      return(ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
         ggplot2::geom_line(color = "blue") +
         ggplot2::labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
-        ggplot2::theme_minimal()
+        ggplot2::theme_minimal())
     }
   )
 )
@@ -969,6 +972,7 @@ GaussianNPP_KL <- R6::R6Class(
       self$null_space <- null_space
 
       self$calibration_settings <- npp_kl_settings(prior$method_parameters, null_space)
+      return(invisible(self$calibration_settings))
     },
 
     #' @description Calibrate the prior on the power parameter to this design;
@@ -993,7 +997,7 @@ GaussianNPP_KL <- R6::R6Class(
       self$power_parameter_mean <- moments$mean
       self$power_parameter_std <- moments$sd
 
-      invisible(self$calibration)
+      return(invisible(self$calibration))
     },
 
     #' @description Stop unless the prior has been calibrated.
@@ -1006,7 +1010,7 @@ GaussianNPP_KL <- R6::R6Class(
           "target data before running inference."
         )
       }
-      invisible(NULL)
+      return(invisible(NULL))
     },
 
     #' @description Run every replicate at once
@@ -1038,7 +1042,7 @@ GaussianNPP_KL <- R6::R6Class(
         standard_error = samples$treatment_effect_standard_error
       )
 
-      vectorised_normal_mixture_simulation(
+      return(vectorised_normal_mixture_simulation(
         weights = prior$weights,
         means = prior$means,
         sds = prior$sds,
@@ -1054,7 +1058,7 @@ GaussianNPP_KL <- R6::R6Class(
           npp_kl_calibration_columns(self$calibration, nrow(samples))
         ),
         posterior = posterior
-      )
+      ))
     },
 
     #' @description Sample from the prior on the treatment effect.
@@ -1070,7 +1074,7 @@ GaussianNPP_KL <- R6::R6Class(
     #' @return A vector of samples from the prior.
     sample_prior = function(n_samples) {
       self$assert_calibrated()
-      super$sample_prior(n_samples)
+      return(super$sample_prior(n_samples))
     },
 
     #' @description Density of the prior on the treatment effect.
@@ -1078,7 +1082,7 @@ GaussianNPP_KL <- R6::R6Class(
     #' @return The prior density at `x`.
     prior_pdf = function(x) {
       self$assert_calibrated()
-      super$prior_pdf(x)
+      return(super$prior_pdf(x))
     },
 
     #' @description Perform inference on the target data.
@@ -1102,7 +1106,7 @@ GaussianNPP_KL <- R6::R6Class(
       )
       self$posterior_parameters[names(calibration_columns)] <- calibration_columns
 
-      fit_success
+      return(fit_success)
     }
   )
 )
@@ -1228,7 +1232,7 @@ commensurate_stan_code <- function(with_power_parameter) {
                                       ")
   }
 
-  "
+  return("
                                       data {
                                         int<lower=0,upper=2> prior_type; // Type of prior on the commensurability parameter; 0 for inverse_gamma, 1 for half normal, 2 for Cauchy
                                         real<lower=0> NS;      // Equivalent sample size per arm of dataset S
@@ -1306,7 +1310,7 @@ commensurate_stan_code <- function(with_power_parameter) {
                                       generated quantities {
                                         real tau = exp(log_tau);     // Commensurability parameter
                                       }
-                                      "
+                                      ")
 }
 
 #' GaussianCommensuratePowerPrior class
@@ -1406,6 +1410,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
         power_parameter_mean = NA,
         power_parameter_std = NA
       )
+      return(invisible(self$posterior_parameters))
     },
     #' @description Prepare the data to be used by CmdStanR
     #' @param target_data Target study data
@@ -1503,7 +1508,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
       # uncompressed, so the replicates are then analysed in chunks to bound
       # the memory it takes.
       chunk_size <- if (is.null(compressed)) 1000L else 10000L
-      analyse_in_replicate_chunks(samples, chunk_size = chunk_size, function(chunk) {
+      return(analyse_in_replicate_chunks(samples, chunk_size = chunk_size, function(chunk) {
         posterior <- normal_mixture_posterior(
           weights = posterior_mixture$weights,
           means = posterior_mixture$means,
@@ -1560,8 +1565,8 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
             null_space = null_space
           )
         }
-        results
-      })
+        return(results)
+      }))
     },
     #' @description The posterior of the treatment effect by quadrature, the
     #' same mixture the simulations use, for one target data set. Conditional
@@ -1589,11 +1594,11 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
         borrows_power_parameter = self$borrows_power_parameter
       )
 
-      normal_mixture_grid_posterior(
+      return(normal_mixture_grid_posterior(
         weights = drop(posterior$weights),
         means = drop(posterior$means),
         sds = drop(posterior$sds)
-      )
+      ))
     },
     #' @description Compute posterior parameters, from the quadrature weights or
     #' from the Stan draws, depending on the engine.
@@ -1609,6 +1614,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
         parameters$power_parameter_std <- power_summary$sd
       }
       self$posterior_parameters <- parameters
+      return(invisible(self$posterior_parameters))
     },
     #' @description Posterior mean and standard deviation of tau from the Stan
     #' draws, reported as `Inf` where the moment does not exist, exactly as
@@ -1620,7 +1626,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
         self$heterogeneity_prior_family,
         self$prior$method_parameters$heterogeneity_prior
       )
-      list(
+      return(list(
         heterogeneity_parameter_mean = if (exists[["mean"]]) {
           tau_summary %>% dplyr::pull(mean)
         } else {
@@ -1631,7 +1637,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
         } else {
           Inf
         }
-      )
+      ))
     },
     #' @description Draw samples from the prior distribution. Based on
     #' equation (8) in Hobbs et al (2011); the plain commensurate prior shares
@@ -1678,12 +1684,12 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
       log_limit <- log(.Machine$double.xmax) / 2
       inverse_tau <- exp(pmin(-log_tau, log_limit))
 
-      stats::rnorm(
+      return(stats::rnorm(
         n_samples,
         mean = self$prior$source$treatment_effect_estimate,
         sd = sqrt(inverse_tau +
                     self$prior$source$standard_error^2 / power_parameter)
-      )
+      ))
     },
     #' @description Joint prior p.d.f. Based on equation (8) in Hobbs et al (2011).
     #' @param treatment_effect Treatment effect
@@ -1743,11 +1749,11 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
       densities <- vapply(
         seq_along(mixture$weights),
         function(k) {
-          stats::dnorm(treatment_effect, mixture$means[k], mixture$sds[k])
+          return(stats::dnorm(treatment_effect, mixture$means[k], mixture$sds[k]))
         },
         numeric(length(treatment_effect))
       )
-      drop(matrix(densities, nrow = length(treatment_effect)) %*% mixture$weights)
+      return(drop(matrix(densities, nrow = length(treatment_effect)) %*% mixture$weights))
     },
     #' @description Prior c.d.f. of the treatment effect, from the same mixture
     #' as `prior_pdf()`. Without it the MCMC parent would take the empirical
@@ -1760,11 +1766,11 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
       probabilities <- vapply(
         seq_along(mixture$weights),
         function(k) {
-          stats::pnorm(treatment_effect, mixture$means[k], mixture$sds[k])
+          return(stats::pnorm(treatment_effect, mixture$means[k], mixture$sds[k]))
         },
         numeric(length(treatment_effect))
       )
-      drop(matrix(probabilities, nrow = length(treatment_effect)) %*% mixture$weights)
+      return(drop(matrix(probabilities, nrow = length(treatment_effect)) %*% mixture$weights))
     }
   )
 )
@@ -1846,6 +1852,7 @@ GaussianCommensuratePrior <- R6::R6Class(
         heterogeneity_parameter_mean = NA,
         heterogeneity_parameter_std = NA
       )
+      return(invisible(self$posterior_parameters))
     },
 
     #' @description Joint prior p.d.f. of the treatment effect and the

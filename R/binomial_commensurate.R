@@ -51,7 +51,7 @@ binomial_source_power_posteriors <- function(source_counts, shapes, n_lattice,
   rates <- (seq_len(N) - 0.5) / N
   arm_log_likelihood <- function(n, successes) {
     log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
-    log_likelihood - max(log_likelihood)
+    return(log_likelihood - max(log_likelihood))
   }
   control <- arm_log_likelihood(source_counts$n_control_source,
                                 source_counts$n_successes_control_source)
@@ -94,7 +94,7 @@ binomial_source_power_posteriors <- function(source_counts, shapes, n_lattice,
       log(colSums(exp(outer(treatment, gamma))))
     base <- log(rule$weights) - log_normalizer
     log_gamma <- ifelse(gamma > 0, log(gamma), -Inf)
-    lapply(0:2, function(m) {
+    return(lapply(0:2, function(m) {
       terms <- base + if (m == 0) 0 else m * log_gamma
       keep <- is.finite(terms)
       log_table <- row_log_sum_exp(outer(table_log_likelihood, gamma[keep]) +
@@ -103,20 +103,20 @@ binomial_source_power_posteriors <- function(source_counts, shapes, n_lattice,
       values <- matrix(0, N, length(differences))
       values[inside] <- exp((1 - fraction) * log_table[position] +
                               fraction * log_table[position + 1L])
-      colSums(values)
-    })
+      return(colSums(values))
+    }))
   })
   pick <- function(m) {
     out <- vapply(match(shapes, distinct), function(index) columns[[index]][[m]],
                   numeric(length(differences)))
-    matrix(out, nrow = length(differences))
+    return(matrix(out, nrow = length(differences)))
   }
-  list(
+  return(list(
     differences = differences,
     density = pick(1L),
     gamma_first = pick(2L),
     gamma_second = pick(3L)
-  )
+  ))
 }
 
 
@@ -161,6 +161,7 @@ binomial_commensurate_prior_kernels <- function(source_counts,
 
   add <- function(index, amount) {
     outputs[[index]] <<- outputs[[index]] + amount
+    return(invisible(outputs[[index]]))
   }
 
   for (node in seq_along(weights)) {
@@ -178,14 +179,14 @@ binomial_commensurate_prior_kernels <- function(source_counts,
       # The kernel is flat across the unit interval: given the target control
       # rate, the target effect is uniform over its N admissible values.
       blocks <- lapply(densities, function(density) {
-        admissible * (sum(density[support]) / N)
+        return(admissible * (sum(density[support]) / N))
       })
     } else if (spread < 0.2) {
       # Narrower than a fifth of the lattice spacing: theta_T = theta_S, kept
       # where it is admissible for the target control rate and renormalised
       # there (each source effect is admissible or not; nothing to spread).
       blocks <- lapply(densities, function(density) {
-        admissible * rep(density, each = N)
+        return(admissible * rep(density, each = N))
       })
     } else {
       # Discrete normal kernel between source effect d and target effect t,
@@ -215,7 +216,7 @@ binomial_commensurate_prior_kernels <- function(source_counts,
       blocks <- lapply(densities, function(density) {
         block <- matrix(0, N, n_differences)
         block[, columns] <- (reciprocal * rep(density[support], each = N)) %*% transfer
-        block * admissible
+        return(block * admissible)
       })
     }
 
@@ -236,13 +237,13 @@ binomial_commensurate_prior_kernels <- function(source_counts,
   if (borrows_power_parameter) {
     moments$power_parameter <- list(first = outputs[[4]], second = outputs[[5]])
   }
-  list(
+  return(list(
     n_lattice = N,
     rates = (seq_len(N) - 0.5) / N,
     differences = differences,
     kernel = outputs[[1]],
     moments = moments
-  )
+  ))
 }
 
 
@@ -306,15 +307,16 @@ BinomialCommensuratePowerPrior <- R6::R6Class(
     initialize = function(prior, mcmc_config) {
       super$initialize(prior = prior, mcmc_config = mcmc_config)
       self$heterogeneity_prior_family <- prior$method_parameters$heterogeneity_prior$family
+      return(invisible(self$heterogeneity_prior_family))
     },
 
     #' @description The prior kernels, computed once per worker and shared.
     #' @return The output of [binomial_commensurate_prior_kernels()].
     kernels = function() {
-      lattice_kernel_cached(
+      return(lattice_kernel_cached(
         list("binomial commensurate", self$kernel_key(), self$n_lattice),
         function() {
-          binomial_commensurate_prior_kernels(
+          return(binomial_commensurate_prior_kernels(
             source_counts = self$source_counts(),
             tau_rule = commensurate_tau_quadrature(self, self$n_tau_nodes),
             borrows_power_parameter = self$borrows_power_parameter,
@@ -323,19 +325,19 @@ BinomialCommensuratePowerPrior <- R6::R6Class(
               self$prior$method_parameters$heterogeneity_prior
             ),
             n_lattice = self$n_lattice
-          )
+          ))
         }
-      )
+      ))
     },
 
     #' @description What identifies the prior.
     #' @return A list.
     kernel_key = function() {
-      c(self$source_counts(), list(
+      return(c(self$source_counts(), list(
         heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior,
         borrows_power_parameter = self$borrows_power_parameter,
         n_tau_nodes = self$n_tau_nodes
-      ))
+      )))
     },
 
     #' @description Record the posterior moments of the commensurability
@@ -350,6 +352,7 @@ BinomialCommensuratePowerPrior <- R6::R6Class(
         parameters$power_parameter_std <- self$grid_posterior$power_parameter_std
       }
       self$posterior_parameters <- parameters
+      return(invisible(self$posterior_parameters))
     }
   )
 )

@@ -190,6 +190,7 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
 
     export_table(data_table = data_table, ncollapses = 1, title = title, file_path = file_path)
   }
+  return(invisible(NULL))
 }
 
 
@@ -259,4 +260,5 @@ table_empirical_bayes_hyperparameters_vs_scenario <- function(results_metrics_df
       }
     }
   }
+  return(invisible(NULL))
 }

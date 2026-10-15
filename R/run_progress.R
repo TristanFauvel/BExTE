@@ -19,7 +19,7 @@
 #'
 #' @noRd
 run_progress_path <- function(env) {
-  file.path("logs", env, "progress.json")
+  return(file.path("logs", env, "progress.json"))
 }
 
 #' Write a snapshot of how far a run has got.
@@ -57,7 +57,7 @@ write_run_progress <- function(path,
   if (!file.rename(tmp, path)) {
     unlink(tmp)
   }
-  invisible(path)
+  return(invisible(path))
 }
 
 #' Track how many scenarios of a run have been simulated.
@@ -88,21 +88,21 @@ run_progress_tracker <- function(env, total) {
   state$method <- NA_character_
 
   flush <- function() {
-    write_run_progress(path, state$done, total, state$case_study, state$method)
+    return(write_run_progress(path, state$done, total, state$case_study, state$method))
   }
   flush()
 
-  list(
+  return(list(
     path = path,
     starting = function(case_study, method) {
       state$base <- state$done
       state$case_study <- case_study
       state$method <- method
-      flush()
+      return(flush())
     },
     tick = function(n = 1L) {
       state$done <- state$base + as.integer(n)
-      flush()
+      return(flush())
     }
-  )
+  ))
 }

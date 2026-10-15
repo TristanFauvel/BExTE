@@ -103,7 +103,7 @@ prior_ess_elir <- function(rbest_model, target_data) {
     stop("The prior is NULL")
   }
 
-  tryCatch({
+  return(tryCatch({
     elir <- RBesT::ess(rbest_model, method = "elir", sigma = RBesT::sigma(rbest_model))
     return(elir)
   }, error = function(e) {
@@ -115,7 +115,7 @@ prior_ess_elir <- function(rbest_model, target_data) {
       message("An error occurred: ", e$message)
       return(NA)
     }
-  })
+  }))
 }
 
 

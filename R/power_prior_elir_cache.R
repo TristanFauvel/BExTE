@@ -32,7 +32,7 @@ power_prior_elir_cache_reset <- function() {
     list = ls(envir = power_prior_elir_cache_store, all.names = TRUE),
     envir = power_prior_elir_cache_store
   )
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 #' Number of ELIR nodes held in the cache
@@ -40,7 +40,7 @@ power_prior_elir_cache_reset <- function() {
 #' @return The number of nodes stored.
 #' @keywords internal
 power_prior_elir_cache_size <- function() {
-  length(ls(envir = power_prior_elir_cache_store, all.names = TRUE))
+  return(length(ls(envir = power_prior_elir_cache_store, all.names = TRUE)))
 }
 
 #' Evaluate an expression under a fixed seed
@@ -65,7 +65,7 @@ with_fixed_seed <- function(seed, code) {
     }
   })
   set.seed(seed)
-  code
+  return(code)
 }
 
 #' Unit-scale ELIR of a gridded prior, averaged over several mixture fits
@@ -94,13 +94,13 @@ grid_prior_unit_elir <- function(prior_grid, n_samples, n_fits,
       type = c("norm")
     )
     RBesT::sigma(fit) <- 1
-    as.numeric(prior_ess_elir(rbest_model = fit, target_data = NULL))
+    return(as.numeric(prior_ess_elir(rbest_model = fit, target_data = NULL)))
   }, numeric(1)))
 
   if (all(is.na(values))) {
     return(NA_real_)
   }
-  mean(values, na.rm = TRUE)
+  return(mean(values, na.rm = TRUE))
 }
 
 #' Unit-scale ELIR of a binomial power prior, interpolated in the power parameter
@@ -159,7 +159,7 @@ binomial_power_prior_unit_elir <- function(model, power_parameter, n_samples,
         envir = power_prior_elir_cache_store
       )
     }
-    get(key, envir = power_prior_elir_cache_store)
+    return(get(key, envir = power_prior_elir_cache_store))
   }
 
   # The small offset keeps a power parameter that is a node up to rounding on
@@ -169,5 +169,5 @@ binomial_power_prior_unit_elir <- function(model, power_parameter, n_samples,
   if (fraction <= 1e-9 || lower * step >= 1) {
     return(node_value(lower))
   }
-  (1 - fraction) * node_value(lower) + fraction * node_value(lower + 1)
+  return((1 - fraction) * node_value(lower) + fraction * node_value(lower + 1))
 }

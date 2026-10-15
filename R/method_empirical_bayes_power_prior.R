@@ -18,7 +18,7 @@ power_prior_variance <- function(source_standard_error, power_parameter,
     stop("The estimated power parameter is NA.")
   }
   variance <- source_standard_error^2 / power_parameter
-  ifelse(is.finite(variance), variance, vague_variance)
+  return(ifelse(is.finite(variance), variance, vague_variance))
 }
 
 #' Find Calibration Parameter
@@ -84,7 +84,7 @@ findCalibrationParameter <- function(n_iter = 1e6,
   # bisection below could not resolve (its tolerance is finer than the standard
   # error of a 1e6-draw estimate).
   attained_type_I_error <- function(calibration_parameter) {
-    adaptive_power_prior_type_I_error(
+    return(adaptive_power_prior_type_I_error(
       calibration_parameter = calibration_parameter,
       source_sample_size_per_arm = source_sample_size_per_arm,
       target_sample_size_per_arm = target_sample_size_per_arm,
@@ -93,7 +93,7 @@ findCalibrationParameter <- function(n_iter = 1e6,
       target_data_sampling_variance = target_data_sampling_variance,
       source_data_sampling_variance = source_data_sampling_variance,
       theta_0 = true_mean
-    )
+    ))
   }
 
   # Nikolakopoulos et al (2018) require the source estimate to exceed
@@ -199,7 +199,7 @@ log_grid_interpolation <- function(f, x, n_nodes = 100L) {
   }
   nodes <- exp(seq(log(bounds[[1]]), log(bounds[[2]]), length.out = n_nodes))
   values <- vapply(nodes, f, numeric(1))
-  stats::approx(log(nodes), values, xout = log(x), ties = "ordered")$y
+  return(stats::approx(log(nodes), values, xout = log(x), ties = "ordered")$y)
 }
 
 
@@ -257,6 +257,7 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
       self$null_space <- null_space
       self$parameters <- list(theta_0 = theta_0)
       self$prior_var <- NULL
+      return(invisible(self$prior_var))
     },
 
     #' @description Empirical Bayes update
@@ -281,6 +282,7 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
           length(self$prior_var) == 0) {
         stop("self$prior_var is numeric(0)")
       }
+      return(invisible(NULL))
     },
 
     #' Perform inference using the GaussianEmpiricalBayesPP method.
@@ -310,7 +312,7 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return A vector of power parameters, or `NULL`.
     vectorised_power_parameter = function(target_data, samples) {
-      NULL
+      return(NULL)
     },
 
     #' @description Prior variance for each replicate
@@ -332,14 +334,14 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
       # without estimating them a second time.
       private$last_power_parameter <- power_parameter
 
-      power_prior_variance(self$prior$source$standard_error, power_parameter)
+      return(power_prior_variance(self$prior$source$standard_error, power_parameter))
     },
 
     #' @description Posterior parameters reported by the vectorised path
     #' @param prior_variance Per-replicate prior variance.
     #' @return A data frame with one `power_parameter` column.
     vectorised_posterior_parameters = function(prior_variance) {
-      data.frame(power_parameter = private$last_power_parameter)
+      return(data.frame(power_parameter = private$last_power_parameter))
     },
 
     #' @description
@@ -380,7 +382,7 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
       power_parameters <- sapply(drifts, function(drift) {
         target_data_drift <- duplicate(target_data)
         target_data_drift$sample$treatment_effect_estimate <- source_treatment_effect_estimate + drift
-        self$power_parameter_estimation(target_data)
+        return(self$power_parameter_estimation(target_data))
       })
 
 
@@ -388,10 +390,10 @@ GaussianEmpiricalBayesPP <- R6::R6Class(
       plot_data <- data.frame(Drift = drifts, PowerParameter = power_parameters)
 
       # Plot using ggplot2
-      ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
+      return(ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
         ggplot2::geom_line(color = "blue") +
         ggplot2::labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
-        ggplot2::theme_minimal()
+        ggplot2::theme_minimal())
     }
   ),
   private = list(
@@ -443,9 +445,9 @@ GaussianGravestockEBPP <- R6::R6Class(
     #' @param theta_0 Boundary of the null hypothesis space
     #' @return NULL
     initialize = function(prior, null_space, theta_0) {
-      super$initialize(prior = prior,
+      return(super$initialize(prior = prior,
                        null_space = null_space,
-                       theta_0 = theta_0)
+                       theta_0 = theta_0))
     },
 
     #' @description Estimate the power parameter using the Gravestock's EBPP method.
@@ -536,13 +538,13 @@ GaussianGravestockEBPP <- R6::R6Class(
       lower <- source_estimate +
         standard_deviation_predictive * qnorm(calibration_parameter / 2)
 
-      ifelse(
+      return(ifelse(
         target_estimate > upper | target_estimate < lower,
         (target_sampling_variance / n0) /
           (((target_estimate - source_estimate) / qnorm(1 - calibration_parameter / 2))^2 -
              target_sampling_variance / target_effective_arm_size(target_data)),
         1
-      )
+      ))
     }
   )
 )
@@ -610,6 +612,7 @@ GaussianPDCCPP <- R6::R6Class(
       )
 
       self$null_space <- null_space
+      return(invisible(self$null_space))
     },
 
     #' Estimate the power parameter using the PDCCPP method.
@@ -680,12 +683,12 @@ GaussianPDCCPP <- R6::R6Class(
 
       calibration_parameter <- log_grid_interpolation(
         function(variance) {
-          self$calibration_parameter(
+          return(self$calibration_parameter(
             target_data_sampling_variance = variance,
             target_sample_size_per_arm = target_effective_arm_size(target_data),
             source_treatment_effect_estimate = source_estimate,
             tolerance = min(self$parameters$tolerance, 1e-9)
-          )
+          ))
         },
         target_sampling_variance,
         n_nodes = 200L
@@ -703,7 +706,7 @@ GaussianPDCCPP <- R6::R6Class(
         stop("Variable is NULL or NA. Execution stopped.")
       }
 
-      power_parameter
+      return(power_parameter)
     },
 
     #' @description The calibration parameter z_{1-c/2} for one target
@@ -770,7 +773,7 @@ GaussianPDCCPP <- R6::R6Class(
         stop("Calibration parameter must be positive.")
       }
 
-      calibration_parameter
+      return(calibration_parameter)
     },
 
     #' @description The power parameter given the calibration, equation (9)
@@ -811,7 +814,7 @@ GaussianPDCCPP <- R6::R6Class(
       # recovers z_{1-c/2} as qnorm(1 - c / 2). Sending a z-score through that
       # conversion a second time applied a wider cut-off than the one the
       # search had just calibrated.
-      ifelse(((
+      return(ifelse(((
         target_treatment_effect_estimate > (
           source_treatment_effect_estimate + standard_deviation_predictive * calibration_parameter
         )
@@ -825,7 +828,7 @@ GaussianPDCCPP <- R6::R6Class(
         ) / calibration_parameter
         ) ^ 2 - target_data_sampling_variance / target_sample_size_per_arm
         )
-        ), 1)
+        ), 1))
     }
   )
 )
@@ -887,6 +890,7 @@ GaussianPValueBasedPP <- R6::R6Class(
           equivalence_margin = prior$method_parameters$equivalence_margin[[1]]
         )
       )
+      return(invisible(self$parameters))
     },
 
     #' Test method
@@ -1013,7 +1017,7 @@ GaussianPValueBasedPP <- R6::R6Class(
       margin <- self$parameters$equivalence_margin
 
       one_sided <- function(mu, alternative) {
-        summary_t_test_p_value(
+        return(summary_t_test_p_value(
           mean_x = transformed$source_treatment_effect_estimate,
           sd_x = source_sd,
           n_x = source_n,
@@ -1022,13 +1026,13 @@ GaussianPValueBasedPP <- R6::R6Class(
           n_y = target_effective_arm_size(target_data),
           mu = mu,
           alternative = alternative
-        )
+        ))
       }
 
       # H0a: theta_S - theta_T > margin, and H0b: theta_S - theta_T < -margin.
       p_value <- pmax(one_sided(margin, "less"), one_sided(-margin, "greater"))
 
-      exp((self$parameters$shape_parameter / (1 - p_value)) * log(1 - p_value))
+      return(exp((self$parameters$shape_parameter / (1 - p_value)) * log(1 - p_value)))
     }
   )
 )
@@ -1119,6 +1123,7 @@ BinomialPValueBasedPP <- R6::R6Class(
       )
       self$summary_measure_likelihood <- "binomial"
       self$null_space <- null_space
+      return(invisible(self$null_space))
     },
 
     #' @description Empirical Bayes update
@@ -1136,6 +1141,7 @@ BinomialPValueBasedPP <- R6::R6Class(
       self$prior_grid <- NULL
       self$prior_pdf_approx <- NULL
       self$prior_cdf_approx <- NULL
+      return(invisible(self$prior_cdf_approx))
     },
 
     #' Perform inference using the GaussianEmpiricalBayesPP method.
@@ -1305,7 +1311,7 @@ BinomialPValueBasedPP <- R6::R6Class(
       power_parameters <- sapply(drifts, function(drift) {
         target_data_drift <- duplicate(target_data)
         target_data_drift$sample$treatment_effect_estimate <- source_treatment_effect_estimate + drift
-        self$power_parameter_estimation(target_data)
+        return(self$power_parameter_estimation(target_data))
       })
 
 
@@ -1313,10 +1319,10 @@ BinomialPValueBasedPP <- R6::R6Class(
       plot_data <- data.frame(Drift = drifts, PowerParameter = power_parameters)
 
       # Plot using ggplot2
-      ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
+      return(ggplot2::ggplot(plot_data, ggplot2::aes(x = Drift, y = PowerParameter)) +
         ggplot2::geom_line(color = "blue") +
         ggplot2::labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
-        ggplot2::theme_minimal()
+        ggplot2::theme_minimal())
     }
   )
 )

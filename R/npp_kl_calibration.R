@@ -83,7 +83,7 @@ npp_kl_validate_inputs <- function(theta_source,
                                    c_target,
                                    beta_parameter_bounds) {
   finite_scalar <- function(x) {
-    is.numeric(x) && length(x) == 1L && is.finite(x)
+    return(is.numeric(x) && length(x) == 1L && is.finite(x))
   }
 
   if (!finite_scalar(theta_source)) {
@@ -135,7 +135,7 @@ npp_kl_validate_inputs <- function(theta_source,
          paste(format(beta_parameter_bounds), collapse = ", "), ".")
   }
 
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 #' Quadrature rule for a Beta measure on the unit interval
@@ -176,7 +176,7 @@ npp_kl_beta_quadrature <- function(alpha_gamma, beta_gamma, n_nodes = 80L) {
     (1 - alpha_gamma - beta_gamma) * log(2) -
     lbeta(alpha_gamma, beta_gamma)
 
-  list(nodes = nodes, log_weights = log_weights)
+  return(list(nodes = nodes, log_weights = log_weights))
 }
 
 #' Log-sum-exp
@@ -189,7 +189,7 @@ npp_kl_log_sum_exp <- function(x) {
   if (!is.finite(largest)) {
     return(largest)
   }
-  largest + log(sum(exp(x - largest)))
+  return(largest + log(sum(exp(x - largest))))
 }
 
 #' Discretised marginal posterior of the discounting parameter
@@ -233,13 +233,13 @@ npp_kl_posterior_masses <- function(x,
   log_unnormalised_mass <- rule$log_weights + log_likelihood
   log_norm_const <- npp_kl_log_sum_exp(log_unnormalised_mass)
 
-  list(
+  return(list(
     nodes = rule$nodes,
     masses = exp(log_unnormalised_mass - log_norm_const),
     log_density = log_likelihood +
       stats::dbeta(rule$nodes, alpha_gamma, beta_gamma, log = TRUE) -
       log_norm_const
-  )
+  ))
 }
 
 #' Kullback-Leibler divergence from a discretised posterior to a Beta reference
@@ -275,7 +275,7 @@ npp_kl_divergence <- function(posterior, reference_shape1, reference_shape2) {
     return(Inf)
   }
 
-  sum(contributions)
+  return(sum(contributions))
 }
 
 #' The KL calibration objective
@@ -327,7 +327,7 @@ npp_kl_objective <- function(eta,
   }
 
   posterior_at <- function(x) {
-    npp_kl_posterior_masses(
+    return(npp_kl_posterior_masses(
       x = x,
       theta_source = theta_source,
       se_source = se_source,
@@ -335,7 +335,7 @@ npp_kl_objective <- function(eta,
       alpha_gamma = alpha_gamma,
       beta_gamma = beta_gamma,
       rule = rule
-    )
+    ))
   }
 
   compatible_term <- npp_kl_divergence(
@@ -351,7 +351,7 @@ npp_kl_objective <- function(eta,
     return(Inf)
   }
 
-  value
+  return(value)
 }
 
 #' One run of the calibration optimiser
@@ -374,13 +374,13 @@ npp_kl_objective <- function(eta,
 #' @keywords internal
 npp_kl_optimise_from <- function(start, objective, beta_parameter_bounds) {
   failure <- function(message) {
-    list(
+    return(list(
       alpha_gamma = NA_real_,
       beta_gamma = NA_real_,
       objective_value = Inf,
       converged = FALSE,
       message = message
-    )
+    ))
   }
 
   bounded_start <- pmin(pmax(start, beta_parameter_bounds[1]),
@@ -404,14 +404,14 @@ npp_kl_optimise_from <- function(start, objective, beta_parameter_bounds) {
     return(failure("The objective was not finite at the optimiser's answer."))
   }
 
-  list(
+  return(list(
     alpha_gamma = exp(fit$par[1]),
     beta_gamma = exp(fit$par[2]),
     objective_value = fit$value,
     converged = identical(fit$convergence, 0L) ||
       identical(fit$convergence, 0),
     message = if (is.null(fit$message)) NA_character_ else fit$message
-  )
+  ))
 }
 
 #' Cache of KL calibrations
@@ -448,7 +448,7 @@ npp_kl_calibration_cache_reset <- function() {
     list = ls(envir = npp_kl_cache_store, all.names = TRUE),
     envir = npp_kl_cache_store
   )
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 #' Number of calibrations held in the cache
@@ -463,7 +463,7 @@ npp_kl_calibration_cache_reset <- function() {
 #' npp_kl_calibration_cache_size()
 #' @export
 npp_kl_calibration_cache_size <- function() {
-  length(ls(envir = npp_kl_cache_store, all.names = TRUE))
+  return(length(ls(envir = npp_kl_cache_store, all.names = TRUE)))
 }
 
 #' Calibrate the normalised power prior by a KL criterion
@@ -589,7 +589,7 @@ calibrate_npp_kl <- function(theta_source,
   }
 
   objective <- function(eta) {
-    npp_kl_objective(
+    return(npp_kl_objective(
       eta = eta,
       theta_target_compatible = theta_target_compatible,
       theta_target_mtd = theta_target_mtd,
@@ -599,33 +599,33 @@ calibrate_npp_kl <- function(theta_source,
       lambda_kl = lambda_kl,
       c_target = c_target,
       n_nodes = n_nodes
-    )
+    ))
   }
 
   # A start that raises is passed over rather than allowed to end the
   # calibration: the search exists precisely because any one start may be
   # unusable, and the answer is decided by the ones that are.
   attempts <- lapply(optimizer_starts, function(start) {
-    tryCatch(
+    return(tryCatch(
       npp_kl_optimise_from(
         start = start,
         objective = objective,
         beta_parameter_bounds = beta_parameter_bounds
       ),
       error = function(condition) {
-        list(
+        return(list(
           alpha_gamma = NA_real_,
           beta_gamma = NA_real_,
           objective_value = Inf,
           converged = FALSE,
           message = conditionMessage(condition)
-        )
+        ))
       }
-    )
+    ))
   })
 
   converged <- Filter(function(attempt) {
-    attempt$converged && is.finite(attempt$objective_value)
+    return(attempt$converged && is.finite(attempt$objective_value))
   }, attempts)
 
   if (length(converged) == 0L) {
@@ -643,7 +643,7 @@ calibrate_npp_kl <- function(theta_source,
   }
 
   objective_values <- vapply(converged, function(attempt) {
-    attempt$objective_value
+    return(attempt$objective_value)
   }, numeric(1))
   best <- converged[[which.min(objective_values)]]
 
@@ -665,7 +665,7 @@ calibrate_npp_kl <- function(theta_source,
 
   assign(calibration_id, calibration, envir = npp_kl_cache_store)
 
-  calibration
+  return(calibration)
 }
 
 #' Prior mean and standard deviation of a Beta distribution
@@ -676,10 +676,10 @@ calibrate_npp_kl <- function(theta_source,
 #' @keywords internal
 npp_kl_beta_moments <- function(alpha_gamma, beta_gamma) {
   total <- alpha_gamma + beta_gamma
-  list(
+  return(list(
     mean = alpha_gamma / total,
     sd = sqrt(alpha_gamma * beta_gamma / (total^2 * (total + 1)))
-  )
+  ))
 }
 
 #' The calibration columns reported with every replicate
@@ -702,7 +702,7 @@ npp_kl_beta_moments <- function(alpha_gamma, beta_gamma) {
 npp_kl_calibration_columns <- function(calibration, n_replicates) {
   moments <- npp_kl_beta_moments(calibration$alpha_gamma, calibration$beta_gamma)
 
-  data.frame(
+  return(data.frame(
     alpha_gamma = rep(calibration$alpha_gamma, n_replicates),
     beta_gamma = rep(calibration$beta_gamma, n_replicates),
     prior_gamma_mean = rep(moments$mean, n_replicates),
@@ -713,7 +713,7 @@ npp_kl_calibration_columns <- function(calibration, n_replicates) {
     calibration_converged = rep(
       as.numeric(isTRUE(calibration$optimizer_converged)), n_replicates
     )
-  )
+  ))
 }
 
 
@@ -729,7 +729,7 @@ npp_kl_calibration_columns <- function(calibration, n_replicates) {
 #' @keywords internal
 npp_kl_settings <- function(parameters, null_space) {
   first_or <- function(value, fallback) {
-    if (is.null(value)) fallback else value[[1]]
+    if (is.null(value)) return(fallback) else return(value[[1]])
   }
 
   d_mtd_rule <- first_or(parameters$d_mtd_rule, "source_to_null")
@@ -745,7 +745,7 @@ npp_kl_settings <- function(parameters, null_space) {
   # benefit direction as its null space, and deriving it there is what keeps
   # the maximum tolerable discrepancy on the side that moves the target
   # towards the null for the log-ratio case studies as well.
-  list(
+  return(list(
     lambda_kl = first_or(parameters$lambda_kl, 0.5),
     c_target = first_or(parameters$c_target, 10),
     d_mtd_rule = d_mtd_rule,
@@ -761,7 +761,7 @@ npp_kl_settings <- function(parameters, null_space) {
     } else {
       unlist(parameters$beta_parameter_bounds)
     }
-  )
+  ))
 }
 
 
@@ -792,15 +792,15 @@ npp_kl_expected_target_se <- function(target_data, source) {
   n_control <- target_data$sample_size_control
   n_treatment <- target_data$sample_size_treatment
   if (identical(target_data$summary_measure_likelihood, "binomial")) {
-    sqrt(treatment_rate * (1 - treatment_rate) / n_treatment +
-           control_rate * (1 - control_rate) / n_control)
+    return(sqrt(treatment_rate * (1 - treatment_rate) / n_treatment +
+           control_rate * (1 - control_rate) / n_control))
   } else {
-    standard_error_log_odds_ratio(
+    return(standard_error_log_odds_ratio(
       n_control * (1 - control_rate),
       n_treatment * (1 - treatment_rate),
       n_control * control_rate,
       n_treatment * treatment_rate
-    )
+    ))
   }
 }
 
@@ -820,7 +820,7 @@ npp_kl_expected_target_se <- function(target_data, source) {
 #' @return The output of [calibrate_npp_kl()].
 #' @keywords internal
 npp_kl_calibrate_design <- function(source, target_data, theta_0, settings) {
-  calibrate_npp_kl(
+  return(calibrate_npp_kl(
     theta_source = source$treatment_effect_estimate,
     se_source = source$standard_error,
     se_target_expected = npp_kl_expected_target_se(target_data, source),
@@ -831,7 +831,7 @@ npp_kl_calibrate_design <- function(source, target_data, theta_0, settings) {
     lambda_kl = settings$lambda_kl,
     c_target = settings$c_target,
     beta_parameter_bounds = settings$beta_parameter_bounds
-  )
+  ))
 }
 
 
@@ -864,7 +864,7 @@ npp_kl_calibrate_design <- function(source, target_data, theta_0, settings) {
 npp_kl_binomial_log_marginals <- function(source_counts, n_control, n_treatment,
                                           control_rate, effects, n_lattice = 1000L,
                                           n_grid = 801L) {
-  disk_cached(list("KL-NPP binomial log marginals", source_counts, as.integer(n_control),
+  return(disk_cached(list("KL-NPP binomial log marginals", source_counts, as.integer(n_control),
                    as.integer(n_treatment), signif(control_rate, 12), signif(effects, 12),
                    as.integer(n_lattice), as.integer(n_grid)), function() {
     gamma <- seq(0, 1, length.out = n_grid)^2
@@ -876,10 +876,10 @@ npp_kl_binomial_log_marginals <- function(source_counts, n_control, n_treatment,
         n_control, n_control * control_rate, n_treatment, n_treatment * treatment_rate,
         n_lattice = n_lattice
       )
-      binomial_power_prior_log_marginal(terms, gamma)
+      return(binomial_power_prior_log_marginal(terms, gamma))
     })
-    c(list(gamma = gamma), tables)
-  }, subdirectory = "npp_kl_binomial")
+    return(c(list(gamma = gamma), tables))
+  }, subdirectory = "npp_kl_binomial"))
 }
 
 
@@ -919,12 +919,12 @@ npp_kl_calibrate_design_binomial <- function(source_counts, source, target_data,
     log_likelihood <- stats::approx(tables$gamma, tables[[which]], xout = rule$nodes, rule = 2)$y
     log_unnormalised_mass <- rule$log_weights + log_likelihood
     log_norm_const <- npp_kl_log_sum_exp(log_unnormalised_mass)
-    list(
+    return(list(
       nodes = rule$nodes,
       masses = exp(log_unnormalised_mass - log_norm_const),
       log_density = log_likelihood +
         stats::dbeta(rule$nodes, alpha_gamma, beta_gamma, log = TRUE) - log_norm_const
-    )
+    ))
   }
   objective <- function(eta) {
     if (!all(is.finite(eta))) return(Inf)
@@ -937,26 +937,26 @@ npp_kl_calibrate_design_binomial <- function(source_counts, source, target_data,
       npp_kl_divergence(posterior_at("compatible", alpha_gamma, beta_gamma, rule), settings$c_target, 1) +
       (1 - settings$lambda_kl) *
       npp_kl_divergence(posterior_at("mtd", alpha_gamma, beta_gamma, rule), 1, settings$c_target)
-    if (is.finite(value)) value else Inf
+    if (is.finite(value)) return(value) else return(Inf)
   }
 
   attempts <- lapply(NPP_KL_DEFAULT_STARTS, function(start) {
-    tryCatch(
+    return(tryCatch(
       npp_kl_optimise_from(start = start, objective = objective,
                            beta_parameter_bounds = settings$beta_parameter_bounds),
       error = function(condition) list(objective_value = Inf, converged = FALSE,
                                        message = conditionMessage(condition))
-    )
+    ))
   })
   converged <- Filter(function(attempt) {
-    isTRUE(attempt$converged) && is.finite(attempt$objective_value)
+    return(isTRUE(attempt$converged) && is.finite(attempt$objective_value))
   }, attempts)
   if (length(converged) == 0L) {
     stop("The binomial KL calibration failed from every starting value. The last ",
          "optimiser message was: ", attempts[[length(attempts)]]$message, call. = FALSE)
   }
   best <- converged[[which.min(vapply(converged, function(a) a$objective_value, numeric(1)))]]
-  list(
+  return(list(
     alpha_gamma = best$alpha_gamma,
     beta_gamma = best$beta_gamma,
     objective_value = best$objective_value,
@@ -970,5 +970,5 @@ npp_kl_calibrate_design_binomial <- function(source_counts, source, target_data,
     c_target = settings$c_target,
     # Recorded for comparison with the normal criterion; not used here.
     se_target_expected = npp_kl_expected_target_se(target_data, source)
-  )
+  ))
 }

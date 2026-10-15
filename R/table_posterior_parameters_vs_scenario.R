@@ -82,11 +82,11 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
 
   # Function to rename columns using dplyr
   rename_parameters_dplyr <- function(df, prefix) {
-    df %>%
+    return(df %>%
       rename_with(
         .cols = any_of(keys),
         .fn = ~ sprintf("%s %s", prefix, sapply(.x, function(key) methods_dict[[method]][[key]]$parameter_notation))
-      )
+      ))
   }
 
   # Rename columns in prior_parameters_df
@@ -97,15 +97,15 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
   print(method)
 
   rename_posterior_parameters_dplyr <- function(df) {
-    df %>%
+    return(df %>%
       rename_with(
         .cols = everything(), # Apply to all columns, or replace `everything()` with specific columns
         .fn = ~ sapply(.x, function(key) {
           parameter_notation <- empirical_bayes_hyperparameters[[method]][[key]][["parameter_notation"]]
           suffix <- empirical_bayes_hyperparameters[[method]][[key]][["suffix"]]
-          sprintf("%s %s", parameter_notation, suffix)
+          return(sprintf("%s %s", parameter_notation, suffix))
         })
-      )
+      ))
   }
 
   # Rename columns in posterior_parameters_df
@@ -182,28 +182,28 @@ table_posterior_parameters_vs_drift <- function(results_metrics_df,
   # Replace all "_" with " " in string values
   data_table[] <- lapply(data_table, function(x) {
     if (is.character(x)) {
-      gsub("_", " ", x)
+      return(gsub("_", " ", x))
     } else {
-      x
+      return(x)
     }
   })
 
   # Capitalize each beginning of words, ignoring NA and "NA" strings
   data_table[] <- lapply(data_table, function(x) {
     if (is.character(x)) {
-      sapply(x, function(y) {
+      return(sapply(x, function(y) {
         if (!is.na(y) && !grepl("^\\s*NA\\s*$", y)) { # Ignore actual NA and "NA" strings
-          stringr::str_to_title(trimws(y)) # Capitalize words and remove any leading/trailing spaces
+          return(stringr::str_to_title(trimws(y))) # Capitalize words and remove any leading/trailing spaces
         } else {
-          y # Leave NA and "NA" strings as they are
+          return(y) # Leave NA and "NA" strings as they are
         }
-      })
+      }))
     } else {
-      x
+      return(x)
     }
   })
 
-  export_table(data_table = data_table, ncollapses = 1, title = title, file_path = file_path)
+  return(export_table(data_table = data_table, ncollapses = 1, title = title, file_path = file_path))
 }
 
 
@@ -277,4 +277,5 @@ posterior_parameters_tables <- function(results_metrics_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }

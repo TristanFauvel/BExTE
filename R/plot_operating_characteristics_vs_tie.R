@@ -7,7 +7,7 @@ vs_tie_legend_text <- function(grob) {
     return(paste(as.character(label), collapse = ""))
   }
   children <- c(grob$grobs, as.list(grob$children))
-  unlist(lapply(children, vs_tie_legend_text), use.names = FALSE)
+  return(unlist(lapply(children, vs_tie_legend_text), use.names = FALSE))
 }
 
 vs_tie_legend_title <- function(legend) {
@@ -15,7 +15,7 @@ vs_tie_legend_title <- function(legend) {
   if (!length(title)) return(NA_character_)
   text <- vs_tie_legend_text(legend$grobs[[title[1]]])
   if (!length(text)) return(NA_character_)
-  trimws(text[1])
+  return(trimws(text[1]))
 }
 
 vs_tie_key_labels <- function(method, parameters) {
@@ -23,7 +23,7 @@ vs_tie_key_labels <- function(method, parameters) {
   if (vs_tie_key_is_bare(parameters)) return(method)
   parameter <- parameters[[1]]
   if (is.expression(parameter)) parameter <- parameter[[1]]
-  as.expression(list(bquote(.(method) ~ .(parameter))))
+  return(as.expression(list(bquote(.(method) ~ .(parameter)))))
 }
 
 ## Does this method contribute a single key with nothing to say about it?
@@ -35,7 +35,7 @@ vs_tie_key_is_bare <- function(method_parameters) {
     return(FALSE)
   }
   text <- paste(deparse(method_parameters[[1]]), collapse = "")
-  grepl('^(expression\\()?\\s*""\\s*\\)?$', text)
+  return(grepl('^(expression\\()?\\s*""\\s*\\)?$', text))
 }
 
 ## Where each method's legend sits in the versus-type-I-error legend block.
@@ -82,7 +82,7 @@ vs_tie_legend_grid <- function(plt, labels, available_in = Inf) {
     }
     ## The zeroGrob placeholders are not legends.
     legends <- c(legends, box$grobs[vapply(box$grobs, function(g) {
-      inherits(g, "gtable")
+      return(inherits(g, "gtable"))
     }, logical(1))])
   }
   if (length(legends) == 0) {
@@ -94,12 +94,12 @@ vs_tie_legend_grid <- function(plt, labels, available_in = Inf) {
     if (!is.na(title)) return(title)
     text <- vs_tie_legend_text(g)
     matches <- labels[vapply(labels, function(label) {
-      any(vapply(text, function(value) {
-        identical(value, label) || startsWith(value, paste0('"', label, '" ~'))
-      }, logical(1)))
+      return(any(vapply(text, function(value) {
+        return(identical(value, label) || startsWith(value, paste0('"', label, '" ~')))
+      }, logical(1))))
     }, logical(1))]
     if (length(matches) != 1) stop("Cannot identify a vs-TIE legend")
-    matches
+    return(matches)
   }, character(1))
   ## Place each legend where PAPER_VS_TIE_LEGEND_LAYOUT asks for it. A
   ## label repeated across cells spans them, which is how the wide
@@ -131,7 +131,7 @@ vs_tie_legend_grid <- function(plt, labels, available_in = Inf) {
   dimensions <- function(axis, measure, convert) {
     sizes <- numeric(dim(layout_matrix)[axis])
     spans <- lapply(used, function(i) {
-      unique(which(layout_matrix == i, arr.ind = TRUE)[, axis])
+      return(unique(which(layout_matrix == i, arr.ind = TRUE)[, axis]))
     })
     for (k in order(lengths(spans))) {
       cells <- spans[[k]]
@@ -139,7 +139,7 @@ vs_tie_legend_grid <- function(plt, labels, available_in = Inf) {
       deficit <- max(0, needed - sum(sizes[cells]))
       sizes[cells] <- sizes[cells] + deficit / length(cells)
     }
-    sizes
+    return(sizes)
   }
   heights <- dimensions(1, grid::grobHeight, grid::convertHeight)
   widths <- dimensions(2, grid::grobWidth, grid::convertWidth)
@@ -148,15 +148,15 @@ vs_tie_legend_grid <- function(plt, labels, available_in = Inf) {
   }
   layout_matrix[] <- match(layout_matrix, used)
   aligned <- lapply(legends[used], function(g) {
-    grid::grobTree(g, vp = grid::viewport(
+    return(grid::grobTree(g, vp = grid::viewport(
       x = 0, y = 1, just = c("left", "top"),
       width = grid::grobWidth(g), height = grid::grobHeight(g)
-    ))
+    )))
   })
-  gridExtra::arrangeGrob(
+  return(gridExtra::arrangeGrob(
     grobs = aligned, layout_matrix = layout_matrix,
     heights = grid::unit(heights, "in"), widths = grid::unit(widths, "in")
-  )
+  ))
 }
 
 ## Shared by frequentist and Bayesian metric plots. Grow the export when
@@ -170,11 +170,11 @@ vs_tie_compose <- function(plt, labels, width, height) {
   legend_height <- grid::convertHeight(grid::grobHeight(legend), "in", valueOnly = TRUE)
   width <- max(width, grid::convertWidth(grid::grobWidth(legend), "in", valueOnly = TRUE))
   panel <- ggplot2::ggplotGrob(plt + ggplot2::theme(legend.position = "none"))
-  list(
+  return(list(
     plot = gridExtra::arrangeGrob(panel, legend, ncol = 1,
       heights = grid::unit.c(grid::unit(1, "null"), grid::grobHeight(legend))),
     width = width, height = max(height, height * 0.7 + legend_height)
-  )
+  ))
 }
 
 #' Plot an operating characteristic against the type I error rate
@@ -249,15 +249,15 @@ operating_characteristic_vs_tie <- function(
 
   # Process the row of a results dataframe to create a Method + Parameters label
   results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE))
   })
 
   results_df$parameters_labels_not_latex <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE))
   })
 
   results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE))
   })
 
   parameters_labels <- setNames(object = results_df$parameters_labels, nm = results_df$parameters_labels)
@@ -419,7 +419,7 @@ operating_characteristic_vs_tie <- function(
     # Reset the color scale for the next method
     layers <- c(layers, list(ggnewscale::new_scale_color()))
 
-    layers
+    return(layers)
   })
 
   # Add vertical line
@@ -502,7 +502,7 @@ operating_characteristic_vs_tie <- function(
 
   # Export the plots
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE)
+  return(export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE))
 }
 
 
@@ -577,6 +577,7 @@ operating_characteristics_vs_tie_plots <- function(results_metrics_df, metrics) 
       }
     }
   }
+  return(invisible(NULL))
 }
 
 bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
@@ -633,15 +634,15 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
 
   # Process the rows to create parameter labels
   results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE))
   })
 
   results_df$parameters_labels_not_latex <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE))
   })
 
   results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
+    return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE))
   })
 
   parameters_labels <- setNames(object = results_df$parameters_labels, nm = results_df$parameters_labels)
@@ -817,7 +818,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     # Reset the color scale for the next method
     layers <- c(layers, list(ggnewscale::new_scale_color()))
 
-    layers
+    return(layers)
   })
 
   # Add shape scale for methods and labels
@@ -875,7 +876,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
 
   # Export the plots
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE)
+  return(export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE))
 
 }
 
@@ -980,4 +981,5 @@ bayesian_operating_characteristics_vs_tie_plots <- function(results_bayes_df, re
       }
     }
   }
+  return(invisible(NULL))
 }

@@ -26,7 +26,7 @@
 #'   kernels `informative` and `weak`, each summing to one.
 #' @keywords internal
 binomial_rmp_components <- function(source_counts, n_lattice = 1000L) {
-  lattice_kernel_cached(list("binomial robust mixture components", source_counts,
+  return(lattice_kernel_cached(list("binomial robust mixture components", source_counts,
                              as.integer(n_lattice)), function() {
     full_borrowing <- do.call(binomial_cpp_cached_kernel, c(source_counts, list(
       power_parameter = 1, n_lattice = n_lattice
@@ -34,7 +34,7 @@ binomial_rmp_components <- function(source_counts, n_lattice = 1000L) {
     N <- full_borrowing$n_lattice
     target_rate <- outer(seq_len(N), full_borrowing$differences, "+")
     admissible <- target_rate >= 1L & target_rate <= N
-    list(
+    return(list(
       n_lattice = N,
       rates = full_borrowing$rates,
       differences = full_borrowing$differences,
@@ -42,8 +42,8 @@ binomial_rmp_components <- function(source_counts, n_lattice = 1000L) {
       # Uniform target control rate and, given it, a uniform treatment rate:
       # N admissible risk differences for each of the N control rates.
       weak = admissible / N^2
-    )
-  })
+    ))
+  }))
 }
 
 
@@ -57,13 +57,13 @@ binomial_rmp_components <- function(source_counts, n_lattice = 1000L) {
 #' @keywords internal
 binomial_rmp_kernels <- function(components, weight) {
   informative <- weight * components$informative
-  list(
+  return(list(
     n_lattice = components$n_lattice,
     rates = components$rates,
     differences = components$differences,
     kernel = informative + (1 - weight) * components$weak,
     moments = list(prior_weight = list(first = informative, second = informative))
-  )
+  ))
 }
 
 
@@ -91,7 +91,7 @@ binomial_rmp_posterior <- function(components, weight, n_control, n_successes_co
   rates <- components$rates
   arm_likelihood <- function(n, successes) {
     log_likelihood <- successes * log(rates) + (n - successes) * log1p(-rates)
-    exp(log_likelihood - max(log_likelihood))
+    return(exp(log_likelihood - max(log_likelihood)))
   }
   control <- arm_likelihood(n_control, n_successes_control)
   treatment <- arm_likelihood(n_treatment, n_successes_treatment)
@@ -128,7 +128,7 @@ binomial_rmp_posterior <- function(components, weight, n_control, n_successes_co
   share <- sum(informative) / total
   posterior$prior_weight_mean <- share
   posterior$prior_weight_std <- sqrt(max(0, share - share^2))
-  posterior
+  return(posterior)
 }
 
 
@@ -148,7 +148,7 @@ binomial_rmp_posterior <- function(components, weight, n_control, n_successes_co
 #' @return A list with `informative` and `weak` tables.
 #' @keywords internal
 binomial_rmp_predictive_tables <- function(components, source_counts, n_control, n_treatment) {
-  lattice_kernel_cached(list("binomial robust mixture predictive tables",
+  return(lattice_kernel_cached(list("binomial robust mixture predictive tables",
                              components$n_lattice, source_counts,
                              as.integer(n_control), as.integer(n_treatment)), function() {
     N <- components$n_lattice
@@ -161,15 +161,15 @@ binomial_rmp_predictive_tables <- function(components, source_counts, n_control,
     table_of <- function(kernel) {
       in_rates <- matrix(0, N, N)
       in_rates[cbind(rows[inside], columns[inside])] <- kernel[inside]
-      crossprod(control, in_rates %*% treatment)
+      return(crossprod(control, in_rates %*% treatment))
     }
     # Under independent uniform response rates every pair of counts is equally
     # likely a priori (beta-binomial with unit shapes), so the weak table is
     # exactly uniform. Its lattice value differs by a few parts in 10^4, which
     # would break the ties the conflict p-value counts.
     weak <- matrix(1 / ((n_control + 1) * (n_treatment + 1)), n_control + 1L, n_treatment + 1L)
-    list(informative = table_of(components$informative), weak = weak)
-  })
+    return(list(informative = table_of(components$informative), weak = weak))
+  }))
 }
 
 
@@ -227,22 +227,23 @@ BinomialRMP <- R6::R6Class(
       super$initialize(prior = prior, mcmc_config = mcmc_config)
       self$w <- unlist(prior$method_parameters$prior_weight)
       self$posterior_parameters <- list(prior_weight = NA_real_)
+      return(invisible(self$posterior_parameters))
     },
 
     #' @description
     #' Rows of the model summary, with the prior weight
     #' @return A data frame with columns `Attribute` and `Value`.
     summary_rows = function() {
-      rbind(
+      return(rbind(
         super$summary_rows(),
         summary_row("Prior Weight", self$w)
-      )
+      ))
     },
 
     #' @description The two components, computed once per worker and shared.
     #' @return The output of [binomial_rmp_components()].
     components = function() {
-      binomial_rmp_components(self$source_counts(), self$n_lattice)
+      return(binomial_rmp_components(self$source_counts(), self$n_lattice))
     },
 
     #' @description The prior kernels at the current weight, kept until the
@@ -253,13 +254,13 @@ BinomialRMP <- R6::R6Class(
         private$memo <- binomial_rmp_kernels(self$components(), self$w)
         private$memo_weight <- self$w
       }
-      private$memo
+      return(private$memo)
     },
 
     #' @description What identifies the prior, for the ELIR cache.
     #' @return A list.
     kernel_key = function() {
-      c(self$source_counts(), list(w = self$w))
+      return(c(self$source_counts(), list(w = self$w)))
     },
 
     #' @description Record the posterior weight of the informative component.
@@ -267,6 +268,7 @@ BinomialRMP <- R6::R6Class(
       self$posterior_parameters <- list(
         prior_weight = self$grid_posterior$prior_weight_mean
       )
+      return(invisible(self$posterior_parameters))
     }
   ),
   private = list(
@@ -348,6 +350,7 @@ BinomialEgidiMixture <- R6::R6Class(
       self$weight_grid_step <- settings$weight_grid_step
       self$selection <- egidi_empty_selection()
       self$posterior_parameters <- egidi_posterior_parameters(NA_real_, self$selection)
+      return(invisible(self$posterior_parameters))
     },
 
     #' @description Choose the weight from the replicate's counts.
@@ -369,7 +372,7 @@ BinomialEgidiMixture <- R6::R6Class(
       # The prior changed with the weight.
       self$prior_grid <- NULL
       self$prior_elir_unit_information <- NULL
-      invisible(NULL)
+      return(invisible(NULL))
     },
 
     #' @description The posterior on a grid, from the two components' kernels
@@ -378,7 +381,7 @@ BinomialEgidiMixture <- R6::R6Class(
     #' @param target_data The target study data.
     #' @return The list [binomial_npp_posterior()] returns.
     quadrature_posterior = function(target_data) {
-      binomial_rmp_posterior(
+      return(binomial_rmp_posterior(
         self$components(),
         weight = self$w,
         n_control = as.integer(target_data$sample_size_control),
@@ -389,7 +392,7 @@ BinomialEgidiMixture <- R6::R6Class(
         n_successes_treatment = counts_from_rate(
           target_data$sample$sample_treatment_rate, target_data$sample_size_treatment
         )
-      )
+      ))
     },
 
     #' @description Record the posterior weight and the selection.
@@ -398,6 +401,7 @@ BinomialEgidiMixture <- R6::R6Class(
         informative_posterior_weight = self$grid_posterior$prior_weight_mean,
         selection = self$selection
       )
+      return(invisible(self$posterior_parameters))
     },
 
     #' @description ELIR effective sample size of the current prior. The prior
@@ -423,7 +427,7 @@ BinomialEgidiMixture <- R6::R6Class(
             aic_penalty = self$aic_penalty_parameter_mixture_approx
           ), envir = power_prior_elir_cache_store)
         }
-        get(key, envir = power_prior_elir_cache_store)
+        return(get(key, envir = power_prior_elir_cache_store))
       }
       step <- 0.05
       lower <- floor(self$w / step + 1e-9)
@@ -433,7 +437,7 @@ BinomialEgidiMixture <- R6::R6Class(
       } else {
         (1 - fraction) * node_value(lower * step) + fraction * node_value((lower + 1) * step)
       }
-      unit * target_data$sample$standard_deviation^2
+      return(unit * target_data$sample$standard_deviation^2)
     }
   )
 )

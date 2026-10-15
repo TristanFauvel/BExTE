@@ -8,8 +8,8 @@
 #' @return The Hellinger distance between the two normal distributions.
 #'
 hellinger_distance <- function(mu1, sigma1, mu2, sigma2) {
-  sqrt(1 - sqrt(2 * sigma1 * sigma2 / (sigma1 ^ 2 + sigma2 ^ 2)) * exp(-0.25 * (mu1 - mu2) ^
-                                                                         2 / (sigma1 ^ 2 + sigma2 ^ 2)))
+  return(sqrt(1 - sqrt(2 * sigma1 * sigma2 / (sigma1 ^ 2 + sigma2 ^ 2)) * exp(-0.25 * (mu1 - mu2) ^
+                                                                         2 / (sigma1 ^ 2 + sigma2 ^ 2))))
 }
 
 #' The design a time-to-event case study is primarily simulated under
@@ -31,10 +31,10 @@ is_primary_time_to_event_design <- function(control_drift,
                                             dropout_probability,
                                             event_time_distribution,
                                             treatment_delay = 0) {
-  control_drift == 0 &&
+  return(control_drift == 0 &&
     dropout_probability == 0 &&
     identical(as.character(event_time_distribution), "exponential") &&
-    treatment_delay == 0
+    treatment_delay == 0)
 }
 
 #' The time-to-event design axes
@@ -74,13 +74,13 @@ TIME_TO_EVENT_AXES <- list(
 #' @noRd
 time_to_event_varies_only <- function(df, axis) {
   others <- setdiff(names(TIME_TO_EVENT_AXES), axis)
-  Reduce(`&`, lapply(others, function(other) {
+  return(Reduce(`&`, lapply(others, function(other) {
     # A column the results do not carry was only ever at its primary value.
     if (!other %in% names(df)) {
       return(rep(TRUE, nrow(df)))
     }
-    df[[other]] == TIME_TO_EVENT_AXES[[other]]$primary
-  }))
+    return(df[[other]] == TIME_TO_EVENT_AXES[[other]]$primary)
+  })))
 }
 
 #' How many time-to-event design axes are off their primary value
@@ -96,10 +96,10 @@ time_to_event_axes_off_primary <- function(control_drift,
                                            dropout_probability,
                                            event_time_distribution,
                                            treatment_delay = 0) {
-  as.integer(control_drift != 0) +
+  return(as.integer(control_drift != 0) +
     as.integer(dropout_probability != 0) +
     as.integer(as.character(event_time_distribution) != "exponential") +
-    as.integer(treatment_delay != 0)
+    as.integer(treatment_delay != 0))
 }
 
 #' The point at which the time-to-event sensitivity designs are simulated
@@ -140,10 +140,10 @@ time_to_event_sensitivity_reference <- function(scenarios_config,
     ), call. = FALSE)
   }
 
-  list(
+  return(list(
     sample_size_factor = as.numeric(reference$sample_size_factor),
     denominator_change_factor = as.numeric(reference$denominator_change_factor)
-  )
+  ))
 }
 
 #' Compute the drift range for a given simulation and case study configuration.
@@ -163,7 +163,7 @@ compute_drift_range <- function(scenarios_config, case_study_config) {
 
     max_drift <- abs(source_treatment_effect) * 10
     target_hellinger <- function(mu_diff) {
-      hellinger_distance(0, sigma1, mu_diff, sigma2) - 0.9
+      return(hellinger_distance(0, sigma1, mu_diff, sigma2) - 0.9)
     }
     solver_result <- stats::uniroot(target_hellinger, c(0, max_drift))
     upper_bound <- solver_result$root
@@ -206,6 +206,8 @@ important_drift_values <- function(source_treatment_effect,
     upper_bound <- 1 - source_treatment_effect
     vec <- vec[vec <= upper_bound & vec >= lower_bound]
     return(vec)
+  } else {
+    return(invisible(NULL))
   }
 }
 
@@ -260,7 +262,7 @@ compute_time_to_event_ranges <- function(scenarios_config, case_study_config) {
   event_time_distribution <- unlist(scenarios_config$event_time_distribution)
   treatment_delay <- unlist(scenarios_config$treatment_delay)
 
-  list(
+  return(list(
     dropout_probability = if (is.null(dropout_probability)) {
       0
     } else {
@@ -273,7 +275,7 @@ compute_time_to_event_ranges <- function(scenarios_config, case_study_config) {
     },
     # Zero is always simulated: it is the proportional-hazards reference.
     treatment_delay = sort(unique(c(0, treatment_delay)))
-  )
+  ))
 }
 
 #' Compute the source denominator range for a given source data, simulation configuration, and case study configuration.
@@ -328,7 +330,7 @@ combine_parameters <- function(method) {
   } else {
     param_info <- methods_dict[[method]]
     ranges <- lapply(param_info, function(x) {
-      x$range
+      return(x$range)
     })
     combinations <- expand.grid(ranges)
     return(combinations)
@@ -637,9 +639,9 @@ scenarios_table_ranges <- function(cases_df, results_path) {
     )
 
     # Close the file connection
-    sink()
+    return(sink())
   }
 
   # Generate the LaTeX table
-  generate_latex_table(df, file_path)
+  return(generate_latex_table(df, file_path))
 }

@@ -47,7 +47,7 @@ generate_comparison_table <- function(results_df,
 
   # Find the closest values in df$target_treatment_effect to important_target_treatment_effects
   closest_values <- sapply(important_target_treatment_effects, function(x) {
-    df$target_treatment_effect[which.min(abs(df$target_treatment_effect - x))]
+    return(df$target_treatment_effect[which.min(abs(df$target_treatment_effect - x))])
   })
   closest_values <- round(closest_values, digits = 4)
 
@@ -161,7 +161,7 @@ generate_comparison_table <- function(results_df,
     unite("Partially consistent", c(paste(x_metric_label, "Partially consistent"), paste(metric$uncertainty_label, "Partially consistent")), sep = " ", remove = TRUE) %>%
     unite("Consistent", c(paste(x_metric_label, "Consistent"), paste(metric$uncertainty_label, "Consistent")), sep = " ", remove = TRUE)
 
-  export_table(data_table = wide_data_table, ncollapses = 1, column_names = c("Method", "Consistent", "No treatment effect", "Partially consistent"), title = paste(metric$label,  title, sep =", "), file_path = file_path)
+  return(export_table(data_table = wide_data_table, ncollapses = 1, column_names = c("Method", "Consistent", "No treatment effect", "Partially consistent"), title = paste(metric$label,  title, sep =", "), file_path = file_path))
 }
 
 
@@ -213,4 +213,5 @@ table_methods_comparison <- function(results_metrics_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }

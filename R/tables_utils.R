@@ -88,8 +88,9 @@ export_table <- function(data_table, ncollapses = 1, column_names = NULL, title,
     pdfcrop_command <- paste("pdfcrop", shQuote(pdf_file), shQuote(pdf_file))
     crop_result <- system(pdfcrop_command, intern = TRUE)
     if (length(crop_result) == 0) {
-      warning("pdfcrop execution failed or returned no output. The PDF file might not be cropped correctly.")
+      return(warning("pdfcrop execution failed or returned no output. The PDF file might not be cropped correctly."))
     }
+    return(invisible(NULL))
   } else {
     stop("The PDF file was not created successfully. Please check for LaTeX compilation errors.")
   }
@@ -110,5 +111,5 @@ TABLE_PACKAGES <- c("kableExtra", "knitr", "latex2exp", "stringr", "tinytex")
 #'   user does not install it.
 #' @noRd
 check_table_packages <- function() {
-  rlang::check_installed(TABLE_PACKAGES, reason = "to make tables.")
+  return(rlang::check_installed(TABLE_PACKAGES, reason = "to make tables."))
 }

@@ -27,7 +27,7 @@ SCENARIO_DRIFT_COLUMNS <- c("drift", "treatment_drift", "control_drift", "target
 #'   counts alone.
 #' @keywords internal
 analyses_shared_across_drifts <- function(case_study_config) {
-  identical(case_study_config$endpoint, "binary")
+  return(identical(case_study_config$endpoint, "binary"))
 }
 
 
@@ -55,14 +55,14 @@ scenario_tasks <- function(cases, shares_across_drifts, n_workers) {
 
   design_columns <- setdiff(names(cases), SCENARIO_DRIFT_COLUMNS)
   keys <- vapply(rows, function(i) {
-    rlang::hash(as.list(cases[i, design_columns, drop = FALSE]))
+    return(rlang::hash(as.list(cases[i, design_columns, drop = FALSE])))
   }, character(1))
   groups <- unname(split(rows, factor(keys, levels = unique(keys))))
 
   pieces <- max(1L, as.integer(ceiling(n_workers / length(groups))))
-  unlist(lapply(groups, function(group) {
+  return(unlist(lapply(groups, function(group) {
     n_pieces <- min(length(group), pieces)
     piece <- ceiling(seq_along(group) * n_pieces / length(group))
-    unname(split(group, piece))
-  }), recursive = FALSE)
+    return(unname(split(group, piece)))
+  }), recursive = FALSE))
 }

@@ -6,7 +6,7 @@
 ## routinely; export_table() escapes only "%", and only in column names, so
 ## escaping the cell values is left to the caller.
 escape_latex_underscores <- function(x) {
-  gsub("_", "\\\\_", x)
+  return(gsub("_", "\\\\_", x))
 }
 
 ## The case studies in the order table S1 lists them.
@@ -42,7 +42,7 @@ table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_
   dir.create(tables_dir, showWarnings = FALSE, recursive = TRUE)
 
   format_range <- function(bounds) {
-    paste0("$[", signif(bounds[1], 3), ", ", signif(bounds[2], 3), "]$")
+    return(paste0("$[", signif(bounds[1], 3), ", ", signif(bounds[2], 3), "]$"))
   }
 
   rows <- lapply(PAPER_TABLE_S1_CASE_STUDIES, function(case_study) {
@@ -59,7 +59,7 @@ table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_
     ## control + treatment, not the `total:` field.
     source_total <- config$source$control + config$source$treatment
 
-    data.frame(
+    return(data.frame(
       `Case study` = escape_latex_underscores(config$name),
       `Drift range` = format_range(drift),
       ## As text, so kable's digits = 3 prints -0.2 rather than -0.200.
@@ -72,7 +72,7 @@ table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_
       `$N_S/6$` = floor(source_total / 6),
       check.names = FALSE,
       stringsAsFactors = FALSE
-    )
+    ))
   })
 
   table_data <- do.call(rbind, rows)
@@ -86,7 +86,7 @@ table_drift_ranges_and_sample_sizes <- function(case_studies_config_dir, tables_
     longtable = FALSE
   )
 
-  paste0(file_path, ".tex")
+  return(paste0(file_path, ".tex"))
 }
 
 #' Summary of the clinical case studies (table S3)
@@ -104,7 +104,7 @@ table_case_study_summary <- function(case_studies, case_studies_config_dir, tabl
 
   rows <- lapply(case_studies, function(case_study) {
     config <- yaml::read_yaml(file.path(case_studies_config_dir, paste0(case_study, ".yml")))
-    data.frame(
+    return(data.frame(
       `Case study` = escape_latex_underscores(config$name),
       `Control` = escape_latex_underscores(config$control),
       ## Endpoints are YAML identifiers, so several carry an underscore
@@ -123,7 +123,7 @@ table_case_study_summary <- function(case_studies, case_studies_config_dir, tabl
       `Target SE` = round(config$target$standard_error, 4),
       check.names = FALSE,
       stringsAsFactors = FALSE
-    )
+    ))
   })
 
   table_data <- do.call(rbind, rows)
@@ -136,5 +136,5 @@ table_case_study_summary <- function(case_studies, case_studies_config_dir, tabl
     longtable = FALSE
   )
 
-  paste0(file_path, ".tex")
+  return(paste0(file_path, ".tex"))
 }

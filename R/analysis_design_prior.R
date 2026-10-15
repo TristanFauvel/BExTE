@@ -102,7 +102,7 @@ DesignPrior <- R6::R6Class(
     #' @param control_rate The target control rate.
     #' @return A [FunctionalDesignPrior].
     given_control_rate = function(control_rate) {
-      truncated_design_prior(self, lower = -control_rate, upper = 1 - control_rate)
+      return(truncated_design_prior(self, lower = -control_rate, upper = 1 - control_rate))
     },
 
     #' @description Samples from the design prior.
@@ -149,6 +149,7 @@ FunctionalDesignPrior <- R6::R6Class(
       self$pdf_function <- pdf
       self$sample_function <- sample
       self$design_prior_type <- design_prior_type
+      return(invisible(self$design_prior_type))
     },
 
     #' @description Samples from the design prior.
@@ -179,12 +180,12 @@ truncated_design_prior <- function(design_prior, lower, upper) {
     stop("The design prior has no mass between ", lower, " and ", upper, ".", call. = FALSE)
   }
 
-  FunctionalDesignPrior$new(
+  return(FunctionalDesignPrior$new(
     cdf = function(x) {
-      (design_prior$cdf(pmin(pmax(x, lower), upper)) - mass_below) / mass
+      return((design_prior$cdf(pmin(pmax(x, lower), upper)) - mass_below) / mass)
     },
     pdf = function(x) {
-      ifelse(x > lower & x < upper, design_prior$pdf(x) / mass, 0)
+      return(ifelse(x > lower & x < upper, design_prior$pdf(x) / mass, 0))
     },
     sample = function(n_samples) {
       # Rejection from the untruncated prior, drawing enough each round for the
@@ -194,10 +195,10 @@ truncated_design_prior <- function(design_prior, lower, upper) {
         draws <- design_prior$sample(ceiling(1.2 * (n_samples - length(kept)) / mass) + 10)
         kept <- c(kept, draws[draws > lower & draws < upper])
       }
-      kept[seq_len(n_samples)]
+      return(kept[seq_len(n_samples)])
     },
     design_prior_type = design_prior$design_prior_type
-  )
+  ))
 }
 
 
@@ -326,7 +327,7 @@ UnitInformationDesignPrior <- R6::R6Class(
 
         # Create the new mixture of Beta distributions with adjusted parameters
         components_new <- lapply(seq_along(weights), function(i) {
-          c(weights[i], a_params_new[i], b_params_new[i])
+          return(c(weights[i], a_params_new[i], b_params_new[i]))
         })
 
         # Construct the new mixture
@@ -341,6 +342,7 @@ UnitInformationDesignPrior <- R6::R6Class(
       }
 
       self$design_prior_type <- "ui_design_prior"
+      return(invisible(self$design_prior_type))
     },
 
     #' @description Samples from the unit information design prior.
@@ -462,6 +464,7 @@ SourcePosteriorDesignPrior <- R6::R6Class(
       }
 
       self$design_prior_type <- "source_posterior"
+      return(invisible(self$design_prior_type))
     },
 
     #' @description Samples from the source posterior design prior.
@@ -521,12 +524,12 @@ SourcePosteriorDesignPrior <- R6::R6Class(
       force(control_rate)
       shape1 <- 1 + self$n_successes_treatment
       shape2 <- 1 + self$n_treatment - self$n_successes_treatment
-      FunctionalDesignPrior$new(
+      return(FunctionalDesignPrior$new(
         cdf = function(x) stats::pbeta(x + control_rate, shape1, shape2),
         pdf = function(x) stats::dbeta(x + control_rate, shape1, shape2),
         sample = function(n_samples) stats::rbeta(n_samples, shape1, shape2) - control_rate,
         design_prior_type = self$design_prior_type
-      )
+      ))
     },
 
     #' @description Computes the cumulative distribution function (PDF) of the source posterior design prior.
@@ -606,6 +609,7 @@ AnalysisPriorDesignPrior <- R6::R6Class(
       model$prior_to_RBesT(simulation_config$n_samples_mixture_approx)
       self$model <- model
       self$design_prior_type <- "analysis_prior"
+      return(invisible(self$design_prior_type))
     },
 
     #' @description Samples from the analysis prior design prior.
@@ -627,12 +631,12 @@ AnalysisPriorDesignPrior <- R6::R6Class(
         return(super$given_control_rate(control_rate))
       }
       conditional <- self$model$prior_given_control_rate(control_rate)
-      FunctionalDesignPrior$new(
+      return(FunctionalDesignPrior$new(
         cdf = conditional$cdf,
         pdf = conditional$pdf,
         sample = conditional$sample,
         design_prior_type = self$design_prior_type
-      )
+      ))
     },
 
     #' @description Computes the cumulative distribution function (CDF) of the analysis prior design prior.

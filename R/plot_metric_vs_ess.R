@@ -197,8 +197,8 @@ plot_metric_vs_ess <- function(results_metrics_df,
 
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf",
                theme_extra = legend_theme)
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png",
-               theme_extra = legend_theme)
+  return(export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png",
+               theme_extra = legend_theme))
 }
 
 
@@ -266,4 +266,5 @@ plot_metrics_vs_ess <- function(results_metrics_df, frequentist_metrics, inferen
       }
     }
   }
+  return(invisible(NULL))
 }

@@ -39,6 +39,7 @@ forest_subplot_sweet_spot <- function(data,
     # Attempt unnesting and retry
     data <- data %>%
       unnest(cols = c(!!rlang::sym(sweet_spot_lower), !!rlang::sym(sweet_spot_upper)))
+    return(invisible(data))
 
   })
 
@@ -48,7 +49,7 @@ forest_subplot_sweet_spot <- function(data,
   data <- data %>%
     mutate(
       label = purrr::map_chr(seq_len(nrow(.)), function(i) {
-        as.character(process_method_parameters_label(data[i, ], methods_labels))
+        return(as.character(process_method_parameters_label(data[i, ], methods_labels)))
       })
     )
 
@@ -271,7 +272,7 @@ forest_plot_sweet_spot <- function(results_freq_df, x_metric) {
   fig_height_in <- plot_size[2]*1.2
 
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
+  return(export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png"))
 }
 
 
@@ -323,6 +324,7 @@ forest_plot_sweet_spots_comparison <- function(sweet_spots_df, metrics) {
       }
     }
   }
+  return(invisible(NULL))
 }
 
 
@@ -375,6 +377,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
       # Attempt unnesting and retry
       results_df <- results_df %>%
         unnest(cols = "sweet_spot_total_width")
+      return(invisible(results_df))
     })
 
     # Keep only unique rows
@@ -413,21 +416,21 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
 
     # Process the row of a results dataframe to create a Method + Parameters label
     parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
+      return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE))
     })
 
     results_df$parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
+      return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE))
     })
 
     ## The plotmath labels cannot be read back for the numbers they carry, and
     ## method_parameter_colors() needs those to place a value on its ramp.
     results_df$parameters_labels_not_latex <- lapply(seq_len(nrow(results_df)), function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
+      return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE))
     })
 
     results_df$methods_parameters_labels <- lapply(seq_len(nrow(results_df)), function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
+      return(process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE))
     })
 
     parameters_labels <- setNames(object = parameters_labels, nm = results_df$parameters_labels)
@@ -523,7 +526,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
       # Reset the color scale for the next method
       layers <- c(layers, list(ggnewscale::new_scale_color()))
 
-      layers
+      return(layers)
     })
 
     # Add shape scale for methods and labels
@@ -583,7 +586,7 @@ plot_sweet_spot_width_metric_vs_sample_size <- function(metric,
     }
 
     export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
-    export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE)
+    return(export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE))
   }
 
 
@@ -644,4 +647,5 @@ plot_sweet_spot_width_vs_scenario <- function(sweet_spot_df, sweet_spots_metrics
       }
     }
   }
+  return(invisible(NULL))
 }

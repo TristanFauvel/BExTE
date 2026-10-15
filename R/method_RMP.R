@@ -133,6 +133,7 @@ GaussianRMP_RBesT <- R6::R6Class(
       self$info_posterior_variance <- NULL
 
       self$posterior_parameters <- list(prior_weight = NA)
+      return(invisible(self$posterior_parameters))
     },
 
     #' @description
@@ -181,10 +182,12 @@ GaussianRMP_RBesT <- R6::R6Class(
         RBesT::sigma(self$RBesT_prior) <- target_data$sample$standard_deviation
 
         self$RBesT_prior_normix <- self$RBesT_prior
+        return(invisible(self$RBesT_prior_normix))
       } else {
         if (is.null(self$vague_prior_variance)) {
           stop("The vague prior variance must be defined if empirical_bayes is False") # information provided by a single subject per arm in the source study : Best et al (2023, case study on Belimumab)
         }
+        return(invisible(NULL))
       }
     },
 
@@ -225,7 +228,7 @@ GaussianRMP_RBesT <- R6::R6Class(
 
       self$post_var <- unname(self$posterior_summary["standard_deviation"] ^ 2)
       self$post_median <- self$posterior_summary["median"]
-      assert_single_number(self$post_mean)
+      return(assert_single_number(self$post_mean))
     },
 
 
@@ -317,13 +320,13 @@ GaussianRMP_RBesT <- R6::R6Class(
                     sds = matrix(sqrt(rep_len(vague_variance, n_replicates)), nrow = n_replicates, ncol = 1)))
       }
 
-      list(
+      return(list(
         weights = cbind(rep(self$w, n_replicates), rep(1 - self$w, n_replicates)),
         means = cbind(rep(self$info_prior_mean, n_replicates),
                       rep(self$vague_prior_mean, n_replicates)),
         sds = cbind(rep(sqrt(self$info_prior_variance), n_replicates),
                     sqrt(rep_len(vague_variance, n_replicates)))
-      )
+      ))
     },
 
     #' @description
@@ -343,7 +346,7 @@ GaussianRMP_RBesT <- R6::R6Class(
         posterior$weights[, 1]
       }
 
-      data.frame(prior_weight = prior_weight)
+      return(data.frame(prior_weight = prior_weight))
     },
 
 
@@ -353,14 +356,14 @@ GaussianRMP_RBesT <- R6::R6Class(
     #' `posterior_parameters` rows.
     #' @return A data frame with columns `Attribute` and `Value`.
     summary_rows = function() {
-      rbind(
+      return(rbind(
         super$summary_rows(),
         summary_row("Prior Weight", self$w),
         summary_row("Vague Posterior Mean", self$vague_posterior_mean),
         summary_row("Vague Posterior Variance", self$vague_posterior_variance),
         summary_row("Informative Posterior Mean", self$info_posterior_mean),
         summary_row("Informative Posterior Variance", self$info_posterior_variance)
-      )
+      ))
     }
   )
 )

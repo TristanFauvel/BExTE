@@ -31,7 +31,7 @@ inference_cache_reset <- function() {
     list = ls(envir = inference_cache_store, all.names = TRUE),
     envir = inference_cache_store
   )
-  invisible(NULL)
+  return(invisible(NULL))
 }
 
 #' Number of analyses held in the cache
@@ -41,7 +41,7 @@ inference_cache_reset <- function() {
 #' inference_cache_size()
 #' @export
 inference_cache_size <- function() {
-  length(ls(envir = inference_cache_store, all.names = TRUE))
+  return(length(ls(envir = inference_cache_store, all.names = TRUE)))
 }
 
 #' Value identity of an object
@@ -64,7 +64,7 @@ inference_cache_identity <- function(x) {
     return(lapply(x, inference_cache_identity))
   }
 
-  x
+  return(x)
 }
 
 #' Key for one replicate analysis
@@ -80,7 +80,7 @@ inference_cache_key <- function(scope, sample) {
 
   # as.list() on a data frame yields its columns, dropping the row name the
   # replicate index would otherwise contribute and make every key unique.
-  rlang::hash(list(scope = scope, observation = as.list(sample)))
+  return(rlang::hash(list(scope = scope, observation = as.list(sample))))
 }
 
 #' Read one analysis from the cache
@@ -93,7 +93,7 @@ inference_cache_get <- function(key) {
     return(NULL)
   }
 
-  get(key, envir = inference_cache_store, inherits = FALSE)
+  return(get(key, envir = inference_cache_store, inherits = FALSE))
 }
 
 #' Store one analysis in the cache
@@ -107,5 +107,5 @@ inference_cache_set <- function(key, value) {
     assign(key, value, envir = inference_cache_store)
   }
 
-  invisible(NULL)
+  return(invisible(NULL))
 }

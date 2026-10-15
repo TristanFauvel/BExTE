@@ -78,6 +78,7 @@ TestThenPool <- R6::R6Class(
 
       self$source_treatment_effect_estimate <- prior$source$treatment_effect_estimate
       self$source_standard_error <- prior$source$standard_error
+      return(invisible(self$source_standard_error))
     },
 
     #' @description Performs the test with the Test-then-Pool method.
@@ -101,7 +102,7 @@ TestThenPool <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return A vector of p-values, or `NULL`.
     vectorised_test_pvalue = function(target_data, samples) {
-      NULL
+      return(NULL)
     },
 
     #' @description Whether to pool, for every replicate at once
@@ -152,7 +153,7 @@ TestThenPool <- R6::R6Class(
 
       prior_variance <- ifelse(pool, self$pooling$prior_var, self$separate$prior_var)
 
-      vectorised_normal_mixture_simulation(
+      return(vectorised_normal_mixture_simulation(
         weights = matrix(1, nrow = n_replicates, ncol = 1),
         means = matrix(self$pooling$prior_mean, nrow = n_replicates, ncol = 1),
         sds = matrix(sqrt(prior_variance), nrow = n_replicates, ncol = 1),
@@ -164,7 +165,7 @@ TestThenPool <- R6::R6Class(
         confidence_level = confidence_level,
         null_space = null_space,
         posterior_parameters = data.frame(pool = pool)
-      )
+      ))
     },
 
     #' @description Performs inference with the Test-then-Pool method.
@@ -209,9 +210,9 @@ TestThenPool <- R6::R6Class(
       # skipped, select its own prior again rather than the last one analysed.
       self$test(target_data)
       if (self$pool) {
-        self$pooling$empirical_bayes_update(target_data)
+        return(self$pooling$empirical_bayes_update(target_data))
       } else {
-        self$separate$empirical_bayes_update(target_data)
+        return(self$separate$empirical_bayes_update(target_data))
       }
     },
 
@@ -304,6 +305,7 @@ TestThenPool <- R6::R6Class(
         self$RBesT_prior <- self$separate$prior_to_RBesT(...)
       }
       self$RBesT_prior_normix <- self$RBesT_prior
+      return(invisible(self$RBesT_prior_normix))
     },
 
     #' @description Effective sample sizes of the current posterior
@@ -353,10 +355,12 @@ TestThenPool <- R6::R6Class(
         self$pooling$posterior_to_RBesT(target_data, simulation_config)
         self$RBesT_posterior <- self$pooling$RBesT_posterior
         self$RBesT_posterior_normix <- self$pooling$RBesT_posterior_normix
+        return(invisible(self$RBesT_posterior_normix))
       } else {
         self$separate$posterior_to_RBesT(target_data, simulation_config)
         self$RBesT_posterior <- self$separate$RBesT_posterior
         self$RBesT_posterior_normix <- self$separate$RBesT_posterior_normix
+        return(invisible(self$RBesT_posterior_normix))
       }
     },
 
@@ -409,7 +413,7 @@ TestThenPool <- R6::R6Class(
       test_results <- sapply(drifts, function(drift) {
         target_data_drift <- duplicate(target_data)
         target_data_drift$sample$treatment_effect_estimate <- source_treatment_effect_estimate + drift
-        self$test(target_data_drift)
+        return(self$test(target_data_drift))
       })
 
       plot_data <- data.frame(Drift = drifts, Test = test_results * 1)
@@ -440,7 +444,7 @@ TestThenPool <- R6::R6Class(
       p_values <- sapply(drifts, function(drift) {
         target_data_drift <- duplicate(target_data)
         target_data_drift$sample$treatment_effect_estimate <- source_treatment_effect_estimate + drift
-        self$test_pvalue(target_data_drift)
+        return(self$test_pvalue(target_data_drift))
       })
 
       plot_data <- data.frame(Drift = drifts, Pvalue = p_values)
@@ -508,6 +512,7 @@ TestThenPoolEquivalence <- R6::R6Class(
       if (is.null(self$parameters$equivalence_margin)) {
         stop("Equivalence margin is not defined.")
       }
+      return(invisible(NULL))
     },
 
     #' @description Performs the test in the Test-Then-Pool framework for equivalence.
@@ -639,7 +644,7 @@ TestThenPoolEquivalence <- R6::R6Class(
         sqrt(self$prior$source$equivalent_source_sample_size_per_arm)
 
       one_sided <- function(mu, alternative) {
-        summary_t_test_p_value(
+        return(summary_t_test_p_value(
           mean_x = self$prior$source$treatment_effect_estimate,
           sd_x = source_sd,
           n_x = self$prior$source$equivalent_source_sample_size_per_arm,
@@ -648,14 +653,14 @@ TestThenPoolEquivalence <- R6::R6Class(
           n_y = target_effective_arm_size(target_data),
           mu = mu,
           alternative = alternative
-        )
+        ))
       }
 
       # H0a: theta_S - theta_T > margin, and H0b: theta_S - theta_T < -margin.
-      pmax(
+      return(pmax(
         one_sided(self$parameters$equivalence_margin, "less"),
         one_sided(-self$parameters$equivalence_margin, "greater")
-      )
+      ))
     },
 
     #' @description Rejecting equivalence's null means the studies are close
@@ -663,7 +668,7 @@ TestThenPoolEquivalence <- R6::R6Class(
     #' @param p_value Vector of p-values.
     #' @return A logical vector.
     vectorised_pool = function(p_value) {
-      p_value < self$significance_level
+      return(p_value < self$significance_level)
     }
   )
 )
@@ -716,6 +721,7 @@ TestThenPoolDifference <- R6::R6Class(
       if (is.null(self$significance_level)) {
         stop("Significance level is not defined.")
       }
+      return(invisible(NULL))
     },
     #' @param target_data Target study data
     #' @param test_type Frequentist test
@@ -793,7 +799,7 @@ TestThenPoolDifference <- R6::R6Class(
     #' @param samples Data frame of generated replicates.
     #' @return A vector of p-values.
     vectorised_test_pvalue = function(target_data, samples) {
-      summary_t_test_p_value(
+      return(summary_t_test_p_value(
         mean_x = self$prior$source$treatment_effect_estimate,
         sd_x = self$prior$source$standard_error *
           sqrt(self$prior$source$equivalent_source_sample_size_per_arm),
@@ -803,14 +809,14 @@ TestThenPoolDifference <- R6::R6Class(
         n_y = target_effective_arm_size(target_data),
         mu = 0,
         alternative = "two.sided"
-      )
+      ))
     },
 
     #' @description Failing to detect a difference means the data can be pooled.
     #' @param p_value Vector of p-values.
     #' @return A logical vector.
     vectorised_pool = function(p_value) {
-      !(p_value < self$significance_level)
+      return(!(p_value < self$significance_level))
     }
   )
 )
