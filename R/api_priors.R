@@ -113,15 +113,55 @@ new_bexte_prior <- function(source, method, class, label, ...) {
   if (!inherits(source, "bexte_source")) {
     stop("`source` should come from source_data().", call. = FALSE)
   }
+  # Keep the builder and its checked arguments, so that update() can build
+  # the prior again with one argument changed.
+  builder <- sys.function(-1)
+  builder_args <- mget(names(formals(builder)), envir = parent.frame())
   structure(
     list(
       method = method,
       label = label,
       method_parameters = c(list(initial_prior = "noninformative"), list(...)),
-      source = source
+      source = source,
+      builder = builder,
+      builder_args = builder_args
     ),
     class = c(class, "bexte_prior")
   )
+}
+
+
+#' Change the arguments of a borrowing prior
+#'
+#' @description Builds the prior again, with the same builder and the
+#'   changed arguments. The builder checks the new values.
+#'
+#' @param object A borrowing prior, from one of the [borrowing_priors]
+#'   builders.
+#' @param ... Arguments of the builder to change, for example
+#'   `weight = 0.8` for [rmp()].
+#'
+#' @return A borrowing prior of the same method.
+#'
+#' @examples
+#' src <- source_data(config = system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
+#' prior <- rmp(src, weight = 0.5)
+#' update(prior, weight = 0.8)
+#' @importFrom stats update
+#' @export
+update.bexte_prior <- function(object, ...) {
+  changes <- list(...)
+  if (length(changes) > 0 && (is.null(names(changes)) || any(names(changes) == ""))) {
+    stop("Give each argument to change by name.", call. = FALSE)
+  }
+  unknown <- setdiff(names(changes), names(object$builder_args))
+  if (length(unknown) > 0) {
+    stop("The prior builder has no argument ", paste0("`", unknown, "`", collapse = ", "),
+         ". Its arguments are: ",
+         paste0("`", setdiff(names(object$builder_args), "source"), "`", collapse = ", "), ".",
+         call. = FALSE)
+  }
+  do.call(object$builder, utils::modifyList(object$builder_args, changes))
 }
 
 check_unit_interval <- function(x, name, open = FALSE) {

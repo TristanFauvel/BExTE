@@ -20,6 +20,9 @@
 \alias{print.bexte_oc_bayesian}
 \alias{summary.bexte_oc_bayesian}
 \alias{as.data.frame.bexte_oc_bayesian}
+\alias{print.bexte_tipping_point}
+\alias{plot.bexte_tipping_point}
+\alias{as.data.frame.bexte_tipping_point}
 \title{Print, summarise and plot BExTE objects}
 \usage{
 \method{print}{bexte_source}(x, ...)
@@ -57,6 +60,12 @@
 \method{summary}{bexte_oc_bayesian}(object, ...)
 
 \method{as.data.frame}{bexte_oc_bayesian}(x, ...)
+
+\method{print}{bexte_tipping_point}(x, digits = 4, ...)
+
+\method{plot}{bexte_tipping_point}(x, ...)
+
+\method{as.data.frame}{bexte_tipping_point}(x, ...)
 }
 \arguments{
 \item{x, object}{A BExTE object.}
@@ -72,6 +81,8 @@ mean plus or minus 4 posterior standard deviations.}
 
 \item{metric}{The column of the frequentist OCs to plot against the true
 effect.}
+
+\item{digits}{Number of significant digits to print.}
 }
 \value{
 \code{print()} returns \code{x} invisibly. \code{summary()} of a posterior returns
@@ -81,8 +92,8 @@ a ggplot. \code{quantile()} returns a named numeric vector.
 \description{
 Methods for the objects that \code{\link[=source_data]{source_data()}},
 \code{\link[=target_data]{target_data()}}, the \link{borrowing_priors} builders, \code{\link[=posterior]{posterior()}},
-\code{\link[=decision]{decision()}}, \code{\link[=design_prior]{design_prior()}}, \code{\link[=oc_frequentist]{oc_frequentist()}} and \code{\link[=oc_bayesian]{oc_bayesian()}}
-return.
+\code{\link[=decision]{decision()}}, \code{\link[=design_prior]{design_prior()}}, \code{\link[=oc_frequentist]{oc_frequentist()}}, \code{\link[=oc_bayesian]{oc_bayesian()}} and
+\code{\link[=tipping_point]{tipping_point()}} return.
 }
 \examples{
 src <- source_data(config = system.file("conf/case_studies/belimumab.yml", package = "BExTE"))

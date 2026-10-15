@@ -3,9 +3,11 @@
 S3method(as.data.frame,bexte_oc_bayesian)
 S3method(as.data.frame,bexte_oc_frequentist)
 S3method(as.data.frame,bexte_posterior)
+S3method(as.data.frame,bexte_tipping_point)
 S3method(ess,bexte_posterior)
 S3method(plot,bexte_oc_frequentist)
 S3method(plot,bexte_posterior)
+S3method(plot,bexte_tipping_point)
 S3method(print,bexte_decision)
 S3method(print,bexte_design_prior)
 S3method(print,bexte_oc_bayesian)
@@ -14,11 +16,13 @@ S3method(print,bexte_posterior)
 S3method(print,bexte_prior)
 S3method(print,bexte_source)
 S3method(print,bexte_target)
+S3method(print,bexte_tipping_point)
 S3method(print,summary.bexte_posterior)
 S3method(quantile,bexte_posterior)
 S3method(summary,bexte_oc_bayesian)
 S3method(summary,bexte_oc_frequentist)
 S3method(summary,bexte_posterior)
+S3method(update,bexte_prior)
 export(AnalysisPriorDesignPrior)
 export(BinaryTargetData)
 export(BinomialCPP)
@@ -92,6 +96,7 @@ export(separate_prior)
 export(source_data)
 export(target_data)
 export(test_then_pool)
+export(tipping_point)
 importFrom(R6,R6Class)
 importFrom(assertions,assert_whole_number)
 importFrom(dplyr,
@@ -133,7 +138,8 @@ importFrom(rlang,
 )
 importFrom(stats,
   pexp,
-  quantile
+  quantile,
+  update
 )
 importFrom(tidyr,
   pivot_wider,

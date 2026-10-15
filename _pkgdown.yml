@@ -97,12 +97,14 @@ reference:
   - pvalue_power_prior
   - pdccpp
   - test_then_pool
+  - update.bexte_prior
 
 - title: Fit and summarise
 - contents:
   - posterior
   - ess
   - decision
+  - tipping_point
   - bexte_methods
 
 - title: Operating characteristics

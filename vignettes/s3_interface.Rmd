@@ -33,6 +33,7 @@ An analysis has two inputs: a **source** study, which gives the information to b
 | Analyse the target study | `posterior()` | `bexte_posterior` |
 | Measure the borrowing | `ess()` | a number |
 | Define success | `decision()` | `bexte_decision` (a function) |
+| Find where the decision changes | `tipping_point()` | `bexte_tipping_point` (a data frame) |
 | Choose a design prior | `design_prior()` | `bexte_design_prior` |
 | Frequentist OCs | `oc_frequentist()` | `bexte_oc_frequentist` (a data frame) |
 | Bayesian OCs | `oc_bayesian()` | `bexte_oc_bayesian` (a data frame) |
@@ -149,6 +150,12 @@ Arguments outside their range give an error at once:
 npp(belimumab, a0_mean = 0.5, a0_sd = 0.6)
 ```
 
+`update()` builds a prior again with some arguments changed. The builder checks the new values:
+
+```{r}
+update(rmp(belimumab, weight = 0.5), weight = 0.8)
+```
+
 ## 3. Posterior
 
 `posterior()` updates a prior with the target data.
@@ -238,6 +245,31 @@ margin_rule(post)
 
 In `oc_frequentist()` and `oc_bayesian()`, the hypothesis of the rule is also the one the adaptive methods use, so the two always agree.
 
+### Tipping-point analysis
+
+A decision is credible only if it does not hang on one arbitrary choice. `tipping_point()` varies one input over a grid of values and finds the tipping points: the values at which the decision changes. The input can be an argument of the prior builder, of `target_data()` or of `decision()`.
+
+For example, how much weight on the source study does the robust mixture prior need for the trial to succeed?
+
+```{r}
+tp <- tipping_point(rmp(belimumab, weight = 0.5), tgt, decision(0.975),
+                    parameter = "weight", values = seq(0, 1, by = 0.1))
+tp
+```
+
+The tipping point lies between two values of the grid. `tipping_point()` finds it with `uniroot()`, as the weight at which the posterior probability of success equals the critical value. A tipping point between two grid values with the same decision stays hidden, so use a fine enough grid.
+
+```{r, fig.width = 7, fig.height = 4}
+plot(tp)
+```
+
+To shift the observed target effect, vary a target argument: `estimate` for a continuous endpoint, or a number of responders for a binary endpoint. The tipping point is then the first count, from the observed one, with the other decision:
+
+```{r}
+tipping_point(rmp(belimumab, weight = 0.5), tgt, decision(0.975),
+              parameter = "responses_treatment", values = c(0, 53))
+```
+
 ## 5. Frequentist operating characteristics
 
 `oc_frequentist()` simulates target trials at fixed true treatment effects, and analyses each trial with the prior and the decision rule. The true effect is the source effect plus `drift`, so a drift of 0 means that the two studies agree. The main arguments are:
@@ -315,6 +347,7 @@ post$model$posterior_cdf(0)  # P(theta <= 0 | data)
 | `posterior(prior, target)` | `Model$new()$create()`, then `$calibrate_for_design()` and `$inference()` |
 | `ess(post)` | `$prior_elir_ess()` or `$posterior_ess()` |
 | `success(post)` | `$test_decision()` |
+| `tipping_point()` | `posterior()` and `$test_decision()` at each value, then `uniroot()` on `$posterior_cdf()` |
 | `oc_frequentist()` | `TargetDataFactory$new()$create()`, then `$estimate_frequentist_operating_characteristics()` |
 | `oc_bayesian()` | `DesignPrior$new()$create()`, then `$estimate_bayesian_operating_characteristics()` |
 

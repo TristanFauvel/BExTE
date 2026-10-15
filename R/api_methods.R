@@ -2,8 +2,8 @@
 #'
 #' @description Methods for the objects that [source_data()],
 #'   [target_data()], the [borrowing_priors] builders, [posterior()],
-#'   [decision()], [design_prior()], [oc_frequentist()] and [oc_bayesian()]
-#'   return.
+#'   [decision()], [design_prior()], [oc_frequentist()], [oc_bayesian()] and
+#'   [tipping_point()] return.
 #'
 #' @param x,object A BExTE object.
 #' @param probs Probabilities of the posterior quantiles.
@@ -12,6 +12,7 @@
 #'   mean plus or minus 4 posterior standard deviations.
 #' @param metric The column of the frequentist OCs to plot against the true
 #'   effect.
+#' @param digits Number of significant digits to print.
 #' @param ... Not used.
 #'
 #' @return `print()` returns `x` invisibly. `summary()` of a posterior returns
@@ -275,6 +276,80 @@ summary.bexte_oc_bayesian <- function(object, ...) {
 #' @export
 as.data.frame.bexte_oc_bayesian <- function(x, ...) {
   attributes(x)[c("method", "hypothesis", "n_rep", "n_draws")] <- NULL
+  class(x) <- "data.frame"
+  x
+}
+
+#' @rdname bexte_methods
+#' @export
+print.bexte_tipping_point <- function(x, digits = 4, ...) {
+  parameter <- attr(x, "parameter")
+  observed <- attr(x, "observed")
+  decision_text <- function(success) if (isTRUE(success)) "success" else "no success"
+  cat("<bexte_tipping_point> ", attr(x, "method"), ": tipping points in `", parameter,
+      "` (", attr(x, "location"), ")\n", sep = "")
+  cat("  Grid: ", nrow(x), " values from ", format(min(x$value), digits = digits), " to ",
+      format(max(x$value), digits = digits), "\n", sep = "")
+  proba <- attr(x, "observed_proba")
+  cat("  Observed ", parameter, " = ", format(observed, digits = digits), ": ",
+      decision_text(attr(x, "observed_success")),
+      if (!is.na(proba)) paste0(" (P = ", format(proba, digits = digits), ")"), "\n", sep = "")
+  tipping_points <- attr(x, "tipping_points")
+  if (length(tipping_points) == 0) {
+    cat("  No tipping point in the grid: the decision is the same at every value.\n")
+    return(invisible(x))
+  }
+  cat("  Tipping points:\n")
+  print(data.frame(
+    tipping_point = tipping_points,
+    shift = tipping_points - observed
+  ), row.names = FALSE, digits = digits)
+  invisible(x)
+}
+
+#' @rdname bexte_methods
+#' @export
+plot.bexte_tipping_point <- function(x, ...) {
+  check_plot_packages()
+  parameter <- attr(x, "parameter")
+  data <- as.data.frame(x)
+  data$decision <- ifelse(data$success, "success", "no success")
+  if (all(is.na(data$success_proba))) {
+    # MCMC models give only the decision.
+    data$success_proba <- as.numeric(data$success)
+    y_label <- "Success (1) or not (0)"
+    threshold <- NULL
+  } else {
+    y_label <- "Posterior probability of success"
+    threshold <- if (parameter == "critical_value") {
+      ggplot2::geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey50")
+    } else {
+      ggplot2::geom_hline(yintercept = attr(x, "critical_value"), linetype = "dashed",
+                          colour = "grey50")
+    }
+  }
+  ggplot2::ggplot(data, ggplot2::aes(x = .data$value, y = .data$success_proba)) +
+    threshold +
+    ggplot2::geom_vline(xintercept = attr(x, "tipping_points"), colour = "firebrick") +
+    ggplot2::geom_vline(xintercept = attr(x, "observed"), linetype = "dotted") +
+    ggplot2::geom_line() +
+    ggplot2::geom_point(ggplot2::aes(shape = .data$decision)) +
+    ggplot2::labs(
+      title = paste("Tipping-point analysis:", attr(x, "method")),
+      subtitle = paste("Red: tipping points. Dotted: observed value.",
+                       if (!is.null(threshold)) "Dashed: critical value."),
+      x = parameter,
+      y = y_label,
+      shape = "Decision"
+    ) +
+    ggplot2::theme_minimal()
+}
+
+#' @rdname bexte_methods
+#' @export
+as.data.frame.bexte_tipping_point <- function(x, ...) {
+  attributes(x)[c("parameter", "location", "observed", "observed_proba", "observed_success",
+                  "tipping_points", "critical_value", "method")] <- NULL
   class(x) <- "data.frame"
   x
 }

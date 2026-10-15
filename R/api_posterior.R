@@ -190,6 +190,24 @@ decision <- function(critical_value = 0.975, theta_0 = NULL, null_space = NULL) 
 }
 
 
+#' Posterior probability that the treatment effect lies outside the null
+#'
+#' @param posterior A `bexte_posterior`.
+#' @param hypothesis A list with `theta_0` and `null_space`.
+#' @return A single number, or `NA` for a model fitted by MCMC, which keeps
+#'   only the 2.5% and 97.5% posterior quantiles.
+#' @keywords internal
+#' @noRd
+api_success_proba <- function(posterior, hypothesis) {
+  model <- posterior$model
+  if (isTRUE(model$mcmc)) {
+    return(NA_real_)
+  }
+  cdf <- unname(model$posterior_cdf(hypothesis$theta_0))
+  if (hypothesis$null_space == "left") 1 - cdf else cdf
+}
+
+
 #' The null hypothesis of a decision rule
 #'
 #' @param rule A `bexte_decision`.
